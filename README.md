@@ -16,6 +16,8 @@ in the course evaluation!
 
 Thanks to you and sorry for any (many I guess, at the current stage) incovenient :-) 
 
+## Compile the simulator
+
 ### Dependencies
 Before starting to compile the ROBOGEN simulator you will need to download and 
 make available to your compiler includes and library paths to:
@@ -39,7 +41,7 @@ to install the required dependencies.
 
 Furthermore, you will need to download and install Cmake (http://www.cmake.org/)
 
-### Compile the simulator
+### Simulator build
 
 1) Once the required dependencies are satisfied (all code compiled successfully), clone this repository
 to get all the needed source code of the simulator
@@ -63,7 +65,7 @@ On Linux, MAC OS X and Windows/MinGW, from terminal, enter ROBOGEN_DIR and run
     
 On Windows/Visual Studio... [this must be contributed by someone :-)]
 
-### Generating projects for your IDE (Eclipse, Visual Studio)
+### Generating projects for your IDE (Eclipse, Visual Studio, etc.)
 
 Using CMAKE you can as well generate projects for different IDEs. 
 For example, to generate a project that can be imported in eclipse
@@ -73,7 +75,48 @@ For example, to generate a project that can be imported in eclipse
 
 Please check the CMAKE manual for the correct command to generate projects for other IDEs.
 
-### Running
+## Executables
+
+The most important executables are:
+* robogen-file-viewer, a small utility to visualize the robot structures.
+* robogen-simulator, the main simulator software, to be used as a server software, listen for connections from the ROBOGEN EA,
+  evaluates robots and returns their fitness to the EA
+
+    robogen-file-viewer ROBOT_FILE CONF_FILE
+    
+where ROBOT_FILE is the robot structure and configuration file is a file containing the ROBOGEN simulator configuration
+
+    robogen-simulator PORT
+    
+where PORT is the port on which the server will listen for connections.
+    
+### Configuration file
+
+#### Main configuration file
+
+    scenario=racing                      # Can be racing OR chasing
+    timeStep=0.01                        # Timestep [s]
+    nTimeSteps=4000                      # Number of timesteps 
+    terrainType=flat                     # Flat or rough 
+    terrainLength=1                      # [m]
+    terrainWidth=1                       # [m]
+    terrainHeight=0.5                    # [Optional] Max terrain altitude [m]
+    terrainHeightField=test.gif          # [Optional] a grayscale image
+    obstaclesConfigFile=obstacles.txt    # Obstacles configuration file
+    startPositionConfigFile=startPos.txt # Start position configuration file
+    
+#### Obstacles file
+
+    #List of obstacles positions and size, separated by a tab, an obstacle per line
+    X Y X_SIZE Y_SIZE Z_SIZE
+
+#### Start Position file
+
+    #List of starting positions, separated by a tab.# A starting position per line
+    X Y
+
+## Running the Robogen Simulator
 
 Once the simulator compiled succesfully, remember to copy the robogen-simulator/models/ folder into the folder from which you
 will run your executable, otherwise the 3D models for the ROBOGEN robots cannot be loaded.
+Check in the examples/ folder for sample configuration files and 5 examples robot structure that can be visualized.
