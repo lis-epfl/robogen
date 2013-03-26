@@ -41,6 +41,8 @@ to install the required dependencies.
 
 Furthermore, you will need to download and install Cmake (http://www.cmake.org/)
 
+*Carefull : Visual Studio express 2012 is not supported yet by any version of cmake. 
+
 ### Simulator build
 
 1) Once the required dependencies are satisfied (all code compiled successfully), clone this repository
