@@ -1,9 +1,6 @@
 #This file is generally not needed and is included only if libraries are installed in non-standard locations
 # Uncomment and set appropriately the following paths
 
-set (ODE_INCLUDE_PATH "/home/andrea/software/etc/include")
-set (ODE_LIBRARIES "/home/andrea/software/etc/lib/libode.so")
-
 #SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/devel/zlib-1.2.7/debug")
 #SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/OpenSceneGraph-3.0.1/lib")
 
