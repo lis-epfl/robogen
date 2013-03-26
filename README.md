@@ -41,7 +41,8 @@ to install the required dependencies.
 
 Furthermore, you will need to download and install Cmake (http://www.cmake.org/)
 
-*Carefull : Visual Studio express 2012 is not supported yet by any version of cmake. 
+*Carefull : Visual Studio express 2012 is not supported yet by any version of cmake.
+Check : http://www.microsoft.com/visualstudio/eng/downloads for having Visual Studio 2010
 
 ### Simulator build
 
