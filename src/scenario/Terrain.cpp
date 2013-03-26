@@ -85,8 +85,8 @@ bool Terrain::initRough(const std::string& heightMapFileName, float width,
 	int xCount = image->s();
 	int yCount = image->t();
 
-	float startX = -width/2;
-	float startY = -depth/2;
+	float startX = -width / 2;
+	float startY = -depth / 2;
 
 	float spacingX = width / (xCount - 1);
 	float spacingY = depth / (yCount - 1);
@@ -101,8 +101,6 @@ bool Terrain::initRough(const std::string& heightMapFileName, float width,
 			mapData[3 * j + 1] = startY + spacingY * y;
 			mapData[3 * j + 2] = (*image->data(x, y) / 255.0) * height;
 
-			std::cout << mapData[3 * j] << ", " << mapData[3 * j + 1] << "- " << mapData[3 * j + 2] << std::endl;
-
 		}
 	}
 
@@ -115,7 +113,9 @@ bool Terrain::initRough(const std::string& heightMapFileName, float width,
 	}
 
 	dTriMeshDataID trimesh = dGeomTriMeshDataCreate();
-	dGeomTriMeshDataBuildDouble(trimesh, &mapData[0], 3 * sizeof(double), xCount * yCount, &indices[0], xCount * yCount * 3, 3 * sizeof(dTriIndex));
+	dGeomTriMeshDataBuildDouble(trimesh, &mapData[0], 3 * sizeof(double),
+			xCount * yCount, &indices[0], xCount * yCount * 3,
+			3 * sizeof(dTriIndex));
 
 	odeGeometry_ = dCreateTriMesh(odeSpace_, trimesh, 0, 0, 0);
 

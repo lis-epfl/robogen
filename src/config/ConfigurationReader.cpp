@@ -99,7 +99,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 
 		terrain.reset(new TerrainConfig(terrainLength, terrainWidth));
 
-	} else if (terrainType.compare("rough") == 0) {
+	} else if (terrainType.compare("rugged") == 0) {
 
 		std::string terrainHeightField;
 		float terrainHeight;

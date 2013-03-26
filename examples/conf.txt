@@ -1,0 +1,8 @@
+scenario=racing
+timeStep=0.01
+nTimeSteps=4000
+terrainType=flat
+terrainLength=2
+terrainWidth=2
+obstaclesConfigFile=obstacles.txt
+startPositionConfigFile=startPos.txt

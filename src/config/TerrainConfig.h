@@ -115,7 +115,7 @@ private:
 	bool flat_;
 
 	/**
-	 * If terrain is rough, contains the height field file name
+	 * If terrain is rugged, contains the height field file name
 	 */
 	std::string heightFieldFileName_;
 

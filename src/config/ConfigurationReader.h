@@ -52,11 +52,11 @@ public:
 	 * scenario=<"racing"|"chasing">
 	 * timeStep=FLOAT
 	 * nTimeSteps=FLOAT
-	 * terrainType=<"flat"|"rough">
+	 * terrainType=<"flat"|"rugged">
 	 * terrainLength=FLOAT
 	 * terrainWidth=FLOAT
-	 * terrainHeight=FLOAT [Mandatory if terrainType=="rough", ignored otherwise]
-	 * terrainHeightField=STRING [Mandatory if terrainType=="rough", ignored otherwise]
+	 * terrainHeight=FLOAT [Mandatory if terrainType=="rugged", ignored otherwise]
+	 * terrainHeightField=STRING [Mandatory if terrainType=="rugged", ignored otherwise]
 	 * obstaclesConfigFile=STRING
 	 * startPositionConfigFile=STRING
 	 *
