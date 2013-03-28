@@ -17,13 +17,19 @@ in the course evaluation!
 
 Thanks to you for your help and sorry for any (many I guess, at the current stage) incovenient :-) 
 
-## Requirements
+## Git Repository
 
 To obtain a version of the simulator code, and pull future updates you need to install
 a client for GIT. Please quickly go through the GitHub help to get a grasp of how GIT works 
 (https://help.github.com/articles/set-up-git).
 
-Also, you need to download and install Cmake (http://www.cmake.org/), which
+Note that the repository is kept private on purpose for the current semester. 
+DO NOT fork it and make it publicly available. Also, although your are all given push rights,
+before pushing your own modifications to the master repository it would be preferable to discuss them with us.
+
+## Requirements
+
+You need to download and install Cmake (http://www.cmake.org/), which
 will be aiding us in compiling the source code and/or automatically create a project for your favorite IDE.
 
 Before starting to compile the ROBOGEN simulator you will need to download and 
