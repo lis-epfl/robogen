@@ -144,3 +144,9 @@ Check in the examples/ folder for sample configuration files and 5 examples robo
 
 On Windows, you need to copy your executables and model folder in the run/ folder contained in the utils.zip archive
 that you downloaded from http://dl.dropbox.com/u/12390423/utils.zip
+
+## KNOWN ISSUES
+
+If you try to visualize structures containing light sensors the simulation will be extremely slow 
+(for example the structure in examples/r1.txt). We are aware of this issue
+and working to provide a different implementation of the light sensor to solve it.
