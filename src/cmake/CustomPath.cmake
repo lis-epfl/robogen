@@ -1,33 +1,37 @@
-#This file is generally not needed and is included only if libraries are installed in non-standard locations
+# This file is generally not needed and is included only if libraries are installed in non-standard locations
 # Uncomment and set appropriately the following paths
 
-#SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/devel/zlib-1.2.7/debug")
-#SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/OpenSceneGraph-3.0.1/lib")
+# Set the path to your utils folder
+#set(UTILS_PATH "C:/Users/lis/Documents/Robogen/Simulator/utils")
 
-#set (ODE_INCLUDE_PATH "C:/ode012/include")
-#set (ODE_LIBRARIES "C:/ode012/lib/debugdoubledll/ode_doubled.lib")
+####################################################################
+# Do not edit under this line
+####################################################################
 
-#set (ZLIB_ROOT "C:/devel/zlib-1.2.7")
-#set (PNG_PNG_INCLUDE_DIR "C:/devel/libpng-1.5.14")
-#set (PNG_LIBRARY "C:/devel/libpng-1.5.14/debug/libpng15d.lib")
+if (WIN32)
 
-#set (OSG_LIBRARY "C:/OpenSceneGraph-3.0.1/lib/osgd.lib")
-#set (OSGVIEWER_LIBRARY "C:/OpenSceneGraph-3.0.1/lib/osgViewerd.lib")
-#set (OSGDB_LIBRARY "C:/OpenSceneGraph-3.0.1/lib/osgDBd.lib")
-#set (OSGGA_LIBRARY "C:/OpenSceneGraph-3.0.1/lib/osgGAd.lib")
-#set (OSGTERRAIN_LIBRARY "C:/OpenSceneGraph-3.0.1/lib/osgTerraind.lib")
-#set (OPENTHREADS_LIBRARY "C:/OpenSceneGraph-3.0.1/lib/OpenThreadsd.lib")
+	# ZLIB
+	set (ZLIB_ROOT ${UTILS_PATH})
 
-#set (PROTOBUF_INCLUDE_DIR "C:/google/protobuf/src/google/protobuf")
-#set (PROTOBUF_INCLUDE_DIR "C:/google/protobuf/src")
-#set (PROTOBUF_SRC_ROOT_FOLDER "C:/google/protobuf")
-#set (PROTO_SRCS "C:/google/protobuf/src")
+	# PNG
+	set (PNG_PNG_INCLUDE_DIR ${UTILS_PATH})
+	set (PNG_LIBRARY "${UTILS_PATH}/lib/libpng.lib")
 
-#set (PROTOBUF_LIBRARY "C:/google/protobuf/vsprojects/Debug/libprotobuf.lib")
+	# OSG
+	set(ENV{OSG_DIR} ${UTILS_PATH} )
 
-#set (PROTOBUF_PROTOC_LIBRARY_DEBUG "C:/google/protobuf/vsprojects/Debug/libprotoc.lib")
-#set (PROTOBUF_PROTOC_EXECUTABLE "C:/google/protobuf/vsprojects/Debug/protoc.exe")
+	# Protobuf
+	set (PROTOBUF_INCLUDE_DIR "${UTILS_PATH}/include")
+	set (PROTOBUF_LIBRARY "${UTILS_PATH}/lib/libprotobuf.lib")
+	set (PROTOBUF_LIBRARY_DEBUG "${UTILS_PATH}/lib/libprotobufd.lib")
+	set (PROTOBUF_PROTOC_EXECUTABLE "${UTILS_PATH}/bin/protoc.exe")
 
-#set (BOOST_ROOT "C:/boost_1_52_0")
-#set (Boost_LIBRARY_DIRS "C:/boost_1_52_0/stage/lib")
-#set (Boost_LIBRARIES "C:/boost_1_52_0/stage/lib/*.lib")
+	# BOOST
+	set (BOOST_ROOT ${UTILS_PATH})
+	set (Boost_USE_STATIC_LIBS ON)
+
+	# ODE
+	set (ODE_INCLUDE_PATH "${UTILS_PATH}/include")
+	set (ODE_LIBRARIES "${UTILS_PATH}/lib/ode_double.lib")
+
+endif()

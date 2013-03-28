@@ -42,16 +42,16 @@ if(UNIX)
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb3 -DDEBUG")
 	
 	# Release flags
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -funroll-loops -finline-functions -fomit-frame-pointer -DLOGGING_DEBUG_DISABLED -DNDEBUG")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -funroll-loops -finline-functions -fomit-frame-pointer -DNDEBUG")
 	
 
 elseif(WIN32)
 
 	# Debug Flags 
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -DDEBUG")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -DDEBUG /MP")
 	
 	# Release flags
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DLOGGING_DEBUG_DISABLED -DNDEBUG")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG /MP")
 
 endif()
 
@@ -76,7 +76,7 @@ file (GLOB_RECURSE
 )
  
 
-find_package(Boost COMPONENTS graph system program_options)
+find_package(Boost COMPONENTS date_time graph system program_options regex)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(PNG REQUIRED)
