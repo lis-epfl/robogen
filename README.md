@@ -3,22 +3,29 @@ robogen-simulator
 
 The ROBOGEN simulator
 
-The simulator can be compiled on Linux, Windows and MAC OSX. Unfortunately, this semester the code is still 
-experimental and therefore we do not have any precompiled distributable to ship you. 
+The simulator can be compiled on Linux, Windows and MAC OSX. 
+Unfortunately, this semester the code is still  experimental, therefore we do not have any precompiled distributable to ship you. 
+
 Hopefully, thanks to your help, we will produce a stable and robust codebase for the next semester students.
 
 Please, use github as much as possible to report us bugs, issues and ideas for improvement.
-Whenever you signal a bug, make sure your description contains:
+Whenever you open a ticket for a bug, make sure your description contains:
 1) Machine on which the error happened, OS version, installed libraries versions (See dependendencies later)
 2) A List of instructions needed to reproduce your bug.
 Also, given the premature state of the project, we will keep into consideration your effort in helping us improving the code
 in the course evaluation!
 
-Thanks to you and sorry for any (many I guess, at the current stage) incovenient :-) 
+Thanks to you for your help and sorry for any (many I guess, at the current stage) incovenient :-) 
 
-## Compile the simulator
+## Requirements
 
-### Dependencies
+To obtain a version of the simulator code, and pull future updates you need to install
+a client for GIT. Please quickly go through the GitHub help to get a grasp of how GIT works 
+(https://help.github.com/articles/set-up-git).
+
+Also, you need to download and install Cmake (http://www.cmake.org/), which
+will be aiding us in compiling the source code and/or automatically create a project for your favorite IDE.
+
 Before starting to compile the ROBOGEN simulator you will need to download and 
 make available to your compiler includes and library paths to:
 * zLib (http://www.zlib.net/)
@@ -30,6 +37,8 @@ make available to your compiler includes and library paths to:
 
 ODE must be compiled in double precision mode (dDOUBLE preprocessor flag)
 
+### Linux 
+
 On Linux we advise to install all the needed dependencies from available repositories, except for ODE 
 which has to be built in double precision mode.
 For example, in Ubuntu Linux 12.04 you can type
@@ -39,12 +48,17 @@ For example, in Ubuntu Linux 12.04 you can type
 
 to install the required dependencies.
 
-Furthermore, you will need to download and install Cmake (http://www.cmake.org/)
+### Windows
 
-*Carefull : Visual Studio express 2012 is not supported yet by any version of cmake.
-Check : http://www.microsoft.com/visualstudio/eng/downloads for having Visual Studio 2010
+To assist the compilation of ROBOGEN on Windows, we preship an archive containing all the already compiled 
+dependencies (x86, 32bits, available on http://dl.dropbox.com/u/12390423/utils.zip). 
+To avoid problems, download and install Visual Studio Express 2010 (http://www.microsoft.com/visualstudio/eng/downloads).
 
-### Simulator build
+### MAC OS X
+
+[ Someone will have to contribute guidelines for MAC, as I do not have one :-( ]
+
+## Simulator build
 
 1) Once the required dependencies are satisfied (all code compiled successfully), clone this repository
 to get all the needed source code of the simulator
@@ -54,7 +68,9 @@ to get all the needed source code of the simulator
 2) Modify the paths in src/cmake/CustomPath.cmake pointing them to the correct libraries/include directories.
 Note that you need to modify only those paths pointing to non-standard locations, i.e. if you installed a library under Linux
 under a standard path (e.g. /usr/lib) you do not need to update the corresponding line in CustomPath.cmake
-
+On Linux, you'll probably not modify anything on this file. On Windows, you need to download and extract the content of the 
+precompiled libraries archive (http://dl.dropbox.com/u/12390423/utils.zip) and uncomment the fist line of CustomPath.cmake pointing it to the utils/ folder contained
+in the archive.
 
 3) Create an empty directory somewhere in your filesystem. We will call this directory ROBOGEN_DIR. Instead, we will
 refer to the directory that contains the source code (robogen-simulator/src) as the ROBOGEN_SOURCE_DIR
@@ -66,7 +82,9 @@ On Linux, MAC OS X and Windows/MinGW, from terminal, enter ROBOGEN_DIR and run
     cmake -DCMAKE_BUILD_TYPE=Release ROBOGEN_SOURCE_DIR
     make -j4
     
-On Windows/Visual Studio... [this must be contributed by someone :-)]
+On Windows + Visual Studio, open CMAKE GUI, enter the ROBOGEN_SOURCE_DIR in "Where to find the source" and ROBOGEN_DIR 
+in "Where to build the source". Click on Configure and when done, on Generate to create a solution for Visual Studio.
+The, from Visual Studio open the solution "RobogenSimulator.sln" that can be found in ROBOGEN_DIR.
 
 ### Generating projects for your IDE (Eclipse, Visual Studio, etc.)
 
@@ -100,7 +118,7 @@ where PORT is the port on which the server will listen for connections.
     scenario=racing                      # Can be racing OR chasing
     timeStep=0.01                        # Timestep [s]
     nTimeSteps=4000                      # Number of timesteps 
-    terrainType=flat                     # Flat or rough 
+    terrainType=flat                     # Flat or rugged 
     terrainLength=1                      # [m]
     terrainWidth=1                       # [m]
     terrainHeight=0.5                    # [Optional] Max terrain altitude [m]
@@ -123,3 +141,6 @@ where PORT is the port on which the server will listen for connections.
 Once the simulator compiled succesfully, remember to copy the robogen-simulator/models/ folder into the folder from which you
 will run your executable, otherwise the 3D models for the ROBOGEN robots cannot be loaded.
 Check in the examples/ folder for sample configuration files and 5 examples robot structure that can be visualized.
+
+On Windows, you need to copy your executables and model folder in the run/ folder contained in the utils.zip archive
+that you downloaded from http://dl.dropbox.com/u/12390423/utils.zip
