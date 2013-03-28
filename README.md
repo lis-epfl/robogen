@@ -1,7 +1,7 @@
-robogen-simulator
+The ROBOGEN simulator
 =================
 
-The ROBOGEN simulator
+**Read carefully ALL the document before starting doing anything!**
 
 The simulator can be compiled on Linux, Windows and MAC OSX. 
 Unfortunately, this semester the code is still  experimental, therefore we do not have any precompiled distributable to ship you. 
@@ -25,7 +25,8 @@ a client for GIT. Please quickly go through the GitHub help to get a grasp of ho
 
 Note that the repository is kept private on purpose for the current semester. 
 DO NOT fork it and make it publicly available. Also, although your are all given push rights,
-before pushing your own modifications to the master repository it would be preferable to discuss them with us.
+before pushing your own modifications to the master repository it would be better to discuss them with us.
+Remember **PULL is OK**, **PUSH is dangerous!!** and MUST be discussed with us.
 
 ## Requirements
 
