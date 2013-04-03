@@ -1,5 +1,6 @@
 The ROBOGEN simulator
 =================
+Andrea Maesani (andrea.maesani@epfl.ch), April 3 2013
 
 **Read carefully ALL the document before starting doing anything!**
 
@@ -16,6 +17,14 @@ Also, given the premature state of the project, we will keep into consideration 
 in the course evaluation!
 
 Thanks to you for your help and sorry for any (many I guess, at the current stage) incovenient :-) 
+
+## Contributions
+
+Here, we will keep track of your contributions both for the final evaluation and 
+for maintaining your name associated to the project.
+
+* **Mikaz-fr** (Name Surname, Email) contributed instructions to compile the code 
+ on MAC OS X and adapted part of the CMAKE code for MAC OS. 
 
 ## Git Repository
 
