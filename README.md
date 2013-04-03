@@ -23,7 +23,7 @@ Thanks to you for your help and sorry for any (many I guess, at the current stag
 Here, we will keep track of your contributions both for the final evaluation and 
 for maintaining your name associated to the project.
 
-* **Mikaz-fr** (Name Surname, Email) contributed instructions to compile the code 
+* **Mikaz-fr** (Roy Michaël, michael.roy@epfl.ch) contributed instructions to compile the code 
  on MAC OS X and adapted part of the CMAKE code for MAC OS. 
 
 ## Git Repository
@@ -73,6 +73,7 @@ To avoid problems, download and install Visual Studio Express 2010 (http://www.m
 ### MAC OS X
 
 [ Someone will have to contribute guidelines for MAC, as I do not have one :-( ]
+Some help can be found on the [dedicated wiki page](https://github.com/amaesani/robogen-simulator/wiki/Building-robogen-simulator-on-Mac).
 
 ## Simulator build
 

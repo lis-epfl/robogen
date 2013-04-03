@@ -8,6 +8,34 @@
 # Do not edit under this line
 ####################################################################
 
+if (APPLE)
+
+	# ZLIB
+	set (ZLIB_ROOT ${UTILS_PATH})
+
+	# PNG
+	set (PNG_PNG_INCLUDE_DIR ${UTILS_PATH})
+	set (PNG_LIBRARY "${UTILS_PATH}/lib/libpng.a")
+
+	# OSG
+	set(ENV{OSG_DIR} ${UTILS_PATH} )
+
+	# Protobuf
+	set (PROTOBUF_INCLUDE_DIR "${UTILS_PATH}/include")
+	set (PROTOBUF_LIBRARY "${UTILS_PATH}/lib/libprotobuf.a")
+	set (PROTOBUF_LIBRARY_DEBUG "${UTILS_PATH}/lib/libprotobufd.lib")
+	set (PROTOBUF_PROTOC_EXECUTABLE "${UTILS_PATH}/bin/protoc")
+
+	# BOOST
+	set (BOOST_ROOT ${UTILS_PATH})
+	set (Boost_USE_STATIC_LIBS ON)
+
+	# ODE
+	set (ODE_INCLUDE_PATH "${UTILS_PATH}/include")
+	set (ODE_LIBRARIES "${UTILS_PATH}/lib/libode.a")
+
+endif()
+
 if (WIN32)
 
 	# ZLIB
