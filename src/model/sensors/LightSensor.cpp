@@ -31,6 +31,7 @@
 
 namespace robogen {
 
+const float LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP = 0.25;
 const int LightSensor::MIN_INTENSITY_VALUE = 0;
 const int LightSensor::MAX_INTENSITY_VALUE = 1023;
 const double LightSensor::MIN_INTENSITY = 0;
@@ -39,7 +40,7 @@ const double LightSensor::HALF_APERTURE = 10;
 const double LightSensor::SENSOR_RESOLUTION = 5;
 
 LightSensor::LightSensor(dSpaceID odeSpace) :
-		odeSpace_(odeSpace) {
+		odeSpace_(odeSpace), lastReadOutput_(MIN_INTENSITY_VALUE) {
 
 }
 
@@ -85,16 +86,6 @@ void odeRayTracingCallback(void*, dGeomID o1, dGeomID o2) {
 	}
 
 	dContact contact[MAX_CONTACTS];
-	/*for (int i = 0; i < MAX_CONTACTS; i++) {
-
-		contact[i].surface.mode = dContactBounce | dContactSoftCFM;
-		contact[i].surface.mu = dInfinity;
-		contact[i].surface.mu2 = 0;
-		contact[i].surface.bounce = 0.01;
-		contact[i].surface.bounce_vel = 0.1;
-		contact[i].surface.soft_cfm = 0.0001;
-
-	}*/
 
 	// Check what kind of geometries
 	CustomGeomData* userDataO1 = (CustomGeomData*) dGeomGetData(o1);
@@ -218,7 +209,11 @@ void odeRayTracingCallback(void*, dGeomID o1, dGeomID o2) {
 
 int LightSensor::read(
 		const std::vector<boost::shared_ptr<LightSource> >& lightSources,
-		double ambientLight) {
+		double ambientLight, bool updateSensor) {
+
+	if (!updateSensor) {
+		return lastReadOutput_;
+	}
 
 	std::vector<boost::shared_ptr<LightSourceInfo> > lightSourceInfos;
 	std::vector<boost::shared_ptr<RayTrace> > rayGeometries;
@@ -341,15 +336,19 @@ int LightSensor::read(
 	}
 
 	// Rescale total light received
+	int output = 0;
 	if (totalLight >= MAX_INTENSITY) {
-		return MAX_INTENSITY_VALUE;
+		output = MAX_INTENSITY_VALUE;
 	} else if (totalLight <= MIN_INTENSITY) {
-		return MIN_INTENSITY_VALUE;
+		output = MIN_INTENSITY_VALUE;
 	} else {
-		return MIN_INTENSITY_VALUE
+		output = MIN_INTENSITY_VALUE
 				+ (std::min(totalLight, MAX_INTENSITY) - MIN_INTENSITY) / 100
 						* (MAX_INTENSITY_VALUE - MIN_INTENSITY_VALUE);
 	}
+
+	lastReadOutput_ = output;
+	return output;
 
 }
 

@@ -94,7 +94,8 @@ int main(int argc, char *argv[]) {
 	dWorldSetCFM(odeWorld, 0.2);
 
 	// Create collision world
-	dSpaceID odeSpace = dSimpleSpaceCreate(0);
+	//dSpaceID odeSpace = dSimpleSpaceCreate(0);
+	dSpaceID odeSpace = dHashSpaceCreate(0);
 
 	// Create contact group
 	odeContactGroup = dJointGroupCreate(0);
@@ -244,6 +245,7 @@ int main(int argc, char *argv[]) {
 	int count = 0;
 	double deltaSecs = 0;
 	double t = 0;
+	double lastLightSensorUpdateT = 0;
 	osg::Timer_t prevTime = osg::Timer::instance()->tick();
 	while (t < configuration->getSimulationTime() && !viewer.done()) {
 
@@ -291,6 +293,12 @@ int main(int argc, char *argv[]) {
 					}
 				}
 
+				bool updateLightSensors = false;
+				if (t - lastLightSensorUpdateT
+						> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
+					updateLightSensors = true;
+					lastLightSensorUpdateT = t;
+				}
 				for (unsigned int i = 0; i < sensors.size(); ++i) {
 
 					if (boost::dynamic_pointer_cast<TouchSensor>(sensors[i])) {
@@ -298,9 +306,13 @@ int main(int argc, char *argv[]) {
 								TouchSensor>(sensors[i])->read();
 					} else if (boost::dynamic_pointer_cast<LightSensor>(
 							sensors[i])) {
+
+						// Light sensors are updated with a different frequency than the simulation timestep
 						networkInput[i] = boost::dynamic_pointer_cast<
 								LightSensor>(sensors[i])->read(
-								env->getLightSources(), env->getAmbientLight());
+								env->getLightSources(), env->getAmbientLight(),
+								updateLightSensors);
+
 					} else if (boost::dynamic_pointer_cast<SimpleSensor>(
 							sensors[i])) {
 						networkInput[i] = boost::dynamic_pointer_cast<

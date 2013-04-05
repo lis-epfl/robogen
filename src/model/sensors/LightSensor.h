@@ -42,6 +42,13 @@ class LightSensor: public Sensor {
 public:
 
 	/**
+	 * Default timestep for updating sensor value.
+	 * This value is not used by the LightSensor class itself, but can used as a reference
+	 * for a caller of LightSensor::read to set the updateSensor flag appropriately
+	 */
+	static const float DEFAULT_SENSOR_UPDATE_TIMESTEP;
+
+	/**
 	 * Minimum and maximum intensity value that is provided
 	 * as output of the sensor
 	 */
@@ -82,8 +89,12 @@ public:
 
 	/**
 	 * Read sensor output, providing the light sources in the environment
+	 * @lightSources
+	 * @ambientLight
+	 * @updateSensor as the computation of the sensor is very time consuming, the sensor will not update its output until this flag is set to true and
+	 *               return its last measurement
 	 */
-	int read(const std::vector<boost::shared_ptr<LightSource> >& lightSources, double ambientLight);
+	int read(const std::vector<boost::shared_ptr<LightSource> >& lightSources, double ambientLight, bool updateSensor);
 
 private:
 
@@ -101,6 +112,11 @@ private:
 	 * Ode collision space
 	 */
 	dSpaceID odeSpace_;
+
+	/**
+	 * Output of the last read
+	 */
+	int lastReadOutput_;
 
 };
 
