@@ -21,6 +21,8 @@ Thanks to you for your help and sorry for any (many I guess, at the current stag
 ## Latest updates
 
 * April 5: The light sensor has now a decent execution time, no more affecting the simulator performance.
+* April 12: The simulator now sends a bias for each evolved neuron in the neural network controller. The simulator
+ has been changed to initialize correctly the neural network.
 
 ## Contributions
 
@@ -130,6 +132,8 @@ The most important executables are:
 * robogen-file-viewer, a small utility to visualize the robot structures.
 * robogen-simulator, the main simulator software, to be used as a server software, listen for connections from the ROBOGEN EA,
   evaluates robots and returns their fitness to the EA
+
+You can run them, launching them from terminal with the following parameters:
 
     robogen-file-viewer ROBOT_FILE CONF_FILE
     
