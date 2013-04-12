@@ -33,8 +33,9 @@ message NeuralConnection {
 message Neuron {
   required string id = 1;
   required string layer = 2;
-  optional string bodyPartId = 3; 
-  optional int32 ioId = 4;
+  required float biasWeight = 3;
+  optional string bodyPartId = 4; 
+  optional int32 ioId = 5;
 }
 
 message Brain {

@@ -244,16 +244,20 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 	BodyUndirectedGraph bodyTreeUndirected;
 	boost::copy_graph(bodyTree, bodyTreeUndirected);
 
-	int numComponents = boost::connected_components(bodyTreeUndirected, &component[0]);
+	int numComponents = boost::connected_components(bodyTreeUndirected,
+			&component[0]);
 	if (numComponents != 1) {
-		std::cout << "The robot body has some disconnected component (ConnComponents: " << numComponents << ")" << std::endl;
+		std::cout
+				<< "The robot body has some disconnected component (ConnComponents: "
+				<< numComponents << ")" << std::endl;
 		return false;
 	}
 
 	BodyConnectionVisitor vis(odeWorld_, bodyParts_, bodyPartsMap_);
 	boost::breadth_first_search(bodyTree, rootNode, boost::visitor(vis));
 
-	std::cout << "Sensors: " << sensors_.size() << ", motors: " << motors_.size() << std::endl;
+	std::cout << "Sensors: " << sensors_.size() << ", motors: "
+			<< motors_.size() << std::endl;
 
 	return true;
 
@@ -273,6 +277,24 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	std::map<std::string, unsigned int> outputNeuronIds;
 	std::vector<unsigned int> brainOutputToBodyPart;
 	std::vector<unsigned int> brainOutputToIoId;
+
+	float weight[MAX_INPUT_NEURONS * MAX_OUTPUT_NEURONS
+			+ MAX_OUTPUT_NEURONS * MAX_OUTPUT_NEURONS];
+	float bias[MAX_OUTPUT_NEURONS];
+	float gain[MAX_OUTPUT_NEURONS];
+
+	// Fill it with zeros
+	for (unsigned int i = 0; i < MAX_INPUT_NEURONS; ++i) {
+		for (unsigned int j = 0; j < MAX_OUTPUT_NEURONS; ++j) {
+			weight[i * MAX_OUTPUT_NEURONS + j] = 0;
+		}
+	}
+	for (unsigned int i = 0; i < MAX_OUTPUT_NEURONS; ++i) {
+		for (unsigned int j = 0; j < MAX_OUTPUT_NEURONS; ++j) {
+			weight[MAX_INPUT_NEURONS * MAX_OUTPUT_NEURONS
+					+ i * MAX_OUTPUT_NEURONS + j] = 0;
+		}
+	}
 
 	// Read neurons
 	for (int i = 0; i < robotBrain.neuron_size(); ++i) {
@@ -318,6 +340,9 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 							nOutputs));
 			isNeuronInput.insert(
 					std::pair<std::string, bool>(neuron.id(), false));
+
+			bias[nOutputs] = neuron.biasweight();
+			gain[nOutputs] = 1;
 
 			nOutputs++;
 
@@ -396,31 +421,14 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 		return false;
 	}
 
-	std::cout << "OSensors: " << orderedSensors.size() << ", Omotors: " << orderedMotors.size() << std::endl;
+	std::cout << "OSensors: " << orderedSensors.size() << ", Omotors: "
+			<< orderedMotors.size() << std::endl;
 
 	sensors_ = orderedSensors;
 	motors_ = orderedMotors;
 
 	// Count how many neurons
 	neuralNetwork_.reset(new NeuralNetwork);
-
-	float weight[MAX_INPUT_NEURONS * MAX_OUTPUT_NEURONS
-			+ MAX_OUTPUT_NEURONS * MAX_OUTPUT_NEURONS];
-	float bias[MAX_OUTPUT_NEURONS];
-	float gain[MAX_OUTPUT_NEURONS];
-
-	// Fill it with zeros
-	for (unsigned int i = 0; i < MAX_INPUT_NEURONS; ++i) {
-		for (unsigned int j = 0; j < MAX_OUTPUT_NEURONS; ++j) {
-			weight[i * MAX_OUTPUT_NEURONS + j] = 0;
-		}
-	}
-	for (unsigned int i = 0; i < MAX_OUTPUT_NEURONS; ++i) {
-		for (unsigned int j = 0; j < MAX_OUTPUT_NEURONS; ++j) {
-			weight[MAX_INPUT_NEURONS * MAX_OUTPUT_NEURONS
-					+ i * MAX_OUTPUT_NEURONS + j] = 0;
-		}
-	}
 
 	// Decode the connections
 	for (int i = 0; i < robotBrain.connection_size(); ++i) {
