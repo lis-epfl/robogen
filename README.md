@@ -18,6 +18,10 @@ in the course evaluation!
 
 Thanks to you for your help and sorry for any (many I guess, at the current stage) incovenient :-) 
 
+## Latest updates
+
+* April 5: The light sensor has now a decent execution time, no more affecting the simulator performance.
+
 ## Contributions
 
 Here, we will keep track of your contributions both for the final evaluation and 
@@ -85,10 +89,17 @@ to get all the needed source code of the simulator
 2) Modify the paths in src/cmake/CustomPath.cmake pointing them to the correct libraries/include directories.
 Note that you need to modify only those paths pointing to non-standard locations, i.e. if you installed a library under Linux
 under a standard path (e.g. /usr/lib) you do not need to update the corresponding line in CustomPath.cmake
-On Linux, you'll probably not modify anything on this file. On Windows, you need to download and extract the content of the 
-precompiled libraries archive (http://dl.dropbox.com/u/12390423/utils.zip) and uncomment the fist line of CustomPath.cmake pointing it to the utils/ folder contained
-in the archive.
 
+On Linux, you'll probably not modify anything on this file. 
+
+On Windows, you need to download and extract the content of the precompiled libraries archive (http://dl.dropbox.com/u/12390423/utils.zip) and uncomment the fist line of CustomPath.cmake pointing it to the utils/ folder contained
+in the archive. Watch out that when you extract the archive you might generate a containing folder named as the archive.
+For example you might end up having a structure like:
+
+     + utils << DO NOT use this path...
+         |-- utils << ...instead CustomPath.cmake should point to this folder
+         |-- run
+     
 3) Create an empty directory somewhere in your filesystem. We will call this directory ROBOGEN_DIR. Instead, we will
 refer to the directory that contains the source code (robogen-simulator/src) as the ROBOGEN_SOURCE_DIR
 
@@ -161,9 +172,3 @@ Check in the examples/ folder for sample configuration files and 5 examples robo
 
 On Windows, you need to copy your executables and model folder in the run/ folder contained in the utils.zip archive
 that you downloaded from http://dl.dropbox.com/u/12390423/utils.zip
-
-## KNOWN ISSUES
-
-If you try to visualize structures containing light sensors the simulation will be extremely slow 
-(for example the structure in examples/r1.txt). We are aware of this issue
-and working to provide a different implementation of the light sensor to solve it.
