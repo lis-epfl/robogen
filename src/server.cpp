@@ -353,7 +353,6 @@ int main(int argc, char* argv[]) {
 
 				socket.write(sendBuffer);
 
-				std::cout << "Visualization terminated" << std::endl;
 
 			}
 

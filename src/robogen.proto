@@ -33,7 +33,7 @@ message NeuralConnection {
 message Neuron {
   required string id = 1;
   required string layer = 2;
-  required float biasWeight = 3;
+  optional float biasWeight = 3;
   optional string bodyPartId = 4; 
   optional int32 ioId = 5;
 }

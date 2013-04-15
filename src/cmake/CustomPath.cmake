@@ -8,6 +8,16 @@
 # Do not edit under this line
 ####################################################################
 
+if (UNIX)
+if ("${CMAKE_SYSTEM}" MATCHES "Linux")
+
+    # ODE
+	set (ODE_INCLUDE_PATH "/usr/include")
+	set (ODE_LIBRARIES "/usr/lib/libode.so")
+
+endif ()
+endif (UNIX)
+
 if (APPLE)
 
 	# ZLIB
