@@ -137,7 +137,8 @@ You can run them, launching them from terminal with the following parameters:
 
     robogen-file-viewer ROBOT_FILE CONF_FILE
     
-where ROBOT_FILE is the robot structure and configuration file is a file containing the ROBOGEN simulator configuration
+where ROBOT_FILE is the robot structure and configuration file is a file containing the ROBOGEN simulator configuration.
+Once the robogen-file-viewer is open, you can pause/unpause the simulation pressing "P" on your keyboard.
 
     robogen-simulator PORT
     
