@@ -92,7 +92,7 @@ to get all the needed source code of the simulator
 Note that you need to modify only those paths pointing to non-standard locations, i.e. if you installed a library under Linux
 under a standard path (e.g. /usr/lib) you do not need to update the corresponding line in CustomPath.cmake
 
-On Linux, you'll probably not modify anything on this file. 
+On Linux, you'll probably not modify anything on this file, except if you have the ODE library installed in non-default paths. 
 
 On Windows, you need to download and extract the content of the precompiled libraries archive (http://dl.dropbox.com/u/12390423/utils.zip) and uncomment the fist line of CustomPath.cmake pointing it to the utils/ folder contained
 in the archive. Watch out that when you extract the archive you might generate a containing folder named as the archive.
@@ -172,7 +172,7 @@ where PORT is the port on which the server will listen for connections.
 
 Once the simulator compiled succesfully, remember to copy the robogen-simulator/models/ folder into the folder from which you
 will run your executable, otherwise the 3D models for the ROBOGEN robots cannot be loaded.
-Check in the examples/ folder for sample configuration files and 5 examples robot structure that can be visualized.
+Check in the ROBOGEN_SOURCE_DIR/../examples/ folder for sample configuration files and 5 examples robot structure that can be visualized.
 
 On Windows, you need to copy your executables and model folder in the run/ folder contained in the utils.zip archive
 that you downloaded from http://dl.dropbox.com/u/12390423/utils.zip
