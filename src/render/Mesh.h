@@ -42,6 +42,7 @@ public:
 	virtual ~Mesh();
 
 	bool loadMesh(const std::string& mesh);
+	void rescaleMesh(float scaleX, float scaleY, float scaleZ);
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> getMesh();
 

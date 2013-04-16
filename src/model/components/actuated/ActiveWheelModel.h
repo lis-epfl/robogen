@@ -39,48 +39,51 @@ class ActiveWheelModel: public ActuatedComponent {
 
 public:
 
-	static const float MASS_SLOT;
-	static const float MASS_SERVO;
-	static const float MASS_WHEEL;
+   static const float MASS_SLOT;
+   static const float MASS_SERVO;
+   static const float MASS_WHEEL;
 
-	static const float SLOT_WIDTH;
-	static const float SLOT_THICKNESS;
-	static const float SERVO_Z_OFFSET;
-	static const float SERVO_WIDTH;
-	static const float SERVO_LENGTH;
-	static const float SERVO_HEIGHT;
-	static const float WHEEL_BASE_RADIUS;
-	static const float WHEEL_THICKNESS;
+   static const float SLOT_WIDTH;
+   static const float SLOT_THICKNESS;
+   static const float SERVO_Z_OFFSET;
+   static const float SERVO_WIDTH;
+   static const float SERVO_LENGTH;
+   static const float SERVO_HEIGHT;
+   static const float WHEEL_THICKNESS;
 
-	static const unsigned int SLOT_A = 0;
+   static const unsigned int SLOT_A = 0;
 
-	static const unsigned int B_SLOT_ID = 0;
-	static const unsigned int B_SERVO_ID = 1;
-	static const unsigned int B_WHEEL_ID = 2;
+   static const unsigned int B_SLOT_ID = 0;
+   static const unsigned int B_SERVO_ID = 1;
+   static const unsigned int B_WHEEL_ID = 2;
 
-	ActiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace);
+   ActiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace, float radius);
 
-	virtual ~ActiveWheelModel();
+   virtual ~ActiveWheelModel();
 
-	virtual bool initModel();
+   virtual bool initModel();
 
-	virtual dBodyID getRoot();
+   virtual dBodyID getRoot();
 
-	virtual dBodyID getSlot(unsigned int i);
+   virtual dBodyID getSlot(unsigned int i);
 
-	virtual osg::Vec3 getSlotPosition(unsigned int i);
+   virtual osg::Vec3 getSlotPosition(unsigned int i);
 
-	virtual osg::Vec3 getSlotOrientation(unsigned int i);
+   virtual osg::Vec3 getSlotOrientation(unsigned int i);
 
-	virtual osg::Vec3 getSlotAxis(unsigned int i);
+   virtual osg::Vec3 getSlotAxis(unsigned int i);
 
-	virtual void getMotors(std::vector<boost::shared_ptr<Motor> >& motors);
+   virtual void getMotors(std::vector<boost::shared_ptr<Motor> >& motors);
+
+   float getRadius() const;
 
 private:
 
-	dBodyID wheelRoot_;
+   dBodyID wheelRoot_;
 
-	boost::shared_ptr<Motor> motor_;
+   boost::shared_ptr<Motor> motor_;
+
+   float radius_;
 
 };
 

@@ -35,11 +35,11 @@ const float PassiveWheelModel::MASS_WHEEL = inGrams(4);
 const float PassiveWheelModel::SLOT_WIDTH = inMm(34);
 const float PassiveWheelModel::SLOT_THICKNESS = inMm(10.75);
 const float PassiveWheelModel::SLOT_WHEEL_OFFSET = inMm(7.5);
-const float PassiveWheelModel::WHEEL_BASE_RADIUS = inMm(40);
 const float PassiveWheelModel::WHEEL_THICKNESS = inMm(3);
 
-PassiveWheelModel::PassiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace) :
-		Model(odeWorld, odeSpace) {
+PassiveWheelModel::PassiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace,
+      float radius) :
+      Model(odeWorld, odeSpace), radius_(radius) {
 
 }
 
@@ -47,83 +47,87 @@ PassiveWheelModel::~PassiveWheelModel() {
 
 }
 
+float PassiveWheelModel::getRadius() const {
+   return radius_;
+}
+
 bool PassiveWheelModel::initModel() {
 
-	// Create the 4 components of the hinge
-	wheelRoot_ = this->createBody(B_SLOT_ID);
-	dBodyID wheel = this->createBody(B_WHEEL_ID);
+   // Create the 4 components of the hinge
+   wheelRoot_ = this->createBody(B_SLOT_ID);
+   dBodyID wheel = this->createBody(B_WHEEL_ID);
 
-	this->createBoxGeom(wheelRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
-			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+   this->createBoxGeom(wheelRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
+         SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
 
-	dReal xWheel = SLOT_THICKNESS / 2 - (SLOT_THICKNESS - SLOT_WHEEL_OFFSET);
+   dReal xWheel = SLOT_THICKNESS / 2 - (SLOT_THICKNESS - SLOT_WHEEL_OFFSET);
 
-	this->createCylinderGeom(wheel, MASS_WHEEL, osg::Vec3(xWheel, 0, 0), 1,
-			WHEEL_BASE_RADIUS, WHEEL_THICKNESS);
+   this->createCylinderGeom(wheel, MASS_WHEEL, osg::Vec3(xWheel, 0, 0), 1,
+         getRadius(), WHEEL_THICKNESS);
 
-	// Create joints to hold pieces in position
+   // Create joints to hold pieces in position
 
-	// slot <(hinge)> wheel
-	dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
-	dJointAttach(joint, wheelRoot_, wheel);
-	dJointSetHingeAxis(joint, 1, 0, 0);
+   // slot <(hinge)> wheel
+   dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
+   dJointAttach(joint, wheelRoot_, wheel);
+   dJointSetHingeAxis(joint, 1, 0, 0);
 
-	return true;
+   return true;
 
 }
 
 dBodyID PassiveWheelModel::getRoot() {
-	return wheelRoot_;
+   return wheelRoot_;
 }
 
 dBodyID PassiveWheelModel::getSlot(unsigned int i) {
 
-	if (i > 1) {
-		std::cout << "[PassiveWheelModel] Invalid slot: " << i << std::endl;
-		assert(i <= 1);
-	}
+   if (i > 1) {
+      std::cout << "[PassiveWheelModel] Invalid slot: " << i << std::endl;
+      assert(i <= 1);
+   }
 
-	return wheelRoot_;
+   return wheelRoot_;
 }
 
 osg::Vec3 PassiveWheelModel::getSlotPosition(unsigned int i) {
 
-	if (i > 1) {
-		std::cout << "[PassiveWheelModel] Invalid slot: " << i << std::endl;
-		assert(i <= 1);
-	}
+   if (i > 1) {
+      std::cout << "[PassiveWheelModel] Invalid slot: " << i << std::endl;
+      assert(i <= 1);
+   }
 
-	osg::Vec3 curPos = this->getPosition(wheelRoot_);
-	osg::Vec3 slotAxis = this->getSlotAxis(i);
-	return curPos + slotAxis * (SLOT_THICKNESS / 2);
+   osg::Vec3 curPos = this->getPosition(wheelRoot_);
+   osg::Vec3 slotAxis = this->getSlotAxis(i);
+   return curPos + slotAxis * (SLOT_THICKNESS / 2);
 
 }
 
 osg::Vec3 PassiveWheelModel::getSlotAxis(unsigned int i) {
 
-	if (i > 1) {
-		std::cout << "[PassiveWheelModel] Invalid slot: " << i << std::endl;
-		assert(i <= 1);
-	}
+   if (i > 1) {
+      std::cout << "[PassiveWheelModel] Invalid slot: " << i << std::endl;
+      assert(i <= 1);
+   }
 
-	osg::Quat quat = this->getAttitude(this->wheelRoot_);
-	osg::Vec3 axis(-1, 0, 0);
+   osg::Quat quat = this->getAttitude(this->wheelRoot_);
+   osg::Vec3 axis(-1, 0, 0);
 
-	return quat * axis;
+   return quat * axis;
 
 }
 
 osg::Vec3 PassiveWheelModel::getSlotOrientation(unsigned int i) {
 
-	if (i > 1) {
-		std::cout << "[PassiveWheelModel] Invalid slot: " << i << std::endl;
-		assert(i <= 1);
-	}
+   if (i > 1) {
+      std::cout << "[PassiveWheelModel] Invalid slot: " << i << std::endl;
+      assert(i <= 1);
+   }
 
-	osg::Quat quat = this->getAttitude(this->wheelRoot_);
-	osg::Vec3 axis(0, 1, 0);
+   osg::Quat quat = this->getAttitude(this->wheelRoot_);
+   osg::Vec3 axis(0, 1, 0);
 
-	return quat * axis;
+   return quat * axis;
 
 }
 

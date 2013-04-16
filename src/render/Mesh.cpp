@@ -65,6 +65,13 @@ bool Mesh::loadMesh(const std::string& mesh) {
 
 }
 
+void Mesh::rescaleMesh(float scaleX, float scaleY, float scaleZ) {
+   osg::PositionAttitudeTransform* rescalePat = new osg::PositionAttitudeTransform();
+   rescalePat->setScale(osg::Vec3(scaleX, scaleY, scaleZ));
+   rescalePat->addChild(meshPat_);
+   meshPat_ = rescalePat;
+}
+
 osg::ref_ptr<osg::PositionAttitudeTransform> Mesh::getMesh() {
 	// The mesh is returned with its pat
 	return meshPat_;

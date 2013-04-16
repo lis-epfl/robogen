@@ -39,55 +39,57 @@ class ActiveWhegModel: public ActuatedComponent {
 
 public:
 
-	static const float MASS_SLOT;
-	static const float MASS_SERVO;
-	static const float MASS_WHEG;
+   static const float MASS_SLOT;
+   static const float MASS_SERVO;
+   static const float MASS_WHEG;
 
-	static const float SLOT_WIDTH;
-	static const float SLOT_THICKNESS;
-	static const float SERVO_Z_OFFSET;
-	static const float SERVO_WIDTH;
-	static const float SERVO_LENGTH;
-	static const float SERVO_HEIGHT;
+   static const float SLOT_WIDTH;
+   static const float SLOT_THICKNESS;
+   static const float SERVO_Z_OFFSET;
+   static const float SERVO_WIDTH;
+   static const float SERVO_LENGTH;
+   static const float SERVO_HEIGHT;
 
-	static const float WHEG_BASE_RADIUS;
-	static const float WHEG_RADIUS;
-	static const float WHEG_THICKNESS;
-	static const float WHEG_WIDTH;
+   static const float WHEG_BASE_RADIUS;
+   static const float WHEG_THICKNESS;
+   static const float WHEG_WIDTH;
 
-	static const unsigned int SLOT_A = 0;
+   static const unsigned int SLOT_A = 0;
 
-	static const unsigned int B_SLOT_ID = 0;
-	static const unsigned int B_SERVO_ID = 1;
-	static const unsigned int B_WHEG_BASE = 2;
-	static const unsigned int B_WHEG_SPOKE_1 = 3;
-	static const unsigned int B_WHEG_SPOKE_2 = 4;
-	static const unsigned int B_WHEG_SPOKE_3 = 5;
+   static const unsigned int B_SLOT_ID = 0;
+   static const unsigned int B_SERVO_ID = 1;
+   static const unsigned int B_WHEG_BASE = 2;
+   static const unsigned int B_WHEG_SPOKE_1 = 3;
+   static const unsigned int B_WHEG_SPOKE_2 = 4;
+   static const unsigned int B_WHEG_SPOKE_3 = 5;
 
-	ActiveWhegModel(dWorldID odeWorld, dSpaceID odeSpace);
+   ActiveWhegModel(dWorldID odeWorld, dSpaceID odeSpace, float radius);
 
-	virtual ~ActiveWhegModel();
+   virtual ~ActiveWhegModel();
 
-	virtual bool initModel();
+   virtual bool initModel();
 
-	virtual dBodyID getRoot();
+   virtual dBodyID getRoot();
 
-	virtual dBodyID getSlot(unsigned int i);
+   virtual dBodyID getSlot(unsigned int i);
 
-	virtual osg::Vec3 getSlotPosition(unsigned int i);
+   virtual osg::Vec3 getSlotPosition(unsigned int i);
 
-	virtual osg::Vec3 getSlotOrientation(unsigned int i);
+   virtual osg::Vec3 getSlotOrientation(unsigned int i);
 
-	virtual osg::Vec3 getSlotAxis(unsigned int i);
+   virtual osg::Vec3 getSlotAxis(unsigned int i);
 
-	virtual void getMotors(std::vector<boost::shared_ptr<Motor> >& motors);
+   virtual void getMotors(std::vector<boost::shared_ptr<Motor> >& motors);
+
+   float getRadius() const;
 
 private:
 
-	dBodyID whegRoot_;
+   dBodyID whegRoot_;
 
-	boost::shared_ptr<Motor> motor_;
+   boost::shared_ptr<Motor> motor_;
 
+   float radius_;
 };
 
 }
