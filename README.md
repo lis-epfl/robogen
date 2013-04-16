@@ -106,7 +106,7 @@ For example you might end up having a structure like:
 3) Create an empty directory somewhere in your filesystem. We will call this directory ROBOGEN_BUILD_DIR. Instead, we will
 refer to the directory that contains the source code (robogen-simulator/src) as the ROBOGEN_SOURCE_DIR.
 Make sure that ROBOGEN_BUILD_DIR is not contained in ROBOGEN_SOURCE_DIR and viceversa.
-At this point you shoul have something like this:
+At this point you should have something like this:
 
       + root directory (a directory in your filesystem)
          |-- ROBOGEN_BUILD_DIR
