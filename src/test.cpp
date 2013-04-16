@@ -251,7 +251,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	//Creating the viewer
 	osgViewer::Viewer viewer;
 
-	viewer.setUpViewInWindow(300, 300, 1280, 1024);
+	viewer.setUpViewInWindow(300, 300, 400, 400);
 
 	// Camera
 	osg::ref_ptr<osg::Camera> camera = viewer.getCamera();
@@ -392,9 +392,9 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 // Passive wheel model
 
 	 boost::shared_ptr<PassiveWheelModel> passiveWheelA(
-	 new PassiveWheelModel(odeWorld, odeSpace));
+	 new PassiveWheelModel(odeWorld, odeSpace, inMm(30)));
 	 passiveWheelA->initModel();
-	 passiveWheelA->setRootPosition(osg::Vec3(0.3, 0.1, 1));
+	 passiveWheelA->setRootPosition(osg::Vec3(0.3, 0.1, 0.5));
 
 	 boost::shared_ptr<PassiveWheelRenderModel> renderModelPassiveWheelA(
 	 new PassiveWheelRenderModel(passiveWheelA));
@@ -406,7 +406,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 // Active wheel model
 
 	 boost::shared_ptr<ActiveWheelModel> activeWheelA(
-	 new ActiveWheelModel(odeWorld, odeSpace));
+	 new ActiveWheelModel(odeWorld, odeSpace, inMm(50)));
 	 activeWheelA->initModel();
 	 activeWheelA->setRootPosition(osg::Vec3(0.3, 0.2, 1));
 
@@ -420,7 +420,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
 
 	 boost::shared_ptr<ActiveWhegModel> activeWhegA(
-	 	 new ActiveWhegModel(odeWorld, odeSpace));
+	 	 new ActiveWhegModel(odeWorld, odeSpace, inMm(44)));
 	 activeWhegA->initModel();
 	 activeWhegA->setRootPosition(osg::Vec3(0.3, 0.3, 1));
 
@@ -538,7 +538,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 			 ActiveCardanModel::SLOT_B, 0);*/
 
 
-
+/*
 	connect(modelD, CoreComponentModel::TOP_FACE_SLOT, modelC,
 	 CoreComponentModel::BOTTOM_FACE_SLOT, 0);
 
@@ -588,7 +588,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 CoreComponentModel::RIGHT_FACE_SLOT, 0);
 
 	 connect(touchSensorA, TouchSensorModel::SLOT_A, modelD,
-	 CoreComponentModel::FRONT_FACE_SLOT, 0);
+	 CoreComponentModel::FRONT_FACE_SLOT, 0);*/
 
 	/* connect(lightSensorA, LightSensorModel::SLOT_A, modelB,
 	 CoreComponentModel::RIGHT_FACE_SLOT, 0);
