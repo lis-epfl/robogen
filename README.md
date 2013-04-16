@@ -23,6 +23,7 @@ Thanks to you for your help and sorry for any (many I guess, at the current stag
 * April 5: The light sensor has now a decent execution time, no more affecting the simulator performance.
 * April 12: The simulator now sends a bias for each evolved neuron in the neural network controller. The simulator
  has been changed to initialize correctly the neural network.
+* April 16: Wheels and whegs can be evolved parametrically (the radius can change during evolution)
 
 ## Contributions
 
@@ -102,26 +103,32 @@ For example you might end up having a structure like:
          |-- utils << ...instead CustomPath.cmake should point to this folder
          |-- run
      
-3) Create an empty directory somewhere in your filesystem. We will call this directory ROBOGEN_DIR. Instead, we will
-refer to the directory that contains the source code (robogen-simulator/src) as the ROBOGEN_SOURCE_DIR
+3) Create an empty directory somewhere in your filesystem. We will call this directory ROBOGEN_BUILD_DIR. Instead, we will
+refer to the directory that contains the source code (robogen-simulator/src) as the ROBOGEN_SOURCE_DIR.
+Make sure that ROBOGEN_BUILD_DIR is not contained in ROBOGEN_SOURCE_DIR and viceversa.
+At this point you shoul have something like this:
+
+      + root directory (a directory in your filesystem)
+         |-- ROBOGEN_BUILD_DIR
+         |-- ROBOGEN_SOURCE_DIR
 
 Then depending on your OS the next steps might change.
 On Linux, MAC OS X and Windows/MinGW, from terminal, enter ROBOGEN_DIR and run 
 
-    cd ROBOGEN_DIR
+    cd ROBOGEN_BUILD_DIR
     cmake -DCMAKE_BUILD_TYPE=Release ROBOGEN_SOURCE_DIR
     make -j4
     
-On Windows + Visual Studio, open CMAKE GUI, enter the ROBOGEN_SOURCE_DIR in "Where to find the source" and ROBOGEN_DIR 
+On Windows + Visual Studio, open CMAKE GUI, enter the ROBOGEN_SOURCE_DIR in "Where to find the source" and ROBOGEN_BUILD_DIR 
 in "Where to build the source". Click on Configure and when done, on Generate to create a solution for Visual Studio.
-The, from Visual Studio open the solution "RobogenSimulator.sln" that can be found in ROBOGEN_DIR.
+The, from Visual Studio open the solution "RobogenSimulator.sln" that can be found in ROBOGEN_BUILD_DIR.
 
 ### Generating projects for your IDE (Eclipse, Visual Studio, etc.)
 
 Using CMAKE you can as well generate projects for different IDEs. 
 For example, to generate a project that can be imported in eclipse
 
-    cd ROBOGEN_DIR
+    cd ROBOGEN_BUILD_DIR
     cmake -DCMAKE_BUILD_TYPE=Debug -G"Eclipse CDT4 - Unix Makefiles" ROBOGEN_SOURCE_DIR
 
 Please check the CMAKE manual for the correct command to generate projects for other IDEs.
