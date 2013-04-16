@@ -113,7 +113,7 @@ At this point you shoul have something like this:
          |-- ROBOGEN_SOURCE_DIR
 
 Then depending on your OS the next steps might change.
-On Linux, MAC OS X and Windows/MinGW, from terminal, enter ROBOGEN_DIR and run 
+On Linux, MAC OS X and Windows/MinGW, from terminal, enter ROBOGEN_BUILD_DIR and run 
 
     cd ROBOGEN_BUILD_DIR
     cmake -DCMAKE_BUILD_TYPE=Release ROBOGEN_SOURCE_DIR
