@@ -97,8 +97,8 @@ int main(int argc, char* argv[]) {
 				// Set gravity [mm/s]
 				dWorldSetGravity(odeWorld, 0, 0, -9.81);
 
-				dWorldSetERP(odeWorld, 0.4);
-				dWorldSetCFM(odeWorld, 0.2);
+				dWorldSetERP(odeWorld, 0.1);
+				dWorldSetCFM(odeWorld, 10e-6);
 
 				// Create collision world
 				dSpaceID odeSpace = dSimpleSpaceCreate(0);
@@ -276,6 +276,7 @@ int main(int argc, char* argv[]) {
 										SimpleSensor>(sensors[i])->read();
 							}
 						}
+						::feed(neuralNetwork.get(), &networkInput[0]);
 
 						// Step the neural network
 						::step(neuralNetwork.get());

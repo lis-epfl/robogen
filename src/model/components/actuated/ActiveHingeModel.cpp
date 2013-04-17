@@ -92,7 +92,7 @@ bool ActiveHingeModel::initModel() {
 	dJointAttach(joint, frame, servo);
 	dJointSetHingeAxis(joint, 0, 1, 0);
 	dJointSetHingeAnchor(joint,
-			xFrame + (FRAME_ROTATION_OFFSET - FRAME_LENGTH / 2), 0, 0);
+			SLOT_THICKNESS / 2 + separation + FRAME_ROTATION_OFFSET, 0, 0);
 
 	// connectionPartB <-> tail
 	this->fixBodies(servo, hingeTail_, osg::Vec3(1, 0, 0));
