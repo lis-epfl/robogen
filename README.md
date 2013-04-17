@@ -24,6 +24,7 @@ Thanks to you for your help and sorry for any (many I guess, at the current stag
 * April 12: The simulator now sends a bias for each evolved neuron in the neural network controller. The simulator
  has been changed to initialize correctly the neural network.
 * April 16: Wheels and whegs can be evolved parametrically (the radius can change during evolution)
+* April 17: Improved physical simulation stability by tuning ODE parameters. Fixed ActiveHinge misalignment.
 
 ## Contributions
 
