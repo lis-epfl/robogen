@@ -75,7 +75,7 @@ to install the required dependencies.
 ### Windows
 
 To assist the compilation of ROBOGEN on Windows, we preship an archive containing all the already compiled 
-dependencies (x86, 32bits, available on https://dl.dropboxusercontent.com/u/13784867/utils2.zip). 
+dependencies (x86, 32bits, available on https://dl.dropboxusercontent.com/u/13784867/utils3.zip). 
 To avoid problems, download and install Visual Studio Express 2010 (http://www.microsoft.com/visualstudio/eng/downloads).
 
 ### MAC OS X
@@ -96,7 +96,7 @@ under a standard path (e.g. /usr/lib) you do not need to update the correspondin
 On Linux, you'll probably not modify anything on this file, except if you have the ODE library installed in non-default paths. 
 In this case, you will have to modify the lines related to the ODE installation paths in CustomPath.cmake (Look for the Linux section).
 
-On Windows, you need to download and extract the content of the precompiled libraries archive (https://dl.dropboxusercontent.com/u/13784867/utils2.zip) and uncomment the fist line of CustomPath.cmake pointing it to the utils/ folder contained
+On Windows, you need to download and extract the content of the precompiled libraries archive (https://dl.dropboxusercontent.com/u/13784867/utils3.zip) and uncomment the fist line of CustomPath.cmake pointing it to the utils/ folder contained
 in the archive. Watch out that when you extract the archive you might generate a containing folder named as the archive.
 For example you might end up having a structure like:
 
@@ -184,4 +184,4 @@ will run your executable, otherwise the 3D models for the ROBOGEN robots cannot 
 Check in the ROBOGEN_SOURCE_DIR/../examples/ folder for sample configuration files and 5 examples robot structure that can be visualized.
 
 On Windows, you need to copy your executables and model folder in the run/ folder contained in the utils.zip archive
-that you downloaded from https://dl.dropboxusercontent.com/u/13784867/utils2.zip
+that you downloaded from https://dl.dropboxusercontent.com/u/13784867/utils3.zip
