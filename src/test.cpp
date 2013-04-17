@@ -461,7 +461,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 // Parametric model
 
 	boost::shared_ptr<ParametricBrickModel> paramModelA(
-	 new ParametricBrickModel(odeWorld, odeSpace, 0.01, 45, 45));
+	 new ParametricBrickModel(odeWorld, odeSpace, 0.01, osg::inDegrees(45.0), osg::inDegrees(45.0)));
 	 paramModelA->initModel();
 	 paramModelA->setRootPosition(osg::Vec3(0.4, 0.3, 1));
 
@@ -472,7 +472,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 root->addChild(renderParamModelA->getRootNode());
 
 	 boost::shared_ptr<ParametricBrickModel> paramModelB(
-	 new ParametricBrickModel(odeWorld, odeSpace, 0.02, 30, 60));
+	 new ParametricBrickModel(odeWorld, odeSpace, 0.02, osg::inDegrees(30.0), osg::inDegrees(60.0)));
 	 paramModelB->initModel();
 	 paramModelB->setRootPosition(osg::Vec3(0.4, 0.4, 1));
 

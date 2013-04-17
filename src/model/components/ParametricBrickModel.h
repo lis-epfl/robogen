@@ -56,6 +56,15 @@ public:
 	static const unsigned int B_CONNECTION_ID = 2;
 	static const unsigned int B_CAPSULE_ID = 3;
 
+	/**
+	 * Initialize a parametric brick model
+	 *
+	 * @param odeWorld
+	 * @param odeSpace
+	 * @param connectionPartLength in m
+	 * @param angleA in radians
+	 * @param angleB in radians
+	 */
 	ParametricBrickModel(dWorldID odeWorld, dSpaceID odeSpace,
 			float connectionPartLength, float angleA, float angleB);
 
