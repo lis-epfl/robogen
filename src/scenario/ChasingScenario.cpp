@@ -95,7 +95,8 @@ double ChasingScenario::getFitness() {
 		fitness += distances_[i]/this->getRobogenConfig()->getTimeSteps();
 	}
 
-	return fitness/distances_.size();
+	// We transform everything into a maximization problem
+	return -1*(fitness/distances_.size());
 }
 
 bool ChasingScenario::remainingTrials() {
