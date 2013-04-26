@@ -55,7 +55,7 @@ For a certain reason, that I did not fully understood yet, the wheel is quite lo
 You should check the bottom left window : called : "report view". To check that no errors occured.
 If any occured please post in the issue part of this github repository so I can see what is going on, and try to support you.
 - Those scripts will export STL files in the STL_Files folder.
-You will have to open them to be sure that they look corretc or at least similar to what was in the physics simulator.
+You will have to open them to be sure that they look correct or at least similar to what was in the physics simulator.
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
