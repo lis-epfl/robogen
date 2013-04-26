@@ -4,9 +4,9 @@ from FreeCAD import Base
 
 def makeJoinPartB(	angle = 40	):
 	
-	lengthSlide = 40
-	widthSlide = 40
-	heightSlide = 2
+	lengthSlide = 34
+	widthSlide = 34
+	heightSlide = 1.5
 	
 	lengthWire = 3
 	widthWire = 9
@@ -19,13 +19,13 @@ def makeJoinPartB(	angle = 40	):
 	radiusCylinderBase = 5
 	heightCylinderBase = 20
 	
-	lengthTopBase = 10
+	lengthTopBase = 9
 	widthTopBase = 20
 	heightTopBase = 5
 	
-	lengthEndBase = 5
+	lengthEndBase = 4.5
 	widthEndBase = 15.5
-	heightEndBase = 8
+	heightEndBase = 10
 	
 	radiusHole = 1
 	
@@ -46,12 +46,10 @@ def makeJoinPartB(	angle = 40	):
 	slide = slide.cut(WiresHole2)
 	
 	#holes of the slide
-	lengthSlide = lengthSlide - 10
-	widthSlide = widthSlide - 10
-	V9 = Base.Vector(lengthSlide/2,widthSlide/2,0)
-	V10 = Base.Vector(lengthSlide/2,-widthSlide/2,0)
-	V11 = Base.Vector(-lengthSlide/2,-widthSlide/2,0)
-	V12 = Base.Vector(-lengthSlide/2,widthSlide/2,0)
+	V9 = Base.Vector(lengthSlide/2-3.5,widthSlide/2-3.5,0)
+	V10 = Base.Vector(lengthSlide/2-3.5,-widthSlide/2+3.5,0)
+	V11 = Base.Vector(-lengthSlide/2+3.5,-widthSlide/2+3.5,0)
+	V12 = Base.Vector(-lengthSlide/2+3.5,widthSlide/2-3.5,0)
 	
 	#base of the join = Box
 	JoinBase = Part.makeBox(lengthBase,widthBase,heightBase)
@@ -67,7 +65,7 @@ def makeJoinPartB(	angle = 40	):
 	JoinTopBase = Part.makeBox(lengthTopBase,widthTopBase,heightTopBase)
 	JoinTopBase.translate(Base.Vector(-lengthTopBase/2,-widthTopBase/2,heightSlide+heightBase))
 	JoinEndBase = Part.makeBox(lengthEndBase,widthEndBase,heightEndBase)
-	JoinEndBase.translate(Base.Vector(-lengthEndBase/2,-widthEndBase/2,heightSlide+heightBase+(heightTopBase/2)))
+	JoinEndBase.translate(Base.Vector(-lengthEndBase/2,-widthEndBase/2,heightSlide+heightBase+heightTopBase-1))
 	JoinTopBase = JoinTopBase.fuse(JoinEndBase)
 	JoinTopBase.rotate(Base.Vector(0,0,heightSlide+heightBase),Base.Vector(0,1,0),angle)
 	JoinBase = JoinBase.fuse(JoinTopBase)
@@ -116,7 +114,8 @@ def makeJoinPartB(	angle = 40	):
 	edge27=slide.Edges[27]
 	edge28=slide.Edges[28]
 	edge29=slide.Edges[29]
-	slide=slide.makeChamfer(heightSlide-2.5,[edge1,edge6,edge15,edge16,edge17,edge18,edge19,edge20,edge21,edge22,edge23,edge24,edge25,edge26,edge27,edge28]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
+	slide=slide.makeChamfer(1.49,[edge1,edge6,edge27,edge28]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
+	slide=slide.makeChamfer(1,[edge15,edge16,edge17,edge18,edge19,edge20,edge21,edge22,edge23,edge24,edge25,edge26]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
 	
 	return slide
 	

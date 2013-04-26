@@ -5,23 +5,24 @@ from PartDesign.Scripts import RadialCopy as rcopy
 
 def makeWheg(	externRadius = 70):
 	
-	radiusCenterHole = 5
-	radiusCenterBody = 18
+	radiusCenterHole = 3
+	radiusCenterBody = 9
+	heightCenterBody = 6
 
 	widthSpoke = externRadius-radiusCenterBody
 	
-	lengthSpoke = widthSpoke/5
+	lengthSpoke = widthSpoke/8
 	heightSpoke = 4
 	
 	radiusScrew = 1
-	heightScrew = heightSpoke
+	heightScrew = heightCenterBody
 	
 	#build the structure
-	Wheg = Part.makeCylinder(radiusCenterBody,heightSpoke)
+	Wheg = Part.makeCylinder(radiusCenterBody,heightCenterBody)
 	Wheg.rotate(Base.Vector(0,0,0),Base.Vector(0,0,1),30) #needed for fillet below, otherwise the edge29 of one spoke was too close to the edge of the cylinder...
 	
 	#cut the axis hole
-	WhegAxis = Part.makeCylinder(radiusCenterHole,heightSpoke)
+	WhegAxis = Part.makeCylinder(radiusCenterHole,heightCenterBody)
 	Wheg = Wheg.cut(WhegAxis)
 
 	# add one spoke
@@ -35,21 +36,23 @@ def makeWheg(	externRadius = 70):
 	Wheg = Wheg.fuse(Spoke)
 
 	# For chamfer you need to know edges	
-	edge29=Wheg.Edges[29]
+	edge1=Wheg.Edges[1]
+	edge4=Wheg.Edges[4]
+	edge6=Wheg.Edges[6]
+	edge8=Wheg.Edges[8]
+	edge10=Wheg.Edges[10]
+	edge14=Wheg.Edges[14]
+	edge16=Wheg.Edges[16]
+	edge28=Wheg.Edges[28]	
 	edge32=Wheg.Edges[32]
-	edge33=Wheg.Edges[33]
 	edge35=Wheg.Edges[35]
-	edge36=Wheg.Edges[36]
-	edge38=Wheg.Edges[38]
-	edge43=Wheg.Edges[43]
-	edge48=Wheg.Edges[48]
-	edge51=Wheg.Edges[51]
-	edge55=Wheg.Edges[55]
-	edge58=Wheg.Edges[58]
-	edge62=Wheg.Edges[62]
+	edge39=Wheg.Edges[39]
+	edge42=Wheg.Edges[42]	
+	edge46=Wheg.Edges[46]	
 
-	Wheg=Wheg.makeFillet(14,[edge29,edge32,edge33,edge35,edge36,edge38]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
-	Wheg=Wheg.makeFillet(widthSpoke/10-1,[edge43,edge48,edge51,edge55,edge58,edge62])
+	Wheg=Wheg.makeFillet(1,[edge1])
+	Wheg=Wheg.makeFillet(7,[edge4,edge6,edge8,edge10,edge14,edge16])
+	Wheg=Wheg.makeFillet(lengthSpoke/2-0.1,[edge28,edge32,edge35,edge39,edge42,edge46])
 	
 	# add one hole for the screw
 	screw = Part.makeCylinder(radiusScrew,heightScrew)
@@ -57,7 +60,7 @@ def makeWheg(	externRadius = 70):
 	
 	# duplicate each 30 degrees
 	radius = 0
-	angle = 30
+	angle = 360/12
 	screw = rcopy.makeCopy(screw,radius,angle)
 	Wheg = Wheg.cut(screw)
 	

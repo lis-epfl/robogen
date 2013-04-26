@@ -5,9 +5,9 @@ from PartDesign.Scripts import RadialCopy as rcopy
 
 def makeJoin(	heightJoin = 40, angle = -60 ):
 	
-	lengthSlide = 40
-	widthSlide = 40
-	heightSlide = 2
+	lengthSlide = 34
+	widthSlide = 34
+	heightSlide = 1.5
 	radiusHole = 1
 	lengthJoin = 20
 	widthJoin = 9
@@ -18,8 +18,8 @@ def makeJoin(	heightJoin = 40, angle = -60 ):
 	slide.translate(Base.Vector(-lengthSlide/2,-widthSlide/2,0))
 	
 	Join = Part.makeBox(lengthJoin,widthJoin,heightJoin)
-	Join2 = Part.makeBox(lengthJoin-4,widthJoin-4,heightJoin)
-	Join2.translate(Base.Vector(2,2,0))
+	Join2 = Part.makeBox(lengthJoin-4,widthJoin-4,heightJoin-5)
+	Join2.translate(Base.Vector(2,2,5))
 	Join = Join.cut(Join2)
 	Join.translate(Base.Vector(-lengthJoin/2,-widthJoin/2,heightSlide))
 	Join.rotate(Base.Vector(0,0,0),Base.Vector(0,0,1),angle)
@@ -27,12 +27,10 @@ def makeJoin(	heightJoin = 40, angle = -60 ):
 	Line = Part.Line(Base.Vector(0,widthSlide/2,heightSlide),Base.Vector(0,-widthSlide/2,heightSlide))
 	
 	#holes of the slide
-	lengthSlide = lengthSlide - 10
-	widthSlide = widthSlide - 10
-	V9 = Base.Vector(lengthSlide/2,widthSlide/2,0)
-	V10 = Base.Vector(lengthSlide/2,-widthSlide/2,0)
-	V11 = Base.Vector(-lengthSlide/2,-widthSlide/2,0)
-	V12 = Base.Vector(-lengthSlide/2,widthSlide/2,0)
+	V9 = Base.Vector(lengthSlide/2-3.5,widthSlide/2-3.5,0)
+	V10 = Base.Vector(lengthSlide/2-3.5,-widthSlide/2+3.5,0)
+	V11 = Base.Vector(-lengthSlide/2+3.5,-widthSlide/2+3.5,0)
+	V12 = Base.Vector(-lengthSlide/2+3.5,widthSlide/2-3.5,0)
 	
 	heightSlide += 2
 	holeFrontRight = Part.makeCylinder(radiusHole,heightSlide,V9,Base.Vector(0,0,1))
@@ -77,6 +75,7 @@ def makeJoin(	heightJoin = 40, angle = -60 ):
 	edge27=slide.Edges[27]
 	edge28=slide.Edges[28]
 	edge29=slide.Edges[29]
-	slide=slide.makeChamfer(1,[edge1,edge6,edge7,edge8,edge9,edge10,edge19,edge20]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
+	slide=slide.makeChamfer(1.49,[edge1,edge6,edge19,edge20]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
+	slide=slide.makeChamfer(1,[edge7,edge8,edge9,edge10]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
 	
 	return slide
