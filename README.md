@@ -51,7 +51,7 @@ What to do :
 
 - Finally : Open FreeCAD software.
 - Open from FreeCAD all Call*.py scripts, located in FreeCAD_Modules folder, and run each of them separately.
-For a certain reason, that I did not fully understood yet, the wheel is quite long to generate from FreeCAD, about 3min, so please let the software run by it self, and simply be patient.
+For a certain reason, the wheel is quite long to generate from FreeCAD, about 3min, so please let the software run by it self, and simply be patient.
 You should check the bottom left window : called : "report view". To check that no errors occured.
 If any occured please post in the issue part of this github repository so I can see what is going on, and try to support you.
 - Those scripts will export STL files in the STL_Files folder.
