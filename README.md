@@ -1,6 +1,6 @@
 robogen-3DPrint
 ===============
-Part of the Robogen project Course, LIS Laboratory, EPFL.
+Part of the Robogen Course project, LIS Laboratory, EPFL.
 
 By Gregoire Heitz <gregoire.heitz@epfl.ch>, April 26th, 2013.
 
