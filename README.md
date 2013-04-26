@@ -9,7 +9,7 @@ The aim of this part is to give student a fully automatize process to produce fi
 It Contains scripts to set the parametric part of your robots according to values given by the Evolutionnary Algorithm, and then produces the STL files to print them.
 
 - The first part describes the structure of the folder robogen-3DPrint.
-- Then, It explains how to install FreeCAD
+- Then, It explains how to install FreeCAD software.
 - Finally it explains how to produce the STL files required for 3D printing the different part with the replicator 2 3D Printer.
 
 -----------------------------------------------------------------------------------
