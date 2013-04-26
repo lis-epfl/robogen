@@ -1,8 +1,7 @@
 robogen-3DPrint
 ===============
-
+Part of the Robogen project Course, LIS Laboratory, EPFL. \n
 By Gregoire Heitz <gregoire.heitz@epfl.ch>, April 26th, 2013.
-Part of the Robogen project Course, LIS Laboratory, EPFL.
 
 The aim of this part is to give student a fully automatize process to produce files required by the 3D printer of each Parametric Part : passiveWheels, activeWheg and parametricBrick.
 
