@@ -23,7 +23,7 @@ This folder contains 3 sub-folders :
 - utils : where the python scripts needed to design the parametric Part are.
 
 This folder also contains files :
-- Example_finalBestInd_GP.txt file which is an example of what the Evolutionary Algorithm produce. It gives the Best body and Brain that you reach running the Evolutionary simulator.
+- Example_finalBestInd_GP.txt file which is an example of what the Evolutionary Algorithm produces. It gives the Best body and Brain that you reach running the Evolutionary simulator.
 - getParametricValue_LINUX.bat and getParametricValue_WINDOWS.bat script to parse the inalBestInd_GP.txt file.
 
 -------------------------------------------------------------------------------------
