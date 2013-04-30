@@ -229,6 +229,14 @@ int main(int argc, char *argv[]) {
 		root->addChild(obstacleRender->getRootNode());
 	}
 
+	// Light render model
+	const std::vector<boost::shared_ptr<LightSource> >& lightSources = scenario->getEnvironment()->getLightSources();
+	for (unsigned int i = 0; i < lightSources.size(); ++i) {
+		boost::shared_ptr<LightSourceRender> lightSourceRender(
+						new LightSourceRender(lightSources[i], root));
+		root->addChild(lightSourceRender->getRootNode());
+	}
+
 	// ---------------------------------------
 	// Setup OSG viewer
 	// ---------------------------------------
@@ -249,10 +257,8 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 
 	int count = 0;
-	double deltaSecs = 0;
 	double t = 0;
 	double lastLightSensorUpdateT = 0;
-	osg::Timer_t prevTime = osg::Timer::instance()->tick();
 	while (t < configuration->getSimulationTime() && !viewer.done()) {
 
 		viewer.frame();
@@ -260,107 +266,94 @@ int main(int argc, char *argv[]) {
 		if (!keyboardEvent->isPaused()) {
 
 			double step = configuration->getTimeStepLength();
-			const osg::Timer_t now = osg::Timer::instance()->tick();
-			deltaSecs += osg::Timer::instance()->delta_s(prevTime, now);
-			prevTime = now;
 
-			while (deltaSecs > step) {
+			t += step;
 
-				deltaSecs -= step;
-				t += step;
-
-				if ((count++) % 100 == 0) {
-					std::cout << "Step!" << count << std::endl;
-				}
-
-				// Prepare touch sensors for collision detection
-				for (unsigned int i = 0; i < touchSensors.size(); ++i) {
-					touchSensors[i]->reset();
-				}
-
-				// Collision detection
-				dSpaceCollide(odeSpace, 0, odeCollisionCallback);
-
-				// Step the world by one timestep
-				dWorldStep(odeWorld, step);
-
-				// Empty contact groups used for collisions handling
-				dJointGroupEmpty(odeContactGroup);
-
-				float networkInput[MAX_INPUT_NEURONS];
-				float networkOutputs[MAX_OUTPUT_NEURONS];
-
-				// Feed neural network
-				for (unsigned int i = 0; i < bodyParts.size(); ++i) {
-					if (boost::dynamic_pointer_cast<PerceptiveComponent>(
-							bodyParts[i])) {
-						boost::dynamic_pointer_cast<PerceptiveComponent>(
-								bodyParts[i])->updateSensors(env);
-					}
-				}
-
-				bool updateLightSensors = false;
-				if (t - lastLightSensorUpdateT
-						> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
-					updateLightSensors = true;
-					lastLightSensorUpdateT = t;
-				}
-				for (unsigned int i = 0; i < sensors.size(); ++i) {
-
-					if (boost::dynamic_pointer_cast<TouchSensor>(sensors[i])) {
-						networkInput[i] = boost::dynamic_pointer_cast<
-								TouchSensor>(sensors[i])->read();
-					} else if (boost::dynamic_pointer_cast<LightSensor>(
-							sensors[i])) {
-
-						// Light sensors are updated with a different frequency than the simulation timestep
-						networkInput[i] = boost::dynamic_pointer_cast<
-								LightSensor>(sensors[i])->read(
-								env->getLightSources(), env->getAmbientLight(),
-								updateLightSensors);
-
-					} else if (boost::dynamic_pointer_cast<SimpleSensor>(
-							sensors[i])) {
-						networkInput[i] = boost::dynamic_pointer_cast<
-								SimpleSensor>(sensors[i])->read();
-					}
-				}
-				::feed(neuralNetwork.get(), &networkInput[0]);
-
-				// Step the neural network
-				::step(neuralNetwork.get());
-
-				// Fetch the neural network ouputs
-				::fetch(neuralNetwork.get(), &networkOutputs[0]);
-
-				// Send control to motors
-				for (unsigned int i = 0; i < motors.size(); ++i) {
-					if (boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
-
-						boost::shared_ptr<ServoMotor> motor =
-								boost::dynamic_pointer_cast<ServoMotor>(
-										motors[i]);
-
-						if (motor->isVelocityDriven()) {
-							motor->setVelocity(networkOutputs[i]);
-						} else {
-							motor->setPosition(
-									osg::inDegrees(networkOutputs[i]));
-						}
-					}
-				}
-
-				if (!scenario->afterSimulationStep()) {
-					std::cout
-							<< "Cannot execute scenario after simulation step. Quit."
-							<< std::endl;
-					return EXIT_FAILURE;
-				}
-
+			if ((count++) % 100 == 0) {
+				std::cout << "Step!" << count << std::endl;
 			}
 
-		} else {
-			prevTime = osg::Timer::instance()->tick();
+			// Prepare touch sensors for collision detection
+			for (unsigned int i = 0; i < touchSensors.size(); ++i) {
+				touchSensors[i]->reset();
+			}
+
+			// Collision detection
+			dSpaceCollide(odeSpace, 0, odeCollisionCallback);
+
+			// Step the world by one timestep
+			dWorldStep(odeWorld, step);
+
+			// Empty contact groups used for collisions handling
+			dJointGroupEmpty(odeContactGroup);
+
+			float networkInput[MAX_INPUT_NEURONS];
+			float networkOutputs[MAX_OUTPUT_NEURONS];
+
+			// Feed neural network
+			for (unsigned int i = 0; i < bodyParts.size(); ++i) {
+				if (boost::dynamic_pointer_cast<PerceptiveComponent>(
+						bodyParts[i])) {
+					boost::dynamic_pointer_cast<PerceptiveComponent>(
+							bodyParts[i])->updateSensors(env);
+				}
+			}
+
+			bool updateLightSensors = false;
+			if (t - lastLightSensorUpdateT
+					> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
+				updateLightSensors = true;
+				lastLightSensorUpdateT = t;
+			}
+			for (unsigned int i = 0; i < sensors.size(); ++i) {
+
+				if (boost::dynamic_pointer_cast<TouchSensor>(sensors[i])) {
+					networkInput[i] = boost::dynamic_pointer_cast<TouchSensor>(
+							sensors[i])->read();
+				} else if (boost::dynamic_pointer_cast<LightSensor>(
+						sensors[i])) {
+
+					// Light sensors are updated with a different frequency than the simulation timestep
+					networkInput[i] = boost::dynamic_pointer_cast<LightSensor>(
+							sensors[i])->read(env->getLightSources(),
+							env->getAmbientLight(), updateLightSensors);
+
+				} else if (boost::dynamic_pointer_cast<SimpleSensor>(
+						sensors[i])) {
+					networkInput[i] = boost::dynamic_pointer_cast<SimpleSensor>(
+							sensors[i])->read();
+				}
+			}
+			::feed(neuralNetwork.get(), &networkInput[0]);
+
+			// Step the neural network
+			::step(neuralNetwork.get());
+
+			// Fetch the neural network ouputs
+			::fetch(neuralNetwork.get(), &networkOutputs[0]);
+
+			// Send control to motors
+			for (unsigned int i = 0; i < motors.size(); ++i) {
+				if (boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
+
+					boost::shared_ptr<ServoMotor> motor =
+							boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
+
+					if (motor->isVelocityDriven()) {
+						motor->setVelocity(networkOutputs[i]);
+					} else {
+						motor->setPosition(osg::inDegrees(networkOutputs[i]));
+					}
+				}
+			}
+
+			if (!scenario->afterSimulationStep()) {
+				std::cout
+						<< "Cannot execute scenario after simulation step. Quit."
+						<< std::endl;
+				return EXIT_FAILURE;
+			}
+
 		}
 
 	}

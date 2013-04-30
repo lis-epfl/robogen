@@ -58,7 +58,7 @@ bool ChasingScenario::init(dWorldID odeWorld, dSpaceID odeSpace, boost::shared_p
 	boost::shared_ptr<Environment> env(new Environment());
 	env->setAmbientLight(100);
 	std::vector<boost::shared_ptr<LightSource> > lightSources;
-	lightSources.push_back(boost::shared_ptr<LightSource>(new LightSource(odeSpace, osg::Vec3(0, 0, 100), 1000)));
+	lightSources.push_back(boost::shared_ptr<LightSource>(new LightSource(odeSpace, osg::Vec3(0, 0, 0.1), 1000)));
 	env->setLightSources(lightSources);
 
 	this->setEnvironment(env);

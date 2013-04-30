@@ -27,6 +27,7 @@
  */
 #include <iostream>
 #include "config/RobogenConfig.h"
+#include "scenario/ChasingScenario.h"
 #include "scenario/ScenarioFactory.h"
 #include "scenario/RacingScenario.h"
 
@@ -44,6 +45,8 @@ boost::shared_ptr<Scenario> ScenarioFactory::createScenario(boost::shared_ptr<Ro
 
 	if (config->getScenario() == RobogenConfig::RACING) {
 		return boost::shared_ptr<Scenario>(new RacingScenario(config));
+	} else if (config->getScenario() == RobogenConfig::CHASING) {
+		return boost::shared_ptr<Scenario>(new ChasingScenario(config));
 	} else {
 		std::cout << "Cannot allocate the specified scenario. Quit."
 				<< std::endl;

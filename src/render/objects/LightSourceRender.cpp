@@ -42,7 +42,7 @@ LightSourceRender::LightSourceRender(
 
 	osg::ref_ptr<osg::Light> light(new osg::Light());
 	light->setLightNum(1);
-	light->setPosition(osg::Vec4(0.0, 0.0, 0.0, 1.0));
+	light->setPosition(osg::Vec4(0.0, 0.0, 0.0, 50.0));
 	light->setDiffuse(osg::Vec4(1.0, 0.0, 0.0, 1.0));
 	light->setSpecular(osg::Vec4(1.0, 0.0, 1.0, 1.0));
 	light->setAmbient(osg::Vec4(0.0, 0.0, 0.0, 1.0));
@@ -52,7 +52,7 @@ LightSourceRender::LightSourceRender(
 	material->setEmission(osg::Material::FRONT, osg::Vec4(1.0, 1.0, 1.0, 1.0));
 
 	osg::ref_ptr<osg::Geode> lightMarker(new osg::Geode());
-	lightMarker->addDrawable(new osg::ShapeDrawable(new osg::Sphere(lightSource->getPosition(), 10)));
+	lightMarker->addDrawable(new osg::ShapeDrawable(new osg::Sphere(fromOde(lightSource->getPosition()), 10)));
 	lightMarker->getOrCreateStateSet()->setAttribute(material.get());
 
 	osg::ref_ptr<osg::LightSource> osgLightSource(new osg::LightSource());

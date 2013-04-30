@@ -29,7 +29,7 @@
 
 namespace robogen {
 
-const float BoxObstacle::DENSITY = 0.00175;
+const float BoxObstacle::DENSITY = 0.5;
 
 BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
 		const osg::Vec3& pos, const osg::Vec3& size) :
