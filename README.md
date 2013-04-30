@@ -20,6 +20,7 @@ Thanks to you for your help and sorry for any (many I guess, at the current stag
 
 ## Latest updates
 
+* Apri 30: Increased mass of obstacles to avoid strange behavior during collisions. Fixed chasing scenario light rendering.
 * April 17: Improved physical simulation stability by tuning ODE parameters. Fixed ActiveHinge misalignment.
 * April 16: Wheels and whegs can be evolved parametrically (the radius can change during evolution)
 * April 12: The simulator now sends a bias for each evolved neuron in the neural network controller. The simulator 
@@ -185,3 +186,24 @@ Check in the ROBOGEN_SOURCE_DIR/../examples/ folder for sample configuration fil
 
 On Windows, you need to copy your executables and model folder in the run/ folder contained in the utils.zip archive
 that you downloaded from https://dl.dropboxusercontent.com/u/13784867/utils3.zip
+
+## Scenario descriptions
+
+[WARNING] As the rugged terrain loading from images is broken, you might want to use many obstacles in a scenario 
+to create rugged terrains. To do that, specify the terrain as flat, and insert more obstacles in the obstacles
+configuration file.
+
+# Racing
+
+The aim of a robot evolved under this scenario is to cover the largest distance as possible in the given amount of time.
+The fitness is computed as the Euclidean distance between the center of mass of the robot at the beginning and the end of the 
+simulation time.
+
+# Chasing
+
+A light source is created at the center of the area (0, 0, 10cm). Robots must get as close as possible to this light source,
+independently from the specified starting position.
+Make sure to specify starting position at a certain distance from the light source, otherwise robots might
+penetrate the light source and the simulator will fail.
+The fitness is computed as the sum of the distances between the center of mass of the robot and the light source over all
+the simulation time.
