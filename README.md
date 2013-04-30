@@ -67,7 +67,7 @@ On Linux we advise to install all the needed dependencies from available reposit
 which has to be built in double precision mode.
 For example, in Ubuntu Linux 12.04 you can type
 
-    sudo apt-get install zlib1g zlib1g-dev libpng12-0 libpng12-dev libboost1.48-dev libprotobuf-dev \
+    sudo apt-get install zlib1g zlib1g-dev libpng12-0 libpng12-dev libboost1.48-all-dev libprotobuf-dev \
     protobuf-compiler libopenscenegraph-dev libopenscenegraph80
 
 to install the required dependencies.
