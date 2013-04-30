@@ -53,6 +53,7 @@ What to do
 For a certain reason, the wheel is quite long to generate from FreeCAD, about 3min, so please let the software run by itself.
 You should check the bottom left window "report view" to check that no errors occured.
 - The scripts will export the generated STL files in the STL_Files folder.
+For windows : If there is an error because of the Path, you can manually edit path changing '\' to '/' 
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
