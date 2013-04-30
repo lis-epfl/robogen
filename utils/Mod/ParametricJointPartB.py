@@ -23,8 +23,8 @@ def makeJoinPartB(	angle = 40	):
 	widthTopBase = 20
 	heightTopBase = 5
 	
-	lengthEndBase = 4.5
-	widthEndBase = 15.5
+	lengthEndBase = 4.3
+	widthEndBase = 15.3
 	heightEndBase = 10
 	
 	radiusHole = 1
