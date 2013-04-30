@@ -6,6 +6,7 @@
 # Create those 3 empty files, even if they alrady existed
 > utils/intermediate.h
 > utils/intermediatebis.h
+> utils/intermediateTer.py
 > Readme.txt
 
 #User information on what is going on
@@ -20,6 +21,8 @@ CurrentDir=$PWD
 
 PreviousType=
 PreviousParam=
+
+echo "sys.path.append("\"$CurrentDir/utils/Mod"\")" > utils/intermediateTer.py
 
 #file name to be parsed.
 FILENAME="finalBestInd_GP.txt"
@@ -52,7 +55,7 @@ do
 			echo Path="\"$CurrentDir/STL_Files/PassiveWheel$passivewheel.stl"\" >> utils/intermediate.py
 			> FreeCAD_Modules/CallWheel$passivewheel.py
 			#concatenate CallWheelPART1.py+utils/intermediate.py+CallWheelPART2.py in one file : the CallWheel python script which will be executed by FreeCAD to generate Paramteric Parts
-			cat utils/CallWheelPart1.py utils/intermediate.py utils/CallWheelPart2.py > FreeCAD_Modules/CallWheel$passivewheel.py
+			cat utils/Header.py utils/intermediateTer.py utils/CallWheelPart1.py utils/intermediate.py utils/CallWheelPart2.py > FreeCAD_Modules/CallWheel$passivewheel.py
 
 		elif [[ "$PreviousType" == *"activewheg"* ]]; then
 			#Fill the parameter value needed in python script to be executed in FreeCAD
@@ -60,7 +63,7 @@ do
 			echo Path="\"$CurrentDir/STL_Files/ActiveWheg$activewheg.stl"\" >> utils/intermediate.py
 			> FreeCAD_Modules/CallWheg$activewheg.py
 			#concatenate CallWhegPART1.py+utils/intermediate.py+CallWhegPART2.py in one file : the CallWheg python script which will be executed by FreeCAD to generate Paramteric Parts
-			cat utils/CallWhegPart1.py utils/intermediate.py utils/CallWhegPart2.py > FreeCAD_Modules/CallWheg$activewheg.py
+			cat utils/Header.py utils/intermediateTer.py utils/CallWhegPart1.py utils/intermediate.py utils/CallWhegPart2.py > FreeCAD_Modules/CallWheg$activewheg.py
 
 		elif [[ "$PreviousType" == *"parametricbrick"* ]]; then
 			if [[ "$PreviousParam" == *"length"* ]]; then
@@ -72,14 +75,14 @@ do
 				echo Path="\"$CurrentDir/STL_Files/ParametricJoinPartB$parametricbrick.stl"\" >> utils/intermediatebis.py
 				> FreeCAD_Modules/CallJoinB$parametricbrick.py
 				#concatenate CallWhegPART1.py+utils/intermediate.py+CallWhegPART2.py in one file : the CallParametricJointPartA python script which will be executed by FreeCAD to generate Paramteric Parts
-				cat utils/CallJoinBPart1.py utils/intermediatebis.py utils/CallJoinBPart2.py > FreeCAD_Modules/CallJoinB$parametricbrick.py
+				cat utils/Header.py utils/intermediateTer.py utils/CallJoinBPart1.py utils/intermediatebis.py utils/CallJoinBPart2.py > FreeCAD_Modules/CallJoinB$parametricbrick.py
 			elif [[ "$PreviousParam" == *"rotationangle"* ]]; then
 				#Fill the parameter value needed in python script to be executed in FreeCAD
 				echo "angle = $f2" >> utils/intermediate.py
 				echo Path="\"$CurrentDir/STL_Files/ParametricJoinPartA$parametricbrick.stl"\" >> utils/intermediate.py
 				> FreeCAD_Modules/CallJoinA$parametricbrick.py
 				#concatenate CallWhegPART1.py+utils/intermediate.py+CallWhegPART2.py in one file : the CallParametricJointPartB python script which will be executed by FreeCAD to generate Paramteric Parts
-				cat utils/CallJoinAPart1.py utils/intermediate.py utils/CallJoinAPart2.py > FreeCAD_Modules/CallJoinA$parametricbrick.py
+				cat utils/Header.py utils/intermediateTer.py utils/CallJoinAPart1.py utils/intermediate.py utils/CallJoinAPart2.py > FreeCAD_Modules/CallJoinA$parametricbrick.py
 			fi
 		fi
 	fi

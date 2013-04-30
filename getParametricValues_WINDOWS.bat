@@ -3,6 +3,7 @@
 ::Create 3 files. If they already exist, it will delete them and create new empty ones.
 copy /y nul "utils\intermediate.py"
 copy /y nul "utils\intermediatebis.py"
+copy /y nul "utils\intermediateTer.py"
 copy /y nul "Readme.txt"
 
 ::write a message so that user knows what is going on, until the end of the script.
@@ -19,6 +20,8 @@ set CurrentDir=%CD%
 ::We need to store what was the previous Type and parameter that has been parsed from finalBestInd_GP.txt
 set PreviousType=
 set PreviousParam=
+
+echo sys.path.append("%CurrentDir%\utils\Mod") > utils\intermediateTer.py
 
 ::loop for each Lines of the finalBestInd_GP.txt and get the two first part of that Line to be analysed in 'process' function
 for /F "tokens=1,2" %%i in (finalBestInd_GP.txt) do call :process %%i %%j
@@ -73,19 +76,18 @@ if "%VAR1%"=="paramName:" (
 if "%VAR1%"=="paramValue:" (
 	if "%PreviousType%"=="passivewheel" (
 		::Fill the parameter value needed in python script to be executed in FreeCAD
+		copy /y nul "FreeCAD_Modules\CallWheel%passivewheel%.py"
 		echo radiusExtern = %VAR2% > utils\intermediate.py
 		echo Path="%CurrentDir%\STL_Files\PassiveWheel%passivewheel%.stl" >> utils\intermediate.py
-		copy /y nul "FreeCAD_Modules\CallWheel%passivewheel%.py"
-		::concatenate CallWheelPART1.py+utils\intermediate.py+CallWheelPART2.py in one file : the CallWheel python script which will be executed by FreeCAD to generate Paramteric Parts
-		copy utils\CallWheelPart1.py+utils\intermediate.py+utils\CallWheelPart2.py FreeCAD_Modules\CallWheel%passivewheel%.py
+		copy utils\Header.py+utils\intermediateTer.py+utils\CallWheelPart1.py+utils\intermediateTer.py+utils\intermediate.py+utils\CallWheelPart2.py FreeCAD_Modules\CallWheel%passivewheel%.py
 
 	) else if "%PreviousType%"=="activewheg" (
 		::Fill the parameter value needed in python script to be executed in FreeCAD
-		echo radiusExtern = %VAR2% > utils\intermediate.py
-		echo Path="%CurrentDir%\STL_Files\ActiveWheg%activewheg%.stl" >> utils\intermediate.py
 		copy /y nul "FreeCAD_Modules\CallWheg%activewheg%.py"
 		::concatenate CallWhegPART1.py+utils\intermediate.py+CallWhegPART2.py in one file : the CallWheg python script which will be executed by FreeCAD to generate Paramteric Parts
-		copy utils\CallWhegPart1.py+utils\intermediate.py+utils\CallWhegPart2.py FreeCAD_Modules\CallWheg%activewheg%.py
+		echo radiusExtern = %VAR2% > utils\intermediate.py
+		echo Path="%CurrentDir%\STL_Files\ActiveWheg%activewheg%.stl" >> utils\intermediate.py
+		copy utils\Header.py+utils\intermediateTer.py+utils\CallWhegPart1.py+utils\intermediate.py+utils\CallWhegPart2.py FreeCAD_Modules\CallWheg%activewheg%.py
 
 	) else if "%PreviousType%"=="parametricbrick" (
 		if "%PreviousParam%"=="length" (
@@ -97,14 +99,14 @@ if "%VAR1%"=="paramValue:" (
 		echo Path="%CurrentDir%\STL_Files\ParametricJoinPartB%parametricbrick%.stl" >> utils\intermediatebis.py
 		copy /y nul "FreeCAD_Modules\CallJoinB%parametricbrick%.py"
 		::concatenate CallWhegPART1.py+utils\intermediate.py+CallWhegPART2.py in one file : the CallParametricJointPartA python script which will be executed by FreeCAD to generate Paramteric Parts
-		copy utils\CallJoinBPart1.py+utils\intermediatebis.py+utils\CallJoinBPart2.py FreeCAD_Modules\CallJoinB%parametricbrick%.py
+		copy utils\Header.py+utils\intermediateTer.py+utils\CallJoinBPart1.py+utils\intermediatebis.py+utils\CallJoinBPart2.py FreeCAD_Modules\CallJoinB%parametricbrick%.py
 		) else if "%PreviousParam%"=="rotati" (
 		::Fill the parameter value needed in python script to be executed in FreeCAD
 		echo angle = %VAR2% >> utils\intermediate.py
 		echo Path="%CurrentDir%\STL_Files\ParametricJoinPartA%parametricbrick%.stl" >> utils\intermediate.py
 		copy /y nul "FreeCAD_Modules\CallJoinA%parametricbrick%.py"
 		::concatenate CallWhegPART1.py+utils\intermediate.py+CallWhegPART2.py in one file : the CallParametricJointPartB python script which will be executed by FreeCAD to generate Paramteric Parts
-		copy utils\CallJoinAPart1.py+utils\intermediate.py+utils\CallJoinAPart2.py FreeCAD_Modules\CallJoinA%parametricbrick%.py
+		copy utils\Header.py+utils\intermediateTer.py+utils\CallJoinAPart1.py+utils\intermediate.py+utils\CallJoinAPart2.py FreeCAD_Modules\CallJoinA%parametricbrick%.py
 		)
 	)
 )
