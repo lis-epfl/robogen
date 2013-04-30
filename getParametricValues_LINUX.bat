@@ -24,31 +24,6 @@ PreviousParam=
 #file name to be parsed.
 FILENAME="finalBestInd_GP.txt"
 
-#show numbers of each Parametric Part, in Readme.txt file. we may add Parameters for each part in the future...
-echo Readme file >> Readme.txt
-echo Here we parse the finalBestInd_GP.txt file to get the values of each parametric part >> Readme.txt
-
-#Test whether there are some passivewheel
-if [ "$passivewheel" = "0" ]; then
-	echo There is No passivewheel >> Readme.txt
-else
-	echo "There is/are $passivewheel passiveWheels" >> Readme.txt
-fi
-
-#Test whether there are some activewheg
-if [ "$activewheg" = "0" ]; then
-	echo There is No activewheg >> Readme.txt
-else
-	echo "There is/are $activewheg activeWHEG" >> Readme.txt
-fi
-
-#Test whether there are some parametricbrick
-if [ "$parametricbrick" = "0" ]; then
-	echo There is No parametricbrick >> Readme.txt
-else
-	echo "There is/are $parametricbrick parametricBRICK" >> Readme.txt
-fi
-
 #read file, line by line, and get the first two elements.
 while read f1 f2
 do
@@ -111,6 +86,31 @@ do
 	
 #end of Read line loop, go back to the loop begining until the EOF of FILENAME.
 done < $FILENAME
+
+#show numbers of each Parametric Part, in Readme.txt file. we may add Parameters for each part in the future...
+echo Readme file >> Readme.txt
+echo Here we parse the finalBestInd_GP.txt file to get the values of each parametric part >> Readme.txt
+
+#Test whether there are some passivewheel
+if [ "$passivewheel" = "0" ]; then
+	echo There is No passivewheel >> Readme.txt
+else
+	echo "There is/are $passivewheel passiveWheels" >> Readme.txt
+fi
+
+#Test whether there are some activewheg
+if [ "$activewheg" = "0" ]; then
+	echo There is No activewheg >> Readme.txt
+else
+	echo "There is/are $activewheg activeWHEG" >> Readme.txt
+fi
+
+#Test whether there are some parametricbrick
+if [ "$parametricbrick" = "0" ]; then
+	echo There is No parametricbrick >> Readme.txt
+else
+	echo "There is/are $parametricbrick parametricBRICK" >> Readme.txt
+fi
 
 echo Finish.
 echo
