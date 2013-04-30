@@ -193,13 +193,13 @@ that you downloaded from https://dl.dropboxusercontent.com/u/13784867/utils3.zip
 to create rugged terrains. To do that, specify the terrain as flat, and insert more obstacles in the obstacles
 configuration file.
 
-# Racing
+### Racing
 
 The aim of a robot evolved under this scenario is to cover the largest distance as possible in the given amount of time.
 The fitness is computed as the Euclidean distance between the center of mass of the robot at the beginning and the end of the 
 simulation time.
 
-# Chasing
+### Chasing
 
 A light source is created at the center of the area (0, 0, 10cm). Robots must get as close as possible to this light source,
 independently from the specified starting position.
