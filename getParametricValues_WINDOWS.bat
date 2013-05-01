@@ -79,7 +79,7 @@ if "%VAR1%"=="paramValue:" (
 		copy /y nul "FreeCAD_Modules\CallWheel%passivewheel%.py"
 		echo radiusExtern = %VAR2% > utils\intermediate.py
 		echo Path="%CurrentDir%\STL_Files\PassiveWheel%passivewheel%.stl" >> utils\intermediate.py
-		copy utils\Header.py+utils\intermediateTer.py+utils\CallWheelPart1.py+utils\intermediateTer.py+utils\intermediate.py+utils\CallWheelPart2.py FreeCAD_Modules\CallWheel%passivewheel%.py
+		copy utils\Header.py+utils\intermediateTer.py+utils\CallWheelPart1.py+utils\intermediate.py+utils\CallWheelPart2.py FreeCAD_Modules\CallWheel%passivewheel%.py
 
 	) else if "%PreviousType%"=="activewheg" (
 		::Fill the parameter value needed in python script to be executed in FreeCAD
