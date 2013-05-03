@@ -19,7 +19,7 @@ def makeWheel(	externRadius = 70):
 	radiusScrew = 1
 	heightScrew = heightCenterBody
 
-	lengthTeeth = 2
+	lengthTeeth = 4
 	widthTeeth = lengthTeeth
 	heightTeeth = widthTire
 	
@@ -50,7 +50,7 @@ def makeWheel(	externRadius = 70):
 	angle = 30
 	screw = rcopy.makeCopy(screw,radius,angle)
 	Wheel = Wheel.cut(screw)
-
+	
 	#add the Tire of the wheel
 	Tire = Part.makeCylinder(externRadius,widthTire)
 	
@@ -59,7 +59,7 @@ def makeWheel(	externRadius = 70):
 	Tire = Tire.cut(WheelCenter)
 
 	Wheel = Wheel.fuse(Tire)
-
+	
 	# For chamfer you need to know edges	
 	edge56=Wheel.Edges[56]
 	edge58=Wheel.Edges[58]
@@ -78,6 +78,7 @@ def makeWheel(	externRadius = 70):
 	Wheel=Wheel.makeFillet(1,[edge63])
 	Wheel=Wheel.makeFillet(7,[edge56,edge58,edge59,edge61,edge64,edge66])
 	Wheel=Wheel.makeFillet(7,[edge80,edge84,edge87,edge91,edge93,edge96])
+	
 	# add teeth
 	Teeth = Part.makeBox(lengthTeeth,widthTeeth,heightTeeth)
 	Teeth.rotate(Base.Vector(0,0,0),Base.Vector(0,0,1),45)
@@ -85,8 +86,9 @@ def makeWheel(	externRadius = 70):
 	
 	# duplicate each 120 degrees
 	radius = 0
-	angle = 3
+	angle = 10
 	Teeth = rcopy.makeCopy(Teeth,radius,angle)
+	
 	Wheel = Wheel.cut(Teeth)
 	
 	return Wheel
