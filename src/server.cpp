@@ -85,275 +85,294 @@ int main(int argc, char* argv[]) {
 
 			while (true) {
 
-				// ---------------------------------------
-				// Simulator initialization
-				// ---------------------------------------
+				try {
 
-				dInitODE();
+					// ---------------------------------------
+					// Simulator initialization
+					// ---------------------------------------
 
-				// Create ODE world
-				odeWorld = dWorldCreate();
+					dInitODE();
 
-				// Set gravity [mm/s]
-				dWorldSetGravity(odeWorld, 0, 0, -9.81);
+					// Create ODE world
+					odeWorld = dWorldCreate();
 
-				dWorldSetERP(odeWorld, 0.1);
-				dWorldSetCFM(odeWorld, 10e-6);
+					// Set gravity [mm/s]
+					dWorldSetGravity(odeWorld, 0, 0, -9.81);
 
-				// Create collision world
-				dSpaceID odeSpace = dSimpleSpaceCreate(0);
+					dWorldSetERP(odeWorld, 0.1);
+					dWorldSetCFM(odeWorld, 10e-6);
 
-				// Create contact group
-				odeContactGroup = dJointGroupCreate(0);
+					// Create collision world
+					dSpaceID odeSpace = dSimpleSpaceCreate(0);
 
-				// ---------------------------------------
-				// Decode solution
-				// ---------------------------------------
+					// Create contact group
+					odeContactGroup = dJointGroupCreate(0);
 
-				ProtobufPacket<robogenMessage::Robot> packet;
+					// ---------------------------------------
+					// Decode solution
+					// ---------------------------------------
 
-				// 1) Read packet header
-				std::vector<unsigned char> headerBuffer;
-				socket.read(headerBuffer,
-						ProtobufPacket<robogenMessage::Robot>::HEADER_SIZE);
-				unsigned int packetSize = packet.decodeHeader(headerBuffer);
+					ProtobufPacket<robogenMessage::Robot> packet;
 
-				// 2) Read packet size
-				std::vector<unsigned char> payloadBuffer;
-				socket.read(payloadBuffer, packetSize);
-				packet.decodePayload(payloadBuffer);
+					// 1) Read packet header
+					std::vector<unsigned char> headerBuffer;
+					socket.read(headerBuffer,
+							ProtobufPacket<robogenMessage::Robot>::HEADER_SIZE);
+					unsigned int packetSize = packet.decodeHeader(headerBuffer);
 
-				// ---------------------------------------
-				//  Decode configuration file
-				// ---------------------------------------
+					// 2) Read packet size
+					std::vector<unsigned char> payloadBuffer;
+					socket.read(payloadBuffer, packetSize);
+					packet.decodePayload(payloadBuffer);
 
-				boost::shared_ptr<RobogenConfig> configuration =
-						ConfigurationReader::parseConfigurationFile(
-								packet.getMessage()->configuration());
-				if (configuration == NULL) {
-					std::cout
-							<< "Problems parsing the configuration file. Quit."
-							<< std::endl;
-					return EXIT_FAILURE;
-				}
+					// ---------------------------------------
+					//  Decode configuration file
+					// ---------------------------------------
 
-				// ---------------------------------------
-				// Setup environment
-				// ---------------------------------------
-
-				boost::shared_ptr<Scenario> scenario =
-						ScenarioFactory::createScenario(configuration);
-				if (scenario == NULL) {
-					return EXIT_FAILURE;
-				}
-
-				// ---------------------------------------
-				// Generate Robot
-				// ---------------------------------------
-				boost::shared_ptr<Robot> robot(new Robot(odeWorld, odeSpace));
-				if (!robot->init(*packet.getMessage().get())) {
-					std::cout << "Problems decoding the robot. Quit."
-							<< std::endl;
-					return EXIT_FAILURE;
-				}
-
-				// Register sensors
-				std::vector<boost::shared_ptr<Sensor> > sensors =
-						robot->getSensors();
-				std::vector<boost::shared_ptr<TouchSensor> > touchSensors;
-				for (unsigned int i = 0; i < sensors.size(); ++i) {
-					if (boost::dynamic_pointer_cast<TouchSensor>(sensors[i])) {
-						touchSensors.push_back(
-								boost::dynamic_pointer_cast<TouchSensor>(
-										sensors[i]));
+					boost::shared_ptr<RobogenConfig> configuration =
+							ConfigurationReader::parseConfigurationFile(
+									packet.getMessage()->configuration());
+					if (configuration == NULL) {
+						std::cout
+								<< "Problems parsing the configuration file. Quit."
+								<< std::endl;
+						return EXIT_FAILURE;
 					}
-				}
 
-				// Register robot motors
-				std::vector<boost::shared_ptr<Motor> > motors =
-						robot->getMotors();
+					// ---------------------------------------
+					// Setup environment
+					// ---------------------------------------
 
-				std::cout << "S: " << sensors.size() << std::endl;
-				std::cout << "M: " << motors.size() << std::endl;
+					boost::shared_ptr<Scenario> scenario =
+							ScenarioFactory::createScenario(configuration);
+					if (scenario == NULL) {
+						return EXIT_FAILURE;
+					}
 
-				// Register brain and body parts
-				boost::shared_ptr<NeuralNetwork> neuralNetwork =
-						robot->getBrain();
-				std::vector<boost::shared_ptr<Model> > bodyParts =
-						robot->getBodyParts();
+					// ---------------------------------------
+					// Generate Robot
+					// ---------------------------------------
+					boost::shared_ptr<Robot> robot(
+							new Robot(odeWorld, odeSpace));
+					if (!robot->init(*packet.getMessage().get())) {
+						std::cout << "Problems decoding the robot. Quit."
+								<< std::endl;
+						return EXIT_FAILURE;
+					}
 
-				// Initialize scenario
-				if (!scenario->init(odeWorld, odeSpace, robot)) {
-					std::cout << "Cannot initialize scenario. Quit."
-							<< std::endl;
-					return EXIT_FAILURE;
-				}
-
-				// Setup environment
-				boost::shared_ptr<Environment> env = scenario->getEnvironment();
-
-				if (!scenario->setupSimulation()) {
-					std::cout << "Cannot setup scenario. Quit." << std::endl;
-					return EXIT_FAILURE;
-				}
-
-				// ---------------------------------------
-				// OSG Main Loop
-				// ---------------------------------------
-
-				int count = 0;
-				double deltaSecs = 0;
-				double t = 0;
-				double lastLightSensorUpdateT = 0;
-				osg::Timer_t prevTime = osg::Timer::instance()->tick();
-				while (t < configuration->getSimulationTime()) {
-
-					double step = configuration->getTimeStepLength();
-					const osg::Timer_t now = osg::Timer::instance()->tick();
-					deltaSecs += osg::Timer::instance()->delta_s(prevTime, now);
-					prevTime = now;
-
-					while (deltaSecs > step) {
-
-						deltaSecs -= step;
-						t += step;
-
-						if ((count++) % 100 == 0) {
-							std::cout << "Step!" << count << std::endl;
+					// Register sensors
+					std::vector<boost::shared_ptr<Sensor> > sensors =
+							robot->getSensors();
+					std::vector<boost::shared_ptr<TouchSensor> > touchSensors;
+					for (unsigned int i = 0; i < sensors.size(); ++i) {
+						if (boost::dynamic_pointer_cast<TouchSensor>(
+								sensors[i])) {
+							touchSensors.push_back(
+									boost::dynamic_pointer_cast<TouchSensor>(
+											sensors[i]));
 						}
+					}
 
-						// Prepare touch sensors for collision detection
-						for (unsigned int i = 0; i < touchSensors.size(); ++i) {
-							touchSensors[i]->reset();
-						}
+					// Register robot motors
+					std::vector<boost::shared_ptr<Motor> > motors =
+							robot->getMotors();
 
-						// Collision detection
-						dSpaceCollide(odeSpace, 0, odeCollisionCallback);
+					std::cout << "S: " << sensors.size() << std::endl;
+					std::cout << "M: " << motors.size() << std::endl;
 
-						// Step the world by one timestep
-						dWorldStep(odeWorld, step);
+					// Register brain and body parts
+					boost::shared_ptr<NeuralNetwork> neuralNetwork =
+							robot->getBrain();
+					std::vector<boost::shared_ptr<Model> > bodyParts =
+							robot->getBodyParts();
 
-						// Empty contact groups used for collisions handling
-						dJointGroupEmpty(odeContactGroup);
+					// Initialize scenario
+					if (!scenario->init(odeWorld, odeSpace, robot)) {
+						std::cout << "Cannot initialize scenario. Quit."
+								<< std::endl;
+						return EXIT_FAILURE;
+					}
 
-						float networkInput[MAX_INPUT_NEURONS];
-						float networkOutputs[MAX_OUTPUT_NEURONS];
+					// Setup environment
+					boost::shared_ptr<Environment> env =
+							scenario->getEnvironment();
 
-						// Feed neural network
-						for (unsigned int i = 0; i < bodyParts.size(); ++i) {
-							if (boost::dynamic_pointer_cast<PerceptiveComponent>(
-									bodyParts[i])) {
-								boost::dynamic_pointer_cast<PerceptiveComponent>(
-										bodyParts[i])->updateSensors(env);
+					if (!scenario->setupSimulation()) {
+						std::cout << "Cannot setup scenario. Quit."
+								<< std::endl;
+						return EXIT_FAILURE;
+					}
+
+					// ---------------------------------------
+					// OSG Main Loop
+					// ---------------------------------------
+
+					int count = 0;
+					double deltaSecs = 0;
+					double t = 0;
+					double lastLightSensorUpdateT = 0;
+					osg::Timer_t prevTime = osg::Timer::instance()->tick();
+					while (t < configuration->getSimulationTime()) {
+
+						double step = configuration->getTimeStepLength();
+						const osg::Timer_t now = osg::Timer::instance()->tick();
+						deltaSecs += osg::Timer::instance()->delta_s(prevTime,
+								now);
+						prevTime = now;
+
+						while (deltaSecs > step) {
+
+							deltaSecs -= step;
+							t += step;
+
+							if ((count++) % 100 == 0) {
+								std::cout << "Step!" << count << std::endl;
 							}
-						}
 
-						bool updateLightSensors = false;
-						if (t - lastLightSensorUpdateT
-								> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
-							updateLightSensors = true;
-							lastLightSensorUpdateT = t;
-						}
-						for (unsigned int i = 0; i < sensors.size(); ++i) {
-
-							if (boost::dynamic_pointer_cast<TouchSensor>(
-									sensors[i])) {
-								networkInput[i] = boost::dynamic_pointer_cast<
-										TouchSensor>(sensors[i])->read();
-							} else if (boost::dynamic_pointer_cast<LightSensor>(
-									sensors[i])) {
-
-								// Light sensors are updated with a different frequency than the simulation timestep
-								networkInput[i] = boost::dynamic_pointer_cast<
-										LightSensor>(sensors[i])->read(
-										env->getLightSources(),
-										env->getAmbientLight(),
-										updateLightSensors);
-
-							} else if (boost::dynamic_pointer_cast<SimpleSensor>(
-									sensors[i])) {
-								networkInput[i] = boost::dynamic_pointer_cast<
-										SimpleSensor>(sensors[i])->read();
+							// Prepare touch sensors for collision detection
+							for (unsigned int i = 0; i < touchSensors.size();
+									++i) {
+								touchSensors[i]->reset();
 							}
-						}
-						::feed(neuralNetwork.get(), &networkInput[0]);
 
-						// Step the neural network
-						::step(neuralNetwork.get());
+							// Collision detection
+							dSpaceCollide(odeSpace, 0, odeCollisionCallback);
 
-						// Fetch the neural network ouputs
-						::fetch(neuralNetwork.get(), &networkOutputs[0]);
+							// Step the world by one timestep
+							dWorldStep(odeWorld, step);
 
-						// Send control to motors
-						for (unsigned int i = 0; i < motors.size(); ++i) {
-							if (boost::dynamic_pointer_cast<ServoMotor>(
-									motors[i])) {
+							// Empty contact groups used for collisions handling
+							dJointGroupEmpty(odeContactGroup);
 
-								boost::shared_ptr<ServoMotor> motor =
-										boost::dynamic_pointer_cast<ServoMotor>(
-												motors[i]);
+							float networkInput[MAX_INPUT_NEURONS];
+							float networkOutputs[MAX_OUTPUT_NEURONS];
 
-								if (motor->isVelocityDriven()) {
-									motor->setVelocity(networkOutputs[i]);
-								} else {
-									motor->setPosition(
-											osg::inDegrees(networkOutputs[i]));
+							// Feed neural network
+							for (unsigned int i = 0; i < bodyParts.size();
+									++i) {
+								if (boost::dynamic_pointer_cast<
+										PerceptiveComponent>(bodyParts[i])) {
+									boost::dynamic_pointer_cast<
+											PerceptiveComponent>(bodyParts[i])->updateSensors(
+											env);
 								}
 							}
-						}
 
-						if (!scenario->afterSimulationStep()) {
-							std::cout
-									<< "Cannot execute scenario after simulation step. Quit."
-									<< std::endl;
-							return EXIT_FAILURE;
+							bool updateLightSensors = false;
+							if (t - lastLightSensorUpdateT
+									> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
+								updateLightSensors = true;
+								lastLightSensorUpdateT = t;
+							}
+							for (unsigned int i = 0; i < sensors.size(); ++i) {
+
+								if (boost::dynamic_pointer_cast<TouchSensor>(
+										sensors[i])) {
+									networkInput[i] =
+											boost::dynamic_pointer_cast<
+													TouchSensor>(sensors[i])->read();
+								} else if (boost::dynamic_pointer_cast<
+										LightSensor>(sensors[i])) {
+
+									// Light sensors are updated with a different frequency than the simulation timestep
+									networkInput[i] =
+											boost::dynamic_pointer_cast<
+													LightSensor>(sensors[i])->read(
+													env->getLightSources(),
+													env->getAmbientLight(),
+													updateLightSensors);
+
+								} else if (boost::dynamic_pointer_cast<
+										SimpleSensor>(sensors[i])) {
+									networkInput[i] =
+											boost::dynamic_pointer_cast<
+													SimpleSensor>(sensors[i])->read();
+								}
+							}
+							::feed(neuralNetwork.get(), &networkInput[0]);
+
+							// Step the neural network
+							::step(neuralNetwork.get());
+
+							// Fetch the neural network ouputs
+							::fetch(neuralNetwork.get(), &networkOutputs[0]);
+
+							// Send control to motors
+							for (unsigned int i = 0; i < motors.size(); ++i) {
+								if (boost::dynamic_pointer_cast<ServoMotor>(
+										motors[i])) {
+
+									boost::shared_ptr<ServoMotor> motor =
+											boost::dynamic_pointer_cast<
+													ServoMotor>(motors[i]);
+
+									if (motor->isVelocityDriven()) {
+										motor->setVelocity(networkOutputs[i]);
+									} else {
+										motor->setPosition(
+												osg::inDegrees(
+														networkOutputs[i]));
+									}
+								}
+							}
+
+							if (!scenario->afterSimulationStep()) {
+								std::cout
+										<< "Cannot execute scenario after simulation step. Quit."
+										<< std::endl;
+								return EXIT_FAILURE;
+							}
+
 						}
 
 					}
 
-				}
+					if (!scenario->endSimulation()) {
+						std::cout << "Cannot complete scenario. Quit."
+								<< std::endl;
+						return EXIT_FAILURE;
+					}
 
-				if (!scenario->endSimulation()) {
-					std::cout << "Cannot complete scenario. Quit." << std::endl;
+					// ---------------------------------------
+					// Compute fitness
+					// ---------------------------------------
+
+					double fitness = scenario->getFitness();
+					std::cout << "Fitness for the current solution: " << fitness
+							<< std::endl;
+
+					// ---------------------------------------
+					// Simulator finalization
+					// ---------------------------------------
+
+					// Destroy ODE space
+					dSpaceDestroy(odeSpace);
+
+					// Destroy ODE world
+					dWorldDestroy(odeWorld);
+
+					// Destroy the ODE engine
+					dCloseODE();
+
+					// ---------------------------------------
+					// Test with Pradeep
+					// ---------------------------------------
+					boost::shared_ptr<robogenMessage::EvaluationResult> evalResultPacket(
+							new robogenMessage::EvaluationResult());
+					evalResultPacket->set_fitness(fitness);
+					evalResultPacket->set_id(packet.getMessage()->id());
+					ProtobufPacket<robogenMessage::EvaluationResult> evalResult;
+					evalResult.setMessage(evalResultPacket);
+
+					std::vector<unsigned char> sendBuffer;
+					evalResult.forge(sendBuffer);
+
+					socket.write(sendBuffer);
+
+				} catch (boost::system::system_error& e) {
+					socket.close();
 					return EXIT_FAILURE;
 				}
-
-				// ---------------------------------------
-				// Compute fitness
-				// ---------------------------------------
-
-				double fitness = scenario->getFitness();
-				std::cout << "Fitness for the current solution: " << fitness
-						<< std::endl;
-
-				// ---------------------------------------
-				// Simulator finalization
-				// ---------------------------------------
-
-				// Destroy ODE space
-				dSpaceDestroy(odeSpace);
-
-				// Destroy ODE world
-				dWorldDestroy(odeWorld);
-
-				// Destroy the ODE engine
-				dCloseODE();
-
-				// ---------------------------------------
-				// Test with Pradeep
-				// ---------------------------------------
-				boost::shared_ptr<robogenMessage::EvaluationResult> evalResultPacket(
-						new robogenMessage::EvaluationResult());
-				evalResultPacket->set_fitness(fitness);
-				evalResultPacket->set_id(packet.getMessage()->id());
-				ProtobufPacket<robogenMessage::EvaluationResult> evalResult;
-				evalResult.setMessage(evalResultPacket);
-
-				std::vector<unsigned char> sendBuffer;
-				evalResult.forge(sendBuffer);
-
-				socket.write(sendBuffer);
-
 
 			}
 

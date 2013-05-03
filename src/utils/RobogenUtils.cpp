@@ -31,6 +31,22 @@
 
 namespace robogen {
 
+template<typename CharT, typename Traits>
+std::basic_ostream<CharT, Traits>& operator<<(
+		std::basic_ostream<CharT, Traits>& out, osg::Vec3& o) {
+	out << "(" << o.x() << ", " << o.y() << ", " << o.z() << ")";
+	return out;
+}
+
+template<typename CharT, typename Traits>
+std::basic_ostream<CharT, Traits>& operator<<(
+		std::basic_ostream<CharT, Traits>& out, osg::Quat& o) {
+	out << "(" << o.w() << "|" << o.x() << ", " << o.y() << ", " << o.z()
+			<< ")";
+	return out;
+}
+
+
 const double RobogenUtils::OSG_EPSILON = 1e-7;
 const double RobogenUtils::OSG_EPSILON_2 = 1e-6;
 
@@ -76,16 +92,18 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
    osg::Vec3 aSlotOrientation = a->getSlotOrientation(slotA);
    double angle = RobogenUtils::getAngle(aSlotOrientation, bSlotOrientation);
 
-   //std::cout << "Angle: " << angle << std::endl;
+   std::cout << "Angle: " << angle << std::endl;
 
    osg::Vec3 aSlotAxis = a->getSlotAxis(slotA);
    osg::Quat slotAlignRotation;
-   slotAlignRotation.makeRotate(osg::inDegrees(angle), aSlotAxis);
-   /*
+   slotAlignRotation.makeRotate(osg::inDegrees(-angle), aSlotAxis);
+
+
     std::cout << "bSlotOrientation: " << bSlotOrientation << std::endl;
     std::cout << "aSlotOrientation: " << aSlotOrientation << std::endl;
     std::cout << "slotAlignRotation: " << slotAlignRotation << std::endl;
-    */
+
+
    // ...and has the correct orientation
    if (abs(orientation) > 1e-6) {
 
@@ -111,17 +129,6 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
    dJointAttach(joint, a->getSlot(slotA), b->getSlot(slotB));
    dJointSetFixed(joint);
 
-   /*dJointID joint = dJointCreateSlider(odeWorld, 0);
-    dJointAttach(joint, a->getSlot(slotA), b->getSlot(slotB));
-
-    osg::Vec3 jointAxis = a->getSlotAxis(slotA);
-
-    //dJointSetSliderAxis(joint, 0, 0, 1);
-
-    dJointSetSliderAxis(joint, jointAxis.x(), jointAxis.y(), jointAxis.z());
-
-    dJointSetSliderParam(joint, dParamLoStop, 0);
-    dJointSetSliderParam(joint, dParamHiStop, 0);*/
 
 }
 
@@ -146,7 +153,7 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
    // Parameters of parametric bricks
    static const std::string PARAM_PARAMETRIC_BRICK_LENGTH = "length";
    static const std::string PARAM_PARAMETRIC_BRICK_ALPHA = "inclinationangle";
-   static const std::string PARAM_PARAMETRIC_BRICK_BETA = "rotationAngle";
+   static const std::string PARAM_PARAMETRIC_BRICK_BETA = "rotationangle";
 
    // Parameters of wheels and whegs
    static const std::string PARAM_WH_RADIUS = "radius";
