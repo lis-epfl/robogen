@@ -247,6 +247,9 @@ int main(int argc, char* argv[]) {
 							float networkInput[MAX_INPUT_NEURONS];
 							float networkOutputs[MAX_OUTPUT_NEURONS];
 
+							// Elapsed time since last call
+							env->setTimeElapsed(step);
+
 							// Feed neural network
 							for (unsigned int i = 0; i < bodyParts.size();
 									++i) {

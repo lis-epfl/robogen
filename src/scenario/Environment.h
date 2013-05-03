@@ -36,7 +36,7 @@ class Environment {
 
 public:
 
-	Environment() {
+	Environment() : timeElapsed_(0) {
 
 	}
 
