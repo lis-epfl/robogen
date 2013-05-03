@@ -20,6 +20,7 @@ Thanks to you for your help and sorry for any (many I guess, at the current stag
 
 ## Latest updates
 
+* May 3: Fixed orientation problem in Parametric Brick. Fixed exception on simulator exit.
 * Apri 30: Increased mass of obstacles to avoid strange behavior during collisions. Fixed chasing scenario light rendering.
 * April 17: Improved physical simulation stability by tuning ODE parameters. Fixed ActiveHinge misalignment.
 * April 16: Wheels and whegs can be evolved parametrically (the radius can change during evolution)
