@@ -154,8 +154,7 @@ bool ActiveWhegModel::initModel() {
 
    // Create servo
    this->motor_.reset(
-         new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE,
-               ServoMotor::DEFAULT_GAIN));
+         new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE));
 
    return true;
 
