@@ -103,7 +103,7 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 	for (unsigned int i = 0; i < c.size(); ++i) {
 
 		float oMinX = c[i].x() - s[i].x() / 2;
-		float oMaxX = c[i].y() + s[i].x() / 2;
+		float oMaxX = c[i].x() + s[i].x() / 2;
 		float oMinY = c[i].y() - s[i].y() / 2;
 		float oMaxY = c[i].y() + s[i].y() / 2;
 
