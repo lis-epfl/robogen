@@ -256,18 +256,19 @@ int main(int argc, char *argv[]) {
 	// ROBOGEN Simulation
 	// ---------------------------------------
 
+	std::cout << "Press P to pause/unpause the simulation." << std::endl;
+	std::cout << "Press Q to quit the visualizer." << std::endl;
+
 	int count = 0;
 	double t = 0;
 	double lastLightSensorUpdateT = 0;
-	while (t < configuration->getSimulationTime() && !viewer.done()) {
+	while (!viewer.done() && !keyboardEvent->isQuit()) {
 
 		viewer.frame();
 
-		if (!keyboardEvent->isPaused()) {
+		if (t < configuration->getSimulationTime() && !keyboardEvent->isPaused()) {
 
 			double step = configuration->getTimeStepLength();
-
-			t += step;
 
 			if ((count++) % 100 == 0) {
 				std::cout << "Step!" << count << std::endl;
@@ -290,6 +291,9 @@ int main(int argc, char *argv[]) {
 			float networkInput[MAX_INPUT_NEURONS];
 			float networkOutputs[MAX_OUTPUT_NEURONS];
 
+			// Elapsed time since last call
+			env->setTimeElapsed(step);
+
 			// Feed neural network
 			for (unsigned int i = 0; i < bodyParts.size(); ++i) {
 				if (boost::dynamic_pointer_cast<PerceptiveComponent>(
@@ -300,7 +304,7 @@ int main(int argc, char *argv[]) {
 			}
 
 			bool updateLightSensors = false;
-			if (t - lastLightSensorUpdateT
+			if (t == 0 || t - lastLightSensorUpdateT
 					> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
 				updateLightSensors = true;
 				lastLightSensorUpdateT = t;
@@ -353,6 +357,8 @@ int main(int argc, char *argv[]) {
 						<< std::endl;
 				return EXIT_FAILURE;
 			}
+
+			t += step;
 
 		}
 

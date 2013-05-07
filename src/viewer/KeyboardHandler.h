@@ -36,7 +36,7 @@ class KeyboardHandler: public osgGA::GUIEventHandler {
 
 public:
 
-	KeyboardHandler() : osgGA::GUIEventHandler(), paused_(true) {
+	KeyboardHandler() : osgGA::GUIEventHandler(), paused_(true), quit_(false) {
 
 	}
 
@@ -55,6 +55,13 @@ public:
 					paused_ = false;
 				} else {
 					paused_ = true;
+				}
+				return true;
+				break;
+
+			case 'q':
+				if (quit_ == false) {
+					quit_ = true;
 				}
 				return true;
 				break;
@@ -81,9 +88,18 @@ public:
 		return paused_;
 	}
 
+	/**
+	 * True if the quit button was pressed
+	 */
+	bool isQuit() {
+		return quit_;
+	}
+
 private:
 
 	bool paused_;
+
+	bool quit_;
 
 };
 
