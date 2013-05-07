@@ -55,7 +55,7 @@ public:
 			float timeElapsed);
 
 	/**
-	 * Return a sensors for each acceleration outputs (acceleration along the three axis)  [0,1]
+	 * Return a sensors for each acceleration outputs (acceleration along the three axis)
 	 * and gyro outputs (+/- 360°) (rotational velocity) (x-acc, y-acc, z-acc, x-gryo, y-gyro, z-gryo)
 	 * @param sensors
 	 */

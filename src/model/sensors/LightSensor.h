@@ -52,8 +52,8 @@ public:
 	 * Minimum and maximum intensity value that is provided
 	 * as output of the sensor
 	 */
-	static const int MIN_INTENSITY_VALUE;
-	static const int MAX_INTENSITY_VALUE;
+	static const float MIN_INTENSITY_VALUE;
+	static const float MAX_INTENSITY_VALUE;
 
 	/**
 	 * Minimum and maximum intensity value mapped to the

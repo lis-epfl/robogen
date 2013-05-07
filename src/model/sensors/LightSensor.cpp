@@ -32,11 +32,11 @@
 namespace robogen {
 
 const float LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP = 0.25;
-const int LightSensor::MIN_INTENSITY_VALUE = 0;
-const int LightSensor::MAX_INTENSITY_VALUE = 1023;
+const float LightSensor::MIN_INTENSITY_VALUE = 0;
+const float LightSensor::MAX_INTENSITY_VALUE = 1;
 const double LightSensor::MIN_INTENSITY = 0;
 const double LightSensor::MAX_INTENSITY = 100;
-const double LightSensor::HALF_APERTURE = 10;
+const double LightSensor::HALF_APERTURE = 15;
 const double LightSensor::SENSOR_RESOLUTION = 5;
 
 LightSensor::LightSensor(dSpaceID odeSpace) :
@@ -219,6 +219,7 @@ int LightSensor::read(
 	std::vector<boost::shared_ptr<RayTrace> > rayGeometries;
 
 	double totalLight = ambientLight;
+
 	for (unsigned int i = 0; i < lightSources.size(); ++i) {
 
 		boost::shared_ptr<LightSourceInfo> lightInfo(new LightSourceInfo);
@@ -245,9 +246,14 @@ int LightSensor::read(
 			// Generate a ray with origin in the sensor position, passing at a point at specified altitude and azimut
 			osg::Quat rayQuatAzimuth;
 			rayQuatAzimuth.makeRotate(osg::inDegrees(azimuth),
-					osg::Vec3(0, 0, 1));
+					osg::Vec3(1, 0, 0));
 
 			osg::Quat curQuat = attitude_ * rayQuatAltitude * rayQuatAzimuth;
+
+
+			//std::cout << attitude_.w() << ", " << attitude_.x() << ", " << attitude_.y() << ", " << attitude_.z() << std::endl;
+			//std::cout << rayQuatAltitude.w() << ", " << rayQuatAltitude.x() << ", " << rayQuatAltitude.y() << ", " << rayQuatAltitude.z() << std::endl;
+			//std::cout << rayQuatAzimuth.w() << ", " << rayQuatAzimuth.x() << ", " << rayQuatAzimuth.y() << ", " << rayQuatAzimuth.z() << std::endl;
 
 			dGeomID curRay = dCreateRay(odeSpace_, 100000); // A very long ray
 			dGeomSetPosition(curRay, position_.x(), position_.y(),
@@ -258,6 +264,8 @@ int LightSensor::read(
 			quatOde[2] = curQuat.y();
 			quatOde[3] = curQuat.z();
 			dGeomSetQuaternion(curRay, quatOde);
+
+			//std::cout << "ray "<< rayGeometries.size() << "(alt: " << altitude << ", azh: " << azimuth << ") : " << curQuat.w() << ", " << curQuat.x() << ", " << curQuat.y() << ", " << curQuat.z() << std::endl;
 
 			boost::shared_ptr<RayTrace> rayTrace(new RayTrace);
 
@@ -284,6 +292,7 @@ int LightSensor::read(
 	for (unsigned int i = 0; i < rayGeometries.size(); ++i) {
 
 		for (unsigned int j = 0; j < lightSources.size(); ++j) {
+
 			if (rayGeometries[i]->visible[j]) {
 
 				//std::cout << "Ray: " << i << " (" << rayGeometries[i]->azimuth << ", " << rayGeometries[i]->altitude << ") Coll: [";
@@ -307,7 +316,11 @@ int LightSensor::read(
 				//std::cout << "], DL: " << rayGeometries[i]->distanceToLight[j] << std::endl;
 
 				if (!objectsInBetween) {
-					totalLight += lightSources[j]->getIntensity();
+
+					float curAltitude = HALF_APERTURE - fabs(rayGeometries[i]->altitude);
+
+
+					totalLight += lightSources[j]->getIntensity() * ((1.0/HALF_APERTURE)*curAltitude);
 				}
 
 			}
@@ -335,6 +348,8 @@ int LightSensor::read(
 		dGeomSetData(lightSources[i]->getSource(), NULL);
 	}
 
+	//std::cout << "totalLight: " << totalLight << std::endl;
+
 	// Rescale total light received
 	int output = 0;
 	if (totalLight >= MAX_INTENSITY) {
@@ -348,6 +363,7 @@ int LightSensor::read(
 	}
 
 	lastReadOutput_ = output;
+	//std::cout << "output: " << output << std::endl;
 	return output;
 
 }
