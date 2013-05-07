@@ -4,6 +4,23 @@ Andrea Maesani (andrea.maesani@epfl.ch), April 3 2013
 
 **Read carefully ALL the document before starting doing anything!**
 
+**Please check at the end of the file for some tricks you might try in order**
+**to improve the stability of the simulator**
+
+## Latest updates
+
+* **May 7: Increase maximum velocity of servo motors. Temptative fix for light sensor.**
+           **Fixed starting positions in chasing scenario. Fixed obstacles not being generated correctly.**
+* May 3: Fixed orientation problem in Parametric Brick. Fixed exception on simulator exit.
+* Apri 30: Increased mass of obstacles to avoid strange behavior during collisions. Fixed chasing scenario light rendering.
+* April 17: Improved physical simulation stability by tuning ODE parameters. Fixed ActiveHinge misalignment.
+* April 16: Wheels and whegs can be evolved parametrically (the radius can change during evolution)
+* April 12: The simulator now sends a bias for each evolved neuron in the neural network controller. The simulator 
+  has been changed to initialize correctly the neural network.
+* April 5: The light sensor has now a decent execution time, no more affecting the simulator performance.
+
+## The simulator
+
 The simulator can be compiled on Linux, Windows and MAC OSX. 
 Unfortunately, this semester the code is still  experimental, therefore we do not have any precompiled distributable to ship you. 
 
@@ -18,16 +35,6 @@ in the course evaluation!
 
 Thanks to you for your help and sorry for any (many I guess, at the current stage) incovenient :-) 
 
-## Latest updates
-
-* May 7: Increase maximum velocity of servo motors.
-* May 3: Fixed orientation problem in Parametric Brick. Fixed exception on simulator exit.
-* Apri 30: Increased mass of obstacles to avoid strange behavior during collisions. Fixed chasing scenario light rendering.
-* April 17: Improved physical simulation stability by tuning ODE parameters. Fixed ActiveHinge misalignment.
-* April 16: Wheels and whegs can be evolved parametrically (the radius can change during evolution)
-* April 12: The simulator now sends a bias for each evolved neuron in the neural network controller. The simulator 
-  has been changed to initialize correctly the neural network.
-* April 5: The light sensor has now a decent execution time, no more affecting the simulator performance.
 
 ## Contributions
 
@@ -209,3 +216,16 @@ Make sure to specify starting position at a certain distance from the light sour
 penetrate the light source and the simulator will fail.
 The fitness is computed as the sum of the distances between the center of mass of the robot and the light source over all
 the simulation time.
+
+## Making the simulation more stable
+
+If you have stability problems when simulating your robot you might try to modify the ERP and CFM parameters, 
+described [here](http://ode-wiki.org/wiki/index.php?title=Manual:_All&printable=yes#Joint_error_and_the_Error_Reduction_Parameter_.28ERP.29) to modify the way ODE internally solves constraints and forces.
+
+Mikaz-fr reported some success modifying ERP and CFM (remember to change both of them in FileViewer.cpp and Server.cpp,
+and of course recompile the simulator code) to the following values.
+However, the choice of values is strictly dependent on the structure being simulated, so try to play around with them.
+
+    dWorldSetERP(odeWorld, 0.8);        // Error correction parameter
+    dWorldSetCFM(odeWorld, 0.5*10e-3);      // Constraint force mixing
+
