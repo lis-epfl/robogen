@@ -29,7 +29,7 @@
 
 namespace robogen {
 
-const float LightSource::RADIUS = 0.025;
+const float LightSource::RADIUS = 0.001;
 
 LightSource::LightSource(dSpaceID odeSpace, const osg::Vec3& position,
 		float intensity) :
