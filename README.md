@@ -1,6 +1,6 @@
 The ROBOGEN simulator
 =================
-Andrea Maesani (andrea.maesani@epfl.ch), April 3 2013
+Andrea Maesani (andrea.maesani@epfl.ch)
 
 **Read carefully ALL the document before starting doing anything!**
 
