@@ -84,6 +84,7 @@ bool ChasingScenario::endSimulation() {
 	curTrial_++;
 	// Set next starting position
 	this->setStartingPosition(curTrial_);
+	this->distances_.push_back(0);
 	return true;
 
 }
