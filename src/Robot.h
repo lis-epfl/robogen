@@ -112,6 +112,11 @@ public:
 	 */
 	const std::string& getConfigurationFile() const;
 
+	/**
+	 * @return the robot ID
+	 */
+	int getId() const;
+
 private:
 
 	/**
@@ -182,6 +187,11 @@ private:
 	 * Robot configuration file
 	 */
 	std::string configurationFile_;
+
+	/**
+	 * Robot ID
+	 */
+	int id_;
 
 };
 

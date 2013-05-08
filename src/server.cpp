@@ -203,6 +203,8 @@ int main(int argc, char* argv[]) {
 						return EXIT_FAILURE;
 					}
 
+					std::cout << "Evaluating individual " << robot->getId() << std::endl;
+
 					// ---------------------------------------
 					// OSG Main Loop
 					// ---------------------------------------

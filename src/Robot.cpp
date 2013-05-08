@@ -124,6 +124,9 @@ boost::shared_ptr<Model> Robot::getCoreComponent() {
 }
 
 bool Robot::init(const robogenMessage::Robot& robotSpec) {
+
+	this->id_ = robotSpec.id();
+
 	const robogenMessage::Body& body = robotSpec.body();
 	const robogenMessage::Brain& brain = robotSpec.brain();
 	if (!this->decodeBody(body)) {
@@ -543,6 +546,10 @@ void Robot::getBB(double& minX, double& maxX, double& minY, double& maxY,
 
 const std::string& Robot::getConfigurationFile() const {
 	return configurationFile_;
+}
+
+int Robot::getId() const {
+	return id_;
 }
 
 }
