@@ -203,7 +203,8 @@ int main(int argc, char* argv[]) {
 						return EXIT_FAILURE;
 					}
 
-					std::cout << "Evaluating individual " << robot->getId() << std::endl;
+					std::cout << "Evaluating individual " << robot->getId()
+							<< std::endl;
 
 					// ---------------------------------------
 					// OSG Main Loop
@@ -214,7 +215,6 @@ int main(int argc, char* argv[]) {
 						int count = 0;
 						double t = 0;
 						double lastLightSensorUpdateT = 0;
-
 						double step = configuration->getTimeStepLength();
 						while (t < configuration->getSimulationTime()) {
 
@@ -335,13 +335,13 @@ int main(int argc, char* argv[]) {
 						// ---------------------------------------
 
 						fitness += scenario->getFitness();
-						std::cout << "Fitness for the current solution: " << fitness
-								<< std::endl;
-
+						std::cout << "Fitness for the current solution: "
+								<< fitness << std::endl;
 
 					}
 
-					fitness /= scenario->getRobogenConfig()->getStartingPos()->getStartPosition().size();
+					fitness /=
+							scenario->getRobogenConfig()->getStartingPos()->getStartPosition().size();
 
 					// ---------------------------------------
 					// Simulator finalization
