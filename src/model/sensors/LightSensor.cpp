@@ -51,7 +51,6 @@ LightSensor::~LightSensor() {
 void LightSensor::update(const osg::Vec3& position, const osg::Quat& attitude) {
 	this->position_ = position;
 	this->attitude_ = attitude;
-
 }
 
 //-----------------------------------------------
@@ -119,6 +118,7 @@ void odeRayTracingCallback(void*, dGeomID o1, dGeomID o2) {
 
 		int collisionCounts = dCollide(o1, o2, MAX_CONTACTS, &contact[0].geom,
 				sizeof(dContact));
+
 
 		if (collisionCounts != 0) {
 
@@ -241,15 +241,16 @@ int LightSensor::read(
 		rayQuatAltitude.makeRotate(osg::inDegrees((90 + altitude)),
 				osg::Vec3(0, 1, 0));
 
-		for (double azimuth = 0; azimuth < 360; azimuth += SENSOR_RESOLUTION) {
+		double azimuth = 0;
+		//for (double azimuth = 0; azimuth < 360; azimuth += SENSOR_RESOLUTION) {
 
 			// Generate a ray with origin in the sensor position, passing at a point at specified altitude and azimut
 			osg::Quat rayQuatAzimuth;
 			rayQuatAzimuth.makeRotate(osg::inDegrees(azimuth),
 					osg::Vec3(1, 0, 0));
 
-			osg::Quat curQuat = attitude_ * rayQuatAltitude * rayQuatAzimuth;
-
+			osg::Quat curQuat = rayQuatAltitude * rayQuatAzimuth;
+			curQuat = curQuat *attitude_;
 
 			//std::cout << attitude_.w() << ", " << attitude_.x() << ", " << attitude_.y() << ", " << attitude_.z() << std::endl;
 			//std::cout << rayQuatAltitude.w() << ", " << rayQuatAltitude.x() << ", " << rayQuatAltitude.y() << ", " << rayQuatAltitude.z() << std::endl;
@@ -281,7 +282,7 @@ int LightSensor::read(
 							rayTrace.get()));
 			rayGeometries.push_back(rayTrace);
 
-		}
+		//}
 
 	}
 
@@ -304,7 +305,7 @@ int LightSensor::read(
 				for (unsigned int k = 0;
 						k < rayGeometries[i]->collisions.size(); ++k) {
 
-					//std::cout << rayGeometries[i]->collisions[k] << " ";
+					std::cout << rayGeometries[i]->collisions[k] << " ";
 
 					if (rayGeometries[i]->collisions[k]
 							< rayGeometries[i]->distanceToLight[j]) {
@@ -318,9 +319,8 @@ int LightSensor::read(
 				if (!objectsInBetween) {
 
 					float curAltitude = HALF_APERTURE - fabs(rayGeometries[i]->altitude);
-
-
 					totalLight += lightSources[j]->getIntensity() * ((1.0/HALF_APERTURE)*curAltitude);
+
 				}
 
 			}

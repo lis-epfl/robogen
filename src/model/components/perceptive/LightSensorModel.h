@@ -44,6 +44,7 @@ public:
 	static const float MASS;
 	static const float SENSOR_BASE_WIDTH;
 	static const float SENSOR_BASE_THICKNESS;
+	static const float SENSOR_DISPLACEMENT;
 
 	static const unsigned int SLOT_A = 0;
 

@@ -32,6 +32,7 @@ namespace robogen {
 const float LightSensorModel::MASS = inGrams(2);
 const float LightSensorModel::SENSOR_BASE_WIDTH = inMm(34);
 const float LightSensorModel::SENSOR_BASE_THICKNESS = inMm(1.5);
+const float LightSensorModel::SENSOR_DISPLACEMENT = inMm(8);
 
 LightSensorModel::LightSensorModel(dWorldID odeWorld, dSpaceID odeSpace,
 		bool internalSensor) :
@@ -136,8 +137,14 @@ void LightSensorModel::getSensors(
 }
 
 void LightSensorModel::updateSensors(boost::shared_ptr<Environment>& /*env*/) {
-	this->sensor_->update(this->getSlotPosition(SLOT_A),
-			this->getAttitude(sensorRoot_));
+
+	// Axis
+	osg::Quat quat = this->getAttitude(this->sensorRoot_);
+
+	osg::Vec3 curPos = this->getPosition(sensorRoot_);
+	osg::Vec3 axis(1, 0, 0);
+	osg::Vec3 sensorPos = curPos + quat * axis * SENSOR_DISPLACEMENT;
+	this->sensor_->update(sensorPos, this->getAttitude(sensorRoot_));
 }
 
 }
