@@ -1,6 +1,6 @@
 The ROBOGEN simulator
 =================
-Andrea Maesani (andrea.maesani@epfl.ch), April 3 2013
+Andrea Maesani (andrea.maesani@epfl.ch)
 
 **Read carefully ALL the document before starting doing anything!**
 
@@ -9,8 +9,9 @@ Andrea Maesani (andrea.maesani@epfl.ch), April 3 2013
 
 ## Latest updates
 
-* **May 7: Increase maximum velocity of servo motors. Temptative fix for light sensor.**
-           **Fixed starting positions in chasing scenario. Fixed obstacles not being generated correctly.**
+* **May 8: Fixed SEGFAULT notified by Mikaz-fr. Added some verbose text (id of individual being currently evaluated).**
+* May 7: Increase maximum velocity of servo motors. Temptative fix for light sensor.
+          Fixed starting positions in chasing scenario. Fixed obstacles not being generated correctly.
 * May 3: Fixed orientation problem in Parametric Brick. Fixed exception on simulator exit.
 * Apri 30: Increased mass of obstacles to avoid strange behavior during collisions. Fixed chasing scenario light rendering.
 * April 17: Improved physical simulation stability by tuning ODE parameters. Fixed ActiveHinge misalignment.
