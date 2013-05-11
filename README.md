@@ -9,7 +9,8 @@ Andrea Maesani (andrea.maesani@epfl.ch)
 
 ## Latest updates
 
-* **May 8: Fixed SEGFAULT notified by Mikaz-fr. Added some verbose text (id of individual being currently evaluated).**
+* **May 11: Fixed LightSensor: reported to have weird behavior when mounted in particular orientations**
+* May 8: Fixed SEGFAULT notified by Mikaz-fr. Added some verbose text (id of individual being currently evaluated).
 * May 7: Increase maximum velocity of servo motors. Temptative fix for light sensor.
           Fixed starting positions in chasing scenario. Fixed obstacles not being generated correctly.
 * May 3: Fixed orientation problem in Parametric Brick. Fixed exception on simulator exit.
