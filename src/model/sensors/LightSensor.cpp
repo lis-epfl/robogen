@@ -305,7 +305,7 @@ int LightSensor::read(
 				for (unsigned int k = 0;
 						k < rayGeometries[i]->collisions.size(); ++k) {
 
-					std::cout << rayGeometries[i]->collisions[k] << " ";
+					//std::cout << rayGeometries[i]->collisions[k] << " ";
 
 					if (rayGeometries[i]->collisions[k]
 							< rayGeometries[i]->distanceToLight[j]) {
