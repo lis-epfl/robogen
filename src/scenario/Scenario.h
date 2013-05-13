@@ -133,6 +133,11 @@ public:
 	 */
 	virtual bool remainingTrials() = 0;
 
+	/**
+	 * @return the current trial
+	 */
+	virtual int getCurTrial() const = 0;
+
 private:
 
 	/**

@@ -120,47 +120,6 @@ int main(int argc, char* argv[]) {
 				try {
 
 					// ---------------------------------------
-					// Simulator initialization
-					// ---------------------------------------
-
-					dInitODE();
-
-					// Create ODE world
-					odeWorld = dWorldCreate();
-
-					// Set gravity [mm/s]
-					dWorldSetGravity(odeWorld, 0, 0, -9.81);
-
-					dWorldSetERP(odeWorld, 0.1);
-					dWorldSetCFM(odeWorld, 10e-6);
-
-					// Create collision world
-					dSpaceID odeSpace = dSimpleSpaceCreate(0);
-
-					// Create contact group
-					odeContactGroup = dJointGroupCreate(0);
-
-					// ---------------------------------------
-					// OSG Initialization
-					// ---------------------------------------
-
-					//Creating the viewer
-					osgViewer::Viewer viewer;
-
-					viewer.setUpViewInWindow(300, 300, 1280, 1024);
-
-					osg::ref_ptr<KeyboardHandler> keyboardEvent(
-							new KeyboardHandler());
-
-					viewer.addEventHandler(keyboardEvent.get());
-
-					// Camera
-					osg::ref_ptr<osg::Camera> camera = viewer.getCamera();
-
-					//Creating the root node
-					osg::ref_ptr<osg::Group> root(new osg::Group);
-
-					// ---------------------------------------
 					// Decode solution
 					// ---------------------------------------
 
@@ -201,122 +160,165 @@ int main(int argc, char* argv[]) {
 						return EXIT_FAILURE;
 					}
 
-					// ---------------------------------------
-					// Generate Robot
-					// ---------------------------------------
-					boost::shared_ptr<Robot> robot(
-							new Robot(odeWorld, odeSpace));
-					if (!robot->init(*packet.getMessage().get())) {
-						std::cout << "Problems decoding the robot. Quit."
-								<< std::endl;
-						return EXIT_FAILURE;
-					}
+					std::cout
+							<< "-----------------------------------------------"
+							<< std::endl;
 
-					// Register sensors
-					std::vector<boost::shared_ptr<Sensor> > sensors =
-							robot->getSensors();
-					std::vector<boost::shared_ptr<TouchSensor> > touchSensors;
-					for (unsigned int i = 0; i < sensors.size(); ++i) {
-						if (boost::dynamic_pointer_cast<TouchSensor>(
-								sensors[i])) {
-							touchSensors.push_back(
-									boost::dynamic_pointer_cast<TouchSensor>(
-											sensors[i]));
-						}
-					}
+					while (scenario->remainingTrials()) {
 
-					// Register robot motors
-					std::vector<boost::shared_ptr<Motor> > motors =
-							robot->getMotors();
+						// ---------------------------------------
+						// Simulator initialization
+						// ---------------------------------------
 
-					std::cout << "S: " << sensors.size() << std::endl;
-					std::cout << "M: " << motors.size() << std::endl;
+						dInitODE();
 
-					// Register brain and body parts
-					boost::shared_ptr<NeuralNetwork> neuralNetwork =
-							robot->getBrain();
-					std::vector<boost::shared_ptr<Model> > bodyParts =
-							robot->getBodyParts();
+						// Create ODE world
+						odeWorld = dWorldCreate();
 
-					// Initialize scenario
-					if (!scenario->init(odeWorld, odeSpace, robot)) {
-						std::cout << "Cannot initialize scenario. Quit."
-								<< std::endl;
-						return EXIT_FAILURE;
-					}
+						// Set gravity [mm/s]
+						dWorldSetGravity(odeWorld, 0, 0, -9.81);
 
-					// Setup environment
-					boost::shared_ptr<Environment> env =
-							scenario->getEnvironment();
+						dWorldSetERP(odeWorld, 0.1);
+						dWorldSetCFM(odeWorld, 10e-6);
 
-					if (!scenario->setupSimulation()) {
-						std::cout << "Cannot setup scenario. Quit."
-								<< std::endl;
-						return EXIT_FAILURE;
-					}
+						// Create collision world
+						dSpaceID odeSpace = dSimpleSpaceCreate(0);
 
-					std::vector<boost::shared_ptr<RenderModel> > renderModels;
-					for (unsigned int i = 0; i < bodyParts.size(); ++i) {
+						// Create contact group
+						odeContactGroup = dJointGroupCreate(0);
 
-						boost::shared_ptr<RenderModel> renderModel =
-								RobogenUtils::createRenderModel(bodyParts[i]);
-						if (renderModel == NULL) {
-							std::cout
-									<< "Cannot create a render model for model "
-									<< i << std::endl;
+						// ---------------------------------------
+						// OSG Initialization
+						// ---------------------------------------
+
+						//Creating the viewer
+						osgViewer::Viewer viewer;
+
+						viewer.setUpViewInWindow(300, 300, 1280, 1024);
+
+						osg::ref_ptr<KeyboardHandler> keyboardEvent(
+								new KeyboardHandler());
+
+						viewer.addEventHandler(keyboardEvent.get());
+
+						// Camera
+						osg::ref_ptr<osg::Camera> camera = viewer.getCamera();
+
+						//Creating the root node
+						osg::ref_ptr<osg::Group> root(new osg::Group);
+
+						// ---------------------------------------
+						// Generate Robot
+						// ---------------------------------------
+						boost::shared_ptr<Robot> robot(
+								new Robot(odeWorld, odeSpace));
+						if (!robot->init(*packet.getMessage().get())) {
+							std::cout << "Problems decoding the robot. Quit."
+									<< std::endl;
 							return EXIT_FAILURE;
 						}
 
-						if (!renderModel->initRenderModel()) {
-							std::cout
-									<< "Cannot initialize a render model for one of the components. "
-									<< std::endl
-									<< "Please check that the models/ folder is in the same folder of this executable."
-									<< std::endl;
+						std::cout << "Evaluating individual " << robot->getId()
+								<< ", trial: " << scenario->getCurTrial()
+								<< std::endl;
+
+						// Register sensors
+						std::vector<boost::shared_ptr<Sensor> > sensors =
+								robot->getSensors();
+						std::vector<boost::shared_ptr<TouchSensor> > touchSensors;
+						for (unsigned int i = 0; i < sensors.size(); ++i) {
+							if (boost::dynamic_pointer_cast<TouchSensor>(
+									sensors[i])) {
+								touchSensors.push_back(
+										boost::dynamic_pointer_cast<TouchSensor>(
+												sensors[i]));
+							}
 						}
-						renderModels.push_back(renderModel);
-						root->addChild(renderModels[i]->getRootNode());
-					}
 
-					// Terrain render model
-					boost::shared_ptr<TerrainRender> terrainRender(
-							new TerrainRender(scenario->getTerrain()));
-					root->addChild(terrainRender->getRootNode());
+						// Register robot motors
+						std::vector<boost::shared_ptr<Motor> > motors =
+								robot->getMotors();
 
-					// Obstacles render model
-					const std::vector<boost::shared_ptr<BoxObstacle> >& obstacles =
-							scenario->getObstacles();
-					for (unsigned int i = 0; i < obstacles.size(); ++i) {
-						boost::shared_ptr<BoxObstacleRender> obstacleRender(
-								new BoxObstacleRender(obstacles[i]));
-						root->addChild(obstacleRender->getRootNode());
-					}
+						// Register brain and body parts
+						boost::shared_ptr<NeuralNetwork> neuralNetwork =
+								robot->getBrain();
+						std::vector<boost::shared_ptr<Model> > bodyParts =
+								robot->getBodyParts();
 
-					// ---------------------------------------
-					// Setup OSG viewer
-					// ---------------------------------------
+						// Initialize scenario
+						if (!scenario->init(odeWorld, odeSpace, robot)) {
+							std::cout << "Cannot initialize scenario. Quit."
+									<< std::endl;
+							return EXIT_FAILURE;
+						}
 
-					viewer.setSceneData(root.get());
+						// Setup environment
+						boost::shared_ptr<Environment> env =
+								scenario->getEnvironment();
 
-					viewer.realize();
+						if (!scenario->setupSimulation()) {
+							std::cout << "Cannot setup scenario. Quit."
+									<< std::endl;
+							return EXIT_FAILURE;
+						}
 
-					if (!viewer.getCameraManipulator()
-							&& viewer.getCamera()->getAllowEventFocus()) {
-						viewer.setCameraManipulator(
-								new osgGA::TrackballManipulator());
-					}
+						std::vector<boost::shared_ptr<RenderModel> > renderModels;
+						for (unsigned int i = 0; i < bodyParts.size(); ++i) {
 
-					viewer.setReleaseContextAtEndOfFrameHint(false);
+							boost::shared_ptr<RenderModel> renderModel =
+									RobogenUtils::createRenderModel(
+											bodyParts[i]);
+							if (renderModel == NULL) {
+								std::cout
+										<< "Cannot create a render model for model "
+										<< i << std::endl;
+								return EXIT_FAILURE;
+							}
 
-					std::cout << "Evaluating individual " << robot->getId()
-							<< std::endl;
+							if (!renderModel->initRenderModel()) {
+								std::cout
+										<< "Cannot initialize a render model for one of the components. "
+										<< std::endl
+										<< "Please check that the models/ folder is in the same folder of this executable."
+										<< std::endl;
+							}
+							renderModels.push_back(renderModel);
+							root->addChild(renderModels[i]->getRootNode());
+						}
 
-					// ---------------------------------------
-					// OSG Main Loop
-					// ---------------------------------------
-					double fitness = 0;
-					while (scenario->remainingTrials()) {
+						// Terrain render model
+						boost::shared_ptr<TerrainRender> terrainRender(
+								new TerrainRender(scenario->getTerrain()));
+						root->addChild(terrainRender->getRootNode());
 
+						// Obstacles render model
+						const std::vector<boost::shared_ptr<BoxObstacle> >& obstacles =
+								scenario->getObstacles();
+						for (unsigned int i = 0; i < obstacles.size(); ++i) {
+							boost::shared_ptr<BoxObstacleRender> obstacleRender(
+									new BoxObstacleRender(obstacles[i]));
+							root->addChild(obstacleRender->getRootNode());
+						}
+
+						// ---------------------------------------
+						// Setup OSG viewer
+						// ---------------------------------------
+
+						viewer.setSceneData(root.get());
+
+						viewer.realize();
+
+						if (!viewer.getCameraManipulator()
+								&& viewer.getCamera()->getAllowEventFocus()) {
+							viewer.setCameraManipulator(
+									new osgGA::TrackballManipulator());
+						}
+
+						viewer.setReleaseContextAtEndOfFrameHint(false);
+
+						// ---------------------------------------
+						// Main Loop
+						// ---------------------------------------
 						int count = 0;
 						double t = 0;
 						double lastLightSensorUpdateT = 0;
@@ -368,7 +370,7 @@ int main(int argc, char* argv[]) {
 								}
 
 								bool updateLightSensors = false;
-								if (t == 0
+								if (t < step
 										|| t - lastLightSensorUpdateT
 												> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
 									updateLightSensors = true;
@@ -430,17 +432,16 @@ int main(int argc, char* argv[]) {
 										}
 									}
 								}
-
-								if (!scenario->afterSimulationStep()) {
-									std::cout
-											<< "Cannot execute scenario after simulation step. Quit."
-											<< std::endl;
-									return EXIT_FAILURE;
-								}
-
-								t += step;
-
 							}
+
+							if (!scenario->afterSimulationStep()) {
+								std::cout
+										<< "Cannot execute scenario after simulation step. Quit."
+										<< std::endl;
+								return EXIT_FAILURE;
+							}
+
+							t += step;
 
 						}
 
@@ -451,33 +452,29 @@ int main(int argc, char* argv[]) {
 						}
 
 						// ---------------------------------------
-						// Compute fitness
+						// Simulator finalization
 						// ---------------------------------------
 
-						fitness += scenario->getFitness();
-						std::cout << "Fitness for the current solution: "
-								<< fitness << std::endl;
+						// Destroy ODE space
+						dSpaceDestroy(odeSpace);
+
+						// Destroy ODE world
+						dWorldDestroy(odeWorld);
+
+						// Destroy the ODE engine
+						dCloseODE();
 
 					}
 
-					fitness /=
-							scenario->getRobogenConfig()->getStartingPos()->getStartPosition().size();
+					// ---------------------------------------
+					// Compute fitness
+					// ---------------------------------------
+					double fitness = scenario->getFitness();
+					std::cout << "Fitness for the current solution: " << fitness
+							<< std::endl << std::endl;
 
 					// ---------------------------------------
-					// Simulator finalization
-					// ---------------------------------------
-
-					// Destroy ODE space
-					dSpaceDestroy(odeSpace);
-
-					// Destroy ODE world
-					dWorldDestroy(odeWorld);
-
-					// Destroy the ODE engine
-					dCloseODE();
-
-					// ---------------------------------------
-					// Test with Pradeep
+					// Send reply to EA
 					// ---------------------------------------
 					boost::shared_ptr<robogenMessage::EvaluationResult> evalResultPacket(
 							new robogenMessage::EvaluationResult());

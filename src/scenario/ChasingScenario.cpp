@@ -84,7 +84,6 @@ bool ChasingScenario::endSimulation() {
 	curTrial_++;
 	// Set next starting position
 	this->setStartingPosition(curTrial_);
-	this->distances_.push_back(0);
 	return true;
 
 }
@@ -103,6 +102,10 @@ double ChasingScenario::getFitness() {
 bool ChasingScenario::remainingTrials() {
 	boost::shared_ptr<StartPositionConfig> startPos = this->getRobogenConfig()->getStartingPos();
 	return curTrial_ < startPos->getStartPosition().size();
+}
+
+int ChasingScenario::getCurTrial() const {
+	return curTrial_;
 }
 
 }

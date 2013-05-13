@@ -86,4 +86,8 @@ bool RacingScenario::remainingTrials() {
 	return curTrial_ < startPos->getStartPosition().size();
 }
 
+int RacingScenario::getCurTrial() const {
+	return curTrial_;
+}
+
 }

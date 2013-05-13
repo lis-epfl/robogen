@@ -62,6 +62,7 @@ public:
 	virtual bool endSimulation();
 	virtual double getFitness();
 	virtual bool remainingTrials();
+	virtual int getCurTrial() const;
 
 private:
 

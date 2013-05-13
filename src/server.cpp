@@ -88,27 +88,6 @@ int main(int argc, char* argv[]) {
 				try {
 
 					// ---------------------------------------
-					// Simulator initialization
-					// ---------------------------------------
-
-					dInitODE();
-
-					// Create ODE world
-					odeWorld = dWorldCreate();
-
-					// Set gravity [mm/s]
-					dWorldSetGravity(odeWorld, 0, 0, -9.81);
-
-					dWorldSetERP(odeWorld, 0.1);
-					dWorldSetCFM(odeWorld, 10e-6);
-
-					// Create collision world
-					dSpaceID odeSpace = dSimpleSpaceCreate(0);
-
-					// Create contact group
-					odeContactGroup = dJointGroupCreate(0);
-
-					// ---------------------------------------
 					// Decode solution
 					// ---------------------------------------
 
@@ -149,68 +128,91 @@ int main(int argc, char* argv[]) {
 						return EXIT_FAILURE;
 					}
 
-					// ---------------------------------------
-					// Generate Robot
-					// ---------------------------------------
-					boost::shared_ptr<Robot> robot(
-							new Robot(odeWorld, odeSpace));
-					if (!robot->init(*packet.getMessage().get())) {
-						std::cout << "Problems decoding the robot. Quit."
-								<< std::endl;
-						return EXIT_FAILURE;
-					}
-
-					// Register sensors
-					std::vector<boost::shared_ptr<Sensor> > sensors =
-							robot->getSensors();
-					std::vector<boost::shared_ptr<TouchSensor> > touchSensors;
-					for (unsigned int i = 0; i < sensors.size(); ++i) {
-						if (boost::dynamic_pointer_cast<TouchSensor>(
-								sensors[i])) {
-							touchSensors.push_back(
-									boost::dynamic_pointer_cast<TouchSensor>(
-											sensors[i]));
-						}
-					}
-
-					// Register robot motors
-					std::vector<boost::shared_ptr<Motor> > motors =
-							robot->getMotors();
-
-					std::cout << "S: " << sensors.size() << std::endl;
-					std::cout << "M: " << motors.size() << std::endl;
-
-					// Register brain and body parts
-					boost::shared_ptr<NeuralNetwork> neuralNetwork =
-							robot->getBrain();
-					std::vector<boost::shared_ptr<Model> > bodyParts =
-							robot->getBodyParts();
-
-					// Initialize scenario
-					if (!scenario->init(odeWorld, odeSpace, robot)) {
-						std::cout << "Cannot initialize scenario. Quit."
-								<< std::endl;
-						return EXIT_FAILURE;
-					}
-
-					// Setup environment
-					boost::shared_ptr<Environment> env =
-							scenario->getEnvironment();
-
-					if (!scenario->setupSimulation()) {
-						std::cout << "Cannot setup scenario. Quit."
-								<< std::endl;
-						return EXIT_FAILURE;
-					}
-
-					std::cout << "Evaluating individual " << robot->getId()
+					std::cout
+							<< "-----------------------------------------------"
 							<< std::endl;
 
-					// ---------------------------------------
-					// OSG Main Loop
-					// ---------------------------------------
-					double fitness = 0;
 					while (scenario->remainingTrials()) {
+
+						// ---------------------------------------
+						// Simulator initialization
+						// ---------------------------------------
+
+						dInitODE();
+
+						// Create ODE world
+						odeWorld = dWorldCreate();
+
+						// Set gravity [mm/s]
+						dWorldSetGravity(odeWorld, 0, 0, -9.81);
+
+						dWorldSetERP(odeWorld, 0.1);
+						dWorldSetCFM(odeWorld, 10e-6);
+
+						// Create collision world
+						dSpaceID odeSpace = dSimpleSpaceCreate(0);
+
+						// Create contact group
+						odeContactGroup = dJointGroupCreate(0);
+
+						// ---------------------------------------
+						// Generate Robot
+						// ---------------------------------------
+						boost::shared_ptr<Robot> robot(
+								new Robot(odeWorld, odeSpace));
+						if (!robot->init(*packet.getMessage().get())) {
+							std::cout << "Problems decoding the robot. Quit."
+									<< std::endl;
+							return EXIT_FAILURE;
+						}
+
+						std::cout << "Evaluating individual " << robot->getId()
+								<< ", trial: " << scenario->getCurTrial()
+								<< std::endl;
+
+						// Register sensors
+						std::vector<boost::shared_ptr<Sensor> > sensors =
+								robot->getSensors();
+						std::vector<boost::shared_ptr<TouchSensor> > touchSensors;
+						for (unsigned int i = 0; i < sensors.size(); ++i) {
+							if (boost::dynamic_pointer_cast<TouchSensor>(
+									sensors[i])) {
+								touchSensors.push_back(
+										boost::dynamic_pointer_cast<TouchSensor>(
+												sensors[i]));
+							}
+						}
+
+						// Register robot motors
+						std::vector<boost::shared_ptr<Motor> > motors =
+								robot->getMotors();
+
+						// Register brain and body parts
+						boost::shared_ptr<NeuralNetwork> neuralNetwork =
+								robot->getBrain();
+						std::vector<boost::shared_ptr<Model> > bodyParts =
+								robot->getBodyParts();
+
+						// Initialize scenario
+						if (!scenario->init(odeWorld, odeSpace, robot)) {
+							std::cout << "Cannot initialize scenario. Quit."
+									<< std::endl;
+							return EXIT_FAILURE;
+						}
+
+						// Setup environment
+						boost::shared_ptr<Environment> env =
+								scenario->getEnvironment();
+
+						if (!scenario->setupSimulation()) {
+							std::cout << "Cannot setup scenario. Quit."
+									<< std::endl;
+							return EXIT_FAILURE;
+						}
+
+						// ---------------------------------------
+						// Main Loop
+						// ---------------------------------------
 
 						int count = 0;
 						double t = 0;
@@ -255,7 +257,7 @@ int main(int argc, char* argv[]) {
 							}
 
 							bool updateLightSensors = false;
-							if (t == 0
+							if (t < step
 									|| t - lastLightSensorUpdateT
 											> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
 								updateLightSensors = true;
@@ -331,33 +333,29 @@ int main(int argc, char* argv[]) {
 						}
 
 						// ---------------------------------------
-						// Compute fitness
+						// Simulator finalization
 						// ---------------------------------------
 
-						fitness += scenario->getFitness();
-						std::cout << "Fitness for the current solution: "
-								<< fitness << std::endl;
+						// Destroy ODE space
+						dSpaceDestroy(odeSpace);
+
+						// Destroy ODE world
+						dWorldDestroy(odeWorld);
+
+						// Destroy the ODE engine
+						dCloseODE();
 
 					}
 
-					fitness /=
-							scenario->getRobogenConfig()->getStartingPos()->getStartPosition().size();
+					// ---------------------------------------
+					// Compute fitness
+					// ---------------------------------------
+					double fitness = scenario->getFitness();
+					std::cout << "Fitness for the current solution: " << fitness
+							<< std::endl << std::endl;
 
 					// ---------------------------------------
-					// Simulator finalization
-					// ---------------------------------------
-
-					// Destroy ODE space
-					dSpaceDestroy(odeSpace);
-
-					// Destroy ODE world
-					dWorldDestroy(odeWorld);
-
-					// Destroy the ODE engine
-					dCloseODE();
-
-					// ---------------------------------------
-					// Test with Pradeep
+					// Send reply to EA
 					// ---------------------------------------
 					boost::shared_ptr<robogenMessage::EvaluationResult> evalResultPacket(
 							new robogenMessage::EvaluationResult());
