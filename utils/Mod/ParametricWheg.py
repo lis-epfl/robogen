@@ -11,7 +11,7 @@ def makeWheg(	externRadius = 70):
 
 	widthSpoke = externRadius-radiusCenterBody
 	
-	lengthSpoke = widthSpoke/8
+	lengthSpoke = widthSpoke/9
 	heightSpoke = 4
 	
 	radiusScrew = 1

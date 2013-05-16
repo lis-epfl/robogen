@@ -13,7 +13,7 @@ def makeWheel(	externRadius = 70):
 	widthTire = 4
 
 	widthSpoke = externRadius-radiusCenterBody
-	lengthSpoke = widthSpoke/8
+	lengthSpoke = widthSpoke/9
 	heightSpoke = widthTire
 	
 	radiusScrew = 1
