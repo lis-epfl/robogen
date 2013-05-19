@@ -67,6 +67,8 @@ public:
 private:
 
 	std::vector<double> distances_;
+	std::vector<double> mindistances_;
+	std::vector<double> finaldistances_;
 	unsigned int curTrial_;
 
 };

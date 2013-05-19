@@ -36,7 +36,7 @@ if(UNIX)
 	add_definitions(-ansi -pedantic -Wno-long-long -Wall -Wextra -Wformat=2
 	                -Wredundant-decls -Wwrite-strings -Wmissing-include-dirs 
 	                -Wswitch-enum -Wuninitialized 
-	                -Wswitch-default -Winit-self -Wshadow -Wfloat-equal -fPIC )
+	                -Wswitch-default -Winit-self -Wshadow -Wfloat-equal -fPIC)
 	
 	# Debug Flags 
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb3 -DDEBUG")
@@ -92,7 +92,7 @@ file (GLOB_RECURSE
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ROBOGEN_SIMULATOR_PROTO})
 
-set(ROBOGEN_DEPENDENCIES ${ODE_LIBRARIES} ${OPENSCENEGRAPH_LIBRARIES} ${ZLIB_LIBRARIES} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${PNG_LIBRARIES})
+set(ROBOGEN_DEPENDENCIES ${ODE_LIBRARIES} ${OPENSCENEGRAPH_LIBRARIES} ${ZLIB_LIBRARIES} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${PNG_LIBRARIES} pthread)
 
 message(STATUS ${ROBOGEN_DEPENDENCIES})
 

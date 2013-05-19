@@ -46,6 +46,8 @@ ChasingScenario::~ChasingScenario() {
 bool ChasingScenario::setupSimulation() {
 
 	this->distances_.push_back(0);
+	this->mindistances_.push_back(0);
+	this->finaldistances_.push_back(0);
 
 	return true;
 
@@ -58,7 +60,7 @@ bool ChasingScenario::init(dWorldID odeWorld, dSpaceID odeSpace, boost::shared_p
 	boost::shared_ptr<Environment> env(new Environment());
 	env->setAmbientLight(10);
 	std::vector<boost::shared_ptr<LightSource> > lightSources;
-	lightSources.push_back(boost::shared_ptr<LightSource>(new LightSource(odeSpace, osg::Vec3(0, 0, 0.1), 100)));
+	lightSources.push_back(boost::shared_ptr<LightSource>(new LightSource(odeSpace, osg::Vec3(0, 0, 0.2), 100)));
 	env->setLightSources(lightSources);
 
 	this->setEnvironment(env);
@@ -74,6 +76,8 @@ bool ChasingScenario::afterSimulationStep() {
 
 	osg::Vec3 temp = curPos - lightSourcePos;
 	this->distances_[curTrial_] += temp.length();
+	this->mindistances_[curTrial_] = std::min<double>(this->mindistances_[curTrial_],temp.length());
+	this->finaldistances_[curTrial_] = temp.length();
 
 	return true;
 }
@@ -90,10 +94,21 @@ bool ChasingScenario::endSimulation() {
 
 double ChasingScenario::getFitness() {
 
-	double fitness = 0;
+#define MINFITNESS
+
+	double fitness = 0, minfitness = 0, finalfitness = 0;
 	for (unsigned int i = 0; i < distances_.size(); ++i) {
 		fitness += distances_[i]/this->getRobogenConfig()->getTimeSteps();
+		minfitness += mindistances_[i];
+		finalfitness += finaldistances_[i];
 	}
+	
+#ifdef MINFITNESS
+	fitness = minfitness;
+#endif
+#ifdef FINALFITNESS
+	fitness = finalfitness;
+#endif
 
 	// We transform everything into a maximization problem
 	return -1*(fitness/distances_.size());
