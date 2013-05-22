@@ -426,9 +426,7 @@ int main(int argc, char* argv[]) {
 											motor->setVelocity(
 													networkOutputs[i]);
 										} else {
-											motor->setPosition(
-													osg::inDegrees(
-															networkOutputs[i]));
+											motor->setPosition(networkOutputs[i]);
 										}
 									}
 								}

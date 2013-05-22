@@ -346,7 +346,7 @@ int main(int argc, char *argv[]) {
 					if (motor->isVelocityDriven()) {
 						motor->setVelocity(networkOutputs[i]);
 					} else {
-						motor->setPosition(osg::inDegrees(networkOutputs[i]));
+						motor->setPosition(networkOutputs[i]);
 					}
 				}
 			}
