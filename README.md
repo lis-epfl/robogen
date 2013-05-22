@@ -9,7 +9,8 @@ Andrea Maesani (andrea.maesani@epfl.ch)
 
 ## Latest updates
 
-* **May 13: Fitness is now computed correctly when multiple starting positions**
+* **May 22: Fixed neural network inputs for active cardan**
+* May 13: Fitness is now computed correctly when multiple starting positions
 * May 11: Fixed LightSensor: reported to have weird behavior when mounted in particular orientations
 * May 8: Fixed SEGFAULT notified by Mikaz-fr. Added some verbose text (id of individual being currently evaluated).
 * May 7: Increase maximum velocity of servo motors. Temptative fix for light sensor.
@@ -46,6 +47,8 @@ for maintaining your name associated to the project.
 
 * **Mikaz-fr** (Roy Michaël, michael.roy@epfl.ch) contributed instructions to compile the code 
  on MAC OS X and adapted part of the CMAKE code for MAC OS. 
+* **tcies** (Need your name and email :-P) provided a modification of the simulator (accessible [here](https://github.com/amaesani/robogen-simulator/compare/master...chasingfitnessmod))
+ to use different fitness function aggregations in the chasing scenario
 
 ## Git Repository
 
