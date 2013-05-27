@@ -47,7 +47,7 @@ for maintaining your name associated to the project.
 
 * **Mikaz-fr** (Roy Michaël, michael.roy@epfl.ch) contributed instructions to compile the code 
  on MAC OS X and adapted part of the CMAKE code for MAC OS. 
-* **tcies** (Need your name and email :-P) provided a modification of the simulator (accessible [here](https://github.com/amaesani/robogen-simulator/compare/master...chasingfitnessmod))
+* **tcies** (Titus Cieslewski, titus.cieslewski@epfl.ch) provided a modification of the simulator (accessible [here](https://github.com/amaesani/robogen-simulator/compare/master...chasingfitnessmod))
  to use different fitness function aggregations in the chasing scenario
 
 ## Git Repository
