@@ -94,7 +94,7 @@ bool ChasingScenario::endSimulation() {
 
 double ChasingScenario::getFitness() {
 
-#define MINFITNESS
+#define FINALFITNESS
 
 	double fitness = 0, minfitness = 0, finalfitness = 0;
 	for (unsigned int i = 0; i < distances_.size(); ++i) {
