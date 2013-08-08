@@ -18,8 +18,8 @@ if (UNIX)
 if ("${CMAKE_SYSTEM}" MATCHES "Linux")
 
     # ODE
-	set (ODE_INCLUDE_PATH "/usr/include")
-	set (ODE_LIBRARIES "/usr/lib/libode.so")
+	set (ODE_INCLUDE_PATH "/usr/local/include")
+	set (ODE_LIBRARIES "/usr/local/lib/libode.a")
 
 endif ()
 endif (UNIX)
