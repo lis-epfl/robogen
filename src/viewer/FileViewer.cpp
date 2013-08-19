@@ -50,6 +50,7 @@
 
 #define LOG_DIRECTORY_PREFIX "FileViewer_"
 #define TRAJECTORY_LOG_FILE "trajectoryLog.txt"
+#define SENSOR_LOG_FILE "sensorLog.txt"
 
 using namespace robogen;
 
@@ -95,7 +96,7 @@ int main(int argc, char *argv[]) {
 	// Set gravity [mm/s]
 	dWorldSetGravity(odeWorld, 0, 0, -9.81);
 
-	dWorldSetERP(odeWorld, 0.1);
+	dWorldSetERP(odeWorld, 0.3);
 	dWorldSetCFM(odeWorld, 10e-6);
 
 	// Create collision world
@@ -260,6 +261,7 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 	// Set up log files
 	// ---------------------------------------
+
 	std::stringstream logPathSs;
 	logPathSs << LOG_DIRECTORY_PREFIX;
 	boost::posix_time::time_facet *myFacet =
@@ -283,6 +285,16 @@ int main(int argc, char *argv[]) {
 	if (!trajectoryLog.is_open()){
 		std::cout <<
 				"ERROR: Can't open trajectory log file"
+				<< std::endl;
+		return EXIT_FAILURE;
+	}
+	std::ofstream sensorLog;
+	std::string sensorLogPath = logPathSs.str() + "/"
+			+ SENSOR_LOG_FILE;
+	sensorLog.open(sensorLogPath.c_str());
+	if (!sensorLog.is_open()){
+		std::cout <<
+				"ERROR: Can't open sensor log file"
 				<< std::endl;
 		return EXIT_FAILURE;
 	}
@@ -346,7 +358,6 @@ int main(int argc, char *argv[]) {
 				lastLightSensorUpdateT = t;
 			}
 			for (unsigned int i = 0; i < sensors.size(); ++i) {
-
 				if (boost::dynamic_pointer_cast<TouchSensor>(sensors[i])) {
 					networkInput[i] = boost::dynamic_pointer_cast<TouchSensor>(
 							sensors[i])->read();
@@ -363,7 +374,11 @@ int main(int argc, char *argv[]) {
 					networkInput[i] = boost::dynamic_pointer_cast<SimpleSensor>(
 							sensors[i])->read();
 				}
+				// write input to log
+				sensorLog << networkInput[i] << "\t";
 			}
+			sensorLog << std::endl;
+
 			::feed(neuralNetwork.get(), &networkInput[0]);
 
 			// Step the neural network
@@ -432,6 +447,7 @@ int main(int argc, char *argv[]) {
 
 	// close log files
 	trajectoryLog.close();
+	sensorLog.close();
 
 	return EXIT_SUCCESS;
 }
