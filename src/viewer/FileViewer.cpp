@@ -51,6 +51,8 @@
 #define LOG_DIRECTORY_PREFIX "FileViewer_"
 #define TRAJECTORY_LOG_FILE "trajectoryLog.txt"
 #define SENSOR_LOG_FILE "sensorLog.txt"
+#define MOTOR_LOG_FILE "motorLog.txt"
+#define LOG_COL_WIDTH 12
 
 using namespace robogen;
 
@@ -272,30 +274,30 @@ int main(int argc, char *argv[]) {
 	try{
 		boost::filesystem::create_directories(logPath);
 	} catch(const boost::filesystem::filesystem_error &err){
-		// TODO standardize this message
 		std::cout <<
 				"ERROR: Can't create directory for logging for current time."
 				<< std::endl;
 		return EXIT_FAILURE;
 	}
 	std::ofstream trajectoryLog;
-	std::string trajectoryLogPath = logPathSs.str() + "/"
-			+ TRAJECTORY_LOG_FILE;
+	std::string trajectoryLogPath = logPathSs.str() + "/" + TRAJECTORY_LOG_FILE;
 	trajectoryLog.open(trajectoryLogPath.c_str());
 	if (!trajectoryLog.is_open()){
-		std::cout <<
-				"ERROR: Can't open trajectory log file"
-				<< std::endl;
+		std::cout << "ERROR: Can't open trajectory log file" << std::endl;
 		return EXIT_FAILURE;
 	}
 	std::ofstream sensorLog;
-	std::string sensorLogPath = logPathSs.str() + "/"
-			+ SENSOR_LOG_FILE;
+	std::string sensorLogPath = logPathSs.str() + "/" + SENSOR_LOG_FILE;
 	sensorLog.open(sensorLogPath.c_str());
 	if (!sensorLog.is_open()){
-		std::cout <<
-				"ERROR: Can't open sensor log file"
-				<< std::endl;
+		std::cout << "ERROR: Can't open sensor log file" << std::endl;
+		return EXIT_FAILURE;
+	}
+	std::ofstream motorLog;
+	std::string motorLogPath = logPathSs.str() + "/" + MOTOR_LOG_FILE;
+	motorLog.open(motorLogPath.c_str());
+	if (!motorLog.is_open()){
+		std::cout << "ERROR: Can't open motor log file" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -337,7 +339,7 @@ int main(int argc, char *argv[]) {
 			dJointGroupEmpty(odeContactGroup);
 
 			float networkInput[MAX_INPUT_NEURONS];
-			float networkOutputs[MAX_OUTPUT_NEURONS];
+			float networkOutput[MAX_OUTPUT_NEURONS];
 
 			// Elapsed time since last call
 			env->setTimeElapsed(step);
@@ -375,7 +377,8 @@ int main(int argc, char *argv[]) {
 							sensors[i])->read();
 				}
 				// write input to log
-				sensorLog << networkInput[i] << "\t";
+				sensorLog << std::setw(LOG_COL_WIDTH) <<
+						networkInput[i] << " ";
 			}
 			sensorLog << std::endl;
 
@@ -385,7 +388,7 @@ int main(int argc, char *argv[]) {
 			::step(neuralNetwork.get());
 
 			// Fetch the neural network ouputs
-			::fetch(neuralNetwork.get(), &networkOutputs[0]);
+			::fetch(neuralNetwork.get(), &networkOutput[0]);
 
 			// Send control to motors
 			for (unsigned int i = 0; i < motors.size(); ++i) {
@@ -395,12 +398,16 @@ int main(int argc, char *argv[]) {
 							boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
 
 					if (motor->isVelocityDriven()) {
-						motor->setVelocity(networkOutputs[i]);
+						motor->setVelocity(networkOutput[i]);
 					} else {
-						motor->setPosition(networkOutputs[i]);
+						motor->setPosition(networkOutput[i]);
 					}
+					// write output to log
+					motorLog << std::setw(LOG_COL_WIDTH) <<
+							networkOutput[i] << " ";
 				}
 			}
+			motorLog << std::endl;
 
 			if (!scenario->afterSimulationStep()) {
 				std::cout
@@ -412,7 +419,8 @@ int main(int argc, char *argv[]) {
 			// log trajectory
 			osg::Vec3 position =
 					scenario->getRobot()->getCoreComponent()->getRootPosition();
-			trajectoryLog << position.x() << " " << position.y() << std::endl;
+			trajectoryLog << std::setw(LOG_COL_WIDTH) << position.x() << " "
+					<< std::setw(LOG_COL_WIDTH) << position.y() << std::endl;
 
 			t += step;
 
