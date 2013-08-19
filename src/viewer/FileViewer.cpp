@@ -30,7 +30,9 @@
 #include <iostream>
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
-
+#include <boost/filesystem.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/posix_time/posix_time_io.hpp>
 #include "config/ConfigurationReader.h"
 #include "config/RobogenConfig.h"
 #include "scenario/Scenario.h"
@@ -45,6 +47,9 @@
 #include "Robogen.h"
 #include "Robot.h"
 #include "robogen.pb.h"
+
+#define LOG_DIRECTORY_PREFIX "FileViewer_"
+#define TRAJECTORY_LOG_FILE "trajectoryLog.txt"
 
 using namespace robogen;
 
@@ -253,6 +258,37 @@ int main(int argc, char *argv[]) {
 	viewer.setReleaseContextAtEndOfFrameHint(false);
 
 	// ---------------------------------------
+	// Set up log files
+	// ---------------------------------------
+	std::stringstream logPathSs;
+	logPathSs << LOG_DIRECTORY_PREFIX;
+	boost::posix_time::time_facet *myFacet =
+			new boost::posix_time::time_facet("%Y%m%d-%H%M");
+	logPathSs.imbue(std::locale(std::cout.getloc(), myFacet));
+	logPathSs << boost::posix_time::second_clock::local_time() << std::endl;
+	boost::filesystem::path logPath(logPathSs.str());
+	try{
+		boost::filesystem::create_directories(logPath);
+	} catch(const boost::filesystem::filesystem_error &err){
+		// TODO standardize this message
+		std::cout <<
+				"ERROR: Can't create directory for logging for current time."
+				<< std::endl;
+		return EXIT_FAILURE;
+	}
+	std::ofstream trajectoryLog;
+	std::string trajectoryLogPath = logPathSs.str() + "/"
+			+ TRAJECTORY_LOG_FILE;
+	trajectoryLog.open(trajectoryLogPath.c_str());
+	if (!trajectoryLog.is_open()){
+		std::cout <<
+				"ERROR: Can't open trajectory log file"
+				<< std::endl;
+		return EXIT_FAILURE;
+	}
+
+
+	// ---------------------------------------
 	// ROBOGEN Simulation
 	// ---------------------------------------
 
@@ -358,6 +394,11 @@ int main(int argc, char *argv[]) {
 				return EXIT_FAILURE;
 			}
 
+			// log trajectory
+			osg::Vec3 position =
+					scenario->getRobot()->getCoreComponent()->getRootPosition();
+			trajectoryLog << position.x() << " " << position.y() << std::endl;
+
 			t += step;
 
 		}
@@ -388,6 +429,9 @@ int main(int argc, char *argv[]) {
 
 	// Destroy the ODE engine
 	dCloseODE();
+
+	// close log files
+	trajectoryLog.close();
 
 	return EXIT_SUCCESS;
 }
