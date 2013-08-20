@@ -30,9 +30,6 @@
 #include <iostream>
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
-#include <boost/filesystem.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/date_time/posix_time/posix_time_io.hpp>
 #include "config/ConfigurationReader.h"
 #include "config/RobogenConfig.h"
 #include "scenario/Scenario.h"
@@ -47,12 +44,9 @@
 #include "Robogen.h"
 #include "Robot.h"
 #include "robogen.pb.h"
+#include "viewer/FileViewerLog.h"
 
-#define LOG_DIRECTORY_PREFIX "FileViewer_"
-#define TRAJECTORY_LOG_FILE "trajectoryLog.txt"
-#define SENSOR_LOG_FILE "sensorLog.txt"
-#define MOTOR_LOG_FILE "motorLog.txt"
-#define LOG_COL_WIDTH 12
+
 
 using namespace robogen;
 
@@ -264,40 +258,15 @@ int main(int argc, char *argv[]) {
 	// Set up log files
 	// ---------------------------------------
 
-	std::stringstream logPathSs;
-	logPathSs << LOG_DIRECTORY_PREFIX;
-	boost::posix_time::time_facet *myFacet =
-			new boost::posix_time::time_facet("%Y%m%d-%H%M");
-	logPathSs.imbue(std::locale(std::cout.getloc(), myFacet));
-	logPathSs << boost::posix_time::second_clock::local_time() << std::endl;
-	boost::filesystem::path logPath(logPathSs.str());
+	boost::shared_ptr<FileViewerLog> log;
 	try{
-		boost::filesystem::create_directories(logPath);
-	} catch(const boost::filesystem::filesystem_error &err){
-		std::cout <<
-				"ERROR: Can't create directory for logging for current time."
-				<< std::endl;
-		return EXIT_FAILURE;
+		log.reset(new FileViewerLog(std::string(argv[1]), std::string(argv[2]),
+				configuration->getObstacleFile(),
+				configuration->getStartPosFile()));
 	}
-	std::ofstream trajectoryLog;
-	std::string trajectoryLogPath = logPathSs.str() + "/" + TRAJECTORY_LOG_FILE;
-	trajectoryLog.open(trajectoryLogPath.c_str());
-	if (!trajectoryLog.is_open()){
-		std::cout << "ERROR: Can't open trajectory log file" << std::endl;
-		return EXIT_FAILURE;
-	}
-	std::ofstream sensorLog;
-	std::string sensorLogPath = logPathSs.str() + "/" + SENSOR_LOG_FILE;
-	sensorLog.open(sensorLogPath.c_str());
-	if (!sensorLog.is_open()){
-		std::cout << "ERROR: Can't open sensor log file" << std::endl;
-		return EXIT_FAILURE;
-	}
-	std::ofstream motorLog;
-	std::string motorLogPath = logPathSs.str() + "/" + MOTOR_LOG_FILE;
-	motorLog.open(motorLogPath.c_str());
-	if (!motorLog.is_open()){
-		std::cout << "ERROR: Can't open motor log file" << std::endl;
+	catch(std::string &es){
+		std::cout << "Error while initiating log:" << std::endl;
+		std::cout << es << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -354,7 +323,9 @@ int main(int argc, char *argv[]) {
 			}
 
 			bool updateLightSensors = false;
-			if (t == 0 || t - lastLightSensorUpdateT
+			// equivalent to t==0, but without the issue of comparing
+			// doubles directly
+			if (t < step/2 || t - lastLightSensorUpdateT
 					> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
 				updateLightSensors = true;
 				lastLightSensorUpdateT = t;
@@ -376,11 +347,9 @@ int main(int argc, char *argv[]) {
 					networkInput[i] = boost::dynamic_pointer_cast<SimpleSensor>(
 							sensors[i])->read();
 				}
-				// write input to log
-				sensorLog << std::setw(LOG_COL_WIDTH) <<
-						networkInput[i] << " ";
 			}
-			sensorLog << std::endl;
+
+			log->logSensors(networkInput, sensors.size());
 
 			::feed(neuralNetwork.get(), &networkInput[0]);
 
@@ -402,12 +371,10 @@ int main(int argc, char *argv[]) {
 					} else {
 						motor->setPosition(networkOutput[i]);
 					}
-					// write output to log
-					motorLog << std::setw(LOG_COL_WIDTH) <<
-							networkOutput[i] << " ";
 				}
 			}
-			motorLog << std::endl;
+
+			log->logMotors(networkOutput, motors.size());
 
 			if (!scenario->afterSimulationStep()) {
 				std::cout
@@ -417,10 +384,8 @@ int main(int argc, char *argv[]) {
 			}
 
 			// log trajectory
-			osg::Vec3 position =
-					scenario->getRobot()->getCoreComponent()->getRootPosition();
-			trajectoryLog << std::setw(LOG_COL_WIDTH) << position.x() << " "
-					<< std::setw(LOG_COL_WIDTH) << position.y() << std::endl;
+			log->logPosition(scenario->getRobot()->
+					getCoreComponent()->getRootPosition());
 
 			t += step;
 
@@ -452,10 +417,6 @@ int main(int argc, char *argv[]) {
 
 	// Destroy the ODE engine
 	dCloseODE();
-
-	// close log files
-	trajectoryLog.close();
-	sensorLog.close();
 
 	return EXIT_SUCCESS;
 }

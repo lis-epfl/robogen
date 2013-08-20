@@ -194,7 +194,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 
 	return boost::shared_ptr<RobogenConfig>(
 			new RobogenConfig(simulationScenario, nTimesteps, timeStep, terrain,
-					obstacles, startPositions));
+					obstacles, obstaclesConfigFile, startPositions,
+					startPositionFile));
 
 }
 

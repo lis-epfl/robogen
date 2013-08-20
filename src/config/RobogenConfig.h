@@ -52,10 +52,14 @@ public:
 	RobogenConfig(SimulationScenario scenario, unsigned int timeSteps,
 			float timeStepLength, boost::shared_ptr<TerrainConfig> terrain,
 			boost::shared_ptr<ObstaclesConfig> obstacles,
-			boost::shared_ptr<StartPositionConfig> startPositions) :
+			std::string obstacleFile,
+			boost::shared_ptr<StartPositionConfig> startPositions,
+			std::string startPosFile) :
 			scenario_(scenario), timeSteps_(timeSteps), timeStepLength_(
-					timeStepLength), terrain_(terrain), obstacles_(obstacles), startPositions_(
-					startPositions) {
+					timeStepLength), terrain_(terrain), obstacles_(obstacles),
+					obstacleFile_(obstacleFile),
+					startPositions_(startPositions),
+					startPosFile_(startPosFile) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -117,6 +121,20 @@ public:
 		return startPositions_;
 	}
 
+	/**
+	 * @return the starting position configuration file
+	 */
+	std::string getStartPosFile(){
+		return startPosFile_;
+	}
+
+	/**
+	 * @return the obstacle configuration file
+	 */
+	std::string getObstacleFile(){
+		return obstacleFile_;
+	}
+
 private:
 
 	/**
@@ -145,9 +163,19 @@ private:
 	boost::shared_ptr<ObstaclesConfig> obstacles_;
 
 	/**
+	 * Obstacle configuration file location
+	 */
+	std::string obstacleFile_;
+
+	/**
 	 * List of robot starting positions
 	 */
 	boost::shared_ptr<StartPositionConfig> startPositions_;
+
+	/**
+	 * Starting positions configuration file location
+	 */
+	std::string startPosFile_;
 
 	/**
 	 * Simulation time

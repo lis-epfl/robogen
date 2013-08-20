@@ -71,6 +71,7 @@ file (GLOB_RECURSE
      render/*.cpp
      scenario/*.cpp
      utils/*.cpp
+     viewer/*.cpp
      Robot.cpp
      Robogen.cpp
 )
