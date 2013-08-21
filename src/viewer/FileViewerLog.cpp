@@ -14,6 +14,7 @@
 #include <boost/date_time/posix_time/posix_time_io.hpp>
 
 #define LOG_DIRECTORY_PREFIX "FileViewer_"
+#define LOG_DIRECTORY_FACET "%Y%m%d-%H%M%S"
 #define TRAJECTORY_LOG_FILE "trajectoryLog.txt"
 #define SENSOR_LOG_FILE "sensorLog.txt"
 #define MOTOR_LOG_FILE "motorLog.txt"
@@ -28,7 +29,7 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	std::stringstream logPathSs;
 	logPathSs << LOG_DIRECTORY_PREFIX;
 	boost::posix_time::time_facet *myFacet =
-			new boost::posix_time::time_facet("%Y%m%d-%H%M");
+			new boost::posix_time::time_facet(LOG_DIRECTORY_FACET);
 	logPathSs.imbue(std::locale(std::cout.getloc(), myFacet));
 	logPathSs << boost::posix_time::second_clock::local_time();
 	boost::filesystem::path logPath(logPathSs.str());
