@@ -65,9 +65,11 @@ int main(int argc, char *argv[]) {
 
 	if (argc < 3) {
 		std::cout
-				<< "Please provide a file containing the robot description as input and the corresponding simulation configuration file '"
+				<< "Please provide a file containing the robot description as"\
+				" input and the corresponding simulation configuration file '"
 				<< std::string(argv[0]) << " robot.dat configuration.conf'"
-				<< std::endl;
+				<< std::endl << "You can also select the starting position by "\
+				"appending an integer 1..n to the command";
 		return EXIT_FAILURE;
 	}
 
@@ -78,6 +80,26 @@ int main(int argc, char *argv[]) {
 		std::cout << "Problems parsing the configuration file. Quit."
 				<< std::endl;
 		return EXIT_FAILURE;
+	}
+
+	// verify desired start position is specified in configuration
+	unsigned int desiredStart = 0;
+	if (argc >= 4){
+		std::stringstream ss(argv[3]);
+		ss >> desiredStart;
+		--desiredStart; // -- accounts for parameter being 1..n
+		if (ss.fail()){
+			std::cout << "Specified desired starting position \"" << argv[3] <<
+					"\" is not an integer. Aborting..." << std::endl;
+			return EXIT_FAILURE;
+		}
+		if (desiredStart >=
+				configuration->getStartingPos()->getStartPosition().size()){
+			std::cout << "Specified desired starting position " << argv[3] <<
+					" does not index a starting position. Aborting..." <<
+					std::endl;
+			return EXIT_FAILURE;
+		}
 	}
 
 	// ---------------------------------------
@@ -182,6 +204,7 @@ int main(int argc, char *argv[]) {
 	std::vector<boost::shared_ptr<Model> > bodyParts = robot->getBodyParts();
 
 	// Initialize scenario
+	scenario->setStartingPosition(desiredStart);
 	if (!scenario->init(odeWorld, odeSpace, robot)) {
 		std::cout << "Cannot initialize scenario. Quit." << std::endl;
 		return EXIT_FAILURE;

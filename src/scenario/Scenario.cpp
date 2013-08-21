@@ -150,6 +150,7 @@ boost::shared_ptr<RobogenConfig> Scenario::getRobogenConfig() {
 	return robogenConfig_;
 }
 
+// TODO exception throwing? Would be robust...
 void Scenario::setStartingPosition(int id) {
 	startPositionId_ = id;
 }

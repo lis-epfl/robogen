@@ -264,7 +264,8 @@ boost::shared_ptr<ObstaclesConfig> ConfigurationReader::parseObstaclesFile(
 			new ObstaclesConfig(coordinate, size));
 }
 
-boost::shared_ptr<StartPositionConfig> ConfigurationReader::parseStartPositionFile(
+boost::shared_ptr<StartPositionConfig>
+ConfigurationReader::parseStartPositionFile(
 		const std::string& fileName) {
 
 	std::ifstream startPosFile(fileName.c_str());
