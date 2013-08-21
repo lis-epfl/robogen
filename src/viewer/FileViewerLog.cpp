@@ -18,6 +18,7 @@
 #define SENSOR_LOG_FILE "sensorLog.txt"
 #define MOTOR_LOG_FILE "motorLog.txt"
 #define LOG_COL_WIDTH 12
+#define OCTAVE_SCRIPT "robogenPlot.m"
 
 namespace robogen{
 
@@ -64,7 +65,7 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	try{
 		boost::filesystem::copy_file(robotFrom, robotTo);
 	} catch (boost::filesystem::filesystem_error &err){
-		throw std::string("Can't copy configuration file\n")+err.what();
+		throw std::string("Can't copy robot file\n")+err.what();
 	}
 	// copy configuration file
 	boost::filesystem::path confFrom(confFile);
@@ -92,6 +93,18 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 		boost::filesystem::copy_file(staPoFrom, staPoTo);
 	} catch (boost::filesystem::filesystem_error &err){
 		throw std::string("Can't copy starting position file\n")+err.what();
+	}
+
+	// copy octave script TODO copy any .m files maybe?
+	boost::filesystem::path octFrom(OCTAVE_SCRIPT);
+	boost::filesystem::path octTo(logPathSs.str()+"/"
+			+octFrom.filename().native());
+	try{
+		boost::filesystem::copy_file(octFrom, octTo);
+	} catch (boost::filesystem::filesystem_error &err){
+		std::cout << "Didn't find " << OCTAVE_SCRIPT << "... " <<
+				"If this script were in the execution directory, "\
+				"I'd copy it to the result directory for you!" << std::endl;
 	}
 }
 

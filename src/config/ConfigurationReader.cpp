@@ -36,30 +36,38 @@
 #include "config/StartPositionConfig.h"
 #include "config/TerrainConfig.h"
 
+#define DEFAULT_LIGHT_SOURCE_HEIGHT (0.1)
+
 namespace robogen {
 
 boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		const std::string& fileName) {
 
 	boost::program_options::options_description desc("Allowed options");
-	desc.add_options()("terrainType",
-			boost::program_options::value<std::string>(),
-			"Terrain type: flat or rough")("terrainHeightField",
-			boost::program_options::value<std::string>(),
-			"Height Field for terrain generation")("terrainWidth",
-			boost::program_options::value<float>(), "Terrain width")(
-			"terrainHeight", boost::program_options::value<float>(),
-			"Terrain height")("terrainLength",
-			boost::program_options::value<float>(), "Terrain length")(
-			"obstaclesConfigFile", boost::program_options::value<std::string>(),
-			"Obstacles configuration file")("scenario",
-			boost::program_options::value<std::string>(), "Experiment scenario")(
-			"timeStep", boost::program_options::value<float>(),
-			"Time step duration")("nTimeSteps",
-			boost::program_options::value<unsigned int>(),
-			"Number of timesteps")("startPositionConfigFile",
-			boost::program_options::value<std::string>(),
-			"Start Positions Configuration File");
+	desc.add_options()
+			("terrainType", boost::program_options::value<std::string>(),
+					"Terrain type: flat or rough")
+			("terrainHeightField", boost::program_options::value<std::string>(),
+					"Height Field for terrain generation")
+			("terrainWidth", boost::program_options::value<float>(),
+					"Terrain width")
+			("terrainHeight", boost::program_options::value<float>(),
+					"Terrain height")
+			("terrainLength", boost::program_options::value<float>(),
+					"Terrain length")
+			("obstaclesConfigFile",boost::program_options::value<std::string>(),
+					"Obstacles configuration file")
+			("scenario", boost::program_options::value<std::string>(),
+					"Experiment scenario")
+			("lightSourceHeight", boost::program_options::value<float>(),
+					"Height of light source")
+			("timeStep", boost::program_options::value<float>(),
+					"Time step duration")
+			("nTimeSteps", boost::program_options::value<unsigned int>(),
+					"Number of timesteps")
+			("startPositionConfigFile",
+					boost::program_options::value<std::string>(),
+					"Start Positions Configuration File");
 
 	boost::program_options::variables_map vm;
 	boost::program_options::store(
@@ -178,6 +186,11 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		return boost::shared_ptr<RobogenConfig>();
 	}
 
+	float lightSourceHeight = DEFAULT_LIGHT_SOURCE_HEIGHT;
+	if (vm.count("lightSourceHeight")){
+		lightSourceHeight = vm["lightSourceHeight"].as<float>();
+	}
+
 	if (!vm.count("timeStep")) {
 		std::cout << "Undefined 'timeStep' parameter in '" << fileName << "'"
 				<< std::endl;
@@ -195,7 +208,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	return boost::shared_ptr<RobogenConfig>(
 			new RobogenConfig(simulationScenario, nTimesteps, timeStep, terrain,
 					obstacles, obstaclesConfigFile, startPositions,
-					startPositionFile));
+					startPositionFile, lightSourceHeight));
 
 }
 
