@@ -50,7 +50,8 @@ public:
 	/**
 	 * Initializes a box obstacle
 	 */
-	BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace, const osg::Vec3& pos, const osg::Vec3& size);
+	BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace, const osg::Vec3& pos,
+			const osg::Vec3& size, float density);
 
 	/**
 	 * Destructor

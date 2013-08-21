@@ -37,6 +37,7 @@
 #include "config/TerrainConfig.h"
 
 #define DEFAULT_LIGHT_SOURCE_HEIGHT (0.1)
+#define DEFAULT_OBSTACLE_DENSITY (0.)
 
 namespace robogen {
 
@@ -224,6 +225,7 @@ boost::shared_ptr<ObstaclesConfig> ConfigurationReader::parseObstaclesFile(
 
 	std::vector<osg::Vec2> coordinate;
 	std::vector<osg::Vec3> size;
+	std::vector<float> densities;
 	float x;
 	while (obstaclesFile >> x) {
 
@@ -255,13 +257,20 @@ boost::shared_ptr<ObstaclesConfig> ConfigurationReader::parseObstaclesFile(
 			return boost::shared_ptr<ObstaclesConfig>();
 		}
 
+		float density;
+		if (!(obstaclesFile >> density)) {
+			std::cout << "Malformed obstacles file: '" << fileName << "'"
+					<< std::endl;
+			return boost::shared_ptr<ObstaclesConfig>();
+		}
+
 		coordinate.push_back(osg::Vec2(x, y));
 		size.push_back(osg::Vec3(xSize, ySize, zSize));
-
+		densities.push_back(density);
 	}
 
 	return boost::shared_ptr<ObstaclesConfig>(
-			new ObstaclesConfig(coordinate, size));
+			new ObstaclesConfig(coordinate, size, densities));
 }
 
 boost::shared_ptr<StartPositionConfig>

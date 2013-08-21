@@ -26,23 +26,35 @@
  * @(#) $Id$
  */
 #include "model/objects/BoxObstacle.h"
+#include "utils/RobogenUtils.h"
 
 namespace robogen {
 
-const float BoxObstacle::DENSITY = 0.5;
-
 BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
-		const osg::Vec3& pos, const osg::Vec3& size) :
+		const osg::Vec3& pos, const osg::Vec3& size, float density) :
 		size_(size) {
 
 	box_ = dBodyCreate(odeWorld);
 	dMass massOde;
-	dMassSetBox(&massOde, DENSITY, size.x(), size.y(), size.z());
+	if (density < RobogenUtils::OSG_EPSILON){
+		// mass must be something - so even fix obstacles are given arbit. mass
+		dMassSetBox(&massOde, 1., size.x(), size.y(), size.z());
+	}
+	else{
+		dMassSetBox(&massOde, density, size.x(), size.y(), size.z());
+	}
 	dBodySetMass(box_, &massOde);
 	dxGeom* g = dCreateBox(odeSpace, size.x(), size.y(), size.z());
 	dBodySetPosition(box_, pos.x(), pos.y(), pos.z());
 	dGeomSetPosition(g, pos.x(), pos.y(), pos.z());
 	dGeomSetBody(g, box_);
+
+	// fix body if desired
+	if (density < RobogenUtils::OSG_EPSILON){
+		dJointID joint = dJointCreateFixed(odeWorld, 0);
+		dJointAttach(joint, box_, 0);
+		dJointSetFixed(joint);
+	}
 }
 
 BoxObstacle::~BoxObstacle() {

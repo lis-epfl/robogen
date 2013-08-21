@@ -45,8 +45,9 @@ public:
 	 * Initializes obstacles configuration
 	 */
 	ObstaclesConfig(const std::vector<osg::Vec2>& coordinates,
-			const std::vector<osg::Vec3>& size) :
-			coordinates_(coordinates), size_(size) {
+			const std::vector<osg::Vec3>& size,
+			const std::vector<float> &density) :
+			coordinates_(coordinates), size_(size), density_(density) {
 
 	}
 
@@ -65,10 +66,17 @@ public:
 	}
 
 	/**
-	 * @return the size of the robots
+	 * @return the size of the obstacles
 	 */
 	const std::vector<osg::Vec3>& getSize() const {
 		return size_;
+	}
+
+	/**
+	 * @return the obstacle densities
+	 */
+	const std::vector<float>& getDensity() const{
+		return density_;
 	}
 
 private:
@@ -82,6 +90,11 @@ private:
 	 * Obstacles size
 	 */
 	std::vector<osg::Vec3> size_;
+
+	/**
+	 * Obstacle density. If 0, obstacle is fixed
+	 */
+	std::vector<float> density_;
 };
 
 }

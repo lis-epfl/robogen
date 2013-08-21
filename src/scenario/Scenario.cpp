@@ -99,7 +99,7 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 	// Instance the boxes above the maximum terrain height
 	const std::vector<osg::Vec2>& c = obstacles->getCoordinates();
 	const std::vector<osg::Vec3>& s = obstacles->getSize();
-	float height = terrainConfig->getHeight();
+	const std::vector<float>& d = obstacles->getDensity();
 	for (unsigned int i = 0; i < c.size(); ++i) {
 
 		float oMinX = c[i].x() - s[i].x() / 2;
@@ -122,11 +122,11 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 
 		// Do not insert obstacles in the robot range
 		if (!(inRangeX && inRangeY)) {
-			osg::Vec3 position(c[i].x(), c[i].y(), height + s[i].z());
+			osg::Vec3 position(c[i].x(), c[i].y(), s[i].z()/2);
 			obstacles_.push_back(
 					boost::shared_ptr<BoxObstacle>(
 							new BoxObstacle(odeWorld_, odeSpace_, position,
-									s[i])));
+									s[i], d[i])));
 		}
 
 	}
