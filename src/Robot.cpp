@@ -48,7 +48,7 @@ typedef boost::adjacency_list<boost::listS, boost::vecS, boost::undirectedS,
 typedef boost::graph_traits<BodyGraph>::edge_descriptor BodyEdge;
 
 /**
- * Visit a body tree connecting body parts accordingly
+ * Visits a body tree and connects body parts accordingly
  */
 class BodyConnectionVisitor: public boost::default_bfs_visitor {
 
@@ -62,6 +62,10 @@ public:
 
 	}
 
+	/**
+	 * From boost doc: This is invoked on each edge as it becomes a member of
+	 * the edges that form the search tree.
+	 */
 	void tree_edge(BodyEdge v, const BodyGraph& g) const {
 		boost::property_map<BodyGraph, BodyEdgeDescriptorTag>::const_type bodyConnectionMap =
 				boost::get(BodyEdgeDescriptorTag(), g);
@@ -77,8 +81,11 @@ public:
 		std::cout << "Connect: " << c.dest() << " with " << c.src() << "("
 				<< c.destslot() << ", " << c.srcslot() << ")" << std::endl;
 
+		// This is the gist of the bfs visitor
 		RobogenUtils::connect(bodyParts_[dstNodeIt->second], c.destslot(),
-				bodyParts_[srcNodeIt->second], c.srcslot(), 0, odeWorld_);
+				bodyParts_[srcNodeIt->second], c.srcslot(),
+				bodyParts_[dstNodeIt->second]->getOrientationToParentSlot()*90.,
+				odeWorld_);
 
 		return;
 	}
@@ -220,6 +227,7 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 		const robogenMessage::BodyConnection& connection = robotBody.connection(
 				i);
 
+		// find source and destination body part in body part map
 		const std::map<std::string, unsigned int>::iterator srcNodeIt =
 				bodyPartsMap_.find(connection.src());
 		const std::map<std::string, unsigned int>::iterator dstNodeIt =

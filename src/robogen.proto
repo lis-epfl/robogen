@@ -10,6 +10,7 @@ message BodyPart {
   required string type = 2;
   required bool root = 3;
   repeated EvolvableParameter evolvableParam = 4;
+  required int32 orientation = 5;
 }
 
 message BodyConnection {

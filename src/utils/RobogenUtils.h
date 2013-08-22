@@ -58,6 +58,9 @@ public:
 
 	static void getAngles(const osg::Quat&q, float& roll, float& pitch, float& yaw);
 
+	/**
+	 * It is b that remains fixed!!
+	 */
 	static void connect(boost::shared_ptr<Model> a, unsigned int slotA,
 			boost::shared_ptr<Model> b, unsigned int slotB, float orientation,
 			dWorldID odeWorld);

@@ -26,6 +26,7 @@
  * @(#) $Id$
  */
 #include "model/Model.h"
+#include <stdexcept>
 
 namespace robogen {
 
@@ -271,6 +272,18 @@ dJointID Model::fixBodies(dBodyID b1, dBodyID b2, const osg::Vec3& /*axis*/) {
 	//dJointSetSliderParam(joint, dParamHiStop, 0);
 	return joint;
 
+}
+
+void Model::setOrientationToParentSlot(int orientation){
+	if (orientation < 0 || orientation > 3){
+		throw std::runtime_error("Specified orientation to parent slot is not"\
+				" between 0 and 3.");
+	}
+	this->orientationToParentSlot_ = orientation;
+}
+
+int Model::getOrientationToParentSlot(){
+	return this->orientationToParentSlot_;
 }
 
 }

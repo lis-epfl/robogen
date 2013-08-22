@@ -205,6 +205,20 @@ public:
 	 */
 	dJointID fixBodies(dBodyID b1, dBodyID b2, const osg::Vec3& axis);
 
+	/**
+	 * Set orientation to parent slot with increments of 90 degrees
+	 * @param orientation integer between 0 and 3, specifying the amount of
+	 * additional 90 degree increments after attaching the part to its parent.
+	 */
+	void setOrientationToParentSlot(int orientation);
+
+	/**
+	 * Get orientation to parent slot.
+	 * @return a number specifying the amount of additional 90 degree increments
+	 * after attaching the part to its parent.
+	 */
+	int getOrientationToParentSlot();
+
 protected:
 
 	/**
@@ -229,6 +243,12 @@ private:
 	 * Bodies composing the model
 	 */
 	std::map<int, dBodyID> bodies_;
+
+	/**
+	 * Orientation at parent slot: 0-3, where the number stands for
+	 * increments of 90 degrees when attaching to the parent part.
+	 */
+	int orientationToParentSlot_;
 
 };
 

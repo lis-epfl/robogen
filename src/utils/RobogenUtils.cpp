@@ -302,6 +302,9 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 
    }
 
+   // set orientation at slot to parent
+   model->setOrientationToParentSlot(bodyPart.orientation());
+
    return model;
 
 }
