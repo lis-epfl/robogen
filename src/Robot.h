@@ -2,6 +2,7 @@
  * @(#) Robot.h   1.0   Mar 4, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2013 Andrea Maesani
@@ -53,23 +54,19 @@ class Robot {
 public:
 
 	/**
-	 * Initializes a Robogen robot
+	 * Initializes a Robogen robot from a robogen message
 	 * @param odeWorld
 	 * @param odeSpace
+	 * @param robotSpec
+	 * @throw runtime error if the robot was decoded incorrectly
 	 */
-	Robot(dWorldID odeWorld, dSpaceID odeSpace);
+	Robot(dWorldID odeWorld, dSpaceID odeSpace,
+			const robogenMessage::Robot& robotSpec);
 
 	/**
 	 * Destructor
 	 */
 	virtual ~Robot();
-
-	/**
-	 * Decodes a robot from a robogen message
-	 * @param robotSpec
-	 * @return true if the robot was decoded correctly
-	 */
-	bool init(const robogenMessage::Robot& robotSpec);
 
 	/**
 	 *  @return  the body parts of which the robot is composed of
@@ -103,9 +100,16 @@ public:
 	void translateRobot(const osg::Vec3& translation);
 
 	/**
+	 * Rotate the robot
+	 * @param rot rotation Quaternion
+	 */
+	void rotateRobot(const osg::Quat &rot);
+
+	/**
 	 * Returns the robot bounding box
 	 */
-	void getBB(double& minX, double& maxX, double& minY, double& maxY, double& minZ, double& maxZ);
+	void getBB(double& minX, double& maxX, double& minY, double& maxY,
+			double& minZ, double& maxZ);
 
 	/**
 	 * @return the configuration file
@@ -132,6 +136,12 @@ private:
 	 * @return true if the operation completed successfully
 	 */
 	bool decodeBrain(const robogenMessage::Brain& robotBrain);
+
+	/**
+	 * Connects all body parts to the root part
+	 * @throw std::runtime_error if fails to connect parts
+	 */
+	void reconnect();
 
 	/**
 	 * ODE physics world
@@ -193,6 +203,16 @@ private:
 	 */
 	int id_;
 
+	/**
+	 * Joint group of connections between parts
+	 */
+	dJointGroupID connectionJointGroup_;
+
+	/**
+	 * Robot Body cache needed for reconnecting the robot body
+	 * TODO dirty, make a clean solution
+	 */
+	const robogenMessage::Body& robotBodyCache_;
 };
 
 }

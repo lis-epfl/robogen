@@ -2,6 +2,7 @@
  * @(#) StartPositionConfig.h   1.0   Mar 12, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2013 Andrea Maesani
@@ -29,8 +30,9 @@
 #define ROBOGEN_START_POSITION_CONFIG_H_
 
 #include <iostream>
-#include <osg/Vec2>
 #include <vector>
+#include <boost/shared_ptr.hpp>
+#include "config/StartPosition.h"
 
 namespace robogen {
 
@@ -42,41 +44,36 @@ class StartPositionConfig {
 public:
 
 	/**
-	 * Starting positions
+	 * Starting positions and azimuths
 	 */
-	StartPositionConfig(const std::vector<osg::Vec2>& startPosition) : startPosition_(startPosition) {
-
-	}
-
-	/**
-	 * Destructor
-	 */
-	virtual ~StartPositionConfig() {
+	StartPositionConfig(
+			std::vector<boost::shared_ptr<StartPosition> > startPosition) :
+		startPosition_(startPosition){
 
 	}
 
 	/**
 	 * @return the starting positions
 	 */
-	std::vector<osg::Vec2> getStartPosition() {
+	std::vector<boost::shared_ptr<StartPosition> > getStartPosition() {
 		return startPosition_;
 	}
 
 	/**
-	 * @return the starting position
+	 * @return the starting position at index i
 	 */
-	osg::Vec2 getStartPosition(int i) {
+	boost::shared_ptr<StartPosition> getStartPosition(int i) {
 		if (i < 0 || i >= (int) startPosition_.size()) {
-			std::cout << "The starting position " << i << " is not specified in the configuration file." << std::endl;
-			return osg::Vec2(0, 0);
+			std::cout << "The starting position " << i <<
+					" is not specified in the configuration file." << std::endl;
+			return boost::shared_ptr<StartPosition>();
 		}
 		return startPosition_[i];
 	}
 
 private:
 
-	std::vector<osg::Vec2> startPosition_;
-
+	std::vector<boost::shared_ptr<StartPosition> > startPosition_;
 };
 
 }

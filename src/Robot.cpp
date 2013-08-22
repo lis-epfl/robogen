@@ -2,6 +2,7 @@
  * @(#) Robot.cpp   1.0   Mar 4, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2013 Andrea Maesani
@@ -56,9 +57,10 @@ public:
 
 	BodyConnectionVisitor(dWorldID& odeWorld,
 			std::vector<boost::shared_ptr<Model> >& bodyParts,
-			std::map<std::string, unsigned int>& nodeIdToPos) :
+			std::map<std::string, unsigned int>& nodeIdToPos,
+			dJointGroupID connectionJointGroup) :
 			odeWorld_(odeWorld), bodyParts_(bodyParts), nodeIdToPos_(
-					nodeIdToPos) {
+					nodeIdToPos), connectionJointGroup_(connectionJointGroup) {
 
 	}
 
@@ -85,7 +87,7 @@ public:
 		RobogenUtils::connect(bodyParts_[dstNodeIt->second], c.destslot(),
 				bodyParts_[srcNodeIt->second], c.srcslot(),
 				bodyParts_[dstNodeIt->second]->getOrientationToParentSlot()*90.,
-				odeWorld_);
+				connectionJointGroup_, odeWorld_);
 
 		return;
 	}
@@ -98,17 +100,38 @@ private:
 
 	std::map<std::string, unsigned int>& nodeIdToPos_;
 
+	dJointGroupID connectionJointGroup_;
+
 };
 
-// Define property of edge (contains the body connection retrieved from a robogen message)
+// Define property of edge (contains the body connection retrieved from a
+// robogen message)
 
-Robot::Robot(dWorldID odeWorld, dSpaceID odeSpace) :
-		odeWorld_(odeWorld), odeSpace_(odeSpace) {
+// TODO cleaner solution than robotBodyCache?
+Robot::Robot(dWorldID odeWorld, dSpaceID odeSpace,
+		const robogenMessage::Robot& robotSpec) :
+		odeWorld_(odeWorld), odeSpace_(odeSpace),
+		robotBodyCache_(robotSpec.body()) {
 
+	connectionJointGroup_ = dJointGroupCreate(0);
+	this->id_ = robotSpec.id();
+
+	const robogenMessage::Body& body = robotSpec.body();
+	const robogenMessage::Brain& brain = robotSpec.brain();
+	if (!this->decodeBody(body)) {
+		throw std::runtime_error(
+				"Cannot decode the body of the robot. Exiting.");
+	}
+	if (!this->decodeBrain(brain)) {
+		throw std::runtime_error(
+				"Cannot decode the brain of the robot. Exiting.");
+	}
+
+	configurationFile_ = robotSpec.configuration();
 }
 
 Robot::~Robot() {
-
+	dJointGroupDestroy(connectionJointGroup_);
 }
 
 const std::vector<boost::shared_ptr<Sensor> >& Robot::getSensors() {
@@ -130,32 +153,7 @@ boost::shared_ptr<Model> Robot::getCoreComponent() {
 	return coreComponent_;
 }
 
-bool Robot::init(const robogenMessage::Robot& robotSpec) {
-
-	this->id_ = robotSpec.id();
-
-	const robogenMessage::Body& body = robotSpec.body();
-	const robogenMessage::Brain& brain = robotSpec.brain();
-	if (!this->decodeBody(body)) {
-		std::cout << "Cannot decode the body of the robot. Exiting."
-				<< std::endl;
-		return false;
-	}
-	if (!this->decodeBrain(brain)) {
-		std::cout << "Cannot decode the brain of the robot. Exiting."
-				<< std::endl;
-		return false;
-	}
-
-	configurationFile_ = robotSpec.configuration();
-
-	return true;
-}
-
 bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
-
-	// Will maintain all the body structure
-	BodyGraph bodyTree(robotBody.part_size());
 
 	float x = 0;
 	float y = 0;
@@ -223,49 +221,10 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 	// We now have to connect them properly
 	// Decode the body connections
-	for (int i = 0; i < robotBody.connection_size(); ++i) {
-		const robogenMessage::BodyConnection& connection = robotBody.connection(
-				i);
 
-		// find source and destination body part in body part map
-		const std::map<std::string, unsigned int>::iterator srcNodeIt =
-				bodyPartsMap_.find(connection.src());
-		const std::map<std::string, unsigned int>::iterator dstNodeIt =
-				bodyPartsMap_.find(connection.dest());
+	this->reconnect();
 
-		if (srcNodeIt == bodyPartsMap_.end()
-				|| dstNodeIt == bodyPartsMap_.end()) {
-			std::cout
-					<< "The source and/or destination nodes are not in the body tree ("
-					<< connection.src() << ", " << connection.dest() << ")"
-					<< std::endl;
-			return false;
-		}
 
-		std::cout << "Edge: " << connection.src() << " -> " << connection.dest()
-				<< std::endl;
-
-		boost::add_edge(srcNodeIt->second, dstNodeIt->second,
-				BodyEdgeProperty(connection), bodyTree);
-	}
-
-	// Let's run first a connectivity check
-	std::vector<int> component(robotBody.part_size());
-
-	BodyUndirectedGraph bodyTreeUndirected;
-	boost::copy_graph(bodyTree, bodyTreeUndirected);
-
-	int numComponents = boost::connected_components(bodyTreeUndirected,
-			&component[0]);
-	if (numComponents != 1) {
-		std::cout
-				<< "The robot body has some disconnected component (ConnComponents: "
-				<< numComponents << ")" << std::endl;
-		return false;
-	}
-
-	BodyConnectionVisitor vis(odeWorld_, bodyParts_, bodyPartsMap_);
-	boost::breadth_first_search(bodyTree, rootNode, boost::visitor(vis));
 
 	std::cout << "Sensors: " << sensors_.size() << ", motors: "
 			<< motors_.size() << std::endl;
@@ -494,12 +453,82 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 
 }
 
+void Robot::reconnect(){
+	// Will maintain all the body structure
+    BodyGraph bodyTree(robotBodyCache_.part_size());
+
+    int rootNode = -1;
+    // Determine root TODO do this in constructor!
+    for (int i = 0; i < robotBodyCache_.part_size(); ++i) {
+    	if (robotBodyCache_.part(i).root()) {
+    		rootNode = i;
+    	}
+    }
+
+	for (int i = 0; i < robotBodyCache_.connection_size(); ++i) {
+			const robogenMessage::BodyConnection& connection =
+					robotBodyCache_.connection(i);
+
+			// find source and destination body part in body part map
+			const std::map<std::string, unsigned int>::iterator srcNodeIt =
+					bodyPartsMap_.find(connection.src());
+			const std::map<std::string, unsigned int>::iterator dstNodeIt =
+					bodyPartsMap_.find(connection.dest());
+
+			if (srcNodeIt == bodyPartsMap_.end()
+					|| dstNodeIt == bodyPartsMap_.end()) {
+				std::cout
+						<< "The source and/or destination nodes are not in the body tree ("
+						<< connection.src() << ", " << connection.dest() << ")"
+						<< std::endl;
+				throw std::runtime_error("Exception in robot body connection");
+			}
+
+			std::cout << "Edge: " << connection.src() << " -> " << connection.dest()
+					<< std::endl;
+
+			boost::add_edge(srcNodeIt->second, dstNodeIt->second,
+					BodyEdgeProperty(connection), bodyTree);
+		}
+
+		// Let's run first a connectivity check
+		std::vector<int> component(robotBodyCache_.part_size());
+
+		BodyUndirectedGraph bodyTreeUndirected;
+		boost::copy_graph(bodyTree, bodyTreeUndirected);
+
+		int numComponents = boost::connected_components(bodyTreeUndirected,
+				&component[0]);
+		if (numComponents != 1) {
+			std::cout
+					<< "The robot body has some disconnected component (ConnComponents: "
+					<< numComponents << ")" << std::endl;
+			throw std::runtime_error("Exception in robot body connection");
+		}
+
+		BodyConnectionVisitor vis(odeWorld_, bodyParts_, bodyPartsMap_,
+				connectionJointGroup_);
+		// purge current connection joint group
+		dJointGroupEmpty(connectionJointGroup_);
+		boost::breadth_first_search(bodyTree, rootNode, boost::visitor(vis));
+}
+
 void Robot::translateRobot(const osg::Vec3& translation) {
 
 	for (unsigned int i = 0; i < this->bodyParts_.size(); ++i) {
 		this->bodyParts_[i]->translateRootPosition(translation);
 	}
 
+}
+
+void Robot::rotateRobot(const osg::Quat &rot){
+	for (unsigned int i = 0; i < this->bodyParts_.size(); ++i) {
+		// rotate all parts. this will also rotate the root
+		// TODO rotate root only once known
+		this->bodyParts_[i]->setRootAttitude(rot);
+	}
+	// needs reconnecting (would have even if all parts were correctly rotated)
+	this->reconnect();
 }
 
 void Robot::getBB(double& minX, double& maxX, double& minY, double& maxY,

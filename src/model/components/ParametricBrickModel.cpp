@@ -63,11 +63,6 @@ bool ParametricBrickModel::initModel() {
 	this->createBoxGeom(brickRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
 			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
 
-	//dReal xCapsule = SLOT_THICKNESS / 2 + separation + CAPSULE_LENGTH / 2;
-	//this->createBoxGeom(capsule, MASS, osg::Vec3(xCapsule, 0, 0), CAPSULE_LENGTH,
-	//		CONNECTION_PART_WIDTH, CAPSULE_HEIGHT);
-
-	//dReal xConnection = xCapsule + connectionPartLength_ / 2;
 	dReal xConnection = SLOT_THICKNESS / 2 + connectionPartLength_ / 2;
 	osg::Vec3 connectionPartPos(xConnection, 0, 0);
 	this->createBoxGeom(connectionPart,
@@ -99,14 +94,9 @@ bool ParametricBrickModel::initModel() {
 	// Create joints to hold pieces in position
 	this->fixBodies(brickRoot_, connectionPart, osg::Vec3(1, 0, 0));
 
-	// Fix capsule to connection part
-	//this->fixBodies(capsule, connectionPart, osg::Vec3(1, 0, 0));
-
 	// Rotate slot B
 	osg::Quat rotationB;
 	rotationB.makeRotate(angleB_, osg::Vec3(1, 0, 0));
-
-	//rotationB = rotationA * rotationB;
 
 	rotationB = rotationB * rotationA;
 

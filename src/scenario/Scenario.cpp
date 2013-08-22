@@ -74,11 +74,16 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 	double minZ = 0;
 	double maxZ = 0;
 
-	// Starting position
+	// Starting position and orientation
 	osg::Vec2 startingPosition =
 			robogenConfig_->getStartingPos()->getStartPosition(
-					startPositionId_);
+					startPositionId_)->getPosition();
+	float startingAzimuth = robogenConfig_->getStartingPos()->getStartPosition(
+			startPositionId_)->getAzimuth();
+	osg::Quat roboRot;
+	roboRot.makeRotate(osg::inDegrees(startingAzimuth), osg::Vec3(0,0,1));
 
+	robot->rotateRobot(roboRot);
 	robot->getBB(minX, maxX, minY, maxY, minZ, maxZ);
 	robot->translateRobot(
 			osg::Vec3(startingPosition.x() - (maxX - minX) / 2,

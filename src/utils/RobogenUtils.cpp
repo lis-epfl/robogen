@@ -60,7 +60,7 @@ RobogenUtils::~RobogenUtils() {
 
 void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
       boost::shared_ptr<Model> b, unsigned int slotB, float orientation,
-      dWorldID odeWorld) {
+      dJointGroupID connectionJointGroup, dWorldID odeWorld) {
 
    // 1) Rotate slotAxis of B such that we obtain a normal pointing inward the body
    osg::Vec3 bSlotAxis = b->getSlotAxis(slotB);
@@ -125,7 +125,7 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 
    // Create a joint to hold pieces in position
 
-   dJointID joint = dJointCreateFixed(odeWorld, 0);
+   dJointID joint = dJointCreateFixed(odeWorld, connectionJointGroup);
    dJointAttach(joint, a->getSlot(slotA), b->getSlot(slotB));
    dJointSetFixed(joint);
 

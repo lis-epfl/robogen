@@ -33,6 +33,7 @@
 #include "config/ConfigurationReader.h"
 #include "config/ObstaclesConfig.h"
 #include "config/RobogenConfig.h"
+#include "config/StartPosition.h"
 #include "config/StartPositionConfig.h"
 #include "config/TerrainConfig.h"
 
@@ -283,24 +284,25 @@ ConfigurationReader::parseStartPositionFile(
 				<< std::endl;
 		return boost::shared_ptr<StartPositionConfig>();
 	}
-
-	std::vector<osg::Vec2> coordinate;
-	float x;
+	std::vector<boost::shared_ptr<StartPosition> > startPositions;
+	float x,y,azimuth;
 	while (startPosFile >> x) {
-
-		float y;
 		if (!(startPosFile >> y)) {
 			std::cout << "Malformed start position file: '" << fileName << "'"
 					<< std::endl;
 			return boost::shared_ptr<StartPositionConfig>();
 		}
-
-		coordinate.push_back(osg::Vec2(x, y));
-
+		if (!(startPosFile >> azimuth)) {
+			std::cout << "Malformed start position file: '" << fileName << "'"
+					<< std::endl;
+			return boost::shared_ptr<StartPositionConfig>();
+		}
+		startPositions.push_back(boost::shared_ptr<StartPosition>(
+				new StartPosition(osg::Vec2(x,y),azimuth)));
 	}
 
 	return boost::shared_ptr<StartPositionConfig>(
-			new StartPositionConfig(coordinate));
+			new StartPositionConfig(startPositions));
 
 }
 
