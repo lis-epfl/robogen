@@ -304,9 +304,12 @@ int main(int argc, char *argv[]) {
 	double lastLightSensorUpdateT = 0;
 	while (!viewer.done() && !keyboardEvent->isQuit()) {
 
+
 		viewer.frame();
 
 		if (t < configuration->getSimulationTime() && !keyboardEvent->isPaused()) {
+
+			log->logTimeInit();
 
 			double step = configuration->getTimeStepLength();
 
@@ -410,9 +413,11 @@ int main(int argc, char *argv[]) {
 
 			t += step;
 
-		}
+			log->logTime();
 
-	}
+		} /* If doing something */
+
+	} /* while (!viewer.done() && !keyboardEvent->isQuit()) */
 
 	if (!scenario->endSimulation()) {
 		std::cout << "Cannot complete scenario. Quit." << std::endl;

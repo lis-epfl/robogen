@@ -12,12 +12,15 @@
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/posix_time_io.hpp>
+#include <boost/timer/timer.hpp>
+#include <boost/shared_ptr.hpp>
 
 #define LOG_DIRECTORY_PREFIX "FileViewer_"
 #define LOG_DIRECTORY_FACET "%Y%m%d-%H%M%S"
 #define TRAJECTORY_LOG_FILE "trajectoryLog.txt"
 #define SENSOR_LOG_FILE "sensorLog.txt"
 #define MOTOR_LOG_FILE "motorLog.txt"
+#define TIME_LOG_FILE "timeLog.txt"
 #define LOG_COL_WIDTH 12
 #define OCTAVE_SCRIPT "robogenPlot.m"
 
@@ -57,6 +60,13 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	motorLog_.open(motorLogPath.c_str());
 	if (!motorLog_.is_open()){
 		throw std::string("Can't open motor log file");
+	}
+
+	// open time log
+	std::string timeLogPath = logPathSs.str() + "/" + TIME_LOG_FILE;
+	timeLog_.open(timeLogPath.c_str());
+	if (!timeLog_.is_open()){
+		throw std::string("Can't open time log file");
 	}
 
 	// copy robot file
@@ -126,6 +136,14 @@ void FileViewerLog::logMotors(float motorValues[], int n){
 	for (int i=0; i<n; i++)
 		motorLog_ << std::setw(LOG_COL_WIDTH) << motorValues[i] << " ";
 	motorLog_ << std::endl;
+}
+
+void FileViewerLog::logTimeInit(){
+	timer_.reset(new boost::timer::auto_cpu_timer(timeLog_, "%w\n"));
+}
+
+void FileViewerLog::logTime(){
+	timer_.reset();
 }
 
 }

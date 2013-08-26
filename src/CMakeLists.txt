@@ -77,7 +77,7 @@ file (GLOB_RECURSE
 )
  
 
-find_package(Boost COMPONENTS date_time graph system program_options regex filesystem)
+find_package(Boost COMPONENTS date_time graph system program_options regex filesystem timer)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(PNG REQUIRED)

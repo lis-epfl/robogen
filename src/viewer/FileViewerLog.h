@@ -12,6 +12,8 @@
 #include <osg/Vec3>
 #include <iostream>
 #include <fstream>
+#include <boost/timer/timer.hpp>
+#include <boost/shared_ptr.hpp>
 
 namespace robogen{
 
@@ -55,10 +57,22 @@ public:
 	 */
 	void logMotors(float motorValues[], int n);
 
+	/**
+	 * Initializes a timer to measure code execution duration
+	 */
+	void logTimeInit();
+
+	/**
+	 * Writes timer value to file
+	 */
+	void logTime();
+
 private:
 	std::ofstream trajectoryLog_;
 	std::ofstream sensorLog_;
 	std::ofstream motorLog_;
+	std::ofstream timeLog_;
+	boost::shared_ptr<boost::timer::auto_cpu_timer> timer_;
 };
 
 }
