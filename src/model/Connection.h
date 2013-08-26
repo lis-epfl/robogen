@@ -53,12 +53,12 @@ public:
 	/**
 	 * Creates a connection from the specified connection message
 	 * @param c Connection message to be used (uses string id's)
-	 * @param map mapping from string id to shared pointer of body part
+	 * @param map mapping from string id to index in vector of body part
+	 * @param vec std::vector containing the body part shared pointers
 	 */
-	Connection(robogenMessage::BodyConnection &c,
-			std::map<std::string, boost::shared_ptr<Model> > &map);
-
-	virtual ~Connection();
+	Connection(const robogenMessage::BodyConnection &c,
+			std::map<std::string, unsigned int> &map,
+			std::vector<boost::shared_ptr<Model> > &vec);
 
 	/**
 	 * Stub for member function to replace RobogenUtils::connect
@@ -99,7 +99,7 @@ private:
 	/**
 	 * Slot used for connection at parent body part
 	 */
-	int fromSlot_;
+	unsigned int fromSlot_;
 
 	/**
 	 * Child body part
@@ -109,7 +109,7 @@ private:
 	/**
 	 * Slot used for connection at child body part
 	 */
-	int toSlot_;
+	unsigned int toSlot_;
 };
 
 } /* namespace robogen */

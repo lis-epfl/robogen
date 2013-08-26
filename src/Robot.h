@@ -30,11 +30,16 @@
 #define ROBOGEN_ROBOT_H_
 
 #include <boost/shared_ptr.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/connected_components.hpp>
+#include <boost/graph/copy.hpp>
 #include <map>
 #include <vector>
 
 #include "Robogen.h"
 #include "robogen.pb.h"
+#include "model/Connection.h"
 
 extern "C" {
 #include "brain/NeuralNetwork.h"
@@ -45,6 +50,17 @@ namespace robogen {
 class Model;
 class Motor;
 class Sensor;
+
+struct BodyEdgeDescriptorTag {
+	typedef boost::edge_property_tag kind;
+};
+typedef boost::property<BodyEdgeDescriptorTag, boost::shared_ptr<Connection> >
+BodyEdgeProperty;
+typedef boost::adjacency_list<boost::listS, boost::vecS, boost::directedS,
+		boost::no_property, BodyEdgeProperty> BodyGraph;
+typedef boost::adjacency_list<boost::listS, boost::vecS, boost::undirectedS,
+		boost::no_property, BodyEdgeProperty> BodyUndirectedGraph;
+typedef boost::graph_traits<BodyGraph>::edge_descriptor BodyEdge;
 
 /**
  * A ROBOGEN Robot
@@ -159,6 +175,11 @@ private:
 	std::vector<boost::shared_ptr<Model> > bodyParts_;
 
 	/**
+	 * Connections between the body parts.
+	 */
+	std::vector<boost::shared_ptr<Connection> > bodyConnections_;
+
+	/**
 	 * Mapping from body part to associated sensors
 	 */
 	std::map<unsigned int, std::vector<boost::shared_ptr<Sensor> > > bodyPartsToSensors_;
@@ -204,15 +225,19 @@ private:
 	int id_;
 
 	/**
+	 * Root part index of the robot
+	 */
+	int rootNode_;
+
+	/**
+	 * Boost graph of body tree.
+	 */
+	boost::shared_ptr<BodyGraph> bodyTree_;
+
+	/**
 	 * Joint group of connections between parts
 	 */
 	dJointGroupID connectionJointGroup_;
-
-	/**
-	 * Robot Body cache needed for reconnecting the robot body
-	 * TODO dirty, make a clean solution
-	 */
-	const robogenMessage::Body& robotBodyCache_;
 };
 
 }

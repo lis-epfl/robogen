@@ -37,12 +37,13 @@ namespace robogen{
 ConnectionException::ConnectionException(const std::string &w) :
 		std::runtime_error(w){}
 
-Connection::Connection(robogenMessage::BodyConnection &c,
-		std::map<std::string, boost::shared_ptr<Model> > &map) :
+Connection::Connection(const robogenMessage::BodyConnection &c,
+		std::map<std::string, unsigned int> &map,
+		std::vector<boost::shared_ptr<Model> > &vec) :
 		fromSlot_(c.srcslot()), toSlot_(c.destslot()){
 
 	// identify from node
-	std::map<std::string, boost::shared_ptr<Model> >::iterator it =
+	std::map<std::string, unsigned int>::iterator it =
 			map.find(c.src());
 	if (it == map.end()){
 		std::stringstream ss;
@@ -50,7 +51,7 @@ Connection::Connection(robogenMessage::BodyConnection &c,
 				" not be resolved in body parts map passed to constructor.";
 		throw ConnectionException(ss.str());
 	}
-	from_ = (it->second);
+	from_ = vec[(it->second)]; // TODO catch out of bounds
 
 	// identify to node
 	it = map.find(c.dest());
@@ -61,13 +62,13 @@ Connection::Connection(robogenMessage::BodyConnection &c,
 				"constructor.";
 		throw ConnectionException(ss.str());
 	}
-	if (it->second == from_){
+	if (vec[it->second] == from_){
 		std::stringstream ss;
 		ss << "Error initializing Connection: Destination id" << c.dest() <<
 				" is same as source id!";
 		throw ConnectionException(ss.str());
 	}
-	to_ = (it->second);
+	to_ = vec[(it->second)];
 
 	// TODO verify proper slot id's: Model::arity() though this is kind of done
 	// internally in the Model derived classes' getSlot() already
