@@ -43,8 +43,8 @@ const float ActiveWheelModel::SERVO_HEIGHT = inMm(28);
 const float ActiveWheelModel::WHEEL_THICKNESS = inMm(3);
 
 ActiveWheelModel::ActiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace,
-      float radius) :
-      ActuatedComponent(odeWorld, odeSpace), radius_(radius) {
+      std::string id, float radius) :
+      ActuatedComponent(odeWorld, odeSpace, id), radius_(radius) {
 
 }
 

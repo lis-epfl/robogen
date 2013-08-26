@@ -46,7 +46,8 @@ public:
 	 * Constructor
 	 * @see Model
 	 */
-	PerceptiveComponent(dWorldID odeWorld, dSpaceID odeSpace) : Model(odeWorld, odeSpace) {}
+	PerceptiveComponent(dWorldID odeWorld, dSpaceID odeSpace, std::string id) :
+		Model(odeWorld, odeSpace, id) {}
 
 	/**
 	 * Destructor

@@ -53,9 +53,11 @@ public:
 	 * Initializes a CoreComponentModel
 	 * @param odeWorld
 	 * @param odeSpace
+	 * @param id
 	 * @param hasSensors if true the core component will contain gyro and accelerometer sensors, if false it won't provide any sensor
 	 */
-	CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace, bool hasSensors);
+	CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id,
+			bool hasSensors);
 
 	virtual ~CoreComponentModel();
 

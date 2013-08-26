@@ -35,8 +35,9 @@ const float LightSensorModel::SENSOR_BASE_THICKNESS = inMm(1.5);
 const float LightSensorModel::SENSOR_DISPLACEMENT = inMm(8);
 
 LightSensorModel::LightSensorModel(dWorldID odeWorld, dSpaceID odeSpace,
-		bool internalSensor) :
-		PerceptiveComponent(odeWorld, odeSpace), internalSensor_(internalSensor) {
+		std::string id,	bool internalSensor) :
+		PerceptiveComponent(odeWorld, odeSpace, id),
+		internalSensor_(internalSensor) {
 
 	this->sensor_.reset(new LightSensor(odeSpace));
 }

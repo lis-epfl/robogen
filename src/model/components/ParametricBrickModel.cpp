@@ -39,9 +39,10 @@ const float ParametricBrickModel::CAPSULE_HEIGHT = inMm(10);
 const float ParametricBrickModel::CAPSULE_LENGTH = inMm(10);
 
 ParametricBrickModel::ParametricBrickModel(dWorldID odeWorld, dSpaceID odeSpace,
-		float connectionPartLength, float angleA, float angleB) :
-		Model(odeWorld, odeSpace), connectionPartLength_(connectionPartLength), angleA_(
-				angleA), angleB_(angleB) {
+		std::string id, float connectionPartLength, float angleA, float angleB):
+		Model(odeWorld, odeSpace, id),
+		connectionPartLength_(connectionPartLength), angleA_(angleA),
+		angleB_(angleB) {
 
 }
 

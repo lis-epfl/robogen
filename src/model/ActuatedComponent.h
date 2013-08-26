@@ -45,7 +45,8 @@ public:
 	 * Constructor
 	 * @see Model
 	 */
-	ActuatedComponent(dWorldID odeWorld, dSpaceID odeSpace) : Model(odeWorld, odeSpace) {}
+	ActuatedComponent(dWorldID odeWorld, dSpaceID odeSpace, std::string id) :
+		Model(odeWorld, odeSpace, id) {}
 
 	/**
 	 * Destructor

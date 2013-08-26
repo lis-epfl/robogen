@@ -33,8 +33,8 @@ const float CoreComponentModel::MASS = inGrams(33);
 const float CoreComponentModel::WIDTH = inMm(46.5);
 
 CoreComponentModel::CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace,
-		bool hasSensors) :
-		PerceptiveComponent(odeWorld, odeSpace), hasSensors_(hasSensors) {
+		std::string id, bool hasSensors) :
+		PerceptiveComponent(odeWorld, odeSpace, id), hasSensors_(hasSensors) {
 
 	if (hasSensors) {
 		sensor_.reset(new ImuSensor());

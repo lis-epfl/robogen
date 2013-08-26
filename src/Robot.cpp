@@ -505,7 +505,10 @@ void Robot::reconnect(){
 					<< numComponents << ")" << std::endl;
 			throw std::runtime_error("Exception in robot body connection");
 		}
+		// End of connectivity check
 
+		// Let's now actually connect the body parts
+		// vis will do the job
 		BodyConnectionVisitor vis(odeWorld_, bodyParts_, bodyPartsMap_,
 				connectionJointGroup_);
 		// purge current connection joint group

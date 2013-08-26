@@ -31,11 +31,21 @@
 #include <osg/PositionAttitudeTransform>
 #include <iostream>
 #include <map>
+#include <stdexcept>
 
 #include "Robogen.h"
 #include "render/RenderModel.h"
 
 namespace robogen {
+
+/**
+ * An exception for when anything goes wrong with the Model, especially
+ * initialization.
+ */
+class ModelException : public std::runtime_error {
+public:
+	ModelException(const std::string& w);
+};
 
 /**
  * A slot center must always be place on the external surface of the slot
@@ -47,7 +57,7 @@ public:
 	/**
 	 * Constructor
 	 */
-	Model(dWorldID odeWorld, dSpaceID odeSpace);
+	Model(dWorldID odeWorld, dSpaceID odeSpace, std::string id);
 
 	/**
 	 * Destructor
@@ -240,7 +250,12 @@ private:
 	dSpaceID odeSpace_;
 
 	/**
-	 * Bodies composing the model
+	 * User-defined identifier of the part
+	 */
+	const std::string id_;
+
+	/**
+	 * ODE Bodies composing the model
 	 */
 	std::map<int, dBodyID> bodies_;
 

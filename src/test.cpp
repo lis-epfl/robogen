@@ -283,7 +283,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
 	 // CoreComponent A
 	 boost::shared_ptr<CoreComponentModel> modelA(
-	 new CoreComponentModel(odeWorld, odeSpace, false));
+	 new CoreComponentModel(odeWorld, odeSpace, "CoreA", false));
 	 modelA->initModel();
 	 modelA->setRootPosition(osg::Vec3(0, 0, 1));
 
@@ -295,7 +295,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
 	 // CoreComponent B
 	 boost::shared_ptr<CoreComponentModel> modelB(
-	 new CoreComponentModel(odeWorld, odeSpace, false));
+	 new CoreComponentModel(odeWorld, odeSpace, "CoreB", false));
 	 modelB->initModel();
 	 modelB->setRootPosition(osg::Vec3(0.1, 0.1, 1));
 
@@ -310,7 +310,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
 	 // CoreComponent C (the root!)
 	 boost::shared_ptr<CoreComponentModel> modelC(
-	 new CoreComponentModel(odeWorld, odeSpace, false));
+	 new CoreComponentModel(odeWorld, odeSpace, "CoreC", false));
 	 modelC->initModel();
 	 modelC->setRootPosition(osg::Vec3(0.1, 0.2, 0.1));
 	 osg::Quat rotationAngleC;
@@ -324,7 +324,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
 	 // CoreComponent D
 	 boost::shared_ptr<CoreComponentModel> modelD(
-	 new CoreComponentModel(odeWorld, odeSpace, false));
+	 new CoreComponentModel(odeWorld, odeSpace, "CoreD", false));
 	 modelD->initModel();
 	 modelD->setRootPosition(osg::Vec3(0.1, 0.3, 1));
 
@@ -335,7 +335,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
 	 // CoreComponent E
 	 boost::shared_ptr<CoreComponentModel> modelE(
-	 new CoreComponentModel(odeWorld, odeSpace, false));
+	 new CoreComponentModel(odeWorld, odeSpace, "CoreE", false));
 	 modelE->initModel();
 	 modelE->setRootPosition(osg::Vec3(0.1, 0.4, 1));
 
@@ -345,7 +345,8 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 root->addChild(renderModelE->getRootNode());
 
 	 // Hinge joint
-	 boost::shared_ptr<HingeModel> hingeA(new HingeModel(odeWorld, odeSpace));
+	 boost::shared_ptr<HingeModel> hingeA(new HingeModel(odeWorld, odeSpace,
+			 "Hinge1"));
 	 hingeA->initModel();
 	 hingeA->setRootPosition(osg::Vec3(0.2, 0.1, 1));
 
@@ -356,7 +357,8 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 root->addChild(renderModelHingeA->getRootNode());
 
 	 // Hinge joint
-	 boost::shared_ptr<HingeModel> hingeB(new HingeModel(odeWorld, odeSpace));
+	 boost::shared_ptr<HingeModel> hingeB(new HingeModel(odeWorld, odeSpace,
+			 "Hinge2"));
 	 hingeB->initModel();
 	 hingeB->setRootPosition(osg::Vec3(0.2, 0.2, 1));
 
@@ -366,7 +368,8 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
 	 root->addChild(renderModelHingeB->getRootNode());
 
-	 boost::shared_ptr<HingeModel> hingeC(new HingeModel(odeWorld, odeSpace));
+	 boost::shared_ptr<HingeModel> hingeC(new HingeModel(odeWorld, odeSpace,
+			 "Hinge3"));
 	 hingeC->initModel();
 	 hingeC->setRootPosition(osg::Vec3(0.2, 0.3, 1));
 
@@ -379,7 +382,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 // Active hinge model
 
 	 boost::shared_ptr<ActiveHingeModel> activeHingeA(
-	 new ActiveHingeModel(odeWorld, odeSpace));
+	 new ActiveHingeModel(odeWorld, odeSpace, "AHinge"));
 	 activeHingeA->initModel();
 	 activeHingeA->setRootPosition(osg::Vec3(0.2, 0.4, 1));
 
@@ -392,7 +395,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 // Passive wheel model
 
 	 boost::shared_ptr<PassiveWheelModel> passiveWheelA(
-	 new PassiveWheelModel(odeWorld, odeSpace, inMm(30)));
+	 new PassiveWheelModel(odeWorld, odeSpace, "Pwheel", inMm(30)));
 	 passiveWheelA->initModel();
 	 passiveWheelA->setRootPosition(osg::Vec3(0.3, 0.1, 0.5));
 
@@ -406,7 +409,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 // Active wheel model
 
 	 boost::shared_ptr<ActiveWheelModel> activeWheelA(
-	 new ActiveWheelModel(odeWorld, odeSpace, inMm(50)));
+	 new ActiveWheelModel(odeWorld, odeSpace, "Awheel", inMm(50)));
 	 activeWheelA->initModel();
 	 activeWheelA->setRootPosition(osg::Vec3(0.3, 0.2, 1));
 
@@ -420,7 +423,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
 
 	 boost::shared_ptr<ActiveWhegModel> activeWhegA(
-	 	 new ActiveWhegModel(odeWorld, odeSpace, inMm(44)));
+	 	 new ActiveWhegModel(odeWorld, odeSpace, "AWheg", inMm(44)));
 	 activeWhegA->initModel();
 	 activeWhegA->setRootPosition(osg::Vec3(0.3, 0.3, 1));
 
@@ -435,7 +438,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 // Cardan model
 
 	 boost::shared_ptr<CardanModel> cardanModelA(
-	 new CardanModel(odeWorld, odeSpace));
+	 new CardanModel(odeWorld, odeSpace, "Cardan"));
 	 cardanModelA->initModel();
 	 cardanModelA->setRootPosition(osg::Vec3(0.4, 0.1, 1));
 
@@ -448,7 +451,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 // Active Cardan model
 
 	 boost::shared_ptr<ActiveCardanModel> activeCardanModelA(
-	 new ActiveCardanModel(odeWorld, odeSpace));
+	 new ActiveCardanModel(odeWorld, odeSpace, "ACardan"));
 	 activeCardanModelA->initModel();
 	 activeCardanModelA->setRootPosition(osg::Vec3(0.4, 0.2, 1));
 
@@ -461,7 +464,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 // Parametric model
 
 	boost::shared_ptr<ParametricBrickModel> paramModelA(
-	 new ParametricBrickModel(odeWorld, odeSpace, 0.01, osg::inDegrees(45.0), osg::inDegrees(45.0)));
+	 new ParametricBrickModel(odeWorld, odeSpace, "P1", 0.01, osg::inDegrees(45.0), osg::inDegrees(45.0)));
 	 paramModelA->initModel();
 	 paramModelA->setRootPosition(osg::Vec3(0.4, 0.3, 1));
 
@@ -472,7 +475,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 root->addChild(renderParamModelA->getRootNode());
 
 	 boost::shared_ptr<ParametricBrickModel> paramModelB(
-	 new ParametricBrickModel(odeWorld, odeSpace, 0.02, osg::inDegrees(30.0), osg::inDegrees(60.0)));
+	 new ParametricBrickModel(odeWorld, odeSpace, "P2", 0.02, osg::inDegrees(30.0), osg::inDegrees(60.0)));
 	 paramModelB->initModel();
 	 paramModelB->setRootPosition(osg::Vec3(0.4, 0.4, 1));
 
@@ -485,7 +488,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
 	 // Rotate Joint
 	 boost::shared_ptr<RotateJointModel> rotateJointA(
-	 new RotateJointModel(odeWorld, odeSpace));
+	 new RotateJointModel(odeWorld, odeSpace, "R1"));
 	 rotateJointA->initModel();
 	 rotateJointA->setRootPosition(osg::Vec3(0.5, 0.1, 1));
 
@@ -499,7 +502,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
 	 // Touch Sensor
 	 boost::shared_ptr<TouchSensorModel> touchSensorA(
-	 new TouchSensorModel(odeWorld, odeSpace));
+	 new TouchSensorModel(odeWorld, odeSpace, "T1"));
 	 touchSensorA->initModel();
 	 touchSensorA->setRootPosition(osg::Vec3(0.5, 0.2, 1));
 
@@ -657,7 +660,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 			dReal z = radius * cos(osg::inDegrees(phi));
 
 			boost::shared_ptr<LightSensorModel> lightSensorA(
-						new LightSensorModel(odeWorld, odeSpace, false));
+						new LightSensorModel(odeWorld, odeSpace, id, false));
 			lightSensorA->initModel();
 			lightSensorA->setRootPosition(sphereCenter + osg::Vec3(x, y, z));
 			lightSensorA->setRootAttitude(initRot * rotationPhi * rotationTheta);
@@ -699,7 +702,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
 	// Light Source
 	/*boost::shared_ptr<LightSource> lightSource(
-			new LightSource(odeSpace, sphereCenter, 100));
+			new LightSource(odeSpace, id, sphereCenter, 100));
 	boost::shared_ptr<LightSourceRender> lightSourceRender(
 			new LightSourceRender(lightSource, root));
 

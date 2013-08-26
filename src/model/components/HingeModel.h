@@ -57,7 +57,7 @@ public:
 	static const unsigned int B_CONNECTION_A_ID = 2;
 	static const unsigned int B_CONNECTION_B_ID = 3;
 
-	HingeModel(dWorldID odeWorld, dSpaceID odeSpace);
+	HingeModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id);
 
 	virtual ~HingeModel();
 

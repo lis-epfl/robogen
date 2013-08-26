@@ -57,7 +57,8 @@ public:
    static const unsigned int B_SERVO_ID = 1;
    static const unsigned int B_WHEEL_ID = 2;
 
-   ActiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace, float radius);
+   ActiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id,
+		   float radius);
 
    virtual ~ActiveWheelModel();
 

@@ -37,8 +37,9 @@ const float TouchSensorModel::SENSOR_THICKNESS = inMm(9);
 const float TouchSensorModel::SENSOR_WIDTH = inMm(18.5); // Of each left/right sensors
 const float TouchSensorModel::SENSOR_HEIGHT = inMm(16);
 
-TouchSensorModel::TouchSensorModel(dWorldID odeWorld, dSpaceID odeSpace) :
-		PerceptiveComponent(odeWorld, odeSpace) {
+TouchSensorModel::TouchSensorModel(dWorldID odeWorld, dSpaceID odeSpace,
+		std::string id) :
+		PerceptiveComponent(odeWorld, odeSpace, id) {
 
 }
 

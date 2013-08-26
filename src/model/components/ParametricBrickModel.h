@@ -65,7 +65,7 @@ public:
 	 * @param angleA in radians
 	 * @param angleB in radians
 	 */
-	ParametricBrickModel(dWorldID odeWorld, dSpaceID odeSpace,
+	ParametricBrickModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id,
 			float connectionPartLength, float angleA, float angleB);
 
 	virtual ~ParametricBrickModel();

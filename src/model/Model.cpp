@@ -27,12 +27,14 @@
  */
 #include "model/Model.h"
 #include <stdexcept>
+#include <sstream>
 
 namespace robogen {
 
-Model::Model(dWorldID odeWorld, dSpaceID odeSpace) :
-		odeWorld_(odeWorld), odeSpace_(odeSpace) {
+ModelException::ModelException(const std::string& w) : std::runtime_error(w){}
 
+Model::Model(dWorldID odeWorld, dSpaceID odeSpace, std::string id) :
+		odeWorld_(odeWorld), odeSpace_(odeSpace), id_(id) {
 }
 
 Model::~Model() {

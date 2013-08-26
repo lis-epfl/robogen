@@ -42,8 +42,8 @@ const float HingeModel::CONNECTION_ROTATION_OFFSET = inMm(18.5);
 
 // Center of rotation 18.5 from the slot
 
-HingeModel::HingeModel(dWorldID odeWorld, dSpaceID odeSpace) :
-		Model(odeWorld, odeSpace) {
+HingeModel::HingeModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id) :
+		Model(odeWorld, odeSpace, id) {
 
 }
 

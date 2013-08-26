@@ -51,8 +51,9 @@ const float ActiveCardanModel::CROSS_CENTER_OFFSET = inMm(17);
 // Offset of the cross center respect to the center of the connection part
 const float ActiveCardanModel::CONNECTION_PART_OFFSET = inMm(19.875);
 
-ActiveCardanModel::ActiveCardanModel(dWorldID odeWorld, dSpaceID odeSpace) :
-		ActuatedComponent(odeWorld, odeSpace) {
+ActiveCardanModel::ActiveCardanModel(dWorldID odeWorld, dSpaceID odeSpace,
+		std::string id) :
+		ActuatedComponent(odeWorld, odeSpace, id) {
 
 }
 

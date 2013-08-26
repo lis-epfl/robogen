@@ -177,15 +177,8 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 	// Generate Robot
 	// ---------------------------------------
-	boost::shared_ptr<Robot> robot;
-	try{
-		robot.reset(new Robot(odeWorld, odeSpace,
-				*robogenPacket.getMessage().get()));
-	}
-	catch(std::runtime_error &e){
-		std::cout << "Problems decoding the robot. Quit." << std::endl;
-		return EXIT_FAILURE;
-	}
+	boost::shared_ptr<Robot> robot(new Robot(odeWorld, odeSpace,
+			*robogenPacket.getMessage().get()));
 
 	// Register sensors
 	std::vector<boost::shared_ptr<Sensor> > sensors = robot->getSensors();

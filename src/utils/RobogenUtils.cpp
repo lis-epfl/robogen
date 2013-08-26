@@ -158,14 +158,17 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
    // Parameters of wheels and whegs
    static const std::string PARAM_WH_RADIUS = "radius";
 
+   // get part id
+   const std::string &id = bodyPart.id();
+
    boost::shared_ptr<Model> model;
    if (bodyPart.type().compare(CORE_COMPONENT) == 0) {
 
-      model.reset(new CoreComponentModel(odeWorld, odeSpace, true));
+      model.reset(new CoreComponentModel(odeWorld, odeSpace, id, true));
 
    } else if (bodyPart.type().compare(FIXED_BRICK) == 0) {
 
-      model.reset(new CoreComponentModel(odeWorld, odeSpace, false));
+      model.reset(new CoreComponentModel(odeWorld, odeSpace, id, false));
 
    } else if (bodyPart.type().compare(PARAMETRIC_BRICK) == 0) {
 
@@ -200,27 +203,28 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
       }
 
       model.reset(
-            new ParametricBrickModel(odeWorld, odeSpace, length, alpha, beta));
+            new ParametricBrickModel(odeWorld, odeSpace, id, length, alpha,
+            		beta));
 
    } else if (bodyPart.type().compare(ACTIVE_ROTATOR) == 0) {
 
-      model.reset(new RotateJointModel(odeWorld, odeSpace));
+      model.reset(new RotateJointModel(odeWorld, odeSpace, id));
 
    } else if (bodyPart.type().compare(PASSIVE_HINGE) == 0) {
 
-      model.reset(new HingeModel(odeWorld, odeSpace));
+      model.reset(new HingeModel(odeWorld, odeSpace, id));
 
    } else if (bodyPart.type().compare(ACTIVE_HINGE) == 0) {
 
-      model.reset(new ActiveHingeModel(odeWorld, odeSpace));
+      model.reset(new ActiveHingeModel(odeWorld, odeSpace, id));
 
    } else if (bodyPart.type().compare(PASSIVE_CARDAN) == 0) {
 
-      model.reset(new CardanModel(odeWorld, odeSpace));
+      model.reset(new CardanModel(odeWorld, odeSpace, id));
 
    } else if (bodyPart.type().compare(ACTIVE_CARDAN) == 0) {
 
-      model.reset(new ActiveCardanModel(odeWorld, odeSpace));
+      model.reset(new ActiveCardanModel(odeWorld, odeSpace, id));
 
    } else if (bodyPart.type().compare(PASSIVE_WHEEL) == 0) {
 
@@ -244,7 +248,7 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
          return boost::shared_ptr<Model>();
       }
 
-      model.reset(new PassiveWheelModel(odeWorld, odeSpace, radius));
+      model.reset(new PassiveWheelModel(odeWorld, odeSpace, id, radius));
 
    } else if (bodyPart.type().compare(ACTIVE_WHEEL) == 0) {
 
@@ -267,7 +271,7 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
          return boost::shared_ptr<Model>();
       }
 
-      model.reset(new ActiveWheelModel(odeWorld, odeSpace, radius));
+      model.reset(new ActiveWheelModel(odeWorld, odeSpace, id, radius));
 
    } else if (bodyPart.type().compare(ACTIVE_WHEG) == 0) {
 
@@ -290,15 +294,15 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
          return boost::shared_ptr<Model>();
       }
 
-      model.reset(new ActiveWhegModel(odeWorld, odeSpace, radius));
+      model.reset(new ActiveWhegModel(odeWorld, odeSpace, id, radius));
 
    } else if (bodyPart.type().compare(TOUCH_SENSOR) == 0) {
 
-      model.reset(new TouchSensorModel(odeWorld, odeSpace));
+      model.reset(new TouchSensorModel(odeWorld, odeSpace, id));
 
    } else if (bodyPart.type().compare(LIGHT_SENSOR) == 0) {
 
-      model.reset(new LightSensorModel(odeWorld, odeSpace, false));
+      model.reset(new LightSensorModel(odeWorld, odeSpace, id, false));
 
    }
 

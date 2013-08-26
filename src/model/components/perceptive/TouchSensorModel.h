@@ -54,7 +54,7 @@ public:
 	static const unsigned int B_SENSOR_LEFT = 1;
 	static const unsigned int B_SENSOR_RIGHT = 2;
 
-	TouchSensorModel(dWorldID odeWorld, dSpaceID odeSpace);
+	TouchSensorModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id);
 
 	virtual ~TouchSensorModel();
 

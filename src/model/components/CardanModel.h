@@ -55,7 +55,7 @@ public:
 	static const unsigned int B_CONNECTION_A_ID = 2;
 	static const unsigned int B_CONNECTION_B_ID = 3;
 
-	CardanModel(dWorldID odeWorld, dSpaceID odeSpace);
+	CardanModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id);
 
 	virtual ~CardanModel();
 

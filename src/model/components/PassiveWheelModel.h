@@ -51,7 +51,8 @@ public:
    static const unsigned int B_SLOT_ID = 0;
    static const unsigned int B_WHEEL_ID = 1;
 
-   PassiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace, float radius);
+   PassiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id,
+		   float radius);
 
    virtual ~PassiveWheelModel();
 

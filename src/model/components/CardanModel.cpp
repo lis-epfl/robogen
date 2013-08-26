@@ -40,8 +40,8 @@ const float CardanModel::CONNECTION_PART_HEIGHT = inMm(10);
 // Computed from the left corner of the connection part
 const float CardanModel::CONNECTION_PART_OFFSET = inMm(18.5);
 
-CardanModel::CardanModel(dWorldID odeWorld, dSpaceID odeSpace) :
-		Model(odeWorld, odeSpace) {
+CardanModel::CardanModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id) :
+		Model(odeWorld, odeSpace, id) {
 
 }
 

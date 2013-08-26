@@ -50,7 +50,8 @@ public:
 
 	static const unsigned int B_SENSOR_BASE_ID = 0;
 
-	LightSensorModel(dWorldID odeWorld, dSpaceID odeSpace, bool internalSensor);
+	LightSensorModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id,
+			bool internalSensor);
 
 	virtual ~LightSensorModel();
 

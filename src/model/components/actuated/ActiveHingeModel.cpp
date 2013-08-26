@@ -45,8 +45,9 @@ const float ActiveHingeModel::SERVO_LENGTH = inMm(24.5);
 const float ActiveHingeModel::SERVO_HEIGHT = inMm(10);
 const float ActiveHingeModel::SERVO_ROTATION_OFFSET = inMm(20.5); // Right to left
 
-ActiveHingeModel::ActiveHingeModel(dWorldID odeWorld, dSpaceID odeSpace) :
-		ActuatedComponent(odeWorld, odeSpace) {
+ActiveHingeModel::ActiveHingeModel(dWorldID odeWorld, dSpaceID odeSpace,
+		std::string id) :
+		ActuatedComponent(odeWorld, odeSpace, id) {
 
 }
 

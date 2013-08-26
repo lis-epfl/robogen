@@ -60,7 +60,7 @@ public:
 	static const unsigned int B_FRAME_ID = 2;
 	static const unsigned int B_SERVO_ID = 3;
 
-	ActiveHingeModel(dWorldID odeWorld, dSpaceID odeSpace);
+	ActiveHingeModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id);
 
 	virtual ~ActiveHingeModel();
 

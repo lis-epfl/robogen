@@ -59,7 +59,7 @@ public:
 	static const unsigned int B_SERVO_ID = 1;
 	static const unsigned int B_JOINT_CONNECTION_ID = 2;
 
-	RotateJointModel(dWorldID odeWorld, dSpaceID odeSpace);
+	RotateJointModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id);
 
 	virtual ~RotateJointModel();
 

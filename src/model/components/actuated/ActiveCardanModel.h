@@ -41,6 +41,7 @@ class ActiveCardanModel: public ActuatedComponent {
 
 public:
 
+	// TODO Titus: why is this here?
 	static const float MASS_SERVO;
 	static const float MASS_SLOT;
 	static const float MASS_CROSS;
@@ -70,7 +71,7 @@ public:
 	static const unsigned int B_CROSS_PART_B_EDGE_1_ID = 8;
 	static const unsigned int B_CROSS_PART_B_EDGE_2_ID = 9;
 
-	ActiveCardanModel(dWorldID odeWorld, dSpaceID odeSpace);
+	ActiveCardanModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id);
 
 	virtual ~ActiveCardanModel();
 

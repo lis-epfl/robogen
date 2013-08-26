@@ -43,8 +43,9 @@ const float RotateJointModel::SERVO_HEIGHT = inMm(28);
 const float RotateJointModel::JOINT_CONNECTION_THICKNESS = inMm(7.5);
 const float RotateJointModel::JOINT_CONNECTION_WIDTH = inMm(34);
 
-RotateJointModel::RotateJointModel(dWorldID odeWorld, dSpaceID odeSpace) :
-		ActuatedComponent(odeWorld, odeSpace) {
+RotateJointModel::RotateJointModel(dWorldID odeWorld, dSpaceID odeSpace,
+		std::string id) :
+		ActuatedComponent(odeWorld, odeSpace, id) {
 
 }
 

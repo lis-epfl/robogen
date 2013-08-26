@@ -63,7 +63,8 @@ public:
    static const unsigned int B_WHEG_SPOKE_2 = 4;
    static const unsigned int B_WHEG_SPOKE_3 = 5;
 
-   ActiveWhegModel(dWorldID odeWorld, dSpaceID odeSpace, float radius);
+   ActiveWhegModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id,
+		   float radius);
 
    virtual ~ActiveWhegModel();
 

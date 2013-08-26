@@ -46,8 +46,8 @@ const float ActiveWhegModel::WHEG_THICKNESS = inMm(4);
 const float ActiveWhegModel::WHEG_WIDTH = inMm(4);
 
 ActiveWhegModel::ActiveWhegModel(dWorldID odeWorld, dSpaceID odeSpace,
-      float radius) :
-      ActuatedComponent(odeWorld, odeSpace), radius_(radius) {
+      std::string id, float radius) :
+      ActuatedComponent(odeWorld, odeSpace, id), radius_(radius) {
 
 }
 

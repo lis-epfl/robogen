@@ -38,8 +38,8 @@ const float PassiveWheelModel::SLOT_WHEEL_OFFSET = inMm(7.5);
 const float PassiveWheelModel::WHEEL_THICKNESS = inMm(3);
 
 PassiveWheelModel::PassiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace,
-      float radius) :
-      Model(odeWorld, odeSpace), radius_(radius) {
+      std::string id, float radius) :
+      Model(odeWorld, odeSpace, id), radius_(radius) {
 
 }
 
