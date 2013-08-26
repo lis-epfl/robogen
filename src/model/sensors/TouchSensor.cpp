@@ -26,36 +26,37 @@
  * @(#) $Id$
  */
 #include "model/sensors/TouchSensor.h"
-
 #include <map>
+#include <osg/Vec3>
+#include <iostream>
 
 namespace robogen {
 
-TouchSensor::TouchSensor(dSpaceID odeSpace, dGeomID sensorGeometry) :
-		odeSpace_(odeSpace), sensorGeometry_(sensorGeometry) {
-
-	this->sensorInfo_ = new CustomGeomData(CustomGeomData::TOUCH_SENSOR_INFO,
-			new TouchSensorInfo());
-
-	dGeomSetData(sensorGeometry, sensorInfo_);
-
-}
-
-TouchSensor::~TouchSensor() {
-	delete (TouchSensorInfo*) sensorInfo_->data_;
-	delete sensorInfo_;
+TouchSensor::TouchSensor(dSpaceID odeSpace, dBodyID sensorBody, float mass,
+		osg::Vec3 pos, float x, float y, float z) :
+		collideSpace_(odeSpace) {
+	// create own space to avoid physical collisions with other objects
+	sensorSpace_ = dHashSpaceCreate(0);
+	// create Sensor geom in this different space
+	dMass massOde;
+	dMassSetBoxTotal(&massOde, mass, x, y, z);
+	dBodySetMass(sensorBody, &massOde);
+	sensorGeometry_ = dCreateBox(sensorSpace_, x, y, z);
+	dBodySetPosition(sensorBody, pos.x(), pos.y(), pos.z());
+	dGeomSetPosition(sensorGeometry_, pos.x(), pos.y(), pos.z());
+	dGeomSetBody(sensorGeometry_, sensorBody);
 }
 
 bool TouchSensor::read() {
-
-	// Main logic of the touch sensor is implemented in the main collide callback function, for
-	// performance reasons, which handles the sensorInfo_ data struct
-	return ((TouchSensorInfo*)sensorInfo_->data_)->touching;
-
+	bool touching = false;
+	dSpaceCollide2((dGeomID) collideSpace_, (dGeomID) sensorSpace_,
+			(void*) &touching, TouchSensor::collisionCallback);
+	return touching;
 }
 
-void TouchSensor::reset() {
-	((TouchSensorInfo*)sensorInfo_->data_)->touching = false;
+void TouchSensor::collisionCallback(void *data, dGeomID o1, dGeomID o2){
+	dContactGeom cont;
+	*((bool*)data) = !!dCollide(o1, o2, 1, &cont, sizeof(cont));
 }
 
 }

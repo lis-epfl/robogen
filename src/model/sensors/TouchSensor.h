@@ -2,6 +2,7 @@
  * @(#) TouchSensor.h   1.0   Feb 27, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2013 Andrea Maesani
@@ -40,23 +41,11 @@ class TouchSensor: public Sensor {
 
 public:
 
-	class TouchSensorInfo {
-	public:
-		TouchSensorInfo() : touching(false) {
-		}
-		bool touching;
-	};
-
-
 	/**
-	 * Initializes a touch sensor
+	 * Initializes a touch sensor including its geometry
 	 */
-	TouchSensor(dSpaceID odeSpace, dGeomID sensorGeometry);
-
-	/**
-	 * Destructor
-	 */
-	virtual ~TouchSensor();
+	TouchSensor(dSpaceID odeSpace, dBodyID pBody, float mass,
+			osg::Vec3 pos, float x, float y, float z);
 
 	/**
 	 * Read sensor output
@@ -64,27 +53,27 @@ public:
 	 */
 	bool read();
 
-	/**
-	 * Resets the sensor. Must be called before each round of collision detection.
-	 */
-	void reset();
-
 private:
+
+	/**
+	 * Ode collision callback
+	 */
+	static void collisionCallback(void *data, dGeomID o1, dGeomID o2);
 
 	/**
 	 * Ode collision space
 	 */
-	dSpaceID odeSpace_;
+	dSpaceID collideSpace_;
+
+	/**
+	 * Space of touch sensor
+	 */
+	dSpaceID sensorSpace_;
 
 	/**
 	 * The geometry of the sensor
 	 */
 	dGeomID sensorGeometry_;
-
-	/**
-	 * Sensor info
-	 */
-	CustomGeomData* sensorInfo_;
 };
 
 }

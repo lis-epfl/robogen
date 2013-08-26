@@ -61,18 +61,14 @@ bool TouchSensorModel::initModel() {
 	dReal yLeftSensor = -SENSOR_WIDTH / 2 - inMm(1);
 	dReal yRightSensor = SENSOR_WIDTH / 2 + inMm(1);
 
-	dxGeom* leftSensorGeom = this->createBoxGeom(leftSensor, MASS,
-			osg::Vec3(xSensors, yLeftSensor, 0), SENSOR_THICKNESS, SENSOR_WIDTH,
-			SENSOR_HEIGHT);
-
-	dxGeom* rightSensorGeom = this->createBoxGeom(rightSensor, MASS,
-			osg::Vec3(xSensors, yRightSensor, 0), SENSOR_THICKNESS,
-			SENSOR_WIDTH, SENSOR_HEIGHT);
-
 	this->sensorLeft_.reset(
-			new TouchSensor(this->getCollisionSpace(), leftSensorGeom));
+			new TouchSensor(this->getCollisionSpace(), leftSensor, MASS,
+					osg::Vec3(xSensors, yLeftSensor, 0), SENSOR_THICKNESS,
+					SENSOR_WIDTH, SENSOR_HEIGHT));
 	this->sensorRight_.reset(
-			new TouchSensor(this->getCollisionSpace(), rightSensorGeom));
+			new TouchSensor(this->getCollisionSpace(), rightSensor, MASS,
+					osg::Vec3(xSensors, yRightSensor, 0), SENSOR_THICKNESS,
+					SENSOR_WIDTH, SENSOR_HEIGHT));
 
 	// Connect everything
 	this->fixBodies(sensorRoot_, leftSensor, osg::Vec3(1, 0, 0));

@@ -59,7 +59,7 @@ std::vector<boost::shared_ptr<TouchSensor> > touchSensors;
 void setupCollision(std::vector<boost::shared_ptr<TouchSensor> >& sensors) {
 
 	for (unsigned int i = 0; i < sensors.size(); ++i) {
-		sensors[i]->reset();
+	//	sensors[i]->reset();
 	}
 
 }
@@ -100,6 +100,7 @@ void odeCollisionCallback(void*, dGeomID o1, dGeomID o2) {
 
 		}
 
+		/*
 		// Check if one of the two is a touch sensor
 		void* customData1 = dGeomGetData(o1);
 		if (customData1 != NULL) {
@@ -118,6 +119,7 @@ void odeCollisionCallback(void*, dGeomID o1, dGeomID o2) {
 						true;
 			}
 		}
+		*/
 	}
 }
 

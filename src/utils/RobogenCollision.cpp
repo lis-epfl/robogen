@@ -73,25 +73,6 @@ void odeCollisionCallback(void*, dGeomID o1, dGeomID o2) {
 			dJointAttach(c, b1, b2);
 
 		}
-
-		// Check if one of the two is a touch sensor
-		void* customData1 = dGeomGetData(o1);
-		if (customData1 != NULL) {
-			CustomGeomData* data = (CustomGeomData*) customData1;
-			if (data->getId() == CustomGeomData::TOUCH_SENSOR_INFO) {
-				((TouchSensor::TouchSensorInfo*) data->getData())->touching =
-						true;
-			}
-		}
-
-		void* customData2 = dGeomGetData(o2);
-		if (customData2 != NULL) {
-			CustomGeomData* data = (CustomGeomData*) customData2;
-			if (data->getId() == CustomGeomData::TOUCH_SENSOR_INFO) {
-				((TouchSensor::TouchSensorInfo*) data->getData())->touching =
-						true;
-			}
-		}
 	}
 }
 

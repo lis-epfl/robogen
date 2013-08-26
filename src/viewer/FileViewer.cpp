@@ -317,11 +317,6 @@ int main(int argc, char *argv[]) {
 				std::cout << "Step!" << count << std::endl;
 			}
 
-			// Prepare touch sensors for collision detection
-			for (unsigned int i = 0; i < touchSensors.size(); ++i) {
-				touchSensors[i]->reset();
-			}
-
 			// Collision detection
 			dSpaceCollide(odeSpace, 0, odeCollisionCallback);
 
