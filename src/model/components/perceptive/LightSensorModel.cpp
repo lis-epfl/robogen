@@ -53,7 +53,7 @@ bool LightSensorModel::initModel() {
 			SENSOR_BASE_THICKNESS, SENSOR_BASE_WIDTH, SENSOR_BASE_WIDTH);
 
 	this->sensor_.reset(new LightSensor(this->getCollisionSpace(),
-			this->getBodies()));
+			this->getBodies(), this->getId()));
 
 	return true;
 

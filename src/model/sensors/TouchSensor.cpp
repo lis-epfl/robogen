@@ -33,8 +33,8 @@
 namespace robogen {
 
 TouchSensor::TouchSensor(dSpaceID odeSpace, dBodyID sensorBody, float mass,
-		osg::Vec3 pos, float x, float y, float z) :
-		collideSpace_(odeSpace) {
+		osg::Vec3 pos, float x, float y, float z, std::string label) :
+		collideSpace_(odeSpace), label_(label) {
 	// create own space to avoid physical collisions with other objects
 	sensorSpace_ = dHashSpaceCreate(0);
 	// create Sensor geom in this different space
@@ -45,6 +45,12 @@ TouchSensor::TouchSensor(dSpaceID odeSpace, dBodyID sensorBody, float mass,
 	dBodySetPosition(sensorBody, pos.x(), pos.y(), pos.z());
 	dGeomSetPosition(sensorGeometry_, pos.x(), pos.y(), pos.z());
 	dGeomSetBody(sensorGeometry_, sensorBody);
+}
+
+TouchSensor::~TouchSensor() {}
+
+std::string &TouchSensor::getLabel(){
+	return label_;
 }
 
 bool TouchSensor::read() {

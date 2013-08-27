@@ -41,6 +41,10 @@ Model::~Model() {
 
 }
 
+const std::string &Model::getId(){
+	return id_;
+}
+
 dWorldID Model::getPhysicsWorld() {
 	return this->odeWorld_;
 }

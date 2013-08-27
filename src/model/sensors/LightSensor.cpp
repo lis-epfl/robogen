@@ -33,13 +33,11 @@
 
 namespace robogen {
 
-const float LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP = 0.25;
 const float LightSensor::MIN_INTENSITY_VALUE = 0;
 const float LightSensor::MAX_INTENSITY_VALUE = 1;
 const double LightSensor::MIN_INTENSITY = 0;
 const double LightSensor::MAX_INTENSITY = 100;
 const double LightSensor::HALF_APERTURE = 15;
-const double LightSensor::SENSOR_RESOLUTION = 5;
 
 double LightSensor::lightIntensity(double angle, double distance){
 	double intensity = 1;
@@ -57,8 +55,9 @@ double LightSensor::lightIntensity(double angle, double distance){
 	return intensity;
 }
 
-LightSensor::LightSensor(dSpaceID odeSpace, std::vector<dBodyID> sensorBodies):
-				odeSpace_(odeSpace), lastReadOutput_(MIN_INTENSITY_VALUE){
+LightSensor::LightSensor(dSpaceID odeSpace, std::vector<dBodyID> sensorBodies,
+		std::string label):odeSpace_(odeSpace), label_(label),
+		lastReadOutput_(MIN_INTENSITY_VALUE){
 	for(unsigned int i=0; i<sensorBodies.size(); i++){
 		for (dGeomID g=dBodyGetFirstGeom(sensorBodies[i]); g
 				; g=dBodyGetNextGeom(g)){
@@ -66,6 +65,10 @@ LightSensor::LightSensor(dSpaceID odeSpace, std::vector<dBodyID> sensorBodies):
 		}
 	}
 	raySpace_ = dHashSpaceCreate(0);
+}
+
+std::string &LightSensor::getLabel(){
+	return label_;
 }
 
 LightSensor::~LightSensor() {

@@ -36,6 +36,11 @@ public:
 
 	virtual ~Sensor() {}
 
+	/**
+	 * Needs to be defined, else compilation errors!
+	 * @return Label of sensor for data analysis
+	 */
+	virtual std::string &getLabel() = 0;
 
 };
 

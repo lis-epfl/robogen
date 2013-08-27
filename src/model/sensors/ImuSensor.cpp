@@ -35,8 +35,11 @@
 namespace robogen {
 
 ImuSensor::ImuSensor() {
+	std::string labels[] = {"x-acceleration","y-acceleration","z-acceleration",
+			"Pitch","Roll","Yaw"};
 	for (unsigned int i = 0; i < 6; ++i) {
-		sensors_.push_back(boost::shared_ptr<SimpleSensor>(new SimpleSensor()));
+		sensors_.push_back(boost::shared_ptr<SimpleSensor>(
+				new SimpleSensor(labels[i])));
 	}
 }
 

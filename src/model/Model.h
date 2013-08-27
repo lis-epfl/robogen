@@ -70,6 +70,11 @@ public:
 	virtual bool initModel() = 0;
 
 	/**
+	 * @return id string of the part
+	 */
+	const std::string &getId();
+
+	/**
 	 * @return the body corresponding to the selected slot
 	 */
 	virtual dBodyID getSlot(unsigned int i) = 0;

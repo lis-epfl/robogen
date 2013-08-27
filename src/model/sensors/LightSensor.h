@@ -30,6 +30,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <vector>
+#include <string>
 
 #include "Robogen.h"
 #include "model/sensors/Sensor.h"
@@ -40,13 +41,6 @@ namespace robogen {
 class LightSensor: public Sensor {
 
 public:
-
-	/**
-	 * Default timestep for updating sensor value.
-	 * This value is not used by the LightSensor class itself, but can used as a reference
-	 * for a caller of LightSensor::read to set the updateSensor flag appropriately
-	 */
-	static const float DEFAULT_SENSOR_UPDATE_TIMESTEP;
 
 	/**
 	 * Minimum and maximum intensity value that is provided
@@ -68,14 +62,15 @@ public:
 	static const double HALF_APERTURE;
 
 	/**
-	 * Angular displacement for each ray tracing, in degrees
-	 */
-	static const double SENSOR_RESOLUTION;
-
-	/**
 	 * Initializes a light sensor
 	 */
-	LightSensor(dSpaceID odeSpace, std::vector<dBodyID> sensorBodies);
+	LightSensor(dSpaceID odeSpace, std::vector<dBodyID> sensorBodies,
+			std::string label);
+
+	/**
+	 * @return Sensor label for data analysis
+	 */
+	virtual std::string &getLabel();
 
 	/**
 	 * Destructor
@@ -111,6 +106,16 @@ private:
 	static double lightIntensity(double angle, double distance);
 
 	/**
+	 * Ode collision space
+	 */
+	dSpaceID odeSpace_;
+
+	/**
+	 * Label for sensor analysis
+	 */
+	std::string label_;
+
+	/**
 	 * Position of the light sensor
 	 */
 	osg::Vec3 position_;
@@ -119,11 +124,6 @@ private:
 	 * Attitude of the light sensor
 	 */
 	osg::Quat attitude_;
-
-	/**
-	 * Ode collision space
-	 */
-	dSpaceID odeSpace_;
 
 	/**
 	 * Space for rays

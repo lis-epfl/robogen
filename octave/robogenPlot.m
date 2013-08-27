@@ -24,11 +24,13 @@ title("Robot trajectory");
 hold off;
 
 %% Plot sensor values
-figure();
 sens = load("sensorLog.txt");
-plot(1:rows(sens), sens);
-axis([0 rows(sens) -1.1 1.1]);
-title("Sensor history");
+labelFile = fopen("sensorLabels.txt");
+for i=1:columns(sens)
+	figure();
+	plot(1:rows(sens), sens(:,i));
+	title(fgetl(labelFile));
+end
 
 %% Plot motor values
 figure();

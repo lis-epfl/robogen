@@ -31,6 +31,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <vector>
+#include <string>
 
 #include "Robogen.h"
 #include "model/sensors/Sensor.h"
@@ -45,7 +46,11 @@ public:
 	 * Initializes a touch sensor including its geometry
 	 */
 	TouchSensor(dSpaceID odeSpace, dBodyID pBody, float mass,
-			osg::Vec3 pos, float x, float y, float z);
+			osg::Vec3 pos, float x, float y, float z, std::string label);
+
+	virtual std::string &getLabel();
+
+	virtual ~TouchSensor();
 
 	/**
 	 * Read sensor output
@@ -74,6 +79,11 @@ private:
 	 * The geometry of the sensor
 	 */
 	dGeomID sensorGeometry_;
+
+	/**
+	 * The label of the sensor, for data analysis
+	 */
+	std::string label_;
 };
 
 }

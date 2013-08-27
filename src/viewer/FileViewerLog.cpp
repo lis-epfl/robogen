@@ -18,6 +18,7 @@
 #define LOG_DIRECTORY_PREFIX "FileViewer_"
 #define LOG_DIRECTORY_FACET "%Y%m%d-%H%M%S"
 #define TRAJECTORY_LOG_FILE "trajectoryLog.txt"
+#define SENSOR_LABEL_FILE "sensorLabels.txt"
 #define SENSOR_LOG_FILE "sensorLog.txt"
 #define MOTOR_LOG_FILE "motorLog.txt"
 #define TIME_LOG_FILE "timeLog.txt"
@@ -27,7 +28,8 @@
 namespace robogen{
 
 FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
-		std::string obstacleFile, std::string startPosFile) throw(std::string) {
+		std::string obstacleFile, std::string startPosFile,
+		std::vector<boost::shared_ptr<Sensor> > &sensors) {
 	// create log directory with time stamp
 	std::stringstream logPathSs;
 	logPathSs << LOG_DIRECTORY_PREFIX;
@@ -39,6 +41,7 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	try{
 		boost::filesystem::create_directories(logPath);
 	} catch(const boost::filesystem::filesystem_error &err){
+		//TODO throw FileViewerLogError
 		throw std::string("File viewer log can't create log directory.\n") +
 				err.what();
 	}
@@ -116,6 +119,18 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 		std::cout << "Didn't find " << OCTAVE_SCRIPT << "... " <<
 				"If this script were in the execution directory, "\
 				"I'd copy it to the result directory for you!" << std::endl;
+	}
+
+	// write out sensor Labels file
+	// open sensor log
+	std::string sensorLabelPath = logPathSs.str() + "/" + SENSOR_LABEL_FILE;
+	std::ofstream sensorLabel;
+	sensorLabel.open(sensorLabelPath.c_str());
+	if (!sensorLabel.is_open()){
+		throw std::string("Can't open sensor label file");
+	}
+	for (unsigned int i=0; i<sensors.size(); i++){
+		sensorLabel << sensors[i]->getLabel() << std::endl;
 	}
 }
 

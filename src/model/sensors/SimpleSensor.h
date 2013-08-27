@@ -28,6 +28,7 @@
 #ifndef ROBOGEN_SIMPLE_SENSOR_H_
 #define ROBOGEN_SIMPLE_SENSOR_H_
 
+#include <string>
 #include "model/sensors/Sensor.h"
 
 namespace robogen {
@@ -36,8 +37,12 @@ class SimpleSensor : public Sensor {
 
 public:
 
-	SimpleSensor() {
+	SimpleSensor(std::string label) : label_(label) {
 
+	}
+
+	virtual std::string &getLabel(){
+		return label_;
 	}
 
 	virtual ~SimpleSensor () {
@@ -55,6 +60,8 @@ public:
 private:
 
 	float value_;
+
+	std::string label_;
 };
 
 }

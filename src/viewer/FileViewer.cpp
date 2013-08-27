@@ -183,15 +183,8 @@ int main(int argc, char *argv[]) {
 
 	// Register sensors
 	std::vector<boost::shared_ptr<Sensor> > sensors = robot->getSensors();
-	std::vector<boost::shared_ptr<TouchSensor> > touchSensors;
-	for (unsigned int i = 0; i < sensors.size(); ++i) {
-		if (boost::dynamic_pointer_cast<TouchSensor>(sensors[i])) {
-			touchSensors.push_back(
-					boost::dynamic_pointer_cast<TouchSensor>(sensors[i]));
-		}
-	}
 
-	// Register robot motors
+	// Register motors
 	std::vector<boost::shared_ptr<Motor> > motors = robot->getMotors();
 
 	std::cout << "S: " << sensors.size() << std::endl;
@@ -279,17 +272,9 @@ int main(int argc, char *argv[]) {
 	// Set up log files
 	// ---------------------------------------
 
-	boost::shared_ptr<FileViewerLog> log;
-	try{
-		log.reset(new FileViewerLog(std::string(argv[1]), std::string(argv[2]),
-				configuration->getObstacleFile(),
-				configuration->getStartPosFile()));
-	}
-	catch(std::string &es){
-		std::cout << "Error while initiating log:" << std::endl;
-		std::cout << es << std::endl;
-		return EXIT_FAILURE;
-	}
+	boost::shared_ptr<FileViewerLog> log(new FileViewerLog(std::string(argv[1]),
+			std::string(argv[2]), configuration->getObstacleFile(),
+			configuration->getStartPosFile(), sensors));
 
 
 	// ---------------------------------------

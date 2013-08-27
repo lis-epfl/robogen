@@ -64,11 +64,11 @@ bool TouchSensorModel::initModel() {
 	this->sensorLeft_.reset(
 			new TouchSensor(this->getCollisionSpace(), leftSensor, MASS,
 					osg::Vec3(xSensors, yLeftSensor, 0), SENSOR_THICKNESS,
-					SENSOR_WIDTH, SENSOR_HEIGHT));
+					SENSOR_WIDTH, SENSOR_HEIGHT, this->getId() + "-left"));
 	this->sensorRight_.reset(
 			new TouchSensor(this->getCollisionSpace(), rightSensor, MASS,
 					osg::Vec3(xSensors, yRightSensor, 0), SENSOR_THICKNESS,
-					SENSOR_WIDTH, SENSOR_HEIGHT));
+					SENSOR_WIDTH, SENSOR_HEIGHT, this->getId() + "-right"));
 
 	// Connect everything
 	this->fixBodies(sensorRoot_, leftSensor, osg::Vec3(1, 0, 0));

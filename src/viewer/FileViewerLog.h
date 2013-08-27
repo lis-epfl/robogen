@@ -12,8 +12,10 @@
 #include <osg/Vec3>
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <boost/timer/timer.hpp>
 #include <boost/shared_ptr.hpp>
+#include "model/sensors/Sensor.h"
 
 namespace robogen{
 
@@ -34,8 +36,8 @@ public:
 	 * writing.
 	 */
 	FileViewerLog(std::string robotFile, std::string confFile,
-			std::string obstacleFile, std::string startPosFile)
-	throw(std::string);
+			std::string obstacleFile, std::string startPosFile,
+			std::vector<boost::shared_ptr<Sensor> > &sensors);
 
 	/**
 	 * Closes all open file streams
