@@ -1,8 +1,30 @@
 /*
- * ImuSensor.cpp
+ * @(#) CoreComponentModel.cpp   1.0   Mar 6, 2013
  *
- *  Created on: Mar 6, 2013
- *      Author: andrea
+ * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Titus Cieslewski (dev@titus-c.ch)
+ *
+ * The ROBOGEN Framework
+ * Copyright © 2012-2013 Andrea Maesani
+ *
+ * Laboratory of Intelligent Systems, EPFL
+ *
+ * This file is part of the ROBOGEN Framework.
+ *
+ * The ROBOGEN Framework is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License (GPL)
+ * as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @(#) $Id$
  */
 
 #include <cmath>
@@ -26,7 +48,6 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 		float timeElapsed) {
 
 	if (!initialized_) {
-
 		position_ = position;
 		attitude_ = attitude;
 		velocity_ = osg::Vec3(0, 0, 0);
@@ -35,27 +56,51 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 		initialized_ = true;
 	}
 
+	// =======================
+	// 1. get attitude-agnostic IMU values
+	// =======================
+	// position
 	osg::Vec3 dPos = position - position_;
 	position_ = position;
-
+	// velocity & acceleration
 	osg::Vec3 velocity = dPos * timeElapsed;
 	acceleration_ = (velocity - velocity_) * timeElapsed;
+	// add g to acceleration: Positive, as same effect as if accelerating up
+	acceleration_ += osg::Vec3(0, 0, 9.81);
 	velocity_ = velocity;
-
+	// rotation position
 	float roll, pitch, yaw;
 	RobogenUtils::getAngle(attitude, attitude_, roll, pitch, yaw);
-
+	attitude_ = attitude;
 	osg::Vec3 dAngle(roll, pitch, yaw);
 	dAngle *= timeElapsed;
-
 	rotVelocity_ = dAngle;
 
-	sensors_[0]->update(acceleration_.x());
-	sensors_[1]->update(acceleration_.y());
-	sensors_[2]->update(acceleration_.z());
-	sensors_[3]->update(rotVelocity_.x());
-	sensors_[4]->update(rotVelocity_.y());
-	sensors_[5]->update(rotVelocity_.z());
+	// =======================
+	// 2. create unit vectors for IMU reference system
+	// =======================
+	osg::Vec3 imuRef[3];
+	for (int i=0; i<3; i++){
+		imuRef[i] = osg::Vec3((i==0)?1:0, (i==1)?1:0, (i==2)?1:0);
+		imuRef[i] = attitude * imuRef[i];
+	}
+
+	// =======================
+	// 3. project accelerations and rotation speeds against IMU reference system
+	// =======================
+	osg::Vec3 accVal, rotVal;
+	for (int ref=0; ref<3; ref++){
+		accVal[ref] = acceleration_ * imuRef[ref];
+		rotVal[ref] = rotVelocity_ * imuRef[ref];
+	}
+
+
+	sensors_[0]->update(accVal.x());
+	sensors_[1]->update(accVal.y());
+	sensors_[2]->update(accVal.z());
+	sensors_[3]->update(rotVal.x());
+	sensors_[4]->update(rotVal.y());
+	sensors_[5]->update(rotVal.z());
 
 }
 
