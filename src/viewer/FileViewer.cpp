@@ -301,7 +301,6 @@ int main(int argc, char *argv[]) {
 
 	int count = 0;
 	double t = 0;
-	double lastLightSensorUpdateT = 0;
 	while (!viewer.done() && !keyboardEvent->isQuit()) {
 
 
@@ -339,37 +338,15 @@ int main(int argc, char *argv[]) {
 				}
 			}
 
-			bool updateLightSensors = false;
-			// equivalent to t==0, but without the issue of comparing
-			// doubles directly
-			if (t < step/2 || t - lastLightSensorUpdateT
-					> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
-				updateLightSensors = true;
-				lastLightSensorUpdateT = t;
-			}
 			for (unsigned int i = 0; i < sensors.size(); ++i) {
 				if (boost::dynamic_pointer_cast<TouchSensor>(sensors[i])) {
 					networkInput[i] = boost::dynamic_pointer_cast<TouchSensor>(
 							sensors[i])->read();
 				} else if (boost::dynamic_pointer_cast<LightSensor>(
 						sensors[i])) {
-
-					if (updateLightSensors){
-						log->logTimeInit();
-						// Light sensors are updated with a different frequency than the simulation timestep
-						networkInput[i] = boost::dynamic_pointer_cast<LightSensor>(
-								sensors[i])->read(env->getLightSources(),
-										env->getAmbientLight(),
-										updateLightSensors);
-						log->logTime();
-					}
-					else{
-						networkInput[i] = boost::dynamic_pointer_cast<LightSensor>(
-								sensors[i])->read(env->getLightSources(),
-										env->getAmbientLight(),
-										updateLightSensors);
-					}
-
+					networkInput[i] = boost::dynamic_pointer_cast<LightSensor>(
+							sensors[i])->read(env->getLightSources(),
+									env->getAmbientLight());
 				} else if (boost::dynamic_pointer_cast<SimpleSensor>(
 						sensors[i])) {
 					networkInput[i] = boost::dynamic_pointer_cast<SimpleSensor>(

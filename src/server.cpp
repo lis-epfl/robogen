@@ -221,7 +221,6 @@ int main(int argc, char* argv[]) {
 
 						int count = 0;
 						double t = 0;
-						double lastLightSensorUpdateT = 0;
 						double step = configuration->getTimeStepLength();
 						while (t < configuration->getSimulationTime()) {
 
@@ -255,13 +254,6 @@ int main(int argc, char* argv[]) {
 								}
 							}
 
-							bool updateLightSensors = false;
-							if (t < step
-									|| t - lastLightSensorUpdateT
-											> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
-								updateLightSensors = true;
-								lastLightSensorUpdateT = t;
-							}
 							for (unsigned int i = 0; i < sensors.size(); ++i) {
 
 								if (boost::dynamic_pointer_cast<TouchSensor>(
@@ -271,15 +263,11 @@ int main(int argc, char* argv[]) {
 													TouchSensor>(sensors[i])->read();
 								} else if (boost::dynamic_pointer_cast<
 										LightSensor>(sensors[i])) {
-
-									// Light sensors are updated with a different frequency than the simulation timestep
 									networkInput[i] =
 											boost::dynamic_pointer_cast<
 													LightSensor>(sensors[i])->read(
 													env->getLightSources(),
-													env->getAmbientLight(),
-													updateLightSensors);
-
+													env->getAmbientLight());
 								} else if (boost::dynamic_pointer_cast<
 										SimpleSensor>(sensors[i])) {
 									networkInput[i] =

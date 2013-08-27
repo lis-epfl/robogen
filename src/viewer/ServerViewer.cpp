@@ -74,7 +74,7 @@ void printNeuralNetwork(const NeuralNetwork* n) {
 		for (unsigned int j = 0; j < n->nOutputs; ++j) {
 			std::cout << "C(" << i << "," << j << ") = "
 					<< n->weight[MAX_OUTPUT_NEURONS * MAX_INPUT_NEURONS
-							+ i * MAX_OUTPUT_NEURONS + j];
+					             + i * MAX_OUTPUT_NEURONS + j];
 		}
 	}
 
@@ -145,8 +145,8 @@ int main(int argc, char* argv[]) {
 									packet.getMessage()->configuration());
 					if (configuration == NULL) {
 						std::cout
-								<< "Problems parsing the configuration file. Quit."
-								<< std::endl;
+						<< "Problems parsing the configuration file. Quit."
+						<< std::endl;
 						return EXIT_FAILURE;
 					}
 
@@ -161,8 +161,8 @@ int main(int argc, char* argv[]) {
 					}
 
 					std::cout
-							<< "-----------------------------------------------"
-							<< std::endl;
+					<< "-----------------------------------------------"
+					<< std::endl;
 
 					while (scenario->remainingTrials()) {
 
@@ -222,8 +222,8 @@ int main(int argc, char* argv[]) {
 						}
 
 						std::cout << "Evaluating individual " << robot->getId()
-								<< ", trial: " << scenario->getCurTrial()
-								<< std::endl;
+										<< ", trial: " << scenario->getCurTrial()
+										<< std::endl;
 
 						// Register sensors
 						std::vector<boost::shared_ptr<Sensor> > sensors =
@@ -273,17 +273,17 @@ int main(int argc, char* argv[]) {
 											bodyParts[i]);
 							if (renderModel == NULL) {
 								std::cout
-										<< "Cannot create a render model for model "
-										<< i << std::endl;
+								<< "Cannot create a render model for model "
+								<< i << std::endl;
 								return EXIT_FAILURE;
 							}
 
 							if (!renderModel->initRenderModel()) {
 								std::cout
-										<< "Cannot initialize a render model for one of the components. "
-										<< std::endl
-										<< "Please check that the models/ folder is in the same folder of this executable."
-										<< std::endl;
+								<< "Cannot initialize a render model for one of the components. "
+								<< std::endl
+								<< "Please check that the models/ folder is in the same folder of this executable."
+								<< std::endl;
 							}
 							renderModels.push_back(renderModel);
 							root->addChild(renderModels[i]->getRootNode());
@@ -324,7 +324,6 @@ int main(int argc, char* argv[]) {
 						// ---------------------------------------
 						int count = 0;
 						double t = 0;
-						double lastLightSensorUpdateT = 0;
 						double step = configuration->getTimeStepLength();
 						while (t < configuration->getSimulationTime()
 								&& !viewer.done()) {
@@ -358,45 +357,33 @@ int main(int argc, char* argv[]) {
 										++i) {
 									if (boost::dynamic_pointer_cast<
 											PerceptiveComponent>(
-											bodyParts[i])) {
+													bodyParts[i])) {
 										boost::dynamic_pointer_cast<
-												PerceptiveComponent>(
+										PerceptiveComponent>(
 												bodyParts[i])->updateSensors(
-												env);
+														env);
 									}
 								}
 
-								bool updateLightSensors = false;
-								if (t < step
-										|| t - lastLightSensorUpdateT
-												> LightSensor::DEFAULT_SENSOR_UPDATE_TIMESTEP) {
-									updateLightSensors = true;
-									lastLightSensorUpdateT = t;
-								}
 								for (unsigned int i = 0; i < sensors.size();
 										++i) {
-
 									if (boost::dynamic_pointer_cast<TouchSensor>(
 											sensors[i])) {
 										networkInput[i] =
 												boost::dynamic_pointer_cast<
-														TouchSensor>(sensors[i])->read();
+												TouchSensor>(sensors[i])->read();
 									} else if (boost::dynamic_pointer_cast<
 											LightSensor>(sensors[i])) {
-
-										// Light sensors are updated with a different frequency than the simulation timestep
 										networkInput[i] =
 												boost::dynamic_pointer_cast<
-														LightSensor>(sensors[i])->read(
+												LightSensor>(sensors[i])->read(
 														env->getLightSources(),
-														env->getAmbientLight(),
-														updateLightSensors);
-
+														env->getAmbientLight());
 									} else if (boost::dynamic_pointer_cast<
 											SimpleSensor>(sensors[i])) {
 										networkInput[i] =
 												boost::dynamic_pointer_cast<
-														SimpleSensor>(
+												SimpleSensor>(
 														sensors[i])->read();
 									}
 								}
@@ -417,7 +404,7 @@ int main(int argc, char* argv[]) {
 
 										boost::shared_ptr<ServoMotor> motor =
 												boost::dynamic_pointer_cast<
-														ServoMotor>(motors[i]);
+												ServoMotor>(motors[i]);
 
 										if (motor->isVelocityDriven()) {
 											motor->setVelocity(
@@ -431,8 +418,8 @@ int main(int argc, char* argv[]) {
 
 							if (!scenario->afterSimulationStep()) {
 								std::cout
-										<< "Cannot execute scenario after simulation step. Quit."
-										<< std::endl;
+								<< "Cannot execute scenario after simulation step. Quit."
+								<< std::endl;
 								return EXIT_FAILURE;
 							}
 

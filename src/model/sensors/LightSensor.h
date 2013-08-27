@@ -83,7 +83,7 @@ public:
 	virtual ~LightSensor();
 
 	/**
-	 * Update the ligth sensor
+	 * Update the light sensor
 	 */
 	void update(const osg::Vec3& position, const osg::Quat& attitude);
 
@@ -96,12 +96,9 @@ public:
 	 * Read sensor output, providing the light sources in the environment
 	 * @lightSources
 	 * @ambientLight
-	 * @updateSensor as the computation of the sensor is very time consuming,
-	 * the sensor will not update its output until this flag is set to true and
-	 * return its last measurement
 	 */
 	float read(const std::vector<boost::shared_ptr<LightSource> >&
-			lightSources, double ambientLight, bool updateSensor);
+			lightSources, double ambientLight);
 
 private:
 	/**
@@ -127,6 +124,11 @@ private:
 	 * Ode collision space
 	 */
 	dSpaceID odeSpace_;
+
+	/**
+	 * Space for rays
+	 */
+	dSpaceID raySpace_;
 
 	/**
 	 * Output of the last read
