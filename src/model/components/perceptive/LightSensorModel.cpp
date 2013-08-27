@@ -38,8 +38,6 @@ LightSensorModel::LightSensorModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id,	bool internalSensor) :
 		PerceptiveComponent(odeWorld, odeSpace, id),
 		internalSensor_(internalSensor) {
-
-	this->sensor_.reset(new LightSensor(odeSpace));
 }
 
 LightSensorModel::~LightSensorModel() {
@@ -53,6 +51,9 @@ bool LightSensorModel::initModel() {
 
 	this->createBoxGeom(sensorRoot_, MASS, osg::Vec3(0, 0, 0),
 			SENSOR_BASE_THICKNESS, SENSOR_BASE_WIDTH, SENSOR_BASE_WIDTH);
+
+	this->sensor_.reset(new LightSensor(this->getCollisionSpace(),
+			this->getBodies()));
 
 	return true;
 

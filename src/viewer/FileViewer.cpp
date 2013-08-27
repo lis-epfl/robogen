@@ -66,11 +66,11 @@ int main(int argc, char *argv[]) {
 
 	if (argc < 3) {
 		std::cout
-				<< "Please provide a file containing the robot description as"\
-				" input and the corresponding simulation configuration file '"
-				<< std::string(argv[0]) << " robot.dat configuration.conf'"
-				<< std::endl << "You can also select the starting position by "\
-				"appending an integer 1..n to the command";
+		<< "Please provide a file containing the robot description as"\
+		" input and the corresponding simulation configuration file '"
+		<< std::string(argv[0]) << " robot.dat configuration.conf'"
+		<< std::endl << "You can also select the starting position by "\
+		"appending an integer 1..n to the command";
 		return EXIT_FAILURE;
 	}
 
@@ -229,10 +229,10 @@ int main(int argc, char *argv[]) {
 
 		if (!renderModel->initRenderModel()) {
 			std::cout
-					<< "Cannot initialize a render model for one of the components. "
-					<< std::endl
-					<< "Please check that the models/ folder is in the same folder of this executable."
-					<< std::endl;
+			<< "Cannot initialize a render model for one of the components. "
+			<< std::endl
+			<< "Please check that the models/ folder is in the same folder of this executable."
+			<< std::endl;
 		}
 		renderModels.push_back(renderModel);
 		root->addChild(renderModels[i]->getRootNode());
@@ -256,7 +256,7 @@ int main(int argc, char *argv[]) {
 	const std::vector<boost::shared_ptr<LightSource> >& lightSources = scenario->getEnvironment()->getLightSources();
 	for (unsigned int i = 0; i < lightSources.size(); ++i) {
 		boost::shared_ptr<LightSourceRender> lightSourceRender(
-						new LightSourceRender(lightSources[i], root));
+				new LightSourceRender(lightSources[i], root));
 		root->addChild(lightSourceRender->getRootNode());
 	}
 
@@ -309,8 +309,6 @@ int main(int argc, char *argv[]) {
 
 		if (t < configuration->getSimulationTime() && !keyboardEvent->isPaused()) {
 
-			log->logTimeInit();
-
 			double step = configuration->getTimeStepLength();
 
 			if ((count++) % 100 == 0) {
@@ -356,10 +354,21 @@ int main(int argc, char *argv[]) {
 				} else if (boost::dynamic_pointer_cast<LightSensor>(
 						sensors[i])) {
 
-					// Light sensors are updated with a different frequency than the simulation timestep
-					networkInput[i] = boost::dynamic_pointer_cast<LightSensor>(
-							sensors[i])->read(env->getLightSources(),
-							env->getAmbientLight(), updateLightSensors);
+					if (updateLightSensors){
+						log->logTimeInit();
+						// Light sensors are updated with a different frequency than the simulation timestep
+						networkInput[i] = boost::dynamic_pointer_cast<LightSensor>(
+								sensors[i])->read(env->getLightSources(),
+										env->getAmbientLight(),
+										updateLightSensors);
+						log->logTime();
+					}
+					else{
+						networkInput[i] = boost::dynamic_pointer_cast<LightSensor>(
+								sensors[i])->read(env->getLightSources(),
+										env->getAmbientLight(),
+										updateLightSensors);
+					}
 
 				} else if (boost::dynamic_pointer_cast<SimpleSensor>(
 						sensors[i])) {
@@ -397,8 +406,8 @@ int main(int argc, char *argv[]) {
 
 			if (!scenario->afterSimulationStep()) {
 				std::cout
-						<< "Cannot execute scenario after simulation step. Quit."
-						<< std::endl;
+				<< "Cannot execute scenario after simulation step. Quit."
+				<< std::endl;
 				return EXIT_FAILURE;
 			}
 
@@ -408,7 +417,7 @@ int main(int argc, char *argv[]) {
 
 			t += step;
 
-			log->logTime();
+
 
 		} /* If doing something */
 

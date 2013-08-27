@@ -537,7 +537,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
 	 	 CoreComponentModel::LEFT_FACE_SLOT, 0);
 
 	 connect(activeCardanModelA, ActiveCardanModel::SLOT_A, rotateJointA,
-			 RotateJointModel::SLOT_B, 0);
+			 RotateJointModel::SLOT_B, 0);*/
 
 	 /*connect(touchSensorA, TouchSensorModel::SLOT_A, activeCardanModelA,
 			 ActiveCardanModel::SLOT_B, 0);*/

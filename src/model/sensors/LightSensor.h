@@ -75,7 +75,7 @@ public:
 	/**
 	 * Initializes a light sensor
 	 */
-	LightSensor(dSpaceID odeSpace);
+	LightSensor(dSpaceID odeSpace, std::vector<dBodyID> sensorBodies);
 
 	/**
 	 * Destructor
@@ -88,15 +88,30 @@ public:
 	void update(const osg::Vec3& position, const osg::Quat& attitude);
 
 	/**
+	 * Callback for collision handling between rays and the ODE space
+	 */
+	static void collisionCallback(void *data, dGeomID o1, dGeomID o2);
+
+	/**
 	 * Read sensor output, providing the light sources in the environment
 	 * @lightSources
 	 * @ambientLight
-	 * @updateSensor as the computation of the sensor is very time consuming, the sensor will not update its output until this flag is set to true and
-	 *               return its last measurement
+	 * @updateSensor as the computation of the sensor is very time consuming,
+	 * the sensor will not update its output until this flag is set to true and
+	 * return its last measurement
 	 */
-	int read(const std::vector<boost::shared_ptr<LightSource> >& lightSources, double ambientLight, bool updateSensor);
+	float read(const std::vector<boost::shared_ptr<LightSource> >&
+			lightSources, double ambientLight, bool updateSensor);
 
 private:
+	/**
+	 * Calculates light intensity from angle and distance. This is the function
+	 * to be modified according to light sensor calibration.
+	 * @param angle
+	 * @param distance
+	 * @return light intensity
+	 */
+	static double lightIntensity(double angle, double distance);
 
 	/**
 	 * Position of the light sensor
@@ -116,7 +131,12 @@ private:
 	/**
 	 * Output of the last read
 	 */
-	int lastReadOutput_;
+	float lastReadOutput_;
+
+	/**
+	 * ODE bodies of the light sensor
+	 */
+	std::vector<dGeomID> sensorGeoms_;
 
 };
 
