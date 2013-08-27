@@ -41,43 +41,4 @@ float fromOde(float x);
 double fromOde(double x);
 osg::Vec3 fromOde(osg::Vec3 x);
 
-namespace robogen {
-
-/**
- * When passing custom data to ODE geometries, please use this
- * class
- */
-class CustomGeomData {
-
-public:
-
-	static const int LIGHT_SOURCE_INFO = 0;
-	static const int RAY_TRACE_INFO = 1;
-	static const int TOUCH_SENSOR_INFO = 2;
-
-	CustomGeomData(int id, void* data) :
-			id_(id), data_(data) {
-
-	}
-
-	virtual ~CustomGeomData() {
-
-	}
-
-	int getId() {
-		return id_;
-	}
-
-	void *getData() {
-		return data_;
-	}
-
-	int id_;
-	void *data_;
-
-};
-
-
-}
-
 #endif /* ROBOGEN_H_ */

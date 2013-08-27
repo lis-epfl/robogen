@@ -53,11 +53,6 @@ public:
 
 	static double getAngle(const osg::Vec3& a, const osg::Vec3& b);
 
-	static void getAngle(const osg::Quat& a, const osg::Quat& b, float& roll, float& pitch,
-			float& yaw);
-
-	static void getAngles(const osg::Quat&q, float& roll, float& pitch, float& yaw);
-
 	/**
 	 * It is b that remains fixed!!
 	 */

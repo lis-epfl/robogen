@@ -449,46 +449,4 @@ double RobogenUtils::getAngle(const osg::Vec3& a, const osg::Vec3& b) {
    }
 }
 
-// Code adapted from http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
-void RobogenUtils::getAngles(const osg::Quat&q, float& roll, float& pitch,
-      float& yaw) {
-
-   double test = q.x() * q.y() + q.z() * q.w();
-
-   if (test > 0.499) { // singularity at north pole
-      yaw = 2 * atan2(q.x(), q.w());
-      pitch = M_PI / 2;
-      roll = 0;
-      return;
-
-   } else if (test < -0.499) { // singularity at south pole
-      yaw = -2 * atan2(q.x(), q.w());
-      pitch = -M_PI / 2;
-      roll = 0;
-      return;
-
-   }
-   double sqx = q.x() * q.x();
-   double sqy = q.y() * q.y();
-   double sqz = q.z() * q.z();
-
-   yaw = atan2(2 * q.y() * q.w() - 2 * q.x() * q.z(), 1 - 2 * sqy - 2 * sqz);
-   pitch = asin(2 * test);
-   roll = atan2(2 * q.x() * q.w() - 2 * q.y() * q.z(), 1 - 2 * sqx - 2 * sqz);
-
-}
-
-void RobogenUtils::getAngle(const osg::Quat& a, const osg::Quat& b, float& roll,
-      float& pitch, float& yaw) {
-
-   float ra, rb, pa, pb, ya, yb;
-   getAngles(a, ra, pa, ya);
-   getAngles(b, rb, pb, yb);
-
-   roll = ra - rb;
-   pitch = pa - pb;
-   yaw = ya - yb;
-
-}
-
 }
