@@ -1,0 +1,85 @@
+Fitness: 99 
+Robot-Body
+NodesCount: 23
+			Part-type: N
+			Part-id: N0
+			Part-orientation: 0
+			Part-type: L
+			Part-id: LeftEye
+			Part-orientation: 0
+			Part-type: N
+			Part-id: N0
+			Part-orientation: 0
+			Part-type: N
+			Part-id: N0
+			Part-orientation: 0
+			Part-type: J
+			Part-id: LeftWheel
+			Part-orientation: 0
+			Radius: 0.045
+		Part-type: F
+		Part-id: LeftF
+		Part-orientation: 1
+			Part-type: L
+			Part-id: RightEye
+			Part-orientation: 0
+			Part-type: N
+			Part-id: N0
+			Part-orientation: 0
+			Part-type: N
+			Part-id: N0
+			Part-orientation: 0
+			Part-type: N
+			Part-id: N0
+			Part-orientation: 0
+			Part-type: J
+			Part-id: RightWheel
+			Part-orientation: 0
+			Radius: 0.045
+		Part-type: F
+		Part-id: RightF
+		Part-orientation: 1
+		Part-type: N
+		Part-id: N0
+		Part-orientation: 0
+		Part-type: N
+		Part-id: N0
+		Part-orientation: 0
+			Part-type: T
+			Part-id: HeadT
+			Part-orientation: 0
+		Part-type: B
+		Part-id: HeadB
+		Part-orientation: 0
+		Length: 0.03
+		Inclination-Angle: 0
+		Rotation-Angle: 0
+	Part-type: E
+	Part-id: Core
+	Part-orientation: 1
+		Part-type: N
+		Part-id: N0
+		Part-orientation: 0
+	Part-type: B
+	Part-id: TailB
+	Part-orientation: 3
+	Length: 0.06
+	Inclination-Angle: 0.2
+	Rotation-Angle: 0
+	Part-type: N
+	Part-id: N0
+	Part-orientation: 0
+	Part-type: N
+	Part-id: N0
+	Part-orientation: 0
+	Part-type: N
+	Part-id: N0
+	Part-orientation: 0
+Part-type: F
+Part-id: TailF
+Part-orientation: 0
+Robot-Brain
+Connection-Weights-Vector-Size: 24
+0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+Bias-Weights-Vector-Size: 2
+0 1
