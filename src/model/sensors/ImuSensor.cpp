@@ -57,7 +57,7 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	}
 
 	// =======================
-	// 1. get attitude-agnostic IMU values
+	// 1. get attitude-agnostic IMU values (gyro knows attitude!)
 	// =======================
 	// position
 	osg::Vec3 dPos = position - position_;
@@ -68,13 +68,15 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	// add g to acceleration: Positive, as same effect as if accelerating up
 	acceleration_ += osg::Vec3(0, 0, 9.81);
 	velocity_ = velocity;
-	// rotation position
-	float roll, pitch, yaw;
-	RobogenUtils::getAngle(attitude, attitude_, roll, pitch, yaw);
+	// rotation
+	double angle;
+	osg::Vec3 rotaxis;
+	osg::Quat dAttitude = attitude / attitude_; // att = att_*datt
+	// in particular, no need to project!
 	attitude_ = attitude;
-	osg::Vec3 dAngle(roll, pitch, yaw);
-	dAngle *= timeElapsed;
-	rotVelocity_ = dAngle;
+	dAttitude.getRotate(angle, rotaxis);
+	rotaxis.normalize(); // should be the case, but let's be safe
+	rotVelocity_ = rotaxis * angle * timeElapsed;
 
 	// =======================
 	// 2. create unit vectors for IMU reference system
@@ -86,21 +88,21 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	}
 
 	// =======================
-	// 3. project accelerations and rotation speeds against IMU reference system
+	// 3. project accelerations onto IMU reference system
 	// =======================
-	osg::Vec3 accVal, rotVal;
+	osg::Vec3 accVal;
 	for (int ref=0; ref<3; ref++){
+		// imuRef is unit, so simply scalar product
 		accVal[ref] = acceleration_ * imuRef[ref];
-		rotVal[ref] = rotVelocity_ * imuRef[ref];
 	}
 
 
 	sensors_[0]->update(accVal.x());
 	sensors_[1]->update(accVal.y());
 	sensors_[2]->update(accVal.z());
-	sensors_[3]->update(rotVal.x());
-	sensors_[4]->update(rotVal.y());
-	sensors_[5]->update(rotVal.z());
+	sensors_[3]->update(rotVelocity_.x());
+	sensors_[4]->update(rotVelocity_.y());
+	sensors_[5]->update(rotVelocity_.z());
 
 }
 
