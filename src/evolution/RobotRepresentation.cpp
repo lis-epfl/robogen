@@ -31,14 +31,16 @@
 #include <fstream>
 #include <sstream>
 #include <stack>
+#include <queue>
 #include <boost/regex.hpp>
 #include "evolution/PartRepresentation.h"
 
 namespace robogen{
 
 /**
- * Helper function for decoding a line of robot text file.
- * @return indentation level or -1 if the line did not match
+ * Helper function for decoding a part line of a robot text file.
+ * @return true if successful read
+ * @todo handle poor formatting VS empty line
  */
 bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 		char &type, std::string &id, int &orientation,
@@ -69,8 +71,53 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 	else{
 		return false;
 	}
+}
 
+/**
+ * Helper function for decoding a weight line of a robot text file.
+ * @return true if successful read
+ * @todo handle poor formatting VS empty line
+ */
+bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
+		std::string &to, double &value){
+	static const boost::regex rx("^([^\\s]+) ([^\\s]+) (\\d*\\.?\\d*)$");
+	boost::cmatch match;
 
+	std::string line;
+	std::getline(file, line);
+	if (boost::regex_match(line.c_str(), match, rx)){
+		// match[0]:whole string, match[1]:from, match[2]:to, match[3]:value
+		from.assign(match[1]);
+		to.assign(match[2]);
+		value = std::atof(match[3].first);
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+
+/**
+ * Helper function for decoding a weight line of a robot text file.
+ * @return true if successful read
+ * @todo handle poor formatting VS empty line
+ */
+bool robotTextFileReadBiasLine(std::ifstream &file, std::string &node,
+		double &value){
+	static const boost::regex rx("^([^\\s]+) (\\d*\\.?\\d*)$");
+	boost::cmatch match;
+
+	std::string line;
+	std::getline(file, line);
+	if (boost::regex_match(line.c_str(), match, rx)){
+		// match[0]:whole string, match[1]:node, match[2]:value
+		node.assign(match[1]);
+		value = std::atof(match[2].first);
+		return true;
+	}
+	else{
+		return false;
+	}
 }
 
 RobotRepresentationException::RobotRepresentationException(
@@ -102,12 +149,13 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 	}
 	current = PartRepresentation::create(type,id,orientation,params);
 	bodyTree_ = current;
-	// process body parts
+
+	// process other body parts
 	while(robotTextFileReadPartLine(file, indent, slot, type, id, orientation,
 			params)){
 		if (!indent){
 			throw RobotRepresentationException("Attempt to create "\
-						"multiple root nodes!");
+					"multiple root nodes!");
 		}
 		// indentation: Adding children to current
 		if (indent>(parentStack.size())){
@@ -128,7 +176,57 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 		}
 		parentStack.top()->setChild(slot, current);
 	}
+
+	// process brain
+	std::string from, to;
+	double value;
+	neuralNetwork_.reset(new NeuralNetworkRepresentation(this->getMotors(),
+			this->getSensors()));
+	// weights
+	while (robotTextFileReadWeightLine(file, from, to, value)){
+		neuralNetwork_->setWeight(from, to, value);
+	}
+	// biases
+	while (robotTextFileReadBiasLine(file, to, value)){
+		neuralNetwork_->setBias(to, value);
+	}
 	file.close();
+}
+
+boost::shared_ptr<PartRepresentation> RobotRepresentation::getBody(){
+	return bodyTree_;
+}
+
+std::vector<std::string> RobotRepresentation::getMotors(){
+	std::vector<std::string> motors,temp;
+	std::queue<boost::shared_ptr<PartRepresentation> > todo;
+	todo.push(bodyTree_);
+	while (!todo.empty()){
+		temp = todo.front()->getMotors();
+		motors.insert(motors.end(), temp.begin(), temp.end());
+		for (int i=0; i<todo.front()->getArity(); i++){
+			if (todo.front()->getChild(i+1))
+				todo.push(todo.front()->getChild(i+1));
+		}
+		todo.pop();
+	}
+	return motors;
+}
+
+std::vector<std::string> RobotRepresentation::getSensors(){
+	std::vector<std::string> sensors,temp;
+	std::queue<boost::shared_ptr<PartRepresentation> > todo;
+	todo.push(bodyTree_);
+	while (!todo.empty()){
+		temp = todo.front()->getSensors();
+		sensors.insert(sensors.end(), temp.begin(), temp.end());
+		for (int i=0; i<todo.front()->getArity(); i++){
+			if (todo.front()->getChild(i+1))
+				todo.push(todo.front()->getChild(i+1));
+		}
+		todo.pop();
+	}
+	return sensors;
 }
 
 }

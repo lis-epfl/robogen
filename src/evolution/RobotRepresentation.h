@@ -26,6 +26,9 @@
  * @(#) $Id$
  */
 
+#ifndef ROBOTREPRESENTATION_H
+#define ROBOTREPRESENTATION_H
+
 #include <string>
 #include <set>
 #include <stdexcept>
@@ -60,6 +63,11 @@ public:
 	RobotRepresentation(std::string robotTextFile);
 
 	/**
+	 * @return the root node of the body and thus the body tree
+	 */
+	boost::shared_ptr<PartRepresentation> getBody();
+
+	/**
 	 * Mutates the brain of the robot
 	 * @param pWeight probability of each weight to mutate
 	 * @param pBias probability of each bias to mutate
@@ -68,6 +76,18 @@ public:
 	bool mutateBrain(float pWeight, float pBias);
 
 private:
+	/**
+	 * Gathers motor id's from all body parts
+	 * @todo detect duplicate motor id's
+	 */
+	std::vector<std::string> getMotors();
+
+	/**
+	 * Gathers sensor id's from all body parts
+	 * @todo detect duplicate sensor id's
+	 */
+	std::vector<std::string> getSensors();
+
 	/**
 	 * Points to the root of the robot body tree
 	 */
@@ -80,8 +100,11 @@ private:
 
 	/**
 	 * Set of reserved body part id's, for body evolution
+	 * @todo use
 	 */
 	std::set<std::string> reservedIds_;
 };
 
 }
+
+#endif /* ROBOTREPRESENTATION_H */

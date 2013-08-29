@@ -40,6 +40,10 @@ std::string &PartRepresentation::getId(){
 	return id_;
 }
 
+int PartRepresentation::getArity(){
+	return arity_;
+}
+
 boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(int n){
 	if (n<1 || n>arity_){
 		std::stringstream ss;

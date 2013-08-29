@@ -77,6 +77,11 @@ public:
 	std::string &getId();
 
 	/**
+	 * @return arity = number of child slots of part
+	 */
+	int getArity();
+
+	/**
 	 * @param n slot of the child part to get
 	 */
 	boost::shared_ptr<PartRepresentation> getChild(int n);
