@@ -10,13 +10,20 @@
 namespace robogen {
 
 LightSensorRepresentation::LightSensorRepresentation(std::string id,
-		int orientation) : PartRepresentation(id, orientation) {
-	// TODO Auto-generated constructor stub
-
+		int orientation) : PartRepresentation(id, orientation, 0) {
 }
 
 LightSensorRepresentation::~LightSensorRepresentation() {
-	// TODO Auto-generated destructor stub
+}
+
+std::vector<std::string> LightSensorRepresentation::getMotors(){
+	return std::vector<std::string>(0);
+}
+
+std::vector<std::string> LightSensorRepresentation::getSensors(){
+	std::vector<std::string> sensors;
+	sensors.push_back(this->getId());
+	return sensors;
 }
 
 } /* namespace robogen */

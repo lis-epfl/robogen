@@ -31,9 +31,18 @@
 
 #include <string>
 #include <vector>
+#include <stdexcept>
 #include <boost/shared_ptr.hpp>
 
 namespace robogen {
+
+/**
+ * Exception class for things that go wrong with part representation.
+ */
+class PartRepresentationException : public std::runtime_error {
+public:
+	PartRepresentationException(const std::string& w);
+};
 
 /**
  * Part representation to be used for evolution. More lightweight than the
@@ -46,26 +55,21 @@ public:
 	 * @param id name of the part
 	 * @param orientation orientation of the part when attached to parent part
 	 */
-	PartRepresentation(std::string id, int orientation);
+	PartRepresentation(std::string id, int orientation, int arity);
 
 	// TODO copy constructor
 
 	virtual ~PartRepresentation();
 
 	/**
-	 * @return amount of children slots, depends on part type
-	 */
-	virtual int arity();
-
-	/**
 	 * @return vector containing motor identifiers
 	 */
-	virtual std::vector<std::string> getMotors();
+	virtual std::vector<std::string> getMotors() = 0;
 
 	/**
 	 * @return vector containing sensor identifiers
 	 */
-	virtual std::vector<std::string> getSensors();
+	virtual std::vector<std::string> getSensors() = 0;
 
 	/**
 	 * @return identifier of part
@@ -85,11 +89,22 @@ public:
 	boost::shared_ptr<PartRepresentation> setChild(int n,
 			boost::shared_ptr<PartRepresentation> part);
 
+	/**
+	 * Factory pattern to create derived classes, i.e. body part representations
+	 */
+	static boost::shared_ptr<PartRepresentation> create(char type, std::string
+			id, int orientation, std::vector<double> params);
+
 private:
 	/**
 	 * Identifier string (name) of this part
 	 */
 	std::string id_;
+
+	/**
+	 * Arity: Amount of available children slots
+	 */
+	const int arity_;
 
 	/**
 	 * orientation of the part when attached to parent part

@@ -10,13 +10,18 @@
 namespace robogen {
 
 PassiveCardanRepresentation::PassiveCardanRepresentation(std::string id,
-		int orientation) : PartRepresentation(id,orientation) {
-	// TODO Auto-generated constructor stub
-
+		int orientation) : PartRepresentation(id,orientation,1) {
 }
 
 PassiveCardanRepresentation::~PassiveCardanRepresentation() {
-	// TODO Auto-generated destructor stub
+}
+
+std::vector<std::string> PassiveCardanRepresentation::getMotors(){
+	return std::vector<std::string>(0);
+}
+
+std::vector<std::string> PassiveCardanRepresentation::getSensors(){
+	return std::vector<std::string>(0);
 }
 
 } /* namespace robogen */

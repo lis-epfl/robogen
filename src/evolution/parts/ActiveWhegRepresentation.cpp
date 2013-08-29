@@ -10,13 +10,21 @@
 namespace robogen {
 
 ActiveWhegRepresentation::ActiveWhegRepresentation(std::string id,
-		int orientation) : PartRepresentation(id, orientation) {
-	// TODO Auto-generated constructor stub
-
+		int orientation, double radius) : PartRepresentation(id, orientation,0),
+		radius_(radius){
 }
 
 ActiveWhegRepresentation::~ActiveWhegRepresentation() {
-	// TODO Auto-generated destructor stub
+}
+
+std::vector<std::string> ActiveWhegRepresentation::getMotors(){
+	std::vector<std::string> motors;
+	motors.push_back(this->getId());
+	return motors;
+}
+
+std::vector<std::string> ActiveWhegRepresentation::getSensors(){
+	return std::vector<std::string>(0);
 }
 
 } /* namespace robogen */

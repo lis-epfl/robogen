@@ -28,12 +28,22 @@
 
 #include <string>
 #include <set>
+#include <stdexcept>
 #include <boost/shared_ptr.hpp>
 #include "robogen.pb.h"
 #include "evolution/PartRepresentation.h"
 #include "evolution/NeuralNetworkRepresentation.h"
 
 namespace robogen{
+
+/**
+ * Exception class for exceptions that happen when dealing with a robot
+ * representation.
+ */
+class RobotRepresentationException : public std::runtime_error {
+public:
+	RobotRepresentationException(const std::string& w);
+};
 
 /**
  * Robot representation to be used for evolution. More lightweight than the
@@ -45,6 +55,7 @@ public:
 	/**
 	 * Constructs a robot representation from a robot text file
 	 * @param robotTextFile text file of the robot description
+	 * @todo make a better handling of formatting errors
 	 */
 	RobotRepresentation(std::string robotTextFile);
 

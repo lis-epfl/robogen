@@ -16,7 +16,6 @@ class LightSensorRepresentation : public PartRepresentation {
 public:
 	LightSensorRepresentation(std::string id, int orientation);
 	virtual ~LightSensorRepresentation();
-	virtual int arity();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
 };

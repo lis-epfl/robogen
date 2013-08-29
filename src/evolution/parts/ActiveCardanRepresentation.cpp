@@ -10,14 +10,10 @@
 namespace robogen {
 
 ActiveCardanRepresentation::ActiveCardanRepresentation(std::string id,
-		int orientation) : PartRepresentation(id, orientation) {
+		int orientation) : PartRepresentation(id, orientation, 1) {
 }
 
 ActiveCardanRepresentation::~ActiveCardanRepresentation() {
-}
-
-int ActiveCardanRepresentation::arity(){
-	return 1;
 }
 
 std::vector<std::string> ActiveCardanRepresentation::getMotors(){

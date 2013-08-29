@@ -14,11 +14,26 @@ namespace robogen {
 
 class ParametricBarJointRepresentation : public PartRepresentation {
 public:
-	ParametricBarJointRepresentation(std::string id, int orientation);
+	ParametricBarJointRepresentation(std::string id, int orientation,
+			double length, double inclination, double rotation);
 	virtual ~ParametricBarJointRepresentation();
-	virtual int arity();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
+private:
+	/**
+	 * Length of the parametric bar joint
+	 */
+	double length_;
+
+	/**
+	 * Inclination angle of the parametric bar joint
+	 */
+	double inclination_;
+
+	/**
+	 * Rotation angle of the parametric bar joint
+	 */
+	double rotation_;
 };
 
 } /* namespace robogen */

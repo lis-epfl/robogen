@@ -102,6 +102,9 @@ message(STATUS ${ROBOGEN_DEPENDENCIES})
 add_library(robogen ${ROBOGEN_SIMULATOR_SRC} ${PROTO_SRCS} )
 target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
 
+add_executable(evolution-test evolutionTest.cpp)
+target_link_libraries(evolution-test robogen ${ROBOGEN_DEPENDENCIES})
+
 add_executable(robogen-test test.cpp)
 target_link_libraries(robogen-test robogen ${ROBOGEN_DEPENDENCIES})
 

@@ -16,7 +16,6 @@ class PassiveCardanRepresentation : public PartRepresentation {
 public:
 	PassiveCardanRepresentation(std::string id, int orientation);
 	virtual ~PassiveCardanRepresentation();
-	virtual int arity();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
 };

@@ -10,14 +10,11 @@
 namespace robogen {
 
 PassiveWheelRepresentation::PassiveWheelRepresentation(std::string id,
-		int orientation) : PartRepresentation(id,orientation) {
+		int orientation, double radius) : PartRepresentation(id,orientation,0),
+		radius_(radius){
 }
 
 PassiveWheelRepresentation::~PassiveWheelRepresentation() {
-}
-
-int PassiveWheelRepresentation::arity(){
-	return 0;
 }
 
 std::vector<std::string> PassiveWheelRepresentation::getMotors(){

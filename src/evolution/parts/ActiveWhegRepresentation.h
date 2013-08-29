@@ -14,11 +14,15 @@ namespace robogen {
 
 class ActiveWhegRepresentation : public PartRepresentation {
 public:
-	ActiveWhegRepresentation(std::string id, int orientation);
+	ActiveWhegRepresentation(std::string id, int orientation, double radius);
 	virtual ~ActiveWhegRepresentation();
-	virtual int arity();
-		virtual std::vector<std::string> getMotors();
-		virtual std::vector<std::string> getSensors();
+	virtual std::vector<std::string> getMotors();
+	virtual std::vector<std::string> getSensors();
+private:
+	/**
+	 * Radius of the wheg
+	 */
+	double radius_;
 };
 
 } /* namespace robogen */

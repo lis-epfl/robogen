@@ -16,7 +16,6 @@ class ActiveHingeRepresentation : public PartRepresentation {
 public:
 	ActiveHingeRepresentation(std::string id, int orientation);
 	virtual ~ActiveHingeRepresentation();
-	virtual int arity();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
 };

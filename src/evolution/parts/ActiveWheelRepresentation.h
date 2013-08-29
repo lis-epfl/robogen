@@ -14,11 +14,15 @@ namespace robogen {
 
 class ActiveWheelRepresentation : public PartRepresentation {
 public:
-	ActiveWheelRepresentation(std::string id, int orientation);
+	ActiveWheelRepresentation(std::string id, int orientation, double radius);
 	virtual ~ActiveWheelRepresentation();
-	virtual int arity();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
+private:
+	/**
+	 * Radius of the wheel
+	 */
+	double radius_;
 };
 
 } /* namespace robogen */

@@ -10,13 +10,20 @@
 namespace robogen {
 
 ActiveHingeRepresentation::ActiveHingeRepresentation(std::string id,
-		int orientation) : PartRepresentation(id,orientation) {
-	// TODO Auto-generated constructor stub
-
+		int orientation) : PartRepresentation(id,orientation,1) {
 }
 
 ActiveHingeRepresentation::~ActiveHingeRepresentation() {
-	// TODO Auto-generated destructor stub
+}
+
+std::vector<std::string> ActiveHingeRepresentation::getMotors(){
+	std::vector<std::string> motors;
+	motors.push_back(this->getId());
+	return motors;
+}
+
+std::vector<std::string> ActiveHingeRepresentation::getSensors(){
+	return std::vector<std::string>(0);
 }
 
 } /* namespace robogen */

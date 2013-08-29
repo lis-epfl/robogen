@@ -16,7 +16,6 @@ class RotatorRepresentation: public robogen::PartRepresentation {
 public:
 	RotatorRepresentation(std::string id, int orientation);
 	virtual ~RotatorRepresentation();
-	virtual int arity();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
 };

@@ -10,13 +10,21 @@
 namespace robogen {
 
 TouchSensorRepresentation::TouchSensorRepresentation(std:: string id,
-		int orientation) : PartRepresentation(id,orientation) {
-	// TODO Auto-generated constructor stub
-
+		int orientation) : PartRepresentation(id,orientation,0) {
 }
 
 TouchSensorRepresentation::~TouchSensorRepresentation() {
-	// TODO Auto-generated destructor stub
+}
+
+std::vector<std::string> TouchSensorRepresentation::getMotors(){
+	return std::vector<std::string>(0);
+}
+
+std::vector<std::string> TouchSensorRepresentation::getSensors(){
+	std::vector<std::string> sensors;
+	sensors.push_back(this->getId() + "-left");
+	sensors.push_back(this->getId() + "-right");
+	return sensors;
 }
 
 } /* namespace robogen */
