@@ -17,6 +17,18 @@ ActiveWheelRepresentation::ActiveWheelRepresentation(std::string id,
 ActiveWheelRepresentation::~ActiveWheelRepresentation() {
 }
 
+boost::shared_ptr<PartRepresentation> ActiveWheelRepresentation::cloneSubtree(){
+	boost::shared_ptr<PartRepresentation> theClone(
+			new ActiveWheelRepresentation(this->getId(),
+					this->getOrientation(), radius_));
+	// deep copy all children
+	for (int i=1; i<=this->getArity(); i++){
+		if (this->getChild(i))
+			theClone->setChild(i,this->getChild(i)->cloneSubtree());
+	}
+	return theClone;
+}
+
 std::vector<std::string> ActiveWheelRepresentation::getMotors(){
 	std::vector<std::string> motors;
 	motors.push_back(this->getId());

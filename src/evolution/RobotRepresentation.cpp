@@ -49,7 +49,6 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 	static const boost::regex rx(
 			"^(\\t*)(\\d) ([A-Z]) ([^\\s]+) (\\d)([ \\d\\.]*)$");
 	boost::cmatch match;
-
 	std::string line;
 	std::getline(file, line);
 	if (boost::regex_match(line.c_str(), match, rx)){
@@ -82,7 +81,6 @@ bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
 		std::string &to, double &value){
 	static const boost::regex rx("^([^\\s]+) ([^\\s]+) (\\d*\\.?\\d*)$");
 	boost::cmatch match;
-
 	std::string line;
 	std::getline(file, line);
 	if (boost::regex_match(line.c_str(), match, rx)){
@@ -106,7 +104,6 @@ bool robotTextFileReadBiasLine(std::ifstream &file, std::string &node,
 		double &value){
 	static const boost::regex rx("^([^\\s]+) (\\d*\\.?\\d*)$");
 	boost::cmatch match;
-
 	std::string line;
 	std::getline(file, line);
 	if (boost::regex_match(line.c_str(), match, rx)){
@@ -122,6 +119,22 @@ bool robotTextFileReadBiasLine(std::ifstream &file, std::string &node,
 
 RobotRepresentationException::RobotRepresentationException(
 		const std::string& w): std::runtime_error(w){}
+
+RobotRepresentation::RobotRepresentation(const RobotRepresentation &r){
+	// we need to handle bodyTree_, neuralNetwork_ and reservedIds_
+	// for the brainevolver, we could theoretically keep the bodyTree_ pointing
+	// to the same body, but that would be easy to miss when resuming to body
+	// evolution, so we'll just do proper copying right away
+
+	// special treatment for base-pointed instances of derived classes as are
+	// our body parts
+	bodyTree_ = r.bodyTree_->cloneSubtree();
+	// neural network pointer needs to be reset to a copy-constructed instance
+	neuralNetwork_.reset(new NeuralNetworkRepresentation(
+			*(r.neuralNetwork_.get())));
+	// assignment of std::set should work fine
+	reservedIds_ = r.reservedIds_;
+}
 
 RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 	// open file

@@ -16,6 +16,7 @@ class PassiveWheelRepresentation : public PartRepresentation {
 public:
 	PassiveWheelRepresentation(std::string id, int orientation, double radius);
 	virtual ~PassiveWheelRepresentation();
+	virtual boost::shared_ptr<PartRepresentation> cloneSubtree();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
 private:

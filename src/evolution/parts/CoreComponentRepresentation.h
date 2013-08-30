@@ -16,6 +16,7 @@ class CoreComponentRepresentation : public PartRepresentation {
 public:
 	CoreComponentRepresentation(std::string id, int orientation);
 	virtual ~CoreComponentRepresentation();
+	virtual boost::shared_ptr<PartRepresentation> cloneSubtree();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
 };

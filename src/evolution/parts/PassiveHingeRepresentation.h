@@ -16,6 +16,7 @@ class PassiveHingeRepresentation : public PartRepresentation {
 public:
 	PassiveHingeRepresentation(std::string id, int orientation);
 	virtual ~PassiveHingeRepresentation();
+	virtual boost::shared_ptr<PartRepresentation> cloneSubtree();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
 };

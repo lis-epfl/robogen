@@ -17,6 +17,7 @@ public:
 	ParametricBarJointRepresentation(std::string id, int orientation,
 			double length, double inclination, double rotation);
 	virtual ~ParametricBarJointRepresentation();
+	virtual boost::shared_ptr<PartRepresentation> cloneSubtree();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
 private:

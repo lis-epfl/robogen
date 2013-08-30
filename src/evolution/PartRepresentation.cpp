@@ -40,6 +40,10 @@ std::string &PartRepresentation::getId(){
 	return id_;
 }
 
+int PartRepresentation::getOrientation(){
+	return orientation_;
+}
+
 int PartRepresentation::getArity(){
 	return arity_;
 }

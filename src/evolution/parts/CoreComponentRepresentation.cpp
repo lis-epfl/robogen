@@ -16,6 +16,18 @@ CoreComponentRepresentation::CoreComponentRepresentation(std::string id,
 CoreComponentRepresentation::~CoreComponentRepresentation() {
 }
 
+boost::shared_ptr<PartRepresentation> CoreComponentRepresentation::cloneSubtree(){
+	boost::shared_ptr<PartRepresentation> theClone(
+			new CoreComponentRepresentation(this->getId(),
+					this->getOrientation()));
+	// deep copy all children
+	for (int i=1; i<=this->getArity(); i++){
+		if (this->getChild(i))
+			theClone->setChild(i,this->getChild(i)->cloneSubtree());
+	}
+	return theClone;
+}
+
 std::vector<std::string> CoreComponentRepresentation::getMotors(){
 	return std::vector<std::string>(0);
 }

@@ -16,6 +16,7 @@ class ActiveCardanRepresentation : public PartRepresentation {
 public:
 	ActiveCardanRepresentation(std::string id, int orientation);
 	virtual ~ActiveCardanRepresentation();
+	virtual boost::shared_ptr<PartRepresentation> cloneSubtree();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
 };

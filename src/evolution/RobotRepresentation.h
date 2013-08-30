@@ -56,6 +56,11 @@ public:
 class RobotRepresentation{
 public:
 	/**
+	 * Copy constructor ( http://www.cplusplus.com/articles/y8hv0pDG/ )
+	 */
+	RobotRepresentation(const RobotRepresentation &r);
+
+	/**
 	 * Constructs a robot representation from a robot text file
 	 * @param robotTextFile text file of the robot description
 	 * @todo make a better handling of formatting errors

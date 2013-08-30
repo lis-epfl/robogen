@@ -16,6 +16,7 @@ class LightSensorRepresentation : public PartRepresentation {
 public:
 	LightSensorRepresentation(std::string id, int orientation);
 	virtual ~LightSensorRepresentation();
+	virtual boost::shared_ptr<PartRepresentation> cloneSubtree();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
 };

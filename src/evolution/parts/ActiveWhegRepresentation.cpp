@@ -17,6 +17,18 @@ ActiveWhegRepresentation::ActiveWhegRepresentation(std::string id,
 ActiveWhegRepresentation::~ActiveWhegRepresentation() {
 }
 
+boost::shared_ptr<PartRepresentation> ActiveWhegRepresentation::cloneSubtree(){
+	boost::shared_ptr<PartRepresentation> theClone(
+			new ActiveWhegRepresentation(this->getId(),
+					this->getOrientation(), radius_));
+	// deep copy all children
+	for (int i=1; i<=this->getArity(); i++){
+		if (this->getChild(i))
+			theClone->setChild(i,this->getChild(i)->cloneSubtree());
+	}
+	return theClone;
+}
+
 std::vector<std::string> ActiveWhegRepresentation::getMotors(){
 	std::vector<std::string> motors;
 	motors.push_back(this->getId());

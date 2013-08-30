@@ -16,6 +16,7 @@ class TouchSensorRepresentation : public PartRepresentation {
 public:
 	TouchSensorRepresentation(std::string id, int orientation);
 	virtual ~TouchSensorRepresentation();
+	virtual boost::shared_ptr<PartRepresentation> cloneSubtree();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
 };

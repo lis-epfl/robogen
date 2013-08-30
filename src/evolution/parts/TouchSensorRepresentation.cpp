@@ -16,6 +16,18 @@ TouchSensorRepresentation::TouchSensorRepresentation(std:: string id,
 TouchSensorRepresentation::~TouchSensorRepresentation() {
 }
 
+boost::shared_ptr<PartRepresentation> TouchSensorRepresentation::cloneSubtree(){
+	boost::shared_ptr<PartRepresentation> theClone(
+			new TouchSensorRepresentation(this->getId(),
+					this->getOrientation()));
+	// deep copy all children
+	for (int i=1; i<=this->getArity(); i++){
+		if (this->getChild(i))
+			theClone->setChild(i,this->getChild(i)->cloneSubtree());
+	}
+	return theClone;
+}
+
 std::vector<std::string> TouchSensorRepresentation::getMotors(){
 	return std::vector<std::string>(0);
 }

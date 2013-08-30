@@ -17,6 +17,19 @@ PassiveWheelRepresentation::PassiveWheelRepresentation(std::string id,
 PassiveWheelRepresentation::~PassiveWheelRepresentation() {
 }
 
+boost::shared_ptr<PartRepresentation>
+PassiveWheelRepresentation::cloneSubtree(){
+	boost::shared_ptr<PartRepresentation> theClone(
+			new PassiveWheelRepresentation(this->getId(),
+					this->getOrientation(), radius_));
+	// deep copy all children
+	for (int i=1; i<=this->getArity(); i++){
+		if (this->getChild(i))
+			theClone->setChild(i,this->getChild(i)->cloneSubtree());
+	}
+	return theClone;
+}
+
 std::vector<std::string> PassiveWheelRepresentation::getMotors(){
 	return std::vector<std::string>(0);
 }

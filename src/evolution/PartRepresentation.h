@@ -57,7 +57,17 @@ public:
 	 */
 	PartRepresentation(std::string id, int orientation, int arity);
 
-	// TODO copy constructor
+	/**
+	 * copy constructor replacement with deep copy of children
+	 * copy constructor is not very useful, as we mostly want to copy derived
+	 * classes from pointers to the base class. Thus, we'll use this trick:
+	 * http://stackoverflow.com/questions/5731217/how-to-copy-create-derived-
+	 * class-instance-from-a-pointer-to-a-polymorphic-base-c
+	 * @return new derived instance of the part
+	 * @todo per design, this results in a recursive call. Is this robust for
+	 * bigger robots?
+	 */
+	virtual boost::shared_ptr<PartRepresentation> cloneSubtree() = 0;
 
 	virtual ~PartRepresentation();
 
@@ -99,6 +109,13 @@ public:
 	 */
 	static boost::shared_ptr<PartRepresentation> create(char type, std::string
 			id, int orientation, std::vector<double> params);
+
+protected:
+	/**
+	 * As of now, only derived classes need to call this for cloning, so it's
+	 * protected
+	 */
+	int getOrientation();
 
 private:
 	/**

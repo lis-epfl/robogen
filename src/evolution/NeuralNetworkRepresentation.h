@@ -56,6 +56,9 @@ public:
 	NeuralNetworkRepresentation(std::vector<std::string> motors,
 			std::vector<std::string> sensors);
 
+	// Copy constructor should be provided by the compiler. As there is no
+	// pointing going on, this should not cause any problems.
+
 	virtual ~NeuralNetworkRepresentation();
 
 	/**
