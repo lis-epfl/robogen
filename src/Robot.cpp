@@ -50,8 +50,8 @@ public:
 			std::vector<boost::shared_ptr<Model> >& bodyParts,
 			std::map<std::string, unsigned int>& nodeIdToPos,
 			dJointGroupID connectionJointGroup) :
-			odeWorld_(odeWorld), bodyParts_(bodyParts), nodeIdToPos_(
-					nodeIdToPos), connectionJointGroup_(connectionJointGroup) {
+				odeWorld_(odeWorld), bodyParts_(bodyParts), nodeIdToPos_(
+						nodeIdToPos), connectionJointGroup_(connectionJointGroup) {
 
 	}
 
@@ -149,7 +149,7 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 		if (model == NULL) {
 			std::cerr << "Unrecognized body part: " << bodyPart.id()
-					<< ". Exiting." << std::endl;
+							<< ". Exiting." << std::endl;
 			return false;
 		}
 
@@ -245,6 +245,7 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	std::map<std::string, bool> isNeuronInput;
 
 	std::map<std::string, unsigned int> inputNeuronIds;
+	// maps from position in input array to body part's position in part vector
 	std::vector<unsigned int> brainInputToBodyPart;
 	std::vector<unsigned int> brainInputToIoId;
 
@@ -253,22 +254,12 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	std::vector<unsigned int> brainOutputToIoId;
 
 	float weight[MAX_INPUT_NEURONS * MAX_OUTPUT_NEURONS
-			+ MAX_OUTPUT_NEURONS * MAX_OUTPUT_NEURONS];
+	             + MAX_OUTPUT_NEURONS * MAX_OUTPUT_NEURONS];
 	float bias[MAX_OUTPUT_NEURONS];
 	float gain[MAX_OUTPUT_NEURONS];
 
 	// Fill it with zeros
-	for (unsigned int i = 0; i < MAX_INPUT_NEURONS; ++i) {
-		for (unsigned int j = 0; j < MAX_OUTPUT_NEURONS; ++j) {
-			weight[i * MAX_OUTPUT_NEURONS + j] = 0;
-		}
-	}
-	for (unsigned int i = 0; i < MAX_OUTPUT_NEURONS; ++i) {
-		for (unsigned int j = 0; j < MAX_OUTPUT_NEURONS; ++j) {
-			weight[MAX_INPUT_NEURONS * MAX_OUTPUT_NEURONS
-					+ i * MAX_OUTPUT_NEURONS + j] = 0;
-		}
-	}
+	memset(weight, 0, sizeof(weight));
 
 	// Read neurons
 	for (int i = 0; i < robotBrain.neuron_size(); ++i) {
@@ -341,20 +332,23 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 		return false;
 	}
 
-	// Order sensors/actuators accordingly, for faster access
+	// Reorder robot sensors/actuators according to order in neural network
+	// input array, for faster access
 	std::vector<boost::shared_ptr<Sensor> > orderedSensors;
 	std::vector<boost::shared_ptr<Motor> > orderedMotors;
 
 	orderedSensors.resize(nInputs);
 	orderedMotors.resize(nOutputs);
 
+	// up to here, sensors are kept in a map pointing body parts to sensors
+	// iterating through the
 	for (unsigned int i = 0; i < nInputs; ++i) {
-
 		// Find the sensor
 		std::map<unsigned int, std::vector<boost::shared_ptr<Sensor> > >::iterator it =
 				bodyPartsToSensors_.find(brainInputToBodyPart[i]);
 		std::vector<boost::shared_ptr<Sensor> > curSensors = it->second;
 
+		// verify that io id is within the sensor size
 		unsigned int pos = brainInputToIoId[i];
 		if (pos >= curSensors.size()) {
 			std::cout << "Cannot locate sensor " << pos << " in body part "
@@ -395,9 +389,6 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 		return false;
 	}
 
-	std::cout << "OSensors: " << orderedSensors.size() << ", Omotors: "
-			<< orderedMotors.size() << std::endl;
-
 	sensors_ = orderedSensors;
 	motors_ = orderedMotors;
 
@@ -423,8 +414,8 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				isNeuronInput.find(connection.dest());
 		if (isDestInputIt == isNeuronInput.end()) {
 			std::cout
-					<< "Cannot find destination neuron in the neural network: "
-					<< connection.dest() << std::endl;
+			<< "Cannot find destination neuron in the neural network: "
+			<< connection.dest() << std::endl;
 			return false;
 		}
 
@@ -439,15 +430,12 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 		int destNeuronPos = outputNeuronIds[connection.dest()];
 
 		if (isSourceInputIt->second == true) {
-
-			weight[sourceNeuronPos * nOutputs + destNeuronPos] =
+			weight[destNeuronPos * nOutputs + sourceNeuronPos] =
 					connection.weight();
 		} else {
-
-			weight[nInputs * nOutputs + sourceNeuronPos * nOutputs
-					+ destNeuronPos] = connection.weight();
+			weight[nInputs * nOutputs + destNeuronPos * nOutputs +
+			       sourceNeuronPos] = connection.weight();
 		}
-
 	}
 	::initNetwork(neuralNetwork_.get(), nInputs, nOutputs, &weight[0], &bias[0],
 			&gain[0]);
@@ -457,13 +445,13 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 }
 
 void Robot::reconnect(){
-    // Let's now actually connect the body parts
-    // vis will do the job
-    BodyConnectionVisitor vis(odeWorld_, bodyParts_, bodyPartsMap_,
-    		connectionJointGroup_);
-    // purge current connection joint group
-    dJointGroupEmpty(connectionJointGroup_);
-    boost::breadth_first_search(*bodyTree_, rootNode_, boost::visitor(vis));
+	// Let's now actually connect the body parts
+	// vis will do the job
+	BodyConnectionVisitor vis(odeWorld_, bodyParts_, bodyPartsMap_,
+			connectionJointGroup_);
+	// purge current connection joint group
+	dJointGroupEmpty(connectionJointGroup_);
+	boost::breadth_first_search(*bodyTree_, rootNode_, boost::visitor(vis));
 }
 
 void Robot::translateRobot(const osg::Vec3& translation) {
