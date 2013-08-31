@@ -10,7 +10,7 @@
 namespace robogen {
 
 ActiveHingeRepresentation::ActiveHingeRepresentation(std::string id,
-		int orientation) : PartRepresentation(id,orientation,1) {
+		int orientation) : PartRepresentation(id,orientation,1,"activehinge") {
 }
 
 ActiveHingeRepresentation::~ActiveHingeRepresentation() {

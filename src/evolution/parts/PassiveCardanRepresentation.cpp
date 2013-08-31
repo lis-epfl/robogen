@@ -10,7 +10,7 @@
 namespace robogen {
 
 PassiveCardanRepresentation::PassiveCardanRepresentation(std::string id,
-		int orientation) : PartRepresentation(id,orientation,1) {
+		int orientation) : PartRepresentation(id,orientation,1,"passivecardan"){
 }
 
 PassiveCardanRepresentation::~PassiveCardanRepresentation() {

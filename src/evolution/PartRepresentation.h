@@ -31,8 +31,10 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
+#include "robogen.pb.h"
 
 namespace robogen {
 
@@ -55,7 +57,8 @@ public:
 	 * @param id name of the part
 	 * @param orientation orientation of the part when attached to parent part
 	 */
-	PartRepresentation(std::string id, int orientation, int arity);
+	PartRepresentation(std::string id, int orientation, int arity,
+			const std::string type);
 
 	/**
 	 * copy constructor replacement with deep copy of children
@@ -87,6 +90,11 @@ public:
 	std::string &getId();
 
 	/**
+	 * @return type of the part
+	 */
+	std::string &getType();
+
+	/**
 	 * @return arity = number of child slots of part
 	 */
 	int getArity();
@@ -110,6 +118,15 @@ public:
 	static boost::shared_ptr<PartRepresentation> create(char type, std::string
 			id, int orientation, std::vector<double> params);
 
+	/**
+	 * Add subtree to given body message.
+	 * @param bodyMessage message of the body to be completed with the subtree
+	 * @param amIRoot if set to true, will dsignate itself as root part
+	 * @todo another recursive pattern
+	 */
+	void addSubtreeToBodyMessage(robogenMessage::Body *bodyMessage,
+			bool amIRoot);
+
 protected:
 	/**
 	 * As of now, only derived classes need to call this for cloning, so it's
@@ -117,11 +134,23 @@ protected:
 	 */
 	int getOrientation();
 
+	/**
+	 * Map of all parameters, necessary for serialization. Protected, so that
+	 * derived classes can insert parameters. Initialization in constructor
+	 * would have been cleaner, but, with C++, alas, impossible.
+	 */
+	std::map<std::string, double> params_;
+
 private:
 	/**
 	 * Identifier string (name) of this part
 	 */
 	std::string id_;
+
+	/**
+	 * Type, as required for protobuf serialization of derived classes
+	 */
+	std::string type_;
 
 	/**
 	 * Arity: Amount of available children slots
@@ -137,6 +166,7 @@ private:
 	 * Children of this part in the body tree
 	 */
 	std::vector<boost::shared_ptr<PartRepresentation> > children_;
+
 };
 
 } /* namespace robogen */

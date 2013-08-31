@@ -10,7 +10,8 @@
 namespace robogen {
 
 CoreComponentRepresentation::CoreComponentRepresentation(std::string id,
-		int orientation) : PartRepresentation(id, orientation, 5) {
+		int orientation) : PartRepresentation(id, orientation, 5,
+				"corecomponent") {
 }
 
 CoreComponentRepresentation::~CoreComponentRepresentation() {

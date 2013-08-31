@@ -10,8 +10,9 @@
 namespace robogen {
 
 ActiveWheelRepresentation::ActiveWheelRepresentation(std::string id,
-		int orientation, double radius) : PartRepresentation(id,orientation,0),
-		radius_(radius){
+		int orientation, double radius) : PartRepresentation(id,orientation,0,
+				"activewheel"){
+	params_["radius"] = radius;
 }
 
 ActiveWheelRepresentation::~ActiveWheelRepresentation() {
@@ -20,7 +21,7 @@ ActiveWheelRepresentation::~ActiveWheelRepresentation() {
 boost::shared_ptr<PartRepresentation> ActiveWheelRepresentation::cloneSubtree(){
 	boost::shared_ptr<PartRepresentation> theClone(
 			new ActiveWheelRepresentation(this->getId(),
-					this->getOrientation(), radius_));
+					this->getOrientation(), params_["radius"]));
 	// deep copy all children
 	for (int i=1; i<=this->getArity(); i++){
 		if (this->getChild(i))

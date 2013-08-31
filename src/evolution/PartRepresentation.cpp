@@ -25,11 +25,11 @@
 namespace robogen {
 
 PartRepresentationException::PartRepresentationException(const std::string& w) :
-														std::runtime_error(w){}
+																std::runtime_error(w){}
 
 PartRepresentation::PartRepresentation(std::string id,
-		int orientation, int arity):
-		id_(id), arity_(arity), orientation_(orientation){
+		int orientation, int arity, std::string type):
+		id_(id), arity_(arity), orientation_(orientation), type_(type){
 	children_.resize(arity_,boost::shared_ptr<PartRepresentation>());
 }
 
@@ -46,6 +46,10 @@ int PartRepresentation::getOrientation(){
 
 int PartRepresentation::getArity(){
 	return arity_;
+}
+
+std::string &PartRepresentation::getType(){
+	return type_;
 }
 
 boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(int n){
@@ -138,6 +142,41 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 		std::stringstream ss;
 		ss << "Unknown part type specified: " << type;
 		throw PartRepresentationException(ss.str());
+	}
+}
+
+void PartRepresentation::addSubtreeToBodyMessage(
+		robogenMessage::Body *bodyMessage, bool amIRoot){
+	// first, insert self
+	robogenMessage::BodyPart* serialization = bodyMessage->add_part();
+	// required string id = 1;
+	serialization->set_id(id_);
+	// required string type = 2;
+	serialization->set_type(this->getType());
+	// required bool root = 3;
+	serialization->set_root(amIRoot);
+	// repeated EvolvableParameter evolvableParam = 4;
+	for (std::map<std::string, double>::iterator it = params_.begin();
+			it != params_.end(); it++){
+		robogenMessage::EvolvableParameter *param =
+				serialization->add_evolvableparam();
+		param->set_paramname(it->first);
+		param->set_paramvalue(it->second);
+	}
+	// required int32 orientation = 5;
+	serialization->set_orientation(orientation_);
+
+	// treat children, including connection
+	for (int i=1; i<=arity_; i++){
+		if (this->getChild(i)){
+			robogenMessage::BodyConnection *connection =
+					bodyMessage->add_connection();
+			connection->set_src(id_);
+			connection->set_srcslot(i);
+			connection->set_dest(this->getChild(i)->getId());
+			connection->set_destslot(0);
+			this->getChild(i)->addSubtreeToBodyMessage(bodyMessage, false);
+		}
 	}
 }
 

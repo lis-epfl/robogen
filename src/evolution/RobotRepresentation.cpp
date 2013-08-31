@@ -40,7 +40,6 @@ namespace robogen{
 /**
  * Helper function for decoding a part line of a robot text file.
  * @return true if successful read
- * @todo handle poor formatting VS empty line
  */
 bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 		char &type, std::string &id, int &orientation,
@@ -68,6 +67,16 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 		return true;
 	}
 	else{
+		// throw exception if poor formatting, i.e. line not empty
+		static const boost::regex spacex("^\\s*$");
+		if (!boost::regex_match(line.c_str(),spacex)){
+			std::stringstream ss;
+			ss << "Error reading body part from text file. Received:\n" <<
+					line << "\nbut expected format:\n" <<
+					"<0 or more tabs><slot index digit> <part type character> "\
+					"<part id string> <orientation digit> <evt. parameters>";
+			throw RobotRepresentationException(ss.str());
+		}
 		return false;
 	}
 }
@@ -75,44 +84,70 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 /**
  * Helper function for decoding a weight line of a robot text file.
  * @return true if successful read
- * @todo handle poor formatting VS empty line
  */
 bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
-		std::string &to, double &value){
-	static const boost::regex rx("^([^\\s]+) ([^\\s]+) (\\d*\\.?\\d*)$");
+		int &fromIoId, std::string &to, int &toIoId, double &value){
+	// TODO with this regex, not sure if weight value is read
+	static const boost::regex rx(
+			"^([^\\s]+) (\\d+) ([^\\s]+) (\\d+) (\\d*\\.?\\d*)$");
 	boost::cmatch match;
 	std::string line;
 	std::getline(file, line);
 	if (boost::regex_match(line.c_str(), match, rx)){
-		// match[0]:whole string, match[1]:from, match[2]:to, match[3]:value
+		// match[0]:whole string, match[1]:from, match[2]:from IO id,
+		// match[3]:to, match[4]:to IO id, match[5]:value
 		from.assign(match[1]);
-		to.assign(match[2]);
+		fromIoId = std::atoi(match[2].first);
+		to.assign(match[3]);
+		toIoId = std::atoi(match[4].first);
+		value = std::atof(match[5].first);
+		return true;
+	}
+	else{
+		// throw exception if poor formatting, i.e. line not empty
+		static const boost::regex spacex("^\\s*$");
+		if (!boost::regex_match(line.c_str(),spacex)){
+			std::stringstream ss;
+			ss << "Error reading brain weight from text file. Received:\n" <<
+					line << "\nbut expected format:\n" <<
+					"<source part id string> <source part io id> "\
+					"<destination part id string> <destination part io id> "\
+					"<weight>";
+			throw RobotRepresentationException(ss.str());
+		}
+		return false;
+	}
+}
+
+/**
+ * Helper function for decoding a weight line of a robot text file.
+ * @return true if successful read
+ */
+bool robotTextFileReadBiasLine(std::ifstream &file, std::string &node,
+		int &ioId, double &value){
+	// TODO with this regex, not sure if bias value is read
+	static const boost::regex rx("^([^\\s]+) (\\d+) (\\d*\\.?\\d*)$");
+	boost::cmatch match;
+	std::string line;
+	std::getline(file, line);
+	if (boost::regex_match(line.c_str(), match, rx)){
+		// match[0]:whole string, match[1]:node, match[2]:ioId, match[3]:value
+		node.assign(match[1]);
+		ioId = std::atoi(match[2].first);
 		value = std::atof(match[3].first);
 		return true;
 	}
 	else{
-		return false;
-	}
-}
-
-/**
- * Helper function for decoding a weight line of a robot text file.
- * @return true if successful read
- * @todo handle poor formatting VS empty line
- */
-bool robotTextFileReadBiasLine(std::ifstream &file, std::string &node,
-		double &value){
-	static const boost::regex rx("^([^\\s]+) (\\d*\\.?\\d*)$");
-	boost::cmatch match;
-	std::string line;
-	std::getline(file, line);
-	if (boost::regex_match(line.c_str(), match, rx)){
-		// match[0]:whole string, match[1]:node, match[2]:value
-		node.assign(match[1]);
-		value = std::atof(match[2].first);
-		return true;
-	}
-	else{
+		// throw exception if poor formatting, i.e. line not empty
+		static const boost::regex spacex("^\\s*$");
+		if (!boost::regex_match(line.c_str(),spacex)){
+			std::stringstream ss;
+			ss << "Error reading brain weight from text file. Received:\n" <<
+					line << "\nbut expected format:\n" <<
+					"<part id string> <part io id> "\
+					"<bias>";
+			throw RobotRepresentationException(ss.str());
+		}
 		return false;
 	}
 }
@@ -133,7 +168,17 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r){
 	neuralNetwork_.reset(new NeuralNetworkRepresentation(
 			*(r.neuralNetwork_.get())));
 	// assignment of std::set should work fine
-	reservedIds_ = r.reservedIds_;
+	idToPart_ = r.idToPart_;
+}
+
+RobotRepresentation &RobotRepresentation::operator=(
+		const RobotRepresentation &r){
+	// same as copy constructor, see there for explanations
+	bodyTree_ = r.bodyTree_->cloneSubtree();
+	neuralNetwork_.reset(new NeuralNetworkRepresentation(
+			*(r.neuralNetwork_.get())));
+	idToPart_ = r.idToPart_;
+	return *this;
 }
 
 RobotRepresentation::RobotRepresentation(std::string robotTextFile){
@@ -146,7 +191,7 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 		throw RobotRepresentationException(ss.str());
 	}
 
-	// prepare processing
+	// prepare body processing
 	boost::shared_ptr<PartRepresentation> current;
 	std::stack<boost::shared_ptr<PartRepresentation> > parentStack;
 	int slot, orientation, indent;
@@ -162,6 +207,7 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 	}
 	current = PartRepresentation::create(type,id,orientation,params);
 	bodyTree_ = current;
+	idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
 
 	// process other body parts
 	while(robotTextFileReadPartLine(file, indent, slot, type, id, orientation,
@@ -188,26 +234,54 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 			throw RobotRepresentationException(ss.str());
 		}
 		parentStack.top()->setChild(slot, current);
+		idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
 	}
 
 	// process brain
 	std::string from, to;
+	int fromIoId, toIoId;
 	double value;
-	neuralNetwork_.reset(new NeuralNetworkRepresentation(this->getMotors(),
-			this->getSensors()));
+	// create neural network: create map from body id to io id for sensors and
+	// motors
+	std::map<std::string, int> sensorMap, motorMap;
+	for(std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator
+			it = idToPart_.begin(); it != idToPart_.end(); it++){
+		// omitting weak pointer checks, as this really shouldn't go wrong here!
+		if (it->second.lock()->getMotors().size()){
+			motorMap[it->first] = it->second.lock()->getMotors().size();
+		}
+		if (it->second.lock()->getSensors().size()){
+			sensorMap[it->first] = it->second.lock()->getSensors().size();
+		}
+	}
+	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
 	// weights
-	while (robotTextFileReadWeightLine(file, from, to, value)){
-		neuralNetwork_->setWeight(from, to, value);
+	while (robotTextFileReadWeightLine(file, from, fromIoId, to, toIoId,
+			value)){
+		neuralNetwork_->setWeight(from, fromIoId, to, toIoId, value);
 	}
 	// biases
-	while (robotTextFileReadBiasLine(file, to, value)){
-		neuralNetwork_->setBias(to, value);
+	while (robotTextFileReadBiasLine(file, to, toIoId, value)){
+		neuralNetwork_->setBias(to, toIoId, value);
 	}
 	file.close();
 }
 
 boost::shared_ptr<PartRepresentation> RobotRepresentation::getBody(){
 	return bodyTree_;
+}
+
+robogenMessage::Robot RobotRepresentation::serialize(){
+	robogenMessage::Robot message;
+	// id TODO becasue no idea why
+	message.set_id(1);
+	// body
+	bodyTree_->addSubtreeToBodyMessage(message.mutable_body(), true);
+	// brain
+	*(message.mutable_brain()) = neuralNetwork_->serialize();
+	// configuration TODO deal with this
+	message.set_configuration("conf_center.txt");
+	return message;
 }
 
 std::vector<std::string> RobotRepresentation::getMotors(){

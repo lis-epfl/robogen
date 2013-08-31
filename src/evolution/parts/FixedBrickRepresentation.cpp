@@ -10,7 +10,7 @@
 namespace robogen {
 
 FixedBrickRepresentation::FixedBrickRepresentation(std::string id,
-		int orientation) : PartRepresentation(id, orientation,5) {
+		int orientation) : PartRepresentation(id, orientation,5,"fixedbrick") {
 }
 
 FixedBrickRepresentation::~FixedBrickRepresentation() {

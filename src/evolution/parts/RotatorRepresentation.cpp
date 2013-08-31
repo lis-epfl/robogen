@@ -10,7 +10,7 @@
 namespace robogen {
 
 RotatorRepresentation::RotatorRepresentation(std::string id, int orientation) :
-	PartRepresentation(id, orientation, 1){
+	PartRepresentation(id, orientation, 1, "activerotator"){
 }
 
 RotatorRepresentation::~RotatorRepresentation() {

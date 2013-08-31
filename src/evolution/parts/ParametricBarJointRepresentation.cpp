@@ -11,8 +11,11 @@ namespace robogen {
 
 ParametricBarJointRepresentation::ParametricBarJointRepresentation(
 		std::string id, int orientation, double length, double inclination,
-		double rotation) : PartRepresentation(id, orientation, 1),
-		length_(length), inclination_(inclination), rotation_(rotation){
+		double rotation) : PartRepresentation(id, orientation, 1,
+				"parametricbrick"){
+	params_["length"] = length;
+	params_["inclinationangle"] = inclination;
+	params_["rotationangle"] = rotation;
 }
 
 ParametricBarJointRepresentation::~ParametricBarJointRepresentation() {
@@ -22,7 +25,8 @@ boost::shared_ptr<PartRepresentation>
 ParametricBarJointRepresentation::cloneSubtree(){
 	boost::shared_ptr<PartRepresentation> theClone(
 			new ParametricBarJointRepresentation(this->getId(),
-					this->getOrientation(), length_, inclination_, rotation_));
+					this->getOrientation(), params_["length"],
+					params_["inclinationangle"], params_["rotationangle"]));
 	// deep copy all children
 	for (int i=1; i<=this->getArity(); i++){
 		if (this->getChild(i))

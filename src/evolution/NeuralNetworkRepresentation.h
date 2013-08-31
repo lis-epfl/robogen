@@ -33,8 +33,12 @@
 #include <utility>
 #include <vector>
 #include <set>
+#include <map>
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
+#include "evolution/PartRepresentation.h"
+#include "evolution/NeuronRepresentation.h"
+#include "robogen.pb.h"
 
 namespace robogen {
 
@@ -50,11 +54,10 @@ public:
 	 * sets used to validate or generate neural connections will be filled.
 	 * Weights and biases will not be generated (value=0), so that users can try
 	 * out own neural networks by only specifying non-zero weights and biases.
-	 * @param motors motor id's to be registered
-	 * @param sensors sensor id's to be registered
+	 * @param bodyParts a map that maps body part id's to amount of ioIds
 	 */
-	NeuralNetworkRepresentation(std::vector<std::string> motors,
-			std::vector<std::string> sensors);
+	NeuralNetworkRepresentation(std::map<std::string,int> &sensorParts,
+			std::map<std::string,int> &motorParts);
 
 	// Copy constructor should be provided by the compiler. As there is no
 	// pointing going on, this should not cause any problems.
@@ -69,45 +72,46 @@ public:
 
 	/**
 	 * Sets the weight from sensor or motor "from" to motor "to" to value after
-	 * verifying with the cache sets that both from and to indeed exist
+	 * verifying validness of connection
 	 */
-	void setWeight(std::string from, std::string to, double value);
+	void setWeight(std::string fromPart, int fromIoId, std::string toPart,
+			int toIoId, double value);
 
 	/**
-	 * Sets the bias of motor to value after verifying with the cache sets that
-	 * the motor indeed exists
+	 * Sets the bias of specified neuron after verifying that this is not an
+	 * input layer neuron.
 	 */
-	void setBias(std::string motor, double value);
+	void setBias(std::string bodyPart, int ioId, double value);
 
 	/**
 	 * Refreshes the sensor and motor cache sets according to the passed body,
 	 * removes dangling weights and biases and randomly initializes new ones.
-	* @param motors motor id's to be registered
+	 * @param motors motor id's to be registered
 	 * @param sensors sensor id's to be registered
 	 */
 	void adoptBody(std::vector<std::string> motors,
 			std::vector<std::string> sensors);
 
+	/**
+	 * Serialize brain into message that can be appended to the robot message
+	 * @return protobuf message of brain
+	 */
+	robogenMessage::Brain serialize();
+
 private:
 	/**
-	 * Set of allowed sensor identifiers
+	 * Neurons of the neural network. This is the principal representation of
+	 * neurons and the holder of shared pointers. For other references use
+	 * weak or raw pointers. This should always be filled to the current body.
 	 */
-	std::set<std::string> sensors_;
+	std::map<std::pair<std::string,int>,boost::shared_ptr<NeuronRepresentation>
+	> neurons_;
 
 	/**
-	 * Set of allowed motor identifiers
+	 * Connections of the neural network. Use the ids of neurons as keys.
 	 */
-	std::set<std::string> motors_;
-
-	/**
-	 * Weights of the neural network
-	 */
-	std::map<std::pair<std::string,std::string>, double> weights_;
-
-	/**
-	 * Biases of the neural network
-	 */
-	std::map<std::string, double> bias_;
+	std::map<std::pair<std::string,std::string>, double>
+	weights_;
 };
 
 } /* namespace robogen */

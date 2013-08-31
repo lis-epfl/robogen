@@ -33,6 +33,7 @@
 #include <set>
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include "robogen.pb.h"
 #include "evolution/PartRepresentation.h"
 #include "evolution/NeuralNetworkRepresentation.h"
@@ -61,6 +62,11 @@ public:
 	RobotRepresentation(const RobotRepresentation &r);
 
 	/**
+	 * assignment operator
+	 */
+	RobotRepresentation &operator=(const RobotRepresentation &r);
+
+	/**
 	 * Constructs a robot representation from a robot text file
 	 * @param robotTextFile text file of the robot description
 	 * @todo make a better handling of formatting errors
@@ -69,8 +75,15 @@ public:
 
 	/**
 	 * @return the root node of the body and thus the body tree
+	 * @todo is this even needed?
 	 */
 	boost::shared_ptr<PartRepresentation> getBody();
+
+	/**
+	 * @return robot message of this robot to be transmitted to simulator
+	 * or stored as population checkpoint
+	 */
+	robogenMessage::Robot serialize();
 
 	/**
 	 * Mutates the brain of the robot
@@ -104,10 +117,12 @@ private:
 	boost::shared_ptr<NeuralNetworkRepresentation> neuralNetwork_;
 
 	/**
-	 * Set of reserved body part id's, for body evolution
-	 * @todo use
+	 * Map from part id to part representation
+	 * @todo use to avoid multiple samenames
 	 */
-	std::set<std::string> reservedIds_;
+	std::map<std::string, boost::weak_ptr<PartRepresentation> > idToPart_;
+
+	// DO NOT FORGET TO COMPLETE COPY CONSTRUCTOR AND ASSIGNMENT OPERATOR!!!
 };
 
 }

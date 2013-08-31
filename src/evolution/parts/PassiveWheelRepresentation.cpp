@@ -10,8 +10,9 @@
 namespace robogen {
 
 PassiveWheelRepresentation::PassiveWheelRepresentation(std::string id,
-		int orientation, double radius) : PartRepresentation(id,orientation,0),
-		radius_(radius){
+		int orientation, double radius) :
+		PartRepresentation(id,orientation,0, "passivewheel"){
+	params_["radius"] = radius;
 }
 
 PassiveWheelRepresentation::~PassiveWheelRepresentation() {
@@ -21,7 +22,7 @@ boost::shared_ptr<PartRepresentation>
 PassiveWheelRepresentation::cloneSubtree(){
 	boost::shared_ptr<PartRepresentation> theClone(
 			new PassiveWheelRepresentation(this->getId(),
-					this->getOrientation(), radius_));
+					this->getOrientation(), params_["radius"]));
 	// deep copy all children
 	for (int i=1; i<=this->getArity(); i++){
 		if (this->getChild(i))

@@ -10,7 +10,7 @@
 namespace robogen {
 
 TouchSensorRepresentation::TouchSensorRepresentation(std:: string id,
-		int orientation) : PartRepresentation(id,orientation,0) {
+		int orientation) : PartRepresentation(id,orientation,0,"touchsensor") {
 }
 
 TouchSensorRepresentation::~TouchSensorRepresentation() {

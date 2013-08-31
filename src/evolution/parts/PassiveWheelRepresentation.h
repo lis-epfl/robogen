@@ -19,12 +19,6 @@ public:
 	virtual boost::shared_ptr<PartRepresentation> cloneSubtree();
 	virtual std::vector<std::string> getMotors();
 	virtual std::vector<std::string> getSensors();
-private:
-	/**
-	 * Radius of the wheel
-	 */
-	double radius_;
-
 };
 
 } /* namespace robogen */

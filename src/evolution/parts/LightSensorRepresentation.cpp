@@ -10,7 +10,8 @@
 namespace robogen {
 
 LightSensorRepresentation::LightSensorRepresentation(std::string id,
-		int orientation) : PartRepresentation(id, orientation, 0) {
+		int orientation) : PartRepresentation(id, orientation, 0,
+				"lightsensor") {
 }
 
 LightSensorRepresentation::~LightSensorRepresentation() {
