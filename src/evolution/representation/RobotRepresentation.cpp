@@ -241,8 +241,8 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 	std::string from, to;
 	int fromIoId, toIoId;
 	double value;
-	// create neural network: create map from body id to io id for sensors and
-	// motors
+	// create neural network: create map from body id to ioId for all sensor and
+	// motor body parts
 	std::map<std::string, int> sensorMap, motorMap;
 	for(std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator
 			it = idToPart_.begin(); it != idToPart_.end(); it++){
@@ -284,36 +284,8 @@ robogenMessage::Robot RobotRepresentation::serialize(){
 	return message;
 }
 
-std::vector<std::string> RobotRepresentation::getMotors(){
-	std::vector<std::string> motors,temp;
-	std::queue<boost::shared_ptr<PartRepresentation> > todo;
-	todo.push(bodyTree_);
-	while (!todo.empty()){
-		temp = todo.front()->getMotors();
-		motors.insert(motors.end(), temp.begin(), temp.end());
-		for (int i=0; i<todo.front()->getArity(); i++){
-			if (todo.front()->getChild(i+1))
-				todo.push(todo.front()->getChild(i+1));
-		}
-		todo.pop();
-	}
-	return motors;
-}
-
-std::vector<std::string> RobotRepresentation::getSensors(){
-	std::vector<std::string> sensors,temp;
-	std::queue<boost::shared_ptr<PartRepresentation> > todo;
-	todo.push(bodyTree_);
-	while (!todo.empty()){
-		temp = todo.front()->getSensors();
-		sensors.insert(sensors.end(), temp.begin(), temp.end());
-		for (int i=0; i<todo.front()->getArity(); i++){
-			if (todo.front()->getChild(i+1))
-				todo.push(todo.front()->getChild(i+1));
-		}
-		todo.pop();
-	}
-	return sensors;
+void RobotRepresentation::randomizeBrain(){
+	neuralNetwork_->initializeRandomly();
 }
 
 }

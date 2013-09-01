@@ -33,6 +33,8 @@
 #include <stdexcept>
 #include <algorithm>
 #include <utility>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
 
 namespace robogen {
 
@@ -100,6 +102,34 @@ NeuralNetworkRepresentation::NeuralNetworkRepresentation(
 }
 
 NeuralNetworkRepresentation::~NeuralNetworkRepresentation() {
+}
+
+void NeuralNetworkRepresentation::initializeRandomly(){
+	// clear all existing weights and biases
+	weights_.clear();
+	// create random number generator
+	boost::random::mt19937 rng;
+	boost::random::uniform_real_distribution<double> neuronDistrib(0.,1.);
+
+	// for each neuron
+	for (std::map<std::pair<std::string,int>,
+			boost::shared_ptr<NeuronRepresentation>	>::iterator it =
+					neurons_.begin(); it!=neurons_.end(); it++){
+		// generate random weight to other neuron if valid
+		for (std::map<std::pair<std::string,int>,
+				boost::shared_ptr<NeuronRepresentation>	>::iterator jt =
+						neurons_.begin(); jt!=neurons_.end(); jt++){
+			// can't create connection to an input neuron
+			if (!jt->second->isInput()){
+				weights_[std::pair<std::string,std::string>(it->second->getId(),
+						jt->second->getId())] = neuronDistrib(rng);
+			}
+		}
+		// generate bias, if not input neuron
+		if (!it->second->isInput()){
+			it->second->setBias(neuronDistrib(rng));
+		}
+	}
 }
 
 void NeuralNetworkRepresentation::setWeight(std::string from, int fromIoId,

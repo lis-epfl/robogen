@@ -86,6 +86,11 @@ public:
 	robogenMessage::Robot serialize();
 
 	/**
+	 * Initializes the brain to be completely random.
+	 */
+	void randomizeBrain();
+
+	/**
 	 * Mutates the brain of the robot
 	 * @param pWeight probability of each weight to mutate
 	 * @param pBias probability of each bias to mutate
@@ -94,18 +99,6 @@ public:
 	bool mutateBrain(float pWeight, float pBias);
 
 private:
-	/**
-	 * Gathers motor id's from all body parts
-	 * @todo detect duplicate motor id's
-	 */
-	std::vector<std::string> getMotors();
-
-	/**
-	 * Gathers sensor id's from all body parts
-	 * @todo detect duplicate sensor id's
-	 */
-	std::vector<std::string> getSensors();
-
 	/**
 	 * Points to the root of the robot body tree
 	 */
