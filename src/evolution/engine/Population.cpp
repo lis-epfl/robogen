@@ -27,39 +27,52 @@
  */
 
 #include "evolution/engine/Population.h"
+#include <algorithm>
 #include "robogen.pb.h"
 #include "utils/network/ProtobufPacket.h"
 
 namespace robogen {
 
+/**
+ * Used for ordering individuals by fitness
+ */
+bool operator >(const Individual &a, const Individual &b){
+	return a.fitness > b.fitness;
+}
+
 Population::Population(RobotRepresentation &robot, int popSize,
 		boost::random::mt19937	&rng) {
 	// fill population vector
+	robots_.resize(popSize);
 	for (int i=0; i<popSize; i++){
-		robots_.push_back(std::pair<boost::shared_ptr<RobotRepresentation>,
-				double>(boost::shared_ptr<RobotRepresentation>(
-						new RobotRepresentation(robot)),0.));
-		robots_.back().first->randomizeBrain(rng);
+		robots_[i].robot = boost::shared_ptr<RobotRepresentation>(
+				new RobotRepresentation(robot));
+		robots_[i].robot->randomizeBrain(rng);
+		robots_[i].fitness = 0.;
+		robots_[i].evaluated = false;
 	}
+	evaluated_ = false;
+}
+
+Population::Population(std::vector<Individual> &robots) : robots_(robots),
+		evaluated_(true){
 }
 
 Population::~Population() {
 }
 
 boost::shared_ptr<RobotRepresentation> Population::getRobot(int n){
-	return robots_[n].first;
+	return robots_[n].robot;
 }
 
 // TODO use threads & load balancing to speed things up even further
 void Population::evaluate(std::vector<TcpSocket*> &sockets){
-
-
-	for (int i=0; i<robots_.size(); i+=sockets.size()){
-		for (int j=0; j<sockets.size(); j++){
+	for (unsigned int i=0; i<robots_.size(); i+=sockets.size()){
+		for (unsigned int j=0; j<sockets.size(); j++){
 			boost::shared_ptr<robogenMessage::Robot> rsp =
 					boost::shared_ptr<robogenMessage::Robot>(
 							new robogenMessage::Robot(
-									robots_[i+j].first->serialize()));
+									robots_[i+j].robot->serialize()));
 
 
 			ProtobufPacket<robogenMessage::Robot>	robotPacket(rsp);
@@ -70,7 +83,7 @@ void Population::evaluate(std::vector<TcpSocket*> &sockets){
 			sockets[j]->write(forgedMessagePacket);
 		}
 
-		for (int j=0; j<sockets.size(); j++){
+		for (unsigned int j=0; j<sockets.size(); j++){
 			// Reading fitness packet from server
 			ProtobufPacket<robogenMessage::EvaluationResult> resultPacket(
 					boost::shared_ptr<robogenMessage::EvaluationResult>
@@ -89,16 +102,32 @@ void Population::evaluate(std::vector<TcpSocket*> &sockets){
 
 
 			// Obtain the fitness from the evaluationResponse message
+			// TODO exceptions
 			if(!resultPacket.getMessage()->has_fitness()) {
-				std::cerr << "Fitness field not set by Simulator!!!" << std::endl;
+				std::cerr << "Fitness field not set by Simulator!!!" <<
+						std::endl;
 				exit(EXIT_FAILURE);
 			}
 			else {
 				std::cout << "Fitness value for Ind: " << i+j
-						<< " = " << resultPacket.getMessage()->fitness() << std::endl;
+						<< " = " << resultPacket.getMessage()->fitness() <<
+						std::endl;
+				robots_[i+j].fitness = resultPacket.getMessage()->fitness();
+				robots_[i+j].evaluated = true;
 			}
 		}
 	}
+	evaluated_ = true;
+	// sort individuals by fitness, descending
+	std::sort(robots_.begin(), robots_.end(), operator >);
+	for (int i=0; i<robots_.size(); i++){
+		std::cout << robots_[i].fitness << std::endl;
+	}
+}
+
+std::vector<Individual> &Population::orderedEvaluatedRobots(){
+	// TODO throw population exception if not evaluated
+	return robots_;
 }
 
 } /* namespace robogen */

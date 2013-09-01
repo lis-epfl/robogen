@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 	// Set gravity [mm/s]
 	dWorldSetGravity(odeWorld, 0, 0, -9.81);
 
-	dWorldSetERP(odeWorld, 0.3);
+	dWorldSetERP(odeWorld, 0.1);
 	dWorldSetCFM(odeWorld, 10e-6);
 
 	// Create collision world

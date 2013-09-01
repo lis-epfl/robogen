@@ -38,6 +38,17 @@
 
 namespace robogen {
 
+/**
+ * Represents a robot as a member of a population. Additional attributes are
+ * fitness and a bool whether the latter is set.
+ * @todo put this into a class?
+ */
+typedef struct{
+	boost::shared_ptr<RobotRepresentation> robot;
+	double fitness;
+	bool evaluated;
+}Individual;
+
 class Population {
 public:
 	/**
@@ -45,10 +56,16 @@ public:
 	 * constant, but randomly initializing the brain.
 	 * @param robot Reference robot body
 	 * @param popSize chosen size for population
-	 * @param rng boost random number generator
+	 * @param rng boost random number generator for diverse purposes
 	 */
 	Population(RobotRepresentation &robot, int popSize, boost::random::mt19937
 			&rng);
+
+	/**
+	 * Constructs a population that will contain the specified robots.
+	 * @param robots Robots to be used as population
+	 */
+	Population(std::vector<Individual> &robots);
 
 	virtual ~Population();
 
@@ -60,9 +77,17 @@ public:
 	void evaluate(std::vector<TcpSocket*> &sockets);
 
 	/**
+	 * This function shall be used by the classes that act upon a population,
+	 * e.g. Selector, Mutator
+	 * @return reference to ordered and evaluated robots
+	 */
+	std::vector<Individual> &orderedEvaluatedRobots();
+
+	/**
 	 * Only for debugging purposes: Obtain some robot representation
 	 * @param n robot to get
 	 * @note does not perform bounds test
+	 * @todo remove
 	 */
 	boost::shared_ptr<RobotRepresentation> getRobot(int n);
 
@@ -71,11 +96,10 @@ private:
 	 * The population: the robots, with their fitness. If evaluated, this shall
 	 * always be ordered from best to worst individual.
 	 */
-	std::vector<std::pair<boost::shared_ptr<RobotRepresentation>, double> >
-	robots_;
+	std::vector<Individual>	robots_;
 
 	/**
-	 * Are the robots evaluated?
+	 * Are all robots evaluated?
 	 */
 	bool evaluated_;
 };

@@ -12,6 +12,7 @@
 #include "utils/network/TcpSocket.h"
 #include "evolution/representation/RobotRepresentation.h"
 #include "evolution/engine/Population.h"
+#include "evolution/engine/Selector.h"
 
 using namespace robogen;
 
@@ -24,10 +25,10 @@ int main(){
 	assign = test;
 	std::cout << "Now creating population" << std::endl;
 	boost::random::mt19937 rng;
-	Population pop(test,100,rng);
+	boost::shared_ptr<Population> pop(new Population(test,8,rng));
 
 	std::cout << "Now creating message" << std::endl;
-	robogenMessage::Robot message = pop.getRobot(40)->serialize();
+	robogenMessage::Robot message = pop->getRobot(7)->serialize();
 
 	std::cout << "Now writing message" << std::endl;
 	std::string fileName("evolutionTest.dat");
@@ -45,8 +46,14 @@ int main(){
 		else
 			std::cout << "Could not open connection to Simulator Server!" << std::endl;
 	}
-	pop.evaluate(sockets);
+	pop->evaluate(sockets);
 
+	std::cout << "Now selecting from evaluated population" << std::endl;
+	Selector s(3,rng);
+	boost::shared_ptr<Population> pop2(s.select(pop));
+
+	std::cout << "Evaluating new population" << std::endl;
+	pop2->evaluate(sockets);
 }
 
 

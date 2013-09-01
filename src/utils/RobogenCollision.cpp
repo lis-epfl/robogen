@@ -51,7 +51,7 @@ void odeCollisionCallback(void*, dGeomID o1, dGeomID o2) {
 	dContact contact[MAX_CONTACTS];
 	for (int i = 0; i < MAX_CONTACTS; i++) {
 
-		contact[i].surface.mode = dContactBounce | dContactSoftERP | dContactSoftCFM;
+		contact[i].surface.mode = dContactBounce /*| dContactSoftERP | dContactSoftCFM*/;
 		contact[i].surface.mu = dInfinity;
 		contact[i].surface.mu2 = 0;
 		contact[i].surface.bounce = 0.01;
