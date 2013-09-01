@@ -36,6 +36,8 @@
 #include <map>
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
 #include "evolution/representation/PartRepresentation.h"
 #include "evolution/representation/NeuronRepresentation.h"
 #include "robogen.pb.h"
@@ -78,8 +80,9 @@ public:
 	/**
 	 * Using the current motor and sensor cache sets, creates all weights and
 	 * biases and assigns random values to them.
+	 * @param rng reference to boost random number generator
 	 */
-	void initializeRandomly();
+	void initializeRandomly(boost::random::mt19937 &rng);
 
 	/**
 	 * Sets the weight from sensor or motor "from" to motor "to" to value after

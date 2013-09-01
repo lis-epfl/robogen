@@ -33,8 +33,6 @@
 #include <stdexcept>
 #include <algorithm>
 #include <utility>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_real_distribution.hpp>
 
 namespace robogen {
 
@@ -104,11 +102,11 @@ NeuralNetworkRepresentation::NeuralNetworkRepresentation(
 NeuralNetworkRepresentation::~NeuralNetworkRepresentation() {
 }
 
-void NeuralNetworkRepresentation::initializeRandomly(){
+void NeuralNetworkRepresentation::initializeRandomly(boost::random::mt19937
+		&rng){
 	// clear all existing weights and biases
 	weights_.clear();
 	// create random number generator
-	boost::random::mt19937 rng;
 	boost::random::uniform_real_distribution<double> neuronDistrib(0.,1.);
 
 	// for each neuron

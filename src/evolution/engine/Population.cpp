@@ -27,16 +27,19 @@
  */
 
 #include "evolution/engine/Population.h"
+#include "robogen.pb.h"
+#include "utils/network/ProtobufPacket.h"
 
 namespace robogen {
 
-Population::Population(RobotRepresentation &robot, int popSize) {
+Population::Population(RobotRepresentation &robot, int popSize,
+		boost::random::mt19937	&rng) {
 	// fill population vector
 	for (int i=0; i<popSize; i++){
 		robots_.push_back(std::pair<boost::shared_ptr<RobotRepresentation>,
 				double>(boost::shared_ptr<RobotRepresentation>(
 						new RobotRepresentation(robot)),0.));
-		robots_.back().first->randomizeBrain();
+		robots_.back().first->randomizeBrain(rng);
 	}
 }
 
@@ -45,6 +48,57 @@ Population::~Population() {
 
 boost::shared_ptr<RobotRepresentation> Population::getRobot(int n){
 	return robots_[n].first;
+}
+
+// TODO use threads & load balancing to speed things up even further
+void Population::evaluate(std::vector<TcpSocket*> &sockets){
+
+
+	for (int i=0; i<robots_.size(); i+=sockets.size()){
+		for (int j=0; j<sockets.size(); j++){
+			boost::shared_ptr<robogenMessage::Robot> rsp =
+					boost::shared_ptr<robogenMessage::Robot>(
+							new robogenMessage::Robot(
+									robots_[i+j].first->serialize()));
+
+
+			ProtobufPacket<robogenMessage::Robot>	robotPacket(rsp);
+			std::vector<unsigned char> forgedMessagePacket;
+			robotPacket.forge(forgedMessagePacket);
+
+			// Write vector<unsigned char> to server
+			sockets[j]->write(forgedMessagePacket);
+		}
+
+		for (int j=0; j<sockets.size(); j++){
+			// Reading fitness packet from server
+			ProtobufPacket<robogenMessage::EvaluationResult> resultPacket(
+					boost::shared_ptr<robogenMessage::EvaluationResult>
+			(new robogenMessage::EvaluationResult()) );
+			std::vector<unsigned char> responseMessage;
+			// Wait to receive a vector<unsigned char> from server
+			sockets[j]->read(responseMessage,
+					ProtobufPacket<robogenMessage::EvaluationResult>::HEADER_SIZE);
+			// Decode the Header and read the payload-message-size
+			size_t msgLen = resultPacket.decodeHeader(responseMessage);
+			responseMessage.clear();
+			// Read the fitness payload message
+			sockets[j]->read(responseMessage, msgLen);
+			// Decode the packet
+			resultPacket.decodePayload(responseMessage);
+
+
+			// Obtain the fitness from the evaluationResponse message
+			if(!resultPacket.getMessage()->has_fitness()) {
+				std::cerr << "Fitness field not set by Simulator!!!" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			else {
+				std::cout << "Fitness value for Ind: " << i+j
+						<< " = " << resultPacket.getMessage()->fitness() << std::endl;
+			}
+		}
+	}
 }
 
 } /* namespace robogen */

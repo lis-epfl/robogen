@@ -34,6 +34,7 @@
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
+#include <boost/random/mersenne_twister.hpp>
 #include "robogen.pb.h"
 #include "evolution/representation/PartRepresentation.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
@@ -88,7 +89,7 @@ public:
 	/**
 	 * Initializes the brain to be completely random.
 	 */
-	void randomizeBrain();
+	void randomizeBrain(boost::random::mt19937	&rng);
 
 	/**
 	 * Mutates the brain of the robot

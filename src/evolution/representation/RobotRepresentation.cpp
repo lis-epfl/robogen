@@ -284,8 +284,8 @@ robogenMessage::Robot RobotRepresentation::serialize(){
 	return message;
 }
 
-void RobotRepresentation::randomizeBrain(){
-	neuralNetwork_->initializeRandomly();
+void RobotRepresentation::randomizeBrain(boost::random::mt19937	&rng){
+	neuralNetwork_->initializeRandomly(rng);
 }
 
 }

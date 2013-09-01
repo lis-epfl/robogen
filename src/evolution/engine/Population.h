@@ -32,6 +32,7 @@
 #include <vector>
 #include <utility>
 #include <boost/shared_ptr.hpp>
+#include <boost/random/mersenne_twister.hpp>
 #include "evolution/representation/RobotRepresentation.h"
 #include "utils/network/TcpSocket.h"
 
@@ -42,16 +43,21 @@ public:
 	/**
 	 * Constructs a population from a given robot body, keeping the body
 	 * constant, but randomly initializing the brain.
+	 * @param robot Reference robot body
+	 * @param popSize chosen size for population
+	 * @param rng boost random number generator
 	 */
-	Population(RobotRepresentation &robot, int popSize);
+	Population(RobotRepresentation &robot, int popSize, boost::random::mt19937
+			&rng);
 
 	virtual ~Population();
 
 	/**
 	 * Evaluate the population using the given sockets to transmit the robot
 	 * to simulator instances in parallel. Then order the population by fitness.
+	 * @param
 	 */
-	void evaluate(std::vector<TcpSocket> &sockets);
+	void evaluate(std::vector<TcpSocket*> &sockets);
 
 	/**
 	 * Only for debugging purposes: Obtain some robot representation
