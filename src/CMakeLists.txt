@@ -67,8 +67,9 @@ file (GLOB_RECURSE
      ROBOGEN_SIMULATOR_SRC
      brain/*.c
      config/*.cpp
-     evolution/*.cpp
-     evolution/parts/*.cpp
+     evolution/engine/*.cpp
+     evolution/representation/*.cpp
+     evolution/representation/parts/*.cpp
      model/*.cpp
      render/*.cpp
      scenario/*.cpp

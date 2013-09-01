@@ -8,7 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include "robogen.pb.h"
-#include "evolution/RobotRepresentation.h"
+#include "evolution/representation/RobotRepresentation.h"
 
 using namespace robogen;
 
