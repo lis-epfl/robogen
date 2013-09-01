@@ -31,11 +31,44 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <algorithm>
+#include <utility>
 
 namespace robogen {
 
 NeuralNetworkRepresentationException::NeuralNetworkRepresentationException(
 		const std::string& w) : std::runtime_error(w){}
+
+NeuralNetworkRepresentation &NeuralNetworkRepresentation::operator =(
+		const NeuralNetworkRepresentation &original){
+	// deep copy neurons
+	neurons_.clear();
+	for(std::map<std::pair<std::string,int>,boost::shared_ptr<
+			NeuronRepresentation> >::const_iterator it =
+					original.neurons_.begin();
+			it != original.neurons_.end(); ++it){
+		neurons_[it->first] = boost::shared_ptr<NeuronRepresentation>(
+				new NeuronRepresentation(*(it->second.get())));
+	}
+	// replace weight map
+	weights_ = original.weights_;
+	return *this;
+}
+
+NeuralNetworkRepresentation::NeuralNetworkRepresentation(
+		const NeuralNetworkRepresentation &original){
+	// deep copy neurons
+	neurons_.clear();
+	for(std::map<std::pair<std::string,int>,boost::shared_ptr<
+			NeuronRepresentation> >::const_iterator it =
+					original.neurons_.begin();
+			it != original.neurons_.end(); ++it){
+		neurons_[it->first] = boost::shared_ptr<NeuronRepresentation>(
+				new NeuronRepresentation(*(it->second.get())));
+	}
+	// replace weight map
+	weights_ = original.weights_;
+}
 
 NeuralNetworkRepresentation::NeuralNetworkRepresentation(
 		std::map<std::string,int> &sensorParts,

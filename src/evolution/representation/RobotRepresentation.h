@@ -57,12 +57,12 @@ public:
 class RobotRepresentation{
 public:
 	/**
-	 * Copy constructor ( http://www.cplusplus.com/articles/y8hv0pDG/ )
+	 * Copy constructor: Deep copy body parts and Neural network
 	 */
 	RobotRepresentation(const RobotRepresentation &r);
 
 	/**
-	 * assignment operator
+	 * assignment operator: Deep copy body parts and Neural network
 	 */
 	RobotRepresentation &operator=(const RobotRepresentation &r);
 

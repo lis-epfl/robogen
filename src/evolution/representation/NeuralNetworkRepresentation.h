@@ -50,6 +50,17 @@ public:
 class NeuralNetworkRepresentation {
 public:
 	/**
+	 * Assignment operator: Deep copy neurons!
+	 */
+	NeuralNetworkRepresentation &operator=(const NeuralNetworkRepresentation
+			&original);
+
+	/**
+	 * Copy constructor: Deep copy neurons!
+	 */
+	NeuralNetworkRepresentation(const NeuralNetworkRepresentation &original);
+
+	/**
 	 * Creates a new neural network representation. The sensor and motor cache
 	 * sets used to validate or generate neural connections will be filled.
 	 * Weights and biases will not be generated (value=0), so that users can try
@@ -112,6 +123,8 @@ private:
 	 */
 	std::map<std::pair<std::string,std::string>, double>
 	weights_;
+
+	// DONT FORGET TO COMPLETE ASSIGNMENT OPERATOR WHEN ADDING NEW PROPERTIES!!!
 };
 
 } /* namespace robogen */
