@@ -50,6 +50,10 @@ void NeuronRepresentation::setBias(double value){
 	bias_ = value;
 }
 
+double *NeuronRepresentation::getBiasPointer(){
+	return &bias_;
+}
+
 robogenMessage::Neuron NeuronRepresentation::serialize(){
 	robogenMessage::Neuron serialization;
 	serialization.set_id(id_);

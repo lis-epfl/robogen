@@ -65,6 +65,11 @@ public:
 	void setBias(double value);
 
 	/**
+	 * @return pointer to bias, handle for mutator
+	 */
+	double *getBiasPointer();
+
+	/**
 	 * Transfer to proto buffer message.
 	 */
 	robogenMessage::Neuron serialize();

@@ -288,4 +288,9 @@ void RobotRepresentation::randomizeBrain(boost::random::mt19937	&rng){
 	neuralNetwork_->initializeRandomly(rng);
 }
 
+void RobotRepresentation::getBrainGenome(std::vector<double*> &weights,
+			std::vector<double*> &biases){
+	neuralNetwork_->getGenome(weights, biases);
+}
+
 }

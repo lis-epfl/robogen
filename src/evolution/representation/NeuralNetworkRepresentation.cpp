@@ -107,7 +107,9 @@ void NeuralNetworkRepresentation::initializeRandomly(boost::random::mt19937
 	// clear all existing weights and biases
 	weights_.clear();
 	// create random number generator
-	boost::random::uniform_real_distribution<double> neuronDistrib(0.,1.);
+	boost::random::uniform_real_distribution<double> weightDistrib(0.,1.);
+	// motivation: should be able to take any value if inputs 0, too
+	boost::random::uniform_real_distribution<double> biasDistrib(-1.,1.);
 
 	// for each neuron
 	for (std::map<std::pair<std::string,int>,
@@ -120,12 +122,12 @@ void NeuralNetworkRepresentation::initializeRandomly(boost::random::mt19937
 			// can't create connection to an input neuron
 			if (!jt->second->isInput()){
 				weights_[std::pair<std::string,std::string>(it->second->getId(),
-						jt->second->getId())] = neuronDistrib(rng);
+						jt->second->getId())] = weightDistrib(rng);
 			}
 		}
 		// generate bias, if not input neuron
 		if (!it->second->isInput()){
-			it->second->setBias(neuronDistrib(rng));
+			it->second->setBias(biasDistrib(rng));
 		}
 	}
 }
@@ -187,6 +189,20 @@ void NeuralNetworkRepresentation::setBias(std::string bodyPart, int ioId,
 		throw NeuralNetworkRepresentationException(ss.str());
 	}
 	it->second->setBias(value);
+}
+
+void NeuralNetworkRepresentation::getGenome(std::vector<double*> &weights,
+		std::vector<double*> &biases){
+	// clean up
+	weights.clear(); biases.clear();
+	// provide weights
+	for (WeightMap::iterator it = weights_.begin(); it != weights_.end(); ++it){
+		weights.push_back(&it->second);
+	}
+	// provide biases
+	for (NeuronMap::iterator it = neurons_.begin(); it!= neurons_.end(); ++it){
+		biases.push_back(it->second->getBiasPointer());
+	}
 }
 
 robogenMessage::Brain NeuralNetworkRepresentation::serialize(){

@@ -92,12 +92,12 @@ public:
 	void randomizeBrain(boost::random::mt19937	&rng);
 
 	/**
-	 * Mutates the brain of the robot
-	 * @param pWeight probability of each weight to mutate
-	 * @param pBias probability of each bias to mutate
-	 * @return true if anything has been mutated
+	 * Provides weight and bias handles for a mutator.
+	 * @param weights reference to a vector to be filled with weight pointers
+	 * @param biases reference to a vector to be filled with bias pointers
 	 */
-	bool mutateBrain(float pWeight, float pBias);
+	void getBrainGenome(std::vector<double*> &weights,
+			std::vector<double*> &biases);
 
 private:
 	/**

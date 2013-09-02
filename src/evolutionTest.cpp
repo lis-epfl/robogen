@@ -13,6 +13,7 @@
 #include "evolution/representation/RobotRepresentation.h"
 #include "evolution/engine/Population.h"
 #include "evolution/engine/Selector.h"
+#include "evolution/engine/Mutator.h"
 
 using namespace robogen;
 
@@ -52,7 +53,11 @@ int main(){
 	Selector s(3,rng);
 	boost::shared_ptr<Population> pop2(s.select(pop));
 
-	std::cout << "Evaluating new population" << std::endl;
+	std::cout << "Now mutating new population" << std::endl;
+	Mutator m(0.1, 0.1, 0.1, rng);
+	m.mutateCrossover(*pop2.get());
+
+	std::cout << "Now evaluating new population" << std::endl;
 	pop2->evaluate(sockets);
 }
 

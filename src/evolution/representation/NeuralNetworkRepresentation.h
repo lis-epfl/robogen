@@ -50,6 +50,21 @@ public:
 };
 
 class NeuralNetworkRepresentation {
+
+	/**
+	 * Map from (source neuron id, dest neuron id) to weight value.
+	 * TODO use these typedefs
+	 */
+	typedef std::map<std::pair<std::string,std::string>, double> WeightMap;
+	/**
+	 * Body part Id, IO Id
+	 */
+	typedef std::pair<std::string,int> ioPair;
+	/**
+	 * Maps from IO identifier pair to a neuron shared pointer
+	 */
+	typedef std::map<ioPair,boost::shared_ptr<NeuronRepresentation>	> NeuronMap;
+
 public:
 	/**
 	 * Assignment operator: Deep copy neurons!
@@ -98,13 +113,22 @@ public:
 	void setBias(std::string bodyPart, int ioId, double value);
 
 	/**
+	 * Provides weight and bias handles for a mutator.
+	 * @param weights reference to a vector to be filled with weight pointers
+	 * @param biases reference to a vector to be filled with bias pointers
+	 * @todo specify bounds here, c.f. mutator
+	 */
+	void getGenome(std::vector<double*> &weights, std::vector<double*> &biases);
+
+	/**
+	 * This is a stub for body evolution.
 	 * Refreshes the sensor and motor cache sets according to the passed body,
 	 * removes dangling weights and biases and randomly initializes new ones.
 	 * @param motors motor id's to be registered
 	 * @param sensors sensor id's to be registered
 	 */
-	void adoptBody(std::vector<std::string> motors,
-			std::vector<std::string> sensors);
+	void adoptBody(std::map<std::string,int> &sensorParts,
+			std::map<std::string,int> &motorParts);
 
 	/**
 	 * Serialize brain into message that can be appended to the robot message
@@ -117,15 +141,14 @@ private:
 	 * Neurons of the neural network. This is the principal representation of
 	 * neurons and the holder of shared pointers. For other references use
 	 * weak or raw pointers. This should always be filled to the current body.
+	 * Maps from a (bodyPartId, IoId) pair to a neuron shared pointer.
 	 */
-	std::map<std::pair<std::string,int>,boost::shared_ptr<NeuronRepresentation>
-	> neurons_;
+	NeuronMap neurons_;
 
 	/**
 	 * Connections of the neural network. Use the ids of neurons as keys.
 	 */
-	std::map<std::pair<std::string,std::string>, double>
-	weights_;
+	WeightMap weights_;
 
 	// DONT FORGET TO COMPLETE ASSIGNMENT OPERATOR WHEN ADDING NEW PROPERTIES!!!
 };

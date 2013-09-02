@@ -1,5 +1,5 @@
 /*
- * @(#) Selector.h   1.0   Sep 1, 2013
+ * @(#) Selector.cpp   1.0   Sep 1, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
  *
