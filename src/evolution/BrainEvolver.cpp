@@ -29,6 +29,7 @@
 #include <boost/shared_ptr.hpp>
 #include "evolution/representation/RobotRepresentation.h"
 #include "evolution/engine/EvolverConfiguration.h"
+#include "evolution/engine/EvolverLog.h"
 #include "evolution/engine/Population.h"
 #include "evolution/engine/Selector.h"
 #include "evolution/engine/Mutator.h"
@@ -51,6 +52,7 @@ int main(int argc, char *argv[]){
 	// set up evolution
 	Selector s(conf.numSelect,rng);
 	Mutator m(conf.pBrainMutate, conf.brainSigma, conf.pBrainCrossover, rng);
+	EvolverLog log;
 
 	// parse robot from file & initialize population
 	RobotRepresentation referenceBot(conf.referenceRobotFile);
@@ -69,10 +71,12 @@ int main(int argc, char *argv[]){
 
 	// run evolution TODO stopping criterion
 	current->evaluate(sockets);
-	for (unsigned int i=0; i<conf.numGenerations; i++){
+	log.logGeneration(1,*current.get());
+	for (unsigned int i=2; i<conf.numGenerations; i++){
 		next = s.select(current); // TODO silly swap. Can we do without?
 		current = next;
 		m.mutateCrossover(*current.get());
 		current->evaluate(sockets);
+		log.logGeneration(i,*current.get());
 	}
 }

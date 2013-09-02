@@ -91,6 +91,12 @@ public:
 	 */
 	boost::shared_ptr<RobotRepresentation> getRobot(int n);
 
+	/**
+	 * Sets the passed references to best, average and standard deviation.
+	 * Requires the population to be evaluated.
+	 */
+	void getStat(double &best, double &average, double &stdev) const;
+
 private:
 	/**
 	 * The population: the robots, with their fitness. If evaluated, this shall
@@ -102,6 +108,21 @@ private:
 	 * Are all robots evaluated?
 	 */
 	bool evaluated_;
+
+	/**
+	 * Best fitness
+	 */
+	double best_;
+
+	/**
+	 * Average fitness
+	 */
+	double average_;
+
+	/**
+	 * Standard deviation of fitness
+	 */
+	double std_;
 };
 
 } /* namespace robogen */

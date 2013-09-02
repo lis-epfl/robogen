@@ -28,6 +28,12 @@
 
 #include "evolution/engine/Population.h"
 #include <algorithm>
+#include <math.h>
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/max.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
 #include "robogen.pb.h"
 #include "utils/network/ProtobufPacket.h"
 
@@ -121,19 +127,36 @@ void Population::evaluate(std::vector<TcpSocket*> &sockets){
 			}
 		}
 	}
-	evaluated_ = true;
 	// sort individuals by fitness, descending
 	std::sort(robots_.begin(), robots_.end(), operator >);
-	std::cout << "Fitnesses:" << std::endl;
-	for (unsigned int i=0; i<robots_.size(); i++){
-		std::cout << robots_[i].fitness << " ";
-	}
-	std::cout << std::endl;
+
+	// calculate best, average and std
+	boost::accumulators::accumulator_set<double,
+	boost::accumulators::stats<boost::accumulators::tag::mean,
+	boost::accumulators::tag::variance,
+	boost::accumulators::tag::max> > acc;
+	for (unsigned int i=0; i<robots_.size(); i++) acc(robots_[i].fitness);
+	best_ = boost::accumulators::max(acc);
+	average_ = boost::accumulators::mean(acc);
+	std_ = std::sqrt((double)boost::accumulators::variance(acc));
+	evaluated_ = true;
+
+	std::cout << "Best: " << best_ << " Average: " << average_ << " STD: " <<
+			std_ << std::endl;
 }
 
 std::vector<Individual> &Population::orderedEvaluatedRobots(){
 	// TODO throw population exception if not evaluated
 	return robots_;
+}
+
+void Population::getStat(double &best, double &average, double &stdev) const{
+	if (!evaluated_){
+		// TODO throw exception
+	}
+	best = best_;
+	average = average_;
+	stdev = std_;
 }
 
 } /* namespace robogen */
