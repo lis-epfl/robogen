@@ -106,6 +106,9 @@ target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
 add_executable(evolution-test evolutionTest.cpp)
 target_link_libraries(evolution-test robogen ${ROBOGEN_DEPENDENCIES})
 
+add_executable(robogen-brain-evolver evolution/BrainEvolver.cpp)
+target_link_libraries(robogen-brain-evolver robogen ${ROBOGEN_DEPENDENCIES})
+
 add_executable(robogen-test test.cpp)
 target_link_libraries(robogen-test robogen ${ROBOGEN_DEPENDENCIES})
 
