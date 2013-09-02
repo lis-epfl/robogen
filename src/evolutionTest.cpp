@@ -19,26 +19,17 @@ using namespace robogen;
 
 int main(){
 	RobotRepresentation test("evolutionTest.txt");
-	std::cout << "Now creating copy" << std::endl;
-	RobotRepresentation copy(test);
-	std::cout << "Now assigning" << std::endl;
-	RobotRepresentation assign("evolutionTest.txt");
-	assign = test;
-	std::cout << "Now creating population" << std::endl;
 	boost::random::mt19937 rng;
-	boost::shared_ptr<Population> pop(new Population(test,8,rng));
+	boost::shared_ptr<Population> pop(new Population(test,48,rng));
+	boost::shared_ptr<Population> current(pop), next;
 
-	std::cout << "Now creating message" << std::endl;
-	robogenMessage::Robot message = pop->getRobot(7)->serialize();
-
-	std::cout << "Now writing message" << std::endl;
+	/*std::cout << "Now writing message" << std::endl;
 	std::string fileName("evolutionTest.dat");
 	std::ofstream curRobotFile(fileName.c_str(),std::ios::out|std::ios::binary|
 			std::ios::trunc);
 	message.SerializeToOstream(&curRobotFile);
-	curRobotFile.close();
+	curRobotFile.close();*/
 
-	std::cout << "Now evaluating population" << std::endl;
 	std::vector<TcpSocket*> sockets(4);
 	for (int i=0; i<4; i++){
 		sockets[i] = new TcpSocket;
@@ -47,18 +38,17 @@ int main(){
 		else
 			std::cout << "Could not open connection to Simulator Server!" << std::endl;
 	}
+
 	pop->evaluate(sockets);
 
-	std::cout << "Now selecting from evaluated population" << std::endl;
 	Selector s(3,rng);
-	boost::shared_ptr<Population> pop2(s.select(pop));
-
-	std::cout << "Now mutating new population" << std::endl;
-	Mutator m(0.1, 0.1, 0.1, rng);
-	m.mutateCrossover(*pop2.get());
-
-	std::cout << "Now evaluating new population" << std::endl;
-	pop2->evaluate(sockets);
+	Mutator m(0.05, 0.7, 0.1, rng);
+	for (int i=0; i<10; i++){
+		next = s.select(current);
+		current = next;
+		m.mutateCrossover(*current.get());
+		current->evaluate(sockets);
+	}
 }
 
 

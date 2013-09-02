@@ -54,8 +54,15 @@ Population::Population(RobotRepresentation &robot, int popSize,
 	evaluated_ = false;
 }
 
-Population::Population(std::vector<Individual> &robots) : robots_(robots),
-		evaluated_(true){
+Population::Population(std::vector<Individual> &robots) : evaluated_(true){
+	// need to explicitly call copy constructor!!! This is puzzling...
+	robots_.clear();
+	robots_.resize(robots.size());
+	for (unsigned int i=0; i<robots.size(); i++){
+		robots_[i] = robots[i];
+		robots_[i].robot = boost::shared_ptr<RobotRepresentation>(
+				new RobotRepresentation(*robots[i].robot.get()));
+	}
 }
 
 Population::~Population() {
@@ -109,9 +116,6 @@ void Population::evaluate(std::vector<TcpSocket*> &sockets){
 				exit(EXIT_FAILURE);
 			}
 			else {
-				std::cout << "Fitness value for Ind: " << i+j
-						<< " = " << resultPacket.getMessage()->fitness() <<
-						std::endl;
 				robots_[i+j].fitness = resultPacket.getMessage()->fitness();
 				robots_[i+j].evaluated = true;
 			}
@@ -120,9 +124,11 @@ void Population::evaluate(std::vector<TcpSocket*> &sockets){
 	evaluated_ = true;
 	// sort individuals by fitness, descending
 	std::sort(robots_.begin(), robots_.end(), operator >);
-	for (int i=0; i<robots_.size(); i++){
-		std::cout << robots_[i].fitness << std::endl;
+	std::cout << "Fitnesses:" << std::endl;
+	for (unsigned int i=0; i<robots_.size(); i++){
+		std::cout << robots_[i].fitness << " ";
 	}
+	std::cout << std::endl;
 }
 
 std::vector<Individual> &Population::orderedEvaluatedRobots(){
