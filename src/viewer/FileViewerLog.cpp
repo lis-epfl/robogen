@@ -65,13 +65,6 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 		throw std::string("Can't open motor log file");
 	}
 
-	// open time log
-	std::string timeLogPath = logPathSs.str() + "/" + TIME_LOG_FILE;
-	timeLog_.open(timeLogPath.c_str());
-	if (!timeLog_.is_open()){
-		throw std::string("Can't open time log file");
-	}
-
 	// copy robot file
 	boost::filesystem::path robotFrom(robotFile);
 	boost::filesystem::path robotTo(logPathSs.str()+"/"
@@ -151,14 +144,6 @@ void FileViewerLog::logMotors(float motorValues[], int n){
 	for (int i=0; i<n; i++)
 		motorLog_ << std::setw(LOG_COL_WIDTH) << motorValues[i] << " ";
 	motorLog_ << std::endl;
-}
-
-void FileViewerLog::logTimeInit(){
-	timer_.reset(new boost::timer::auto_cpu_timer(timeLog_, "%w\n"));
-}
-
-void FileViewerLog::logTime(){
-	timer_.reset();
 }
 
 }

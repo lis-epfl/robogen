@@ -25,6 +25,7 @@ endif ()
 endif (UNIX)
 
 if (APPLE)
+    set(UTILS_PATH "/usr/local")
 
 	# ZLIB
 	set (ZLIB_ROOT ${UTILS_PATH})
