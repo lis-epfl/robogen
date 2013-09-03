@@ -67,8 +67,9 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 
 	// copy robot file
 	boost::filesystem::path robotFrom(robotFile);
-	boost::filesystem::path robotTo(logPathSs.str()+"/"
-			+robotFrom.filename().native());
+	std::stringstream ss;
+	ss << logPathSs.str() << "/" << robotFrom.filename().string();
+	boost::filesystem::path robotTo(ss.str());
 	try{
 		boost::filesystem::copy_file(robotFrom, robotTo);
 	} catch (boost::filesystem::filesystem_error &err){
@@ -76,8 +77,9 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	}
 	// copy configuration file
 	boost::filesystem::path confFrom(confFile);
-	boost::filesystem::path confTo(logPathSs.str()+"/"
-			+confFrom.filename().native());
+	ss.str(""); ss.clear();
+	ss << logPathSs.str() << "/" << confFrom.filename().string();
+	boost::filesystem::path confTo(ss.str());
 	try{
 		boost::filesystem::copy_file(confFrom, confTo);
 	} catch (boost::filesystem::filesystem_error &err){
@@ -85,8 +87,9 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	}
 	// copy obstacle file
 	boost::filesystem::path obsFrom(obstacleFile);
-	boost::filesystem::path obsTo(logPathSs.str()+"/"
-			+obsFrom.filename().native());
+	ss.str(""); ss.clear();
+	ss << logPathSs.str() << "/" << obsFrom.filename().string();
+	boost::filesystem::path obsTo(ss.str());
 	try{
 		boost::filesystem::copy_file(obsFrom, obsTo);
 	} catch (boost::filesystem::filesystem_error &err){
@@ -94,8 +97,9 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	}
 	// copy starting position file
 	boost::filesystem::path staPoFrom(startPosFile);
-	boost::filesystem::path staPoTo(logPathSs.str()+"/"
-			+staPoFrom.filename().native());
+	ss.str(""); ss.clear();
+	ss << logPathSs.str() << "/" << staPoFrom.filename().string();
+	boost::filesystem::path staPoTo(ss.str());
 	try{
 		boost::filesystem::copy_file(staPoFrom, staPoTo);
 	} catch (boost::filesystem::filesystem_error &err){
@@ -104,8 +108,9 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 
 	// copy octave script TODO copy any .m files maybe?
 	boost::filesystem::path octFrom(OCTAVE_SCRIPT);
-	boost::filesystem::path octTo(logPathSs.str()+"/"
-			+octFrom.filename().native());
+	ss.str(""); ss.clear();
+	ss << logPathSs.str() << "/" << octFrom.filename().string();
+	boost::filesystem::path octTo(ss.str());
 	try{
 		boost::filesystem::copy_file(octFrom, octTo);
 	} catch (boost::filesystem::filesystem_error &err){
