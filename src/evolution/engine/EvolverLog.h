@@ -38,9 +38,11 @@ class EvolverLog {
 public:
 	/**
 	 * Initiate evolver log. Creates a directory according to the current time
-	 * and BestAvgStd.txt .
+	 * with BestAvgStd.txt inside and a copy of the generating configuration
+	 * file.
+	 * @param confFile evolution configuration file
 	 */
-	EvolverLog();
+	EvolverLog(std::string confFile);
 
 	virtual ~EvolverLog();
 
@@ -51,6 +53,10 @@ public:
 	void logGeneration(int step, const Population &population);
 
 private:
+	/**
+	 * Log directory
+	 */
+	std::string logPath_;
 	/**
 	 * File stream to BestAvgStd.txt
 	 */

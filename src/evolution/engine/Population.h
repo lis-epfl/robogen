@@ -86,6 +86,11 @@ public:
 	std::vector<Individual> &orderedEvaluatedRobots();
 
 	/**
+	 * @return Best robot of the population
+	 */
+	boost::shared_ptr<RobotRepresentation> bestRobot() const;
+
+	/**
 	 * Only for debugging purposes: Obtain some robot representation
 	 * @param n robot to get
 	 * @note does not perform bounds test

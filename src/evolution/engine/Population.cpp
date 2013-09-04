@@ -152,6 +152,13 @@ std::vector<Individual> &Population::orderedEvaluatedRobots(){
 	return robots_;
 }
 
+boost::shared_ptr<RobotRepresentation> Population::bestRobot() const{
+	if (!evaluated_){
+		// TODO throw exception
+	}
+	return robots_[0].robot;
+}
+
 void Population::getStat(double &best, double &average, double &stdev) const{
 	if (!evaluated_){
 		// TODO throw exception

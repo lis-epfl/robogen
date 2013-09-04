@@ -38,9 +38,9 @@ namespace robogen {
 #define LOG_DIRECTORY_PREFIX "BrainEvolution_"
 #define LOG_DIRECTORY_FACET "%Y%m%d-%H%M%S"
 #define BAS_LOG_FILE "BestAvgStd.txt"
-#define LOG_COL_WIDTH 12
+#define GENERATION_BEST_PREFIX "GenerationBest-"
 
-EvolverLog::EvolverLog() {
+EvolverLog::EvolverLog(std::string confFile) {
 	// create log directory with time stamp
 	std::stringstream logPathSs;
 	logPathSs << LOG_DIRECTORY_PREFIX;
@@ -48,6 +48,7 @@ EvolverLog::EvolverLog() {
 			new boost::posix_time::time_facet(LOG_DIRECTORY_FACET);
 	logPathSs.imbue(std::locale(std::cout.getloc(), myFacet));
 	logPathSs << boost::posix_time::second_clock::local_time();
+	logPath_ = logPathSs.str();
 	boost::filesystem::path logPath(logPathSs.str());
 	try{
 		boost::filesystem::create_directories(logPath);
@@ -64,16 +65,34 @@ EvolverLog::EvolverLog() {
 		//TODO throw EvolverLogError
 		throw std::string("Can't open Best/Average/STD log file");
 	}
+
+	// copy evolution configuration file
+	// not copying simulator config file, as hard to also get obstacles and
+	// startpos - though probably worth it - so TODO (along with robot)
+	boost::filesystem::path confFrom(confFile);
+	std::stringstream ss;
+	ss << logPath_ << "/" << confFrom.filename().string();
+	boost::filesystem::path confTo(ss.str());
+	boost::filesystem::copy_file(confFrom, confTo);
 }
 
 EvolverLog::~EvolverLog() {
 }
 
 void EvolverLog::logGeneration(int step, const Population &population){
+	// log best, avg, stddev
 	double best,average,stdev;
 	population.getStat(best,average,stdev);
-	bestAvgStd_ << std::setw(LOG_COL_WIDTH) << step << " " << best << " " <<
+	bestAvgStd_ << step << " " << best << " " <<
 			average << " "  << stdev << std::endl;
+	// save robot file of best robot
+	std::stringstream ss;
+	ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".dat";
+	std::ofstream curRobotFile(ss.str().c_str(),std::ios::out|std::ios::binary|
+				std::ios::trunc);
+	boost::shared_ptr<RobotRepresentation> bestRobot = population.bestRobot();
+	bestRobot->serialize().SerializeToOstream(&curRobotFile);
+	curRobotFile.close();
 }
 
 } /* namespace robogen */

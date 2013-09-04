@@ -52,7 +52,7 @@ int main(int argc, char *argv[]){
 	// set up evolution
 	Selector s(conf.numSelect,rng);
 	Mutator m(conf.pBrainMutate, conf.brainSigma, conf.pBrainCrossover, rng);
-	EvolverLog log;
+	boost::shared_ptr<EvolverLog>log(new EvolverLog(std::string(argv[1])));
 
 	// parse robot from file & initialize population
 	RobotRepresentation referenceBot(conf.referenceRobotFile);
@@ -71,12 +71,12 @@ int main(int argc, char *argv[]){
 
 	// run evolution TODO stopping criterion
 	current->evaluate("conf_center.txt",sockets);
-	log.logGeneration(1,*current.get());
+	log->logGeneration(1,*current.get());
 	for (unsigned int i=2; i<conf.numGenerations; i++){
 		next = s.select(current); // TODO silly swap. Can we do without?
 		current = next;
 		m.mutateCrossover(*current.get());
 		current->evaluate(conf.simulatorConfFile,sockets);
-		log.logGeneration(i,*current.get());
+		log->logGeneration(i,*current.get());
 	}
 }
