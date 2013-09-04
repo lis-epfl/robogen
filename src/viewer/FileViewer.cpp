@@ -29,10 +29,12 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <boost/filesystem.hpp>
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
 #include "config/ConfigurationReader.h"
 #include "config/RobogenConfig.h"
+#include "evolution/representation/RobotRepresentation.h"
 #include "scenario/Scenario.h"
 #include "scenario/ScenarioFactory.h"
 #include "utils/network/ProtobufPacket.h"
@@ -147,23 +149,40 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 	// Robot decoding
 	// ---------------------------------------
-	std::ifstream robotFile(argv[1], std::ios::binary);
-	if (!robotFile.is_open()) {
-		std::cout << "Cannot open " << std::string(argv[1]) << ". Quit."
-				<< std::endl;
+	robogenMessage::Robot robotMessage;
+	std::string robotFileString(argv[1]);
+	// case .dat file
+	if (boost::filesystem::path(argv[1]).extension().string() == ".dat"){
+		std::ifstream robotFile(argv[1], std::ios::binary);
+		if (!robotFile.is_open()) {
+			std::cout << "Cannot open " << std::string(argv[1]) << ". Quit."
+					<< std::endl;
+			return EXIT_FAILURE;
+		}
+
+		ProtobufPacket<robogenMessage::Robot> robogenPacket;
+
+		robotFile.seekg(0, robotFile.end);
+		unsigned int packetSize = robotFile.tellg();
+		robotFile.seekg(0, robotFile.beg);
+
+		std::vector<unsigned char> packetBuffer;
+		packetBuffer.resize(packetSize);
+		robotFile.read((char*) &packetBuffer[0], packetSize);
+		robogenPacket.decodePayload(packetBuffer);
+		robotMessage = *robogenPacket.getMessage().get();
+	}
+	// case .txt file
+	else if(boost::filesystem::path(argv[1]).extension().string() == ".txt"){
+		RobotRepresentation robot(robotFileString);
+		robotMessage = robot.serialize();
+	}
+	else{
+		std::cout << "File extension of provided robot file could not be "\
+				"resolved. Use .dat for robot messages and .txt for "\
+				"robot text files" << std::endl;
 		return EXIT_FAILURE;
 	}
-
-	ProtobufPacket<robogenMessage::Robot> robogenPacket;
-
-	robotFile.seekg(0, robotFile.end);
-	unsigned int packetSize = robotFile.tellg();
-	robotFile.seekg(0, robotFile.beg);
-
-	std::vector<unsigned char> packetBuffer;
-	packetBuffer.resize(packetSize);
-	robotFile.read((char*) &packetBuffer[0], packetSize);
-	robogenPacket.decodePayload(packetBuffer);
 
 	// ---------------------------------------
 	// Setup environment
@@ -179,7 +198,7 @@ int main(int argc, char *argv[]) {
 	// Generate Robot
 	// ---------------------------------------
 	boost::shared_ptr<Robot> robot(new Robot(odeWorld, odeSpace,
-			*robogenPacket.getMessage().get()));
+			robotMessage));
 
 	// Register sensors
 	std::vector<boost::shared_ptr<Sensor> > sensors = robot->getSensors();
