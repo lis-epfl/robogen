@@ -46,6 +46,26 @@ struct EvolverConfiguration {
 	void init(std::string confFileName);
 
 	/**
+	 * File for reference robot
+	 */
+	std::string referenceRobotFile;
+
+	/**
+	 * Configuration file for simulator
+	 */
+	std::string simulatorConfFile;
+
+	/**
+	 * Population size
+	 */
+	unsigned int populationSize;
+
+	/**
+	 * Amount of generations to be simulated
+	 */
+	unsigned int numGenerations;
+
+	/**
 	 * Amount of robots to be selected
 	 */
 	unsigned int numSelect;
@@ -64,21 +84,6 @@ struct EvolverConfiguration {
 	 * Probability of crossover among brains
 	 */
 	double pBrainCrossover;
-
-	/**
-	 * File for reference robot
-	 */
-	std::string referenceRobotFile;
-
-	/**
-	 * Population size
-	 */
-	unsigned int populationSize;
-
-	/**
-	 * Amount of generations to be simulated
-	 */
-	unsigned int numGenerations;
 
 	/**
 	 * Sockets to be used to connect to the server

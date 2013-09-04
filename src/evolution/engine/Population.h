@@ -70,11 +70,13 @@ public:
 	virtual ~Population();
 
 	/**
-	 * Evaluate the population using the given sockets to transmit the robot
-	 * to simulator instances in parallel. Then order the population by fitness.
-	 * @param
+	 * Evaluate the population using the given scenario config and the given
+	 * sockets to transmit the robot to simulator instances in parallel. Then
+	 * order the population by fitness.
+	 * @param confFile simulation configuration file
+	 * @param sockets a vector of Socket pointers. On each should be a simulator
 	 */
-	void evaluate(std::vector<TcpSocket*> &sockets);
+	void evaluate(std::string confFile, std::vector<TcpSocket*> &sockets);
 
 	/**
 	 * This function shall be used by the classes that act upon a population,

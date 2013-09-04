@@ -79,7 +79,8 @@ boost::shared_ptr<RobotRepresentation> Population::getRobot(int n){
 }
 
 // TODO use threads & load balancing to speed things up even further
-void Population::evaluate(std::vector<TcpSocket*> &sockets){
+void Population::evaluate(std::string confFile,
+		std::vector<TcpSocket*> &sockets){
 	for (unsigned int i=0; i<robots_.size(); i+=sockets.size()){
 		for (unsigned int j=0; j<sockets.size(); j++){
 			boost::shared_ptr<robogenMessage::Robot> rsp =
@@ -87,6 +88,7 @@ void Population::evaluate(std::vector<TcpSocket*> &sockets){
 							new robogenMessage::Robot(
 									robots_[i+j].robot->serialize()));
 
+			rsp->set_configuration(confFile);
 
 			ProtobufPacket<robogenMessage::Robot>	robotPacket(rsp);
 			std::vector<unsigned char> forgedMessagePacket;

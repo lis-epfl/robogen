@@ -273,14 +273,15 @@ boost::shared_ptr<PartRepresentation> RobotRepresentation::getBody(){
 
 robogenMessage::Robot RobotRepresentation::serialize(){
 	robogenMessage::Robot message;
-	// id TODO becasue no idea why
+	// id - this can probably be removed
 	message.set_id(1);
 	// body
 	bodyTree_->addSubtreeToBodyMessage(message.mutable_body(), true);
 	// brain
 	*(message.mutable_brain()) = neuralNetwork_->serialize();
-	// configuration TODO deal with this
-	message.set_configuration("conf_center.txt");
+	// configuration - void - IMO this does not belong here from an OO perspect.
+	// being set by the evolution engine when sending to the simulator
+	message.set_configuration("");
 	return message;
 }
 

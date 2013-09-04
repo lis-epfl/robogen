@@ -39,10 +39,14 @@ namespace robogen {
 void EvolverConfiguration::init(std::string confFileName) {
 	// boost-parse options
 	boost::program_options::options_description desc("Allowed options");
+	// DON'T AUTO-INDENT THE FOLLOWING ON ECLIPSE:
 	desc.add_options()
 		("referenceRobotFile",
 				boost::program_options::value<std::string>(&referenceRobotFile),
 				"Path to the reference robot file")
+		("simulatorConfFile",
+				boost::program_options::value<std::string>(&simulatorConfFile)
+				->required(), "Path to simulator configuration file")
 		("populationSize",
 				boost::program_options::value<unsigned int>(&populationSize)
 				->required(), "Size of population")
