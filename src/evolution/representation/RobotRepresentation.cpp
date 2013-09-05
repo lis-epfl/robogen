@@ -46,7 +46,7 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 		std::vector<double> &params){
 	// match (0 or more tabs)(digit) (type) (id) (orientation) (parameters)
 	static const boost::regex rx(
-			"^(\\t*)(\\d) ([A-Z]) ([^\\s]+) (\\d)([ \\d\\.]*)$");
+			"^(\\t*)(\\d) ([A-Z]) ([^\\s]+) (\\d)([ \\d\\.-]*)$");
 	boost::cmatch match;
 	std::string line;
 	std::getline(file, line);
@@ -89,7 +89,7 @@ bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
 		int &fromIoId, std::string &to, int &toIoId, double &value){
 	// TODO with this regex, not sure if weight value is read
 	static const boost::regex rx(
-			"^([^\\s]+) (\\d+) ([^\\s]+) (\\d+) (\\d*\\.?\\d*)$");
+			"^([^\\s]+) (\\d+) ([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)$");
 	boost::cmatch match;
 	std::string line;
 	std::getline(file, line);
@@ -126,7 +126,7 @@ bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
 bool robotTextFileReadBiasLine(std::ifstream &file, std::string &node,
 		int &ioId, double &value){
 	// TODO with this regex, not sure if bias value is read
-	static const boost::regex rx("^([^\\s]+) (\\d+) (\\d*\\.?\\d*)$");
+	static const boost::regex rx("^([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)$");
 	boost::cmatch match;
 	std::string line;
 	std::getline(file, line);
@@ -142,7 +142,7 @@ bool robotTextFileReadBiasLine(std::ifstream &file, std::string &node,
 		static const boost::regex spacex("^\\s*$");
 		if (!boost::regex_match(line.c_str(),spacex)){
 			std::stringstream ss;
-			ss << "Error reading brain weight from text file. Received:\n" <<
+			ss << "Error reading brain bias from text file. Received:\n" <<
 					line << "\nbut expected format:\n" <<
 					"<part id string> <part io id> "\
 					"<bias>";
@@ -221,7 +221,7 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 			parentStack.push(current);
 		}
 		// indentation: done adding children to top of parent stack
-		if (indent<(parentStack.size())){
+		for (;indent<(parentStack.size());){
 			parentStack.pop();
 		}
 		current = PartRepresentation::create(type,id,orientation,params);
