@@ -210,10 +210,10 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
             length = evolvableParameter.paramvalue();
          } else if (evolvableParameter.paramname().compare(
                std::string(PARAM_PARAMETRIC_BRICK_ALPHA)) == 0) {
-            alpha = evolvableParameter.paramvalue();
+            alpha = osg::inDegrees(evolvableParameter.paramvalue());
          } else if (evolvableParameter.paramname().compare(
                std::string(PARAM_PARAMETRIC_BRICK_BETA)) == 0) {
-            beta = evolvableParameter.paramvalue();
+            beta = osg::inDegrees(evolvableParameter.paramvalue());
          }
       }
 

@@ -16,8 +16,8 @@ ParametricBarJointRepresentation::ParametricBarJointRepresentation(
 				"parametricbrick"){
 	params_["length"] = length;
 	// read in as degree, but save as radians
-	params_["inclinationangle"] = osg::inDegrees(inclination);
-	params_["rotationangle"] = osg::inDegrees(rotation);
+	params_["inclinationangle"] = inclination;
+	params_["rotationangle"] = rotation;
 }
 
 ParametricBarJointRepresentation::~ParametricBarJointRepresentation() {
