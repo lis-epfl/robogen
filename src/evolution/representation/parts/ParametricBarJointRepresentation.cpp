@@ -6,6 +6,7 @@
  */
 
 #include "evolution/representation/parts/ParametricBarJointRepresentation.h"
+#include <osg/Vec3>
 
 namespace robogen {
 
@@ -14,8 +15,9 @@ ParametricBarJointRepresentation::ParametricBarJointRepresentation(
 		double rotation) : PartRepresentation(id, orientation, 1,
 				"parametricbrick"){
 	params_["length"] = length;
-	params_["inclinationangle"] = inclination;
-	params_["rotationangle"] = rotation;
+	// read in as degree, but save as radians
+	params_["inclinationangle"] = osg::inDegrees(inclination);
+	params_["rotationangle"] = osg::inDegrees(rotation);
 }
 
 ParametricBarJointRepresentation::~ParametricBarJointRepresentation() {

@@ -62,6 +62,10 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
       boost::shared_ptr<Model> b, unsigned int slotB, float orientation,
       dJointGroupID connectionJointGroup, dWorldID odeWorld) {
 
+	// Mandatory debug output
+	std::cout << "Connecting " << a->getId() << " to " << b->getId() <<
+			std::endl;
+
    // 1) Rotate slotAxis of B such that we obtain a normal pointing inward the body
    osg::Vec3 bSlotAxis = b->getSlotAxis(slotB);
    osg::Vec3 bSlotAxisInv = -bSlotAxis;
@@ -88,19 +92,26 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
    }
 
    // 4) At this point we need to orient the slots to the "zero" orientation
+
+   // Basically, we could instantiate a Quat that aligns the two orientation
+   // vectors, however, there is the very unfortunate special case when they are
+   // antiparallel - in which it is not guaranteed that the axis is parallel to
+   // the slot axis. What we do thus is extracting the angle and then rotating
+   // about the slot axis ourselves.
    osg::Vec3 bSlotOrientation = b->getSlotOrientation(slotB);
    osg::Vec3 aSlotOrientation = a->getSlotOrientation(slotA);
-   double angle; osg::Vec3 temp; osg::Quat temp1;
-   temp1.makeRotate(aSlotOrientation, bSlotOrientation);
-   temp1.getRotate(angle, temp);
-
-   std::cout << "Angle: " << angle*180/M_PI << std::endl;
-
-   // MUST rotate according to aSlotMatrix, else could misalign the slot normals again
-   // in case of singularity
    osg::Vec3 aSlotAxis = a->getSlotAxis(slotA);
+   double angle; osg::Vec3 rotAxis; osg::Quat alignRot;
+   alignRot.makeRotate(aSlotOrientation, bSlotOrientation);
+   alignRot.getRotate(angle, rotAxis);
+   // note: in quat, angles are always positive, axis direction determines
+   // direction
+   if (RobogenUtils::areAxisParallel(aSlotAxis, -rotAxis)){
+	   angle *= -1;
+   }
+   std::cout << "Angle: " << angle*180/M_PI << std::endl;
    osg::Quat slotAlignRotation;
-   slotAlignRotation.makeRotate(-angle, aSlotAxis);
+   slotAlignRotation.makeRotate(angle, aSlotAxis);
 
 
     std::cout << "bSlotOrientation: " << bSlotOrientation << std::endl;

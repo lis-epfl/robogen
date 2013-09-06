@@ -51,13 +51,14 @@ void odeCollisionCallback(void*, dGeomID o1, dGeomID o2) {
 	dContact contact[MAX_CONTACTS];
 	for (int i = 0; i < MAX_CONTACTS; i++) {
 
-		contact[i].surface.mode = dContactBounce /*| dContactSoftERP | dContactSoftCFM*/;
+		// possibilities: dContactBounce | dContactSoftERP | dContactSoftCFM;
+		contact[i].surface.mode = 0;
 		contact[i].surface.mu = dInfinity;
 		contact[i].surface.mu2 = 0;
-		contact[i].surface.bounce = 0.01;
-		contact[i].surface.bounce_vel = 0.1;
-		contact[i].surface.soft_cfm = 0.0001;
-		contact[i].surface.soft_erp = 0.8;
+		// contact[i].surface.bounce = 0.01;
+		// contact[i].surface.bounce_vel = 0.1;
+		// contact[i].surface.soft_cfm = 0.0001;
+		// contact[i].surface.soft_erp = 0.8;
 
 	}
 
