@@ -437,6 +437,11 @@ int main(int argc, char* argv[]) {
 						// Simulator finalization
 						// ---------------------------------------
 
+						// Destroy robot (because of associated ODE joint group)
+						robot.reset();
+						// has shared pointer in scenario, so destroy that too
+						scenario->prune();
+
 						// Destroy ODE space
 						dSpaceDestroy(odeSpace);
 

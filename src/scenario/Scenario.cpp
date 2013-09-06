@@ -139,6 +139,14 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 	return true;
 }
 
+void Scenario::prune(){
+	odeWorld_ = 0;
+	odeSpace_ = 0;
+	robot_.reset();
+	terrain_.reset();
+	obstacles_.clear();
+}
+
 std::vector<boost::shared_ptr<BoxObstacle> > Scenario::getObstacles() {
 	return obstacles_;
 }

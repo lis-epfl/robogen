@@ -47,7 +47,7 @@ public:
 	};
 
 	/**
-	 * Initializes a robogen config object TODO put lightSourceHeight in terr?
+	 * Initializes a robogen config object
 	 */
 	RobogenConfig(SimulationScenario scenario, unsigned int timeSteps,
 			float timeStepLength, boost::shared_ptr<TerrainConfig> terrain,

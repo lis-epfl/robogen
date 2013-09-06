@@ -32,6 +32,9 @@
 
 namespace robogen {
 
+EvolverConfigurationException::EvolverConfigurationException(
+		const std::string& w) : std::runtime_error(w){}
+
 /**
  * Parses options from given conf file.
  * @todo default values

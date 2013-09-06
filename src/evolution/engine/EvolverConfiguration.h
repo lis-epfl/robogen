@@ -32,8 +32,14 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <stdexcept>
 
 namespace robogen {
+
+class EvolverConfigurationException : public std::runtime_error {
+public:
+	EvolverConfigurationException(const std::string& w);
+};
 
 /**
  * The choice is made to use a struct as we want to easily write access to new
