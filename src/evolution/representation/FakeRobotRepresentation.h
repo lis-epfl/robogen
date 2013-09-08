@@ -1,5 +1,5 @@
 /*
- * @(#) RobotRepresentation.h   1.0   Sep 8, 2013
+ * @(#) FakeRobotRepresentation.h   1.0   Sep 8, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
  *

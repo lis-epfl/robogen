@@ -42,6 +42,9 @@
 
 namespace robogen {
 
+PopulationException::PopulationException(const std::string& w) :
+						std::runtime_error(w){}
+
 /**
  * Used for ordering individuals by fitness
  */
@@ -109,7 +112,12 @@ void Population::evaluate(std::string confFile,
 	std::queue<Individual*> indiQueue;
 	boost::mutex queueMutex;
 	for (unsigned int i=0; i<robots_.size(); i++){
-		indiQueue.push(&robots_[i]);
+		if (!robots_[i].evaluated){
+			indiQueue.push(&robots_[i]);
+		}
+		else{
+			std::cout << "." << std::flush;
+		}
 	}
 
 	// 2. Prepare thread structure
@@ -139,26 +147,28 @@ void Population::evaluate(std::string confFile,
 	average_ = boost::accumulators::mean(acc);
 	std_ = std::sqrt((double)boost::accumulators::variance(acc));
 	evaluated_ = true;
-
-	std::cout << "Best: " << best_ << " Average: " << average_ << " STD: " <<
-			std_ << std::endl;
 }
 
 std::vector<Individual> &Population::orderedEvaluatedRobots(){
-	// TODO throw population exception if not evaluated
+	if (!evaluated_){
+		throw PopulationException("Trying to get ordered individuals from"\
+				" non-evaluated population!");
+	}
 	return robots_;
 }
 
-boost::shared_ptr<RobotRepresentation> Population::bestRobot() const{
+Individual Population::best() const{
 	if (!evaluated_){
-		// TODO throw exception
+		throw PopulationException("Trying to get best individual from"\
+				" non-evaluated population!");
 	}
-	return robots_[0].robot;
+	return robots_[0];
 }
 
 void Population::getStat(double &best, double &average, double &stdev) const{
 	if (!evaluated_){
-		// TODO throw exception
+		throw PopulationException("Trying to get statistics from non-evaluated"\
+				" population!");
 	}
 	best = best_;
 	average = average_;

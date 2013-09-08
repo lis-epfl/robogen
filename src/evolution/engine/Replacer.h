@@ -1,5 +1,5 @@
 /*
- * @(#) Selector.cpp   1.0   Sep 1, 2013
+ * @(#) Replacer.h   1.0   Sep 8, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
  *
@@ -26,32 +26,38 @@
  * @(#) $Id$
  */
 
-#include <vector>
-#include <iostream>
-#include "evolution/engine/Selector.h"
+#ifndef REPLACER_H_
+#define REPLACER_H_
+
+#include "evolution/engine/Population.h"
 
 namespace robogen {
 
-Selector::Selector(int n, boost::random::mt19937 &rng) : nselected_(n),
-		rng_(rng) {
-}
+/**
+ * Implements Replacement in the evolution process.
+ */
+class Replacer {
+public:
+	/**
+	 * Creates a replacer that replaces the n worst individuals of the old
+	 * population with the n best of the new one.
+	 */
+	Replacer(unsigned int nReplace);
 
-void Selector::initPopulation(boost::shared_ptr<Population> pop){
-	pop_ = pop;
-	preselection_ = pop->orderedEvaluatedRobots();
-	preselection_.resize(nselected_);
-	iterator_ = 0;
-}
+	virtual ~Replacer();
 
-Selector::~Selector() {
-}
+	/**
+	 * Perform replacement on two evaluated populations.
+	 * @todo const previous, but non-const orderedEvaluatedRobots prevents
+	 */
+	void replace(Population *current, Population *previous);
 
-std::pair<Individual, Individual> Selector::select(){
-	iterator_ %= nselected_;
-	std::pair<Individual, Individual> retpair;
-	retpair.first = preselection_[iterator_++%nselected_];
-	retpair.second = preselection_[iterator_++%nselected_];
-	return retpair;
-}
+private:
+	/**
+	 * Amplitude of replacement
+	 */
+	unsigned int nReplace_;
+};
 
 } /* namespace robogen */
+#endif /* REPLACER_H_ */

@@ -77,6 +77,11 @@ struct EvolverConfiguration {
 	unsigned int numSelect;
 
 	/**
+	 * Amount of worst robots to be replaced with past best robots
+	 */
+	unsigned int numReplace;
+
+	/**
 	 * Probability of mutation for any single brain parameter
 	 */
 	double pBrainMutate;

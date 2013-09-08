@@ -31,6 +31,7 @@
 
 #include <vector>
 #include <utility>
+#include <stdexcept>
 #include <boost/shared_ptr.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include "evolution/representation/RobotRepresentation.h"
@@ -48,6 +49,11 @@ typedef struct{
 	double fitness;
 	bool evaluated;
 }Individual;
+
+class PopulationException : public std::runtime_error {
+public:
+	PopulationException(const std::string& w);
+};
 
 class Population {
 public:
@@ -88,7 +94,7 @@ public:
 	/**
 	 * @return Best robot of the population
 	 */
-	boost::shared_ptr<RobotRepresentation> bestRobot() const;
+	Individual best() const;
 
 	/**
 	 * Only for debugging purposes: Obtain some robot representation

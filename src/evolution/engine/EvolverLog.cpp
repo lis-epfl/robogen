@@ -27,6 +27,7 @@
  */
 
 #include "evolution/engine/EvolverLog.h"
+#include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/posix_time_io.hpp>
@@ -83,6 +84,8 @@ void EvolverLog::logGeneration(int step, const Population &population){
 	// log best, avg, stddev
 	double best,average,stdev;
 	population.getStat(best,average,stdev);
+	std::cout << "Best: " << best << " Average: " << average << " STD: " <<
+				stdev << std::endl;
 	bestAvgStd_ << step << " " << best << " " <<
 			average << " "  << stdev << std::endl;
 	// save robot file of best robot (don't do with fake robot representation)
@@ -91,7 +94,7 @@ void EvolverLog::logGeneration(int step, const Population &population){
 	ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".dat";
 	std::ofstream curRobotFile(ss.str().c_str(),std::ios::out|std::ios::binary|
 				std::ios::trunc);
-	boost::shared_ptr<RobotRepresentation> bestRobot = population.bestRobot();
+	boost::shared_ptr<RobotRepresentation> bestRobot = population.best().robot;
 	bestRobot->serialize().SerializeToOstream(&curRobotFile);
 	curRobotFile.close();
 #endif /* FAKEROBOTREPRESENTATION_H */

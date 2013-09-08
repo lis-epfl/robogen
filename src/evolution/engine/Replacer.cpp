@@ -1,5 +1,5 @@
 /*
- * @(#) Selector.cpp   1.0   Sep 1, 2013
+ * @(#) Replacer.cpp   1.0   Sep 8, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
  *
@@ -26,32 +26,22 @@
  * @(#) $Id$
  */
 
-#include <vector>
-#include <iostream>
-#include "evolution/engine/Selector.h"
+#include "evolution/engine/Replacer.h"
 
 namespace robogen {
 
-Selector::Selector(int n, boost::random::mt19937 &rng) : nselected_(n),
-		rng_(rng) {
+Replacer::Replacer(unsigned int nReplace) : nReplace_(nReplace) {
 }
 
-void Selector::initPopulation(boost::shared_ptr<Population> pop){
-	pop_ = pop;
-	preselection_ = pop->orderedEvaluatedRobots();
-	preselection_.resize(nselected_);
-	iterator_ = 0;
+Replacer::~Replacer() {
 }
 
-Selector::~Selector() {
-}
-
-std::pair<Individual, Individual> Selector::select(){
-	iterator_ %= nselected_;
-	std::pair<Individual, Individual> retpair;
-	retpair.first = preselection_[iterator_++%nselected_];
-	retpair.second = preselection_[iterator_++%nselected_];
-	return retpair;
+void Replacer::replace(Population *current, Population *previous){
+	std::vector<Individual> &cur = current->orderedEvaluatedRobots();
+	std::vector<Individual> &pre = previous->orderedEvaluatedRobots();
+	for (unsigned int i=0; i<nReplace_; i++){
+		cur[cur.size()-1-i] = pre[i];
+	}
 }
 
 } /* namespace robogen */

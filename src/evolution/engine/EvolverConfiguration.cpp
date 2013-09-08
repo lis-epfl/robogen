@@ -59,6 +59,9 @@ void EvolverConfiguration::init(std::string confFileName) {
 		("numSelect",
 				boost::program_options::value<unsigned int>(&numSelect),
 				"Amount of best individuals to be selected by rank")
+		("numReplace",
+				boost::program_options::value<unsigned int>(&numReplace),
+				"Amount of worst robots to be replaced with past best robots")
 		("pBrainMutate", boost::program_options::value<double>(&pBrainMutate),
 				"Probability of mutation for any single brain parameter")
 		("brainSigma", boost::program_options::value<double>(&brainSigma),
