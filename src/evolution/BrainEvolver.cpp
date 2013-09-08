@@ -63,10 +63,13 @@ int main(int argc, char *argv[]){
 	std::vector<TcpSocket*> sockets(conf.sockets.size());
 	for (unsigned int i=0; i<conf.sockets.size(); i++){
 		sockets[i] = new TcpSocket;
+#ifndef FAKEROBOTREPRESENTATION_H // do not bother with sockets when using
+		// benchmark
 		if(!sockets[i]->open(conf.sockets[i].first, conf.sockets[i].second)){
 			std::cout << "Could not open connection to simulator" << std::endl;
 			return EXIT_FAILURE;
 		}
+#endif
 	}
 
 	// run evolution TODO stopping criterion
