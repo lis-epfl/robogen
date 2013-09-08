@@ -35,17 +35,22 @@ Selector::Selector(int n, boost::random::mt19937 &rng) : nselected_(n),
 		rng_(rng) {
 }
 
+void Selector::initPopulation(boost::shared_ptr<Population> pop){
+	pop_ = pop;
+	preselection_ = pop->orderedEvaluatedRobots();
+	preselection_.resize(nselected_);
+	iterator_ = 0;
+}
+
 Selector::~Selector() {
 }
 
-boost::shared_ptr<Population> Selector::select(
-		boost::shared_ptr<Population> pop){
-	// gets individuals that are guaranteed to be ordered descending by fitness
-	std::vector<Individual> chosenOnes = pop->orderedEvaluatedRobots();
-	for (unsigned int i = nselected_; i<chosenOnes.size(); i++){
-		chosenOnes[i] = chosenOnes[i%nselected_];
-	}
-	return boost::shared_ptr<Population>(new Population(chosenOnes));
+std::pair<Individual, Individual> Selector::select(){
+	iterator_ %= nselected_;
+	std::pair<Individual, Individual> retpair;
+	retpair.first = preselection_[iterator_++%nselected_];
+	retpair.second = preselection_[iterator_++%nselected_];
+	return retpair;
 }
 
 } /* namespace robogen */

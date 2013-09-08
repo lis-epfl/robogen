@@ -50,12 +50,17 @@ public:
 	Selector(int n, boost::random::mt19937 &rng);
 
 	/**
-	 * Creates a new population from an old one according to the current
-	 * strategy.
+	 * Allows selector to perform pre-selection actions, i.e. select pool from
+	 * which selected individuals shall stem.
+	 */
+	void initPopulation(boost::shared_ptr<Population> pop);
+
+	/**
+	 * Selects two parents from a population
 	 * @param pop the old population
 	 * @return the new population
 	 */
-	boost::shared_ptr<Population> select(boost::shared_ptr<Population> pop);
+	std::pair<Individual, Individual> select();
 
 	virtual ~Selector();
 
@@ -69,6 +74,21 @@ private:
 	 * Random number generator to be used
 	 */
 	boost::random::mt19937 &rng_;
+
+	/**
+	 * Shared pointer to Population
+	 */
+	boost::shared_ptr<Population> pop_;
+
+	/**
+	 * Vector of individuals preselected in initialisation step
+	 */
+	std::vector<Individual> preselection_;
+
+	/**
+	 * Selection iterator through preselection
+	 */
+	int iterator_;
 };
 
 } /* namespace robogen */

@@ -72,10 +72,15 @@ int main(int argc, char *argv[]){
 	// run evolution TODO stopping criterion
 	current->evaluate("conf_center.txt",sockets);
 	log->logGeneration(1,*current.get());
-	for (unsigned int i=2; i<conf.numGenerations; i++){
-		next = s.select(current); // TODO silly swap. Can we do without?
-		current = next;
-		m.mutateCrossover(*current.get());
+	for (unsigned int i=2; i<=conf.numGenerations; i++){
+		std::vector<Individual> children;
+		s.initPopulation(current);
+		while (children.size() < conf.populationSize){
+			std::pair<Individual,Individual> offspring = m.mutate(s.select());
+			children.push_back(offspring.first);
+			children.push_back(offspring.second);
+		}
+		current.reset(new Population(children));
 		current->evaluate(conf.simulatorConfFile,sockets);
 		log->logGeneration(i,*current.get());
 	}

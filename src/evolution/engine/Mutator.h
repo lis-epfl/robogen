@@ -59,9 +59,10 @@ public:
 	virtual ~Mutator();
 
 	/**
-	 * Performs mutation and crossover on a population
+	 * Performs mutation and crossover on a pair of robots
 	 */
-	void mutateCrossover(Population &pop);
+	std::pair<Individual,Individual> mutate(
+			std::pair<Individual,Individual> parents);
 
 	/**
 	 * Mutates a single robot
@@ -69,14 +70,14 @@ public:
 	 * @todo specify bounds in the Neural Network, not here, e.g. with
 	 * a MutableDouble class
 	 */
-	bool mutate(RobotRepresentation &robot);
+	bool mutate(Individual &robot);
 
 	/**
 	 * Performs crossover between two robots
 	 * @return true if some crossover has been performed
 	 * @todo enable asymmetric crossover
 	 */
-	bool crossover(RobotRepresentation &a, RobotRepresentation &b);
+	bool crossover(Individual &a, Individual &b);
 
 private:
 	/**
