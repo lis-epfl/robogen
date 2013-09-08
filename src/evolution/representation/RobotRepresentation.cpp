@@ -27,6 +27,8 @@
  */
 
 #include "evolution/representation/RobotRepresentation.h"
+#ifndef FAKEROBOTREPRESENTATION_H
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -34,6 +36,7 @@
 #include <queue>
 #include <boost/regex.hpp>
 #include "evolution/representation/PartRepresentation.h"
+#include "utils/network/ProtobufPacket.h"
 
 namespace robogen{
 
@@ -267,10 +270,6 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 	file.close();
 }
 
-boost::shared_ptr<PartRepresentation> RobotRepresentation::getBody(){
-	return bodyTree_;
-}
-
 robogenMessage::Robot RobotRepresentation::serialize(){
 	robogenMessage::Robot message;
 	// id - this can probably be removed
@@ -285,13 +284,56 @@ robogenMessage::Robot RobotRepresentation::serialize(){
 	return message;
 }
 
+double RobotRepresentation::evaluate(TcpSocket *socket,
+		std::string simulatorConfFile){
+	// 1. Prepare message to simulator
+	boost::shared_ptr<robogenMessage::Robot> rsp =
+			boost::shared_ptr<robogenMessage::Robot>(
+					new robogenMessage::Robot(serialize()));
+	rsp->set_configuration(simulatorConfFile);
+	ProtobufPacket<robogenMessage::Robot>	robotPacket(rsp);
+	std::vector<unsigned char> forgedMessagePacket;
+	robotPacket.forge(forgedMessagePacket);
+
+	// 2. send message to simulator
+	socket->write(forgedMessagePacket);
+
+	// 3. receive message from simulator
+	ProtobufPacket<robogenMessage::EvaluationResult> resultPacket(
+			boost::shared_ptr<robogenMessage::EvaluationResult>(
+					new robogenMessage::EvaluationResult()) );
+	std::vector<unsigned char> responseMessage;
+	socket->read(responseMessage,
+			ProtobufPacket<robogenMessage::EvaluationResult>::HEADER_SIZE);
+	// Decode the Header and read the payload-message-size
+	size_t msgLen = resultPacket.decodeHeader(responseMessage);
+	responseMessage.clear();
+	// Read the fitness payload message
+	socket->read(responseMessage, msgLen);
+	// Decode the packet
+	resultPacket.decodePayload(responseMessage);
+
+	// 4. write fitness to individual TODO exception
+	if(!resultPacket.getMessage()->has_fitness()) {
+		std::cerr << "Fitness field not set by Simulator!!!" <<
+				std::endl;
+		exit(EXIT_FAILURE);
+	}
+	else {
+		return resultPacket.getMessage()->fitness();
+	}
+
+}
+
 void RobotRepresentation::randomizeBrain(boost::random::mt19937	&rng){
 	neuralNetwork_->initializeRandomly(rng);
 }
 
 void RobotRepresentation::getBrainGenome(std::vector<double*> &weights,
-			std::vector<double*> &biases){
+		std::vector<double*> &biases){
 	neuralNetwork_->getGenome(weights, biases);
 }
 
 }
+
+#endif /* usage of fake robot representation */

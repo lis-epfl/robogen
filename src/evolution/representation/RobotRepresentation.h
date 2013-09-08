@@ -29,6 +29,10 @@
 #ifndef ROBOTREPRESENTATION_H
 #define ROBOTREPRESENTATION_H
 
+#if 0
+#include "evolution/representation/FakeRobotRepresentation.h"
+#else
+
 #include <string>
 #include <set>
 #include <stdexcept>
@@ -38,6 +42,7 @@
 #include "robogen.pb.h"
 #include "evolution/representation/PartRepresentation.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
+#include "utils/network/TcpSocket.h"
 
 namespace robogen{
 
@@ -75,16 +80,15 @@ public:
 	RobotRepresentation(std::string robotTextFile);
 
 	/**
-	 * @return the root node of the body and thus the body tree
-	 * @todo is this even needed?
-	 */
-	boost::shared_ptr<PartRepresentation> getBody();
-
-	/**
 	 * @return robot message of this robot to be transmitted to simulator
 	 * or stored as population checkpoint
 	 */
 	robogenMessage::Robot serialize();
+
+	/**
+	 * @return fitness of the robot when exposed to the given scenario
+	 */
+	double evaluate(TcpSocket *socket, std::string simulatorConfFile);
 
 	/**
 	 * Initializes the brain to be completely random.
@@ -120,5 +124,7 @@ private:
 };
 
 }
+
+#endif /* usage of fake robot */
 
 #endif /* ROBOTREPRESENTATION_H */

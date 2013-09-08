@@ -1,0 +1,104 @@
+/*
+ * @(#) RobotRepresentation.h   1.0   Sep 8, 2013
+ *
+ * Titus Cieslewski (dev@titus-c.ch)
+ *
+ * The ROBOGEN Framework
+ * Copyright © 2013-2014 Titus Cieslewski
+ *
+ * Laboratory of Intelligent Systems, EPFL
+ *
+ * This file is part of the ROBOGEN Framework.
+ *
+ * The ROBOGEN Framework is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License (GPL)
+ * as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @(#) $Id$
+ */
+
+#ifndef FAKEROBOTREPRESENTATION_H
+#define FAKEROBOTREPRESENTATION_H
+
+#include <string>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+#include "robogen.pb.h"
+#include "utils/network/TcpSocket.h"
+
+namespace robogen{
+
+/**
+ * The goal of this class is to provide some object that is simple to mutate and
+ * evolve, according to Ilya's suggestion.
+ */
+class RobotRepresentation{
+public:
+	/**
+	 * Fake constructor
+	 */
+	RobotRepresentation(std::string robotTextFile){
+		array_.resize(100);
+	}
+
+	/**
+	 * Empty serialization
+	 */
+	robogenMessage::Robot serialize(){
+		robogenMessage::Robot message;
+		message.set_id(1);
+		message.set_configuration("");
+		message.mutable_body();
+		message.mutable_brain();
+		return message;
+	}
+
+	/**
+	 * @return fitness of string
+	 */
+	double evaluate(TcpSocket *socket, std::string conf){
+		double retval = 0.;
+		for (unsigned int i=0; i<array_.size(); i++){
+			retval -= array_[i]*array_[i];
+		}
+		return retval;
+	}
+
+	/**
+	 * Initialization
+	 */
+	void randomizeBrain(boost::random::mt19937	&rng){
+		boost::random::uniform_real_distribution<double> rand(0.,1.);
+		for (unsigned int i=0; i<array_.size(); i++){
+			array_[i] = rand(rng);
+		}
+	}
+
+	/**
+	 * Fake genome getter
+	 */
+	void getBrainGenome(std::vector<double*> &weights,
+			std::vector<double*> &biases){
+		weights.resize(50); biases.resize(50);
+		for (int i=0; i<50; i++){
+			weights[i] = &array_[i];
+			biases[i] = &array_[50 + i];
+		}
+	}
+
+private:
+	std::vector<double> array_;
+};
+
+}
+
+#endif /* FAKEROBOTREPRESENTATION_H */

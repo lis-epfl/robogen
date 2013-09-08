@@ -85,7 +85,8 @@ void EvolverLog::logGeneration(int step, const Population &population){
 	population.getStat(best,average,stdev);
 	bestAvgStd_ << step << " " << best << " " <<
 			average << " "  << stdev << std::endl;
-	// save robot file of best robot
+	// save robot file of best robot (don't do with fake robot representation)
+#ifndef FAKEROBOTREPRESENTATION_H
 	std::stringstream ss;
 	ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".dat";
 	std::ofstream curRobotFile(ss.str().c_str(),std::ios::out|std::ios::binary|
@@ -93,6 +94,7 @@ void EvolverLog::logGeneration(int step, const Population &population){
 	boost::shared_ptr<RobotRepresentation> bestRobot = population.bestRobot();
 	bestRobot->serialize().SerializeToOstream(&curRobotFile);
 	curRobotFile.close();
+#endif /* FAKEROBOTREPRESENTATION_H */
 }
 
 } /* namespace robogen */

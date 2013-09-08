@@ -97,44 +97,8 @@ void evaluationThread(std::queue<Individual*> *indiQueue,
 		std::cout << "." <<	std::flush;
 		lock.unlock();
 
-		// 1. Prepare message to simulator
-		boost::shared_ptr<robogenMessage::Robot> rsp =
-				boost::shared_ptr<robogenMessage::Robot>(
-						new robogenMessage::Robot(
-								current->robot->serialize()));
-		rsp->set_configuration(confFile);
-		ProtobufPacket<robogenMessage::Robot>	robotPacket(rsp);
-		std::vector<unsigned char> forgedMessagePacket;
-		robotPacket.forge(forgedMessagePacket);
-
-		// 2. send message to simulator
-		socket->write(forgedMessagePacket);
-
-		// 3. receive message from simulator
-		ProtobufPacket<robogenMessage::EvaluationResult> resultPacket(
-				boost::shared_ptr<robogenMessage::EvaluationResult>(
-						new robogenMessage::EvaluationResult()) );
-		std::vector<unsigned char> responseMessage;
-		socket->read(responseMessage,
-				ProtobufPacket<robogenMessage::EvaluationResult>::HEADER_SIZE);
-		// Decode the Header and read the payload-message-size
-		size_t msgLen = resultPacket.decodeHeader(responseMessage);
-		responseMessage.clear();
-		// Read the fitness payload message
-		socket->read(responseMessage, msgLen);
-		// Decode the packet
-		resultPacket.decodePayload(responseMessage);
-
-		// 4. write fitness to individual TODO exception
-		if(!resultPacket.getMessage()->has_fitness()) {
-			std::cerr << "Fitness field not set by Simulator!!!" <<
-					std::endl;
-			exit(EXIT_FAILURE);
-		}
-		else {
-			current->fitness = resultPacket.getMessage()->fitness();
-			current->evaluated = true;
-		}
+		current->fitness = current->robot->evaluate(socket, confFile);
+		current->evaluated = true;
 	}
 }
 
@@ -162,61 +126,10 @@ void Population::evaluate(std::string confFile,
 	// newline after per-individual dots
 	std::cout << std::endl;
 
-	/*
-	for (unsigned int i=0; i<robots_.size(); i+=sockets.size()){
-		for (unsigned int j=0; j<sockets.size(); j++){
-			boost::shared_ptr<robogenMessage::Robot> rsp =
-					boost::shared_ptr<robogenMessage::Robot>(
-							new robogenMessage::Robot(
-									robots_[i+j].robot->serialize()));
-
-			rsp->set_configuration(confFile);
-
-			ProtobufPacket<robogenMessage::Robot>	robotPacket(rsp);
-			std::vector<unsigned char> forgedMessagePacket;
-			robotPacket.forge(forgedMessagePacket);
-
-			// Write vector<unsigned char> to server
-			sockets[j]->write(forgedMessagePacket);
-		}
-
-		for (unsigned int j=0; j<sockets.size(); j++){
-			// Reading fitness packet from server
-			ProtobufPacket<robogenMessage::EvaluationResult> resultPacket(
-					boost::shared_ptr<robogenMessage::EvaluationResult>
-			(new robogenMessage::EvaluationResult()) );
-			std::vector<unsigned char> responseMessage;
-			// Wait to receive a vector<unsigned char> from server
-			sockets[j]->read(responseMessage,
-					ProtobufPacket<robogenMessage::EvaluationResult>::HEADER_SIZE);
-			// Decode the Header and read the payload-message-size
-			size_t msgLen = resultPacket.decodeHeader(responseMessage);
-			responseMessage.clear();
-			// Read the fitness payload message
-			sockets[j]->read(responseMessage, msgLen);
-			// Decode the packet
-			resultPacket.decodePayload(responseMessage);
-
-
-			// Obtain the fitness from the evaluationResponse message
-			// TODO exceptions
-			if(!resultPacket.getMessage()->has_fitness()) {
-				std::cerr << "Fitness field not set by Simulator!!!" <<
-						std::endl;
-				exit(EXIT_FAILURE);
-			}
-			else {
-				robots_[i+j].fitness = resultPacket.getMessage()->fitness();
-				robots_[i+j].evaluated = true;
-			}
-		}
-	}
-	*/
-
-	// sort individuals by fitness, descending
+	// 5. sort individuals by fitness, descending
 	std::sort(robots_.begin(), robots_.end(), operator >);
 
-	// calculate best, average and std
+	// 6. calculate best, average and std
 	boost::accumulators::accumulator_set<double,
 	boost::accumulators::stats<boost::accumulators::tag::mean,
 	boost::accumulators::tag::variance,
