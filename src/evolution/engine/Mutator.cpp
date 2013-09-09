@@ -76,7 +76,9 @@ bool Mutator::mutate(Individual &robot){
 			if (*weights[i]>1.) *weights[i] = 1.;
 			if (*weights[i]<-1.) *weights[i] = -1.;
 		}
-
+		if (mutated){
+			robot.evaluated = false;
+		}
 	}
 	return mutated;
 }

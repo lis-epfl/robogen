@@ -1,10 +1,10 @@
-referenceRobotFile=evolutionTest.txt
-simulatorConfFile=conf_center.txt
-populationSize=48
-numGenerations=10
+referenceRobotFile=simpleRobot.txt
+simulatorConfFile=conf.txt
+populationSize=20
+numGenerations=3
 numSelect=5
-pBrainMutate=.05
+numReplace=5
+pBrainMutate=.3
 brainSigma=.7
-pBrainCrossover=.01
+pBrainCrossover=.3
 socket=127.0.0.1:8001
-socket=127.0.0.1:8002

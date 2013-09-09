@@ -75,7 +75,7 @@ int main(int argc, char *argv[]){
 	}
 
 	// run evolution TODO stopping criterion
-	current->evaluate("conf_center.txt",sockets);
+	current->evaluate(conf.simulatorConfFile,sockets);
 	log->logGeneration(1,*current.get());
 	for (unsigned int i=2; i<=conf.numGenerations; i++){
 		// perform selection and mutation until new population filled

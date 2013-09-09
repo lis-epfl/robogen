@@ -1,5 +1,5 @@
 scenario=racing
-timeStep=0.003
+timeStep=0.002
 nTimeSteps=4000
 terrainType=flat
 terrainLength=2
