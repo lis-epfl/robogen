@@ -167,10 +167,12 @@ bool ActiveCardanModel::initModel() {
 	// Create motors
 	motor1_.reset(
 			new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE,
-					ServoMotor::DEFAULT_GAIN));
+					ServoMotor::DEFAULT_GAIN,
+					NeuralNetworkRepresentation::ioPair(this->getId(),0)));
 	motor2_.reset(
 			new ServoMotor(joint2, ServoMotor::DEFAULT_MAX_FORCE,
-					ServoMotor::DEFAULT_GAIN));
+					ServoMotor::DEFAULT_GAIN,
+					NeuralNetworkRepresentation::ioPair(this->getId(),1)));
 
 	return true;
 

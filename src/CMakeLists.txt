@@ -70,6 +70,7 @@ endif ()
 # Get the list of all the source code
 file (GLOB_RECURSE
      ROBOGEN_SIMULATOR_SRC
+     arduino/*.cpp
      brain/*.c
      config/*.cpp
      evolution/engine/*.cpp

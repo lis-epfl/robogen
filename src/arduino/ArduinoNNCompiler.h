@@ -1,10 +1,10 @@
 /*
- * @(#) Sensor.h   1.0   Feb 25, 2013
+ * @(#) ArduinoNNCompiler.h   1.0   Sep 9, 2013
  *
- * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2013-2014 Titus Cieslewski
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -25,27 +25,30 @@
  *
  * @(#) $Id$
  */
-#ifndef ROBOGEN_SENSOR_H_
-#define ROBOGEN_SENSOR_H_
+
+#ifndef ARDUINONNCOMPILER_H_
+#define ARDUINONNCOMPILER_H_
+
+#include <fstream>
+#include "Robot.h"
 
 namespace robogen {
 
-class Sensor {
-
+/**
+ * Class to encapsulate a routine that can write to file the Neural Network
+ * representation of a given robot in a way that can be used by the Robogen
+ * Arduino program
+ */
+class ArduinoNNCompiler {
 public:
-
-	virtual ~Sensor() {}
+	ArduinoNNCompiler();
+	virtual ~ArduinoNNCompiler();
 
 	/**
-	 * Needs to be defined, else compilation errors!
-	 * @return Label of sensor for data analysis
-	 * @todo use IO Ids
+	 * Compiles the given Robot's Neural Network to the given file stream
 	 */
-	virtual std::string &getLabel() = 0;
-
+	static void compile(Robot &robot, std::ofstream &file);
 };
 
-}
-
-
-#endif /* ROBOGEN_SENSOR_H_ */
+} /* namespace robogen */
+#endif /* ARDUINONNCOMPILER_H_ */

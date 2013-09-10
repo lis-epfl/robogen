@@ -1,7 +1,8 @@
 /*
  * @(#) ServoMotor.h   1.0   Feb 20, 2013
  *
- * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Andrea Maesani (andrea.maesani@epfl.ch),
+ * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2013 Andrea Maesani
@@ -53,7 +54,8 @@ public:
 	 * @param joint ODE joint
 	 * @param maxForce maximum force the motor can produce
 	 */
-	ServoMotor(dJointID joint, float maxForce);
+	ServoMotor(dJointID joint, float maxForce,
+			NeuralNetworkRepresentation::ioPair id);
 
 	/**
 	 * Apply the motor to the provided joint. Initializes a servo controlled in position.
@@ -62,7 +64,8 @@ public:
 	 * @param maxForce maximum force the motor can produce
 	 * @param proportional control gain
 	 */
-	ServoMotor(dJointID joint, float maxForce, float gain);
+	ServoMotor(dJointID joint, float maxForce, float gain,
+			NeuralNetworkRepresentation::ioPair id);
 
 	/**
 	 * Destructor

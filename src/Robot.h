@@ -92,12 +92,12 @@ public:
 	/**
 	 * @return the neural network that controls the robot
 	 */
-	const boost::shared_ptr<NeuralNetwork>& getBrain();
+	const boost::shared_ptr<NeuralNetwork>& getBrain() const;
 
 	/**
 	 * @return the sensors of the robot
 	 */
-	const std::vector<boost::shared_ptr<Sensor> >& getSensors();
+	const std::vector<boost::shared_ptr<Sensor> >& getSensors() const;
 
 	/**
 	 * @return the motors of the robot

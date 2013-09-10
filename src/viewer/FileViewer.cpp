@@ -293,7 +293,7 @@ int main(int argc, char *argv[]) {
 
 	boost::shared_ptr<FileViewerLog> log(new FileViewerLog(std::string(argv[1]),
 			std::string(argv[2]), configuration->getObstacleFile(),
-			configuration->getStartPosFile(), sensors));
+			configuration->getStartPosFile(), robot));
 
 
 	// ---------------------------------------

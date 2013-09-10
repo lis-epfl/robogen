@@ -1,7 +1,8 @@
 /*
- * @(#) ServoModel.h   1.0   Feb 20, 2013
+ * @(#) Motor.h   1.0   Feb 20, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2013 Andrea Maesani
@@ -25,8 +26,11 @@
  *
  * @(#) $Id$
  */
+
 #ifndef ROBOGEN_MOTOR_H_
 #define ROBOGEN_MOTOR_H_
+
+#include "evolution/representation/NeuralNetworkRepresentation.h"
 
 namespace robogen {
 
@@ -34,9 +38,14 @@ class Motor {
 	
 public:
 	
+	Motor(NeuralNetworkRepresentation::ioPair id);
+
 	virtual ~Motor() {}
 
-	
+	NeuralNetworkRepresentation::ioPair getId();
+
+private:
+	NeuralNetworkRepresentation::ioPair id_;
 };
 
 }

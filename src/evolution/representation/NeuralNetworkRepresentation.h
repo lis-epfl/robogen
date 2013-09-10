@@ -50,22 +50,23 @@ public:
 };
 
 class NeuralNetworkRepresentation {
-
+public:
 	/**
 	 * Map from (source neuron id, dest neuron id) to weight value.
 	 * TODO use these typedefs
 	 */
 	typedef std::map<std::pair<std::string,std::string>, double> WeightMap;
+
 	/**
 	 * Body part Id, IO Id
 	 */
 	typedef std::pair<std::string,int> ioPair;
+
 	/**
 	 * Maps from IO identifier pair to a neuron shared pointer
 	 */
 	typedef std::map<ioPair,boost::shared_ptr<NeuronRepresentation>	> NeuronMap;
 
-public:
 	/**
 	 * Assignment operator: Deep copy neurons!
 	 */
@@ -129,6 +130,23 @@ public:
 	 */
 	void adoptBody(std::map<std::string,int> &sensorParts,
 			std::map<std::string,int> &motorParts);
+
+	/**
+	 * This is a conversion to a linear representation, which is currently
+	 * needed by the Arduino software and is also implemented in the simulator.
+	 * @todo centralize this code, it has already caused trouble!
+	 * The correct order is:
+	 * for each input (source)
+	 *  for each output (destination)
+	 * 	 put weight
+	 * for each output (source)
+	 * 	for each output (destination)
+	 * 	 put weight
+	 * @warning this code depends on the layer architecture of the ANN
+	 */
+	void getLinearRepresentation(std::vector<ioPair> &inputs,
+			std::vector<ioPair> &outputs, std::vector<double> &weights,
+			std::vector<double> &biases);
 
 	/**
 	 * Serialize brain into message that can be appended to the robot message

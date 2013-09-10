@@ -89,13 +89,13 @@ void step(NeuralNetwork* network) {
 		unsigned int baseIndexOutputWeigths = -1;
 
 		for (j = 0; j < network->nInputs; ++j) {
-			curNeuronActivation += network->weight[i * network->nOutputs + j]
+			curNeuronActivation += network->weight[network->nOutputs * j + i]
 					* network->input[j];
 		}
 		baseIndexOutputWeigths = network->nOutputs * network->nInputs;
 		for (j = 0; j < network->nOutputs; ++j) {
 			curNeuronActivation += network->weight[baseIndexOutputWeigths
-					+ i * network->nOutputs + j]
+					+ network->nOutputs * j + i]
 					* network->state[network->curStateStart + j];
 		}
 

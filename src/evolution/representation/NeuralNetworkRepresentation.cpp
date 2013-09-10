@@ -205,6 +205,61 @@ void NeuralNetworkRepresentation::getGenome(std::vector<double*> &weights,
 	}
 }
 
+void NeuralNetworkRepresentation::getLinearRepresentation(
+		std::vector<ioPair> &inputs, std::vector<ioPair> &outputs,
+		std::vector<double> &weights, std::vector<double> &biases){
+	std::vector<boost::shared_ptr<NeuronRepresentation> > inputNeurons;
+	std::vector<boost::shared_ptr<NeuronRepresentation> > outputNeurons;
+	// basic house holding
+	inputs.clear(); outputs.clear(); weights.clear(); biases.clear();
+	// fill inputs and outputs
+	for (NeuronMap::iterator it = neurons_.begin(); it!=neurons_.end(); ++it){
+		if (it->second->isInput()){
+			inputs.push_back(it->first);
+			inputNeurons.push_back(it->second);
+		}
+		else {
+			outputs.push_back(it->first); // ATTENTION: DEPENDS ON ANN ARCH.
+			outputNeurons.push_back(it->second);
+		}
+	}
+	// fill weight vector in proper order
+	for (unsigned int i=0; i<inputs.size(); ++i){
+		for (unsigned int j=0; j<outputs.size(); ++j){
+			WeightMap::iterator it = weights_.find(
+					std::pair<std::string, std::string>(
+							inputNeurons[i]->getId(),
+							outputNeurons[j]->getId()));
+			if (it == weights_.end()){
+				std::stringstream ss;
+				ss << "Can't get weight from " << inputNeurons[i]->getId()
+								<< " to " << outputNeurons[j]->getId()
+								<< "\nIs the weight map filled properly?";
+				throw NeuralNetworkRepresentationException(ss.str());
+			}
+			weights.push_back(it->second);
+		}
+	}
+	for (unsigned int i=0; i<outputs.size(); ++i){
+		for (unsigned int j=0; j<outputs.size(); ++j){
+			WeightMap::iterator it = weights_.find(
+					std::pair<std::string, std::string>(
+							outputNeurons[i]->getId(),
+							outputNeurons[j]->getId()));
+			if (it == weights_.end()){
+				std::stringstream ss;
+				ss << "Can't get weight from " << outputNeurons[i]->getId()
+									<< " to " << outputNeurons[j]->getId()
+									<< "\nIs the weight map filled properly?";
+				throw NeuralNetworkRepresentationException(ss.str());
+			}
+			weights.push_back(it->second);
+		}
+		// fill bias vector properly
+		biases.push_back(*outputNeurons[i]->getBiasPointer());
+	}
+}
+
 robogenMessage::Brain NeuralNetworkRepresentation::serialize(){
 	robogenMessage::Brain serialization;
 	// neurons

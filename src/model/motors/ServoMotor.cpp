@@ -1,7 +1,8 @@
 /*
  * @(#) ServoMotor.cpp   1.0   Feb 20, 2013
  *
- * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Andrea Maesani (andrea.maesani@epfl.ch),
+ * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2013 Andrea Maesani
@@ -39,14 +40,16 @@ const float ServoMotor::MAX_POS_RAD = (M_PI / 2) * 6 / 9;
 const float ServoMotor::MIN_VELOCITY = -3;
 const float ServoMotor::MAX_VELOCITY = 3;
 
-ServoMotor::ServoMotor(dJointID joint, float maxForce, float gain) :
-		joint_(joint), maxForce_(maxForce), gain_(gain), isVelocityDriven_(
-				false) {
+ServoMotor::ServoMotor(dJointID joint, float maxForce, float gain,
+		NeuralNetworkRepresentation::ioPair id) :
+		joint_(joint), maxForce_(maxForce), gain_(gain),
+		isVelocityDriven_(false), Motor(id) {
 	dJointSetHingeParam(joint_, dParamFMax, maxForce_);
 }
 
-ServoMotor::ServoMotor(dJointID joint, float maxForce) :
-		joint_(joint), maxForce_(maxForce), isVelocityDriven_(true) {
+ServoMotor::ServoMotor(dJointID joint, float maxForce,
+		NeuralNetworkRepresentation::ioPair id) :
+		joint_(joint), maxForce_(maxForce), isVelocityDriven_(true), Motor(id) {
 	dJointSetHingeParam(joint_, dParamFMax, maxForce_);
 }
 

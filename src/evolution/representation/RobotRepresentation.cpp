@@ -36,6 +36,9 @@
 #include <queue>
 #include <boost/regex.hpp>
 #include "evolution/representation/PartRepresentation.h"
+#include "evolution/representation/parts/CoreComponentRepresentation.h"
+#include "evolution/representation/parts/LightSensorRepresentation.h"
+#include "evolution/representation/parts/TouchSensorRepresentation.h"
 #include "utils/network/ProtobufPacket.h"
 
 namespace robogen{
@@ -270,6 +273,36 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 	file.close();
 }
 
+int RobotRepresentation::getSensorType(const std::string &id){
+	IdPartMap::iterator it = idToPart_.find(id);
+	// find part in map
+	if (it == idToPart_.end()){
+		std::stringstream ss;
+		ss << "getSensorType supplied with an id \"" << id
+				<< "\", which is not found in the body part map.";
+		throw RobotRepresentationException(ss.str());
+	}
+	// find out sensor type
+	if (boost::dynamic_pointer_cast<LightSensorRepresentation>(
+			it->second.lock())){
+		return LIGHT_SENSOR;
+	}
+	else if(boost::dynamic_pointer_cast<TouchSensorRepresentation>(
+			it->second.lock())){
+		return TOUCH_SENSOR;
+	}
+	else if(boost::dynamic_pointer_cast<CoreComponentRepresentation>(
+			it->second.lock())){
+		return IMU;
+	}
+	else{
+		std::stringstream ss;
+		ss << "getSensorType: part with id \"" << id
+				<< "\", is not registered as sensor.";
+		throw RobotRepresentationException(ss.str());
+	}
+}
+
 robogenMessage::Robot RobotRepresentation::serialize(){
 	robogenMessage::Robot message;
 	// id - this can probably be removed
@@ -332,6 +365,11 @@ void RobotRepresentation::randomizeBrain(boost::random::mt19937	&rng){
 void RobotRepresentation::getBrainGenome(std::vector<double*> &weights,
 		std::vector<double*> &biases){
 	neuralNetwork_->getGenome(weights, biases);
+}
+
+boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain()
+const{
+	return neuralNetwork_;
 }
 
 }

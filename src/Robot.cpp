@@ -88,7 +88,6 @@ private:
 // Define property of edge (contains the body connection retrieved from a
 // robogen message)
 
-// TODO cleaner solution than robotBodyCache?
 Robot::Robot(dWorldID odeWorld, dSpaceID odeSpace,
 		const robogenMessage::Robot& robotSpec) :
 		odeWorld_(odeWorld), odeSpace_(odeSpace) {
@@ -102,6 +101,7 @@ Robot::Robot(dWorldID odeWorld, dSpaceID odeSpace,
 		throw std::runtime_error(
 				"Cannot decode the body of the robot. Exiting.");
 	}
+	// decode brain needs to come after decode body, as IO reordering
 	if (!this->decodeBrain(brain)) {
 		throw std::runtime_error(
 				"Cannot decode the brain of the robot. Exiting.");
@@ -114,7 +114,7 @@ Robot::~Robot() {
 	dJointGroupDestroy(connectionJointGroup_);
 }
 
-const std::vector<boost::shared_ptr<Sensor> >& Robot::getSensors() {
+const std::vector<boost::shared_ptr<Sensor> >& Robot::getSensors() const {
 	return sensors_;
 }
 
@@ -126,7 +126,7 @@ const std::vector<boost::shared_ptr<Model> >& Robot::getBodyParts() {
 	return bodyParts_;
 }
 
-const boost::shared_ptr<NeuralNetwork>& Robot::getBrain() {
+const boost::shared_ptr<NeuralNetwork>& Robot::getBrain() const {
 	return neuralNetwork_;
 }// Decode the body connections
 
@@ -149,7 +149,7 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 		if (model == NULL) {
 			std::cerr << "Unrecognized body part: " << bodyPart.id()
-							<< ". Exiting." << std::endl;
+									<< ". Exiting." << std::endl;
 			return false;
 		}
 
@@ -389,7 +389,15 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 		return false;
 	}
 
+	std::cout << "Contents of unordered sensors:" << std::endl;
+	for (int i=0; i<sensors_.size(); ++i){
+		std::cout << sensors_[i]->getLabel() << std::endl;
+	}
 	sensors_ = orderedSensors;
+	std::cout << "Contents of ordered sensors:" << std::endl;
+	for (int i=0; i<sensors_.size(); ++i){
+		std::cout << sensors_[i]->getLabel() << std::endl;
+	}
 	motors_ = orderedMotors;
 
 	// Count how many neurons
@@ -430,11 +438,11 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 		int destNeuronPos = outputNeuronIds[connection.dest()];
 
 		if (isSourceInputIt->second == true) {
-			weight[destNeuronPos * nOutputs + sourceNeuronPos] =
+			weight[sourceNeuronPos * nOutputs + destNeuronPos] =
 					connection.weight();
 		} else {
-			weight[nInputs * nOutputs + destNeuronPos * nOutputs +
-			       sourceNeuronPos] = connection.weight();
+			weight[nInputs * nOutputs + sourceNeuronPos * nOutputs +
+			       destNeuronPos] = connection.weight();
 		}
 	}
 	::initNetwork(neuralNetwork_.get(), nInputs, nOutputs, &weight[0], &bias[0],

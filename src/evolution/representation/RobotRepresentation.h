@@ -61,7 +61,22 @@ public:
  * methods.
  */
 class RobotRepresentation{
+	/**
+	 * Map from an id string to a weak pointer of a part representation
+	 */
+	typedef std::map<std::string, boost::weak_ptr<PartRepresentation> >
+	IdPartMap;
+
 public:
+	/**
+	 * Return codes for getSensorType(body id)
+	 */
+	enum SensorTypes{
+		LIGHT_SENSOR,
+		TOUCH_SENSOR,
+		IMU
+	};
+
 	/**
 	 * Copy constructor: Deep copy body parts and Neural network
 	 */
@@ -78,6 +93,12 @@ public:
 	 * @todo make a better handling of formatting errors
 	 */
 	RobotRepresentation(std::string robotTextFile);
+
+	/**
+	 * This function is used by the arduino code compiler
+	 * @return type of sensor for the given body part id
+	 */
+	int getSensorType(const std::string &id);
 
 	/**
 	 * @return robot message of this robot to be transmitted to simulator
@@ -103,6 +124,11 @@ public:
 	void getBrainGenome(std::vector<double*> &weights,
 			std::vector<double*> &biases);
 
+	/**
+	 * @return a const reference to the robots brain
+	 */
+	boost::shared_ptr<NeuralNetworkRepresentation> getBrain() const;
+
 private:
 	/**
 	 * Points to the root of the robot body tree
@@ -118,7 +144,7 @@ private:
 	 * Map from part id to part representation
 	 * @todo use to avoid multiple samenames
 	 */
-	std::map<std::string, boost::weak_ptr<PartRepresentation> > idToPart_;
+	 IdPartMap idToPart_;
 
 	// DO NOT FORGET TO COMPLETE COPY CONSTRUCTOR AND ASSIGNMENT OPERATOR!!!
 };

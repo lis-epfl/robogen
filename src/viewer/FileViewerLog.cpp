@@ -14,6 +14,8 @@
 #include <boost/date_time/posix_time/posix_time_io.hpp>
 #include <boost/timer/timer.hpp>
 #include <boost/shared_ptr.hpp>
+#include "arduino/ArduinoNNCompiler.h"
+#include "model/sensors/Sensor.h"
 
 #define LOG_DIRECTORY_PREFIX "FileViewer_"
 #define LOG_DIRECTORY_FACET "%Y%m%d-%H%M%S"
@@ -22,6 +24,7 @@
 #define SENSOR_LOG_FILE "sensorLog.txt"
 #define MOTOR_LOG_FILE "motorLog.txt"
 #define TIME_LOG_FILE "timeLog.txt"
+#define ARDUINO_NN_FILE "NeuralNetwork.h"
 #define LOG_COL_WIDTH 12
 #define OCTAVE_SCRIPT "robogenPlot.m"
 
@@ -29,7 +32,7 @@ namespace robogen{
 
 FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 		std::string obstacleFile, std::string startPosFile,
-		std::vector<boost::shared_ptr<Sensor> > &sensors) {
+		boost::shared_ptr<Robot> robot) {
 	// create log directory with time stamp
 	std::stringstream logPathSs;
 	logPathSs << LOG_DIRECTORY_PREFIX;
@@ -64,6 +67,16 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	if (!motorLog_.is_open()){
 		throw std::string("Can't open motor log file");
 	}
+
+	// compile neural network representation for Arduino
+	// open motor log
+	std::string arduinoNNPath = logPathSs.str() + "/" + ARDUINO_NN_FILE;
+	std::ofstream arduinoNN;
+	arduinoNN.open(arduinoNNPath.c_str());
+	if (!motorLog_.is_open()){
+		throw std::string("Can't open motor log file");
+	}
+	ArduinoNNCompiler::compile(*robot.get(),arduinoNN);
 
 	// copy robot file
 	boost::filesystem::path robotFrom(robotFile);
@@ -127,6 +140,7 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	if (!sensorLabel.is_open()){
 		throw std::string("Can't open sensor label file");
 	}
+	std::vector<boost::shared_ptr<Sensor> > sensors = robot->getSensors();
 	for (unsigned int i=0; i<sensors.size(); i++){
 		sensorLabel << sensors[i]->getLabel() << std::endl;
 	}
