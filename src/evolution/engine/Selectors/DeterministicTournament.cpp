@@ -30,9 +30,8 @@
 
 namespace robogen{
 
-DeterministicTournament::DeterministicTournament() {
-	// TODO Auto-generated constructor stub
-
+DeterministicTournament::DeterministicTournament(int n, boost::random::mt19937 &rng) :
+	Selector(n,rng){
 }
 
 DeterministicTournament::~DeterministicTournament() {
