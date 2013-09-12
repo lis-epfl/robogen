@@ -1,5 +1,5 @@
 /*
- * @(#) Selector.h   1.0   Sep 1, 2013
+ * @(#) DeterministicTournament.h   1.0   Sep 10, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
  *
@@ -26,33 +26,27 @@
  * @(#) $Id$
  */
 
-#ifndef SELECTOR_H_
-#define SELECTOR_H_
+#ifndef DETERMINISTICTOURNAMENT_H_
+#define DETERMINISTICTOURNAMENT_H_
 
 #include <utility>
-#include <boost/shared_ptr.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include "evolution/engine/Population.h"
+#include "evolution/engine/Selector.cpp"
 
-namespace robogen {
+namespace robogen{
 
-/**
- * Class containing the logic of selection for an evaluated population.
- * @todo do different strategies with derived classes?
- */
-class Selector {
+class DeterministicTournament : public Selector {
 public:
 	/**
-	 * Creates a ranking selector that selects the n best individuals
-	 * and embeds them periodically into the next population.
-	 * @param n amount of individuals to be selected
-	 * @param rng random number generator to be used
+	 * Initializes a deterministic tournament that for each parent
+	 * randomly draws n robots, the best robot getting the place
 	 */
-	Selector(int n, boost::random::mt19937 &rng);
+	DeterministicTournament(int n, boost::random::mt19937 &rng);
+
+	virtual ~DeterministicTournament();
 
 	/**
 	 * Allows selector to perform pre-selection actions, i.e. select pool from
-	 * which selected individuals shall stem.
+	 * which selected individuals shall stem - prepairing pool
 	 */
 	virtual void initPopulation(boost::shared_ptr<Population> pop);
 
@@ -62,35 +56,7 @@ public:
 	 * @return the new population
 	 */
 	virtual std::pair<Individual, Individual> select();
-
-	virtual ~Selector();
-
-private:
-	/**
-	 * Amount of best individuals that are selected
-	 */
-	int nselected_;
-
-	/**
-	 * Random number generator to be used
-	 */
-	boost::random::mt19937 &rng_;
-
-	/**
-	 * Shared pointer to Population
-	 */
-	boost::shared_ptr<Population> pop_;
-
-	/**
-	 * Vector of individuals preselected in initialisation step
-	 */
-	std::vector<Individual> preselection_;
-
-	/**
-	 * Selection iterator through preselection
-	 */
-	int iterator_;
 };
 
-} /* namespace robogen */
-#endif /* SELECTOR_H_ */
+}
+#endif /* DETERMINISTICTOURNAMENT_H_ */
