@@ -29,7 +29,7 @@
 #ifndef ROBOTREPRESENTATION_H
 #define ROBOTREPRESENTATION_H
 
-#if 1 // set to 1 to use fake robots - evolution algorithm benchmark
+#if 0 // set to 1 to use fake robots - evolution algorithm benchmark
 #include "evolution/representation/FakeRobotRepresentation.h"
 #else
 
@@ -40,6 +40,7 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include "robogen.pb.h"
+#include "evolution/engine/Individual.h"
 #include "evolution/representation/PartRepresentation.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
 #include "utils/network/TcpSocket.h"
@@ -60,7 +61,7 @@ public:
  * robot representation of the simulator, and implements evolution-specific
  * methods.
  */
-class RobotRepresentation{
+class RobotRepresentation : public Individual{
 	/**
 	 * Map from an id string to a weak pointer of a part representation
 	 */
@@ -105,11 +106,6 @@ public:
 	 * or stored as population checkpoint
 	 */
 	robogenMessage::Robot serialize();
-
-	/**
-	 * @return fitness of the robot when exposed to the given scenario
-	 */
-	double evaluate(TcpSocket *socket, std::string simulatorConfFile);
 
 	/**
 	 * Initializes the brain to be completely random.

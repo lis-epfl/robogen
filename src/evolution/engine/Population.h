@@ -4,7 +4,7 @@
  * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2014
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -34,28 +34,18 @@
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
 #include <boost/random/mersenne_twister.hpp>
+#include "evolution/engine/IndividualContainer.h"
 #include "evolution/representation/RobotRepresentation.h"
 #include "utils/network/TcpSocket.h"
 
 namespace robogen {
-
-/**
- * Represents a robot as a member of a population. Additional attributes are
- * fitness and a bool whether the latter is set.
- * @todo put this into a class?
- */
-typedef struct{
-	boost::shared_ptr<RobotRepresentation> robot;
-	double fitness;
-	bool evaluated;
-}Individual;
 
 class PopulationException : public std::runtime_error {
 public:
 	PopulationException(const std::string& w);
 };
 
-class Population {
+class Population : public IndividualContainer {
 public:
 	/**
 	 * Constructs a population from a given robot body, keeping the body
@@ -70,72 +60,27 @@ public:
 	/**
 	 * Constructs a population that will contain the specified robots.
 	 * @param robots Robots to be used as population
+	 * @deprecated
 	 */
 	Population(std::vector<Individual> &robots);
+
+	/**
+	 * Creates a population from the popSize best individuals of origin.
+	 */
+	Population(const IndividualContainer &origin, int popSize);
 
 	virtual ~Population();
 
 	/**
-	 * Evaluate the population using the given scenario config and the given
-	 * sockets to transmit the robot to simulator instances in parallel. Then
-	 * order the population by fitness.
-	 * @param confFile simulation configuration file
-	 * @param sockets a vector of Socket pointers. On each should be a simulator
-	 */
-	void evaluate(std::string confFile, std::vector<TcpSocket*> &sockets);
-
-	/**
-	 * This function shall be used by the classes that act upon a population,
-	 * e.g. Selector, Mutator
-	 * @return reference to ordered and evaluated robots
-	 */
-	std::vector<Individual> &orderedEvaluatedRobots();
-
-	/**
 	 * @return Best robot of the population
 	 */
-	Individual best() const;
-
-	/**
-	 * Only for debugging purposes: Obtain some robot representation
-	 * @param n robot to get
-	 * @note does not perform bounds test
-	 * @todo remove
-	 */
-	boost::shared_ptr<RobotRepresentation> getRobot(int n);
+	Individual &best() const;
 
 	/**
 	 * Sets the passed references to best, average and standard deviation.
 	 * Requires the population to be evaluated.
 	 */
 	void getStat(double &best, double &average, double &stdev) const;
-
-private:
-	/**
-	 * The population: the robots, with their fitness. If evaluated, this shall
-	 * always be ordered from best to worst individual.
-	 */
-	std::vector<Individual>	robots_;
-
-	/**
-	 * Are all robots evaluated?
-	 */
-	bool evaluated_;
-
-	/**
-	 * Best fitness
-	 */
-	double best_;
-
-	/**
-	 * Average fitness
-	 */
-	double average_;
-
-	/**
-	 * Standard deviation of fitness
-	 */
-	double std_;
 };
 
 } /* namespace robogen */

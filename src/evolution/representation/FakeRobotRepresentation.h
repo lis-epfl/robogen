@@ -65,14 +65,15 @@ public:
 
 	/**
 	 * @return fitness of string
+	 * @todo eliminate dead code
 	 */
-	double evaluate(TcpSocket *socket, std::string conf){
+	/*double evaluate(TcpSocket *socket, std::string conf){
 		double retval = 0.;
 		for (unsigned int i=0; i<array_.size(); i++){
 			retval -= array_[i]*array_[i];
 		}
 		return retval;
-	}
+	}*/
 
 	/**
 	 * Initialization

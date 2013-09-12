@@ -77,22 +77,22 @@ int main(int argc, char *argv[]){
 	// run evolution TODO stopping criterion
 	current->evaluate(conf.simulatorConfFile,sockets);
 	log->logGeneration(1,*current.get());
-	for (unsigned int i=2; i<=conf.numGenerations; i++){
-		// perform selection and mutation until new population filled
-		std::vector<Individual> children;
-		s.initPopulation(current);
-		while (children.size() < conf.populationSize){
-			std::pair<Individual,Individual> offspring = m.mutate(s.select());
-			children.push_back(offspring.first);
-			children.push_back(offspring.second);
+	for (unsigned int generation=2; generation<=conf.numGenerations;
+			++generation){
+		// create children
+		IndividualContainer children;
+		for (unsigned int i = 0; i<conf.lambda; i++){
+			// don't forget to copy construct!!!
+			children.push_back(m.mutate(s.select()));
 		}
-		// perform evaluation
-		previous = current;
-		current.reset(new Population(children));
-		current->evaluate(conf.simulatorConfFile,sockets);
-		// perform replacement & re-evaluate to sort
-		r.replace(current.get(), previous.get());
-		current->evaluate(conf.simulatorConfFile,sockets);
+		// evaluate children
+		children.evaluate(conf.simulatorConfFile, sockets);
+		// comma or plus?
+		if (conf.replacement == conf.PLUS_REPLACEMENT){
+			children += *current.get();
+		}
+		// replace
+		current.reset(new Population(children, conf.mu));
 		log->logGeneration(i,*current.get());
 	}
 }

@@ -41,11 +41,11 @@ Mutator::Mutator(double pBrainMutate, double brainMuteSigma,
 Mutator::~Mutator() {
 }
 
-std::pair<Individual,Individual> Mutator::mutate(
-		std::pair<Individual,Individual> parents){
-	this->mutate(parents.first); this->mutate(parents.second);
+Individual Mutator::mutate(std::pair<Individual,Individual> parents){
+	// TODO copy first!
 	this->crossover(parents.first,parents.second);
-	return parents;
+	this->mutate(parents.first);
+	return parents.first;
 }
 
 bool Mutator::mutate(Individual &robot){
@@ -55,7 +55,7 @@ bool Mutator::mutate(Individual &robot){
 			type_ == FULL_MUTATOR){
 		std::vector<double*> weights;
 		std::vector<double*> biases;
-		robot.robot->getBrainGenome(weights,biases);
+		robot.getBrainGenome(weights,biases);
 		// mutate weights
 		for (unsigned int i=0; i<weights.size(); ++i){
 			if (weightMutate_(rng_)){
@@ -77,7 +77,7 @@ bool Mutator::mutate(Individual &robot){
 			if (*biases[i]<-1.) *biases[i] = -1.;
 		}
 		if (mutated){
-			robot.evaluated = false;
+			robot.setDirty();
 		}
 	}
 	return mutated;
@@ -90,8 +90,8 @@ bool Mutator::crossover(Individual &a, Individual &b){
 	// 1. get genomes
 	std::vector<double*> weights[2];
 	std::vector<double*> biases[2];
-	a.robot->getBrainGenome(weights[0],biases[0]);
-	b.robot->getBrainGenome(weights[1],biases[1]);
+	a.getBrainGenome(weights[0],biases[0]);
+	b.getBrainGenome(weights[1],biases[1]);
 
 	// 2. select crossover point
 	unsigned int maxpoint = weights[0].size() + biases[0].size() - 1;
@@ -113,7 +113,7 @@ bool Mutator::crossover(Individual &a, Individual &b){
 		}
 	}
 
-	a.evaluated = false; b.evaluated = false;
+	a.setDirty(); b.setDirty();
 	return true;
 }
 

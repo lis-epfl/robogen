@@ -31,7 +31,7 @@
 
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/bernoulli_distribution.hpp>
-#include "evolution/engine/Population.h"
+#include "evolution/engine/Individual.h"
 #include "evolution/representation/RobotRepresentation.h"
 
 namespace robogen {
@@ -61,7 +61,7 @@ public:
 	/**
 	 * Performs mutation and crossover on a pair of robots
 	 */
-	std::pair<Individual,Individual> mutate(
+	Individual mutate(
 			std::pair<Individual,Individual> parents);
 
 	/**

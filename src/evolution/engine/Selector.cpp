@@ -37,10 +37,7 @@ Selector::Selector(int n, boost::random::mt19937 &rng) : nselected_(n),
 }
 
 void Selector::initPopulation(boost::shared_ptr<Population> pop){
-	pop_ = pop;
-	preselection_ = pop->orderedEvaluatedRobots();
-	preselection_.resize(nselected_);
-	iterator_ = 0;
+
 }
 
 Selector::~Selector() {

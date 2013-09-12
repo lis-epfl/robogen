@@ -45,25 +45,15 @@ namespace robogen {
 PopulationException::PopulationException(const std::string& w) :
 						std::runtime_error(w){}
 
-/**
- * Used for ordering individuals by fitness
- */
-bool operator >(const Individual &a, const Individual &b){
-	return a.fitness > b.fitness;
-}
-
 Population::Population(RobotRepresentation &robot, int popSize,
-		boost::random::mt19937	&rng) {
+		boost::random::mt19937	&rng) : IndividualContainer() {
 	// fill population vector
-	robots_.resize(popSize);
+	this->resize(popSize);
 	for (int i=0; i<popSize; i++){
-		robots_[i].robot = boost::shared_ptr<RobotRepresentation>(
-				new RobotRepresentation(robot));
-		robots_[i].robot->randomizeBrain(rng);
-		robots_[i].fitness = 0.;
-		robots_[i].evaluated = false;
+		this->at(i) = new RobotRepresentation(robot);
+		this->at(i).randomizeBrain(rng);
+		this->at(i).setDirty();
 	}
-	evaluated_ = false;
 }
 
 Population::Population(std::vector<Individual> &robots) : evaluated_(true){
@@ -77,102 +67,37 @@ Population::Population(std::vector<Individual> &robots) : evaluated_(true){
 	}
 }
 
+Population::Population(const IndividualContainer &origin, int popSize){
+	IndividualContainer(origin);
+	// clone: Make sure to invoke copy constructor TODO feels weird
+	for (unsigned int i=0; i<this->size(); ++i){
+		this->at(i) = this->at(i).clone();
+	}
+	this->sort();
+	this->resize(popSize);
+}
+
 Population::~Population() {
 }
 
-boost::shared_ptr<RobotRepresentation> Population::getRobot(int n){
-	return robots_[n].robot;
+Individual &Population::best() const{
+	if (!this->areEvaluated()){
+		throw PopulationException("Trying to get best individual from"\
+				" non-evaluated population!");
+	}
+	this->sort();
+	return this->at(0);
 }
 
-/**
- * Thread function assigned to a socket
- * @param indiQueue queue of Individuals to be evaluated
- * @param queueMutex mutex for access to queue
- * @param socket socket to simulator
- * @param confFile simulator configuration file to be used for evaluations
- */
-void evaluationThread(std::queue<Individual*> *indiQueue,
-		boost::mutex *queueMutex, TcpSocket *socket, std::string &confFile){
-	while (true){
-		boost::mutex::scoped_lock lock(*queueMutex);
-		if (indiQueue->empty()) return;
-		Individual *current = indiQueue->front(); indiQueue->pop();
-		std::cout << "." <<	std::flush;
-		lock.unlock();
-
-		current->fitness = current->robot->evaluate(socket, confFile);
-		current->evaluated = true;
-	}
-}
-
-void Population::evaluate(std::string confFile,
-		std::vector<TcpSocket*> &sockets){
-
-	// 1. Create mutexed queue of Individual pointers
-	std::queue<Individual*> indiQueue;
-	boost::mutex queueMutex;
-	for (unsigned int i=0; i<robots_.size(); i++){
-		if (!robots_[i].evaluated){
-			indiQueue.push(&robots_[i]);
-		}
-		else{
-			std::cout << "." << std::flush;
-		}
-	}
-
-	// 2. Prepare thread structure
-	boost::thread_group evaluators;
-
-	// 3. Launch threads
-	for (unsigned int i=0; i<sockets.size(); i++){
-		evaluators.add_thread(new boost::thread(evaluationThread, &indiQueue,
-				&queueMutex,sockets[i],confFile));
-	}
-
-	// 4. Join threads. Individuals are now evaluated.
-	evaluators.join_all();
-	// newline after per-individual dots
-	std::cout << std::endl;
-
-	// 5. sort individuals by fitness, descending
-	std::sort(robots_.begin(), robots_.end(), operator >);
-
-	// 6. calculate best, average and std
+void Population::getStat(double &best, double &average, double &stdev) const{
 	boost::accumulators::accumulator_set<double,
 	boost::accumulators::stats<boost::accumulators::tag::mean,
 	boost::accumulators::tag::variance,
 	boost::accumulators::tag::max> > acc;
-	for (unsigned int i=0; i<robots_.size(); i++) acc(robots_[i].fitness);
-	best_ = boost::accumulators::max(acc);
-	average_ = boost::accumulators::mean(acc);
-	std_ = std::sqrt((double)boost::accumulators::variance(acc));
-	evaluated_ = true;
-}
-
-std::vector<Individual> &Population::orderedEvaluatedRobots(){
-	if (!evaluated_){
-		throw PopulationException("Trying to get ordered individuals from"\
-				" non-evaluated population!");
-	}
-	return robots_;
-}
-
-Individual Population::best() const{
-	if (!evaluated_){
-		throw PopulationException("Trying to get best individual from"\
-				" non-evaluated population!");
-	}
-	return robots_[0];
-}
-
-void Population::getStat(double &best, double &average, double &stdev) const{
-	if (!evaluated_){
-		throw PopulationException("Trying to get statistics from non-evaluated"\
-				" population!");
-	}
-	best = best_;
-	average = average_;
-	stdev = std_;
+	for (unsigned int i=0; i<this->size(); i++) acc(this->at(i).getFitness());
+	best = boost::accumulators::max(acc);
+	average = boost::accumulators::mean(acc);
+	std = std::sqrt((double)boost::accumulators::variance(acc));
 }
 
 } /* namespace robogen */
