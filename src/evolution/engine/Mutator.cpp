@@ -64,17 +64,17 @@ bool Mutator::mutate(Individual &robot){
 			}
 			// normalize
 			if (*weights[i]>1.) *weights[i] = 1.;
-			if (*weights[i]<0.) *weights[i] = 0.;
+			if (*weights[i]<-1.) *weights[i] = -1;
 		}
 		// mutate biases
-		for (unsigned int i=0; i<weights.size(); ++i){
+		for (unsigned int i=0; i<biases.size(); ++i){
 			if (weightMutate_(rng_)){
 				mutated = true;
-				*weights[i] += weightDistribution_(rng_);
+				*biases[i] += weightDistribution_(rng_);
 			}
 			// normalize
-			if (*weights[i]>1.) *weights[i] = 1.;
-			if (*weights[i]<-1.) *weights[i] = -1.;
+			if (*biases[i]>1.) *biases[i] = 1.;
+			if (*biases[i]<-1.) *biases[i] = -1.;
 		}
 		if (mutated){
 			robot.evaluated = false;

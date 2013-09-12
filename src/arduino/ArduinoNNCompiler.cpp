@@ -2,9 +2,11 @@
  * @(#) ArduinoNNCompiler.cpp   1.0   Sep 9, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * based on previous work by:
+ * Gregoire Heitz (gregoire.heitz@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2014
  *
  * Laboratory of Intelligent Systems, EPFL
  *

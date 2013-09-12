@@ -29,7 +29,7 @@
 #ifndef ROBOTREPRESENTATION_H
 #define ROBOTREPRESENTATION_H
 
-#if 0 // set to 1 to use fake robots - evolution algorithm benchmark
+#if 1 // set to 1 to use fake robots - evolution algorithm benchmark
 #include "evolution/representation/FakeRobotRepresentation.h"
 #else
 

@@ -30,6 +30,7 @@
 #define FAKEROBOTREPRESENTATION_H
 
 #include <string>
+#include <cmath>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include "robogen.pb.h"
@@ -47,7 +48,7 @@ public:
 	 * Fake constructor
 	 */
 	RobotRepresentation(std::string robotTextFile){
-		array_.resize(100);
+		array_.resize(2);
 	}
 
 	/**
@@ -77,7 +78,7 @@ public:
 	 * Initialization
 	 */
 	void randomizeBrain(boost::random::mt19937	&rng){
-		boost::random::uniform_real_distribution<double> rand(0.,1.);
+		boost::random::uniform_real_distribution<double> rand(-1.,1.);
 		for (unsigned int i=0; i<array_.size(); i++){
 			array_[i] = rand(rng);
 		}
@@ -88,10 +89,10 @@ public:
 	 */
 	void getBrainGenome(std::vector<double*> &weights,
 			std::vector<double*> &biases){
-		weights.resize(50); biases.resize(50);
-		for (int i=0; i<50; i++){
+		weights.resize(1); biases.resize(1);
+		for (int i=0; i<1; i++){
 			weights[i] = &array_[i];
-			biases[i] = &array_[50 + i];
+			biases[i] = &array_[1 + i];
 		}
 	}
 
