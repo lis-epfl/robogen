@@ -31,7 +31,6 @@
 
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/bernoulli_distribution.hpp>
-#include "evolution/engine/Individual.h"
 #include "evolution/representation/RobotRepresentation.h"
 
 namespace robogen {
@@ -61,8 +60,8 @@ public:
 	/**
 	 * Performs mutation and crossover on a pair of robots
 	 */
-	Individual mutate(
-			std::pair<Individual,Individual> parents);
+	RobotRepresentation mutate(std::pair<RobotRepresentation,
+			RobotRepresentation> parents);
 
 	/**
 	 * Mutates a single robot
@@ -70,14 +69,14 @@ public:
 	 * @todo specify bounds in the Neural Network, not here, e.g. with
 	 * a MutableDouble class
 	 */
-	bool mutate(Individual &robot);
+	bool mutate(RobotRepresentation &robot);
 
 	/**
 	 * Performs crossover between two robots
 	 * @return true if some crossover has been performed
 	 * @todo enable asymmetric crossover
 	 */
-	bool crossover(Individual &a, Individual &b);
+	bool crossover(RobotRepresentation &a, RobotRepresentation &b);
 
 private:
 	/**

@@ -49,8 +49,11 @@ public:
 	/**
 	 * Logs an evaluated population, writing into BestAvgStd.txt and writing
 	 * the best individual to file.
+	 * @param step step iterator to be written to log file
+	 * @param population Population to be checkpointed. Non-const on purpose,
+	 * as population->best() calls population->sort()
 	 */
-	void logGeneration(int step, const Population &population);
+	void logGeneration(int step, Population &population);
 
 private:
 	/**

@@ -40,7 +40,6 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include "robogen.pb.h"
-#include "evolution/engine/Individual.h"
 #include "evolution/representation/PartRepresentation.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
 #include "utils/network/TcpSocket.h"
@@ -61,7 +60,7 @@ public:
  * robot representation of the simulator, and implements evolution-specific
  * methods.
  */
-class RobotRepresentation : public Individual{
+class RobotRepresentation{
 	/**
 	 * Map from an id string to a weak pointer of a part representation
 	 */
@@ -125,6 +124,26 @@ public:
 	 */
 	boost::shared_ptr<NeuralNetworkRepresentation> getBrain() const;
 
+	/**
+	 * Evaluate individual using given socket and given configuration file.
+	 */
+	void evaluate(TcpSocket *socket, std::string &confFile);
+
+	/**
+	 * @return fitness of individual
+	 */
+	double getFitness() const;
+
+	/**
+	 * @return evaluated_
+	 */
+	bool isEvaluated() const;
+
+	/**
+	 * Makes robot be not evaluated again
+	 */
+	void setDirty();
+
 private:
 	/**
 	 * Points to the root of the robot body tree
@@ -140,10 +159,24 @@ private:
 	 * Map from part id to part representation
 	 * @todo use to avoid multiple samenames
 	 */
-	 IdPartMap idToPart_;
+	IdPartMap idToPart_;
 
+	/**
+	 * Fitness of robot, once evaluated.
+	 */
+	double fitness_;
+
+	/**
+	 * Indicates whether robot evaluated
+	 */
+	bool evaluated_;
 	// DO NOT FORGET TO COMPLETE COPY CONSTRUCTOR AND ASSIGNMENT OPERATOR!!!
 };
+
+/**
+ * Operator > returns true if fitness of a exceeds fitness of b
+ */
+bool operator >(const RobotRepresentation &a, const RobotRepresentation &b);
 
 }
 

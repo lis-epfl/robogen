@@ -47,6 +47,14 @@ public:
  */
 struct EvolverConfiguration {
 	/**
+	 * Types of replacement strategies
+	 */
+	enum ReplacementTypes{
+		PLUS_REPLACEMENT,
+		COMMA_REPLACEMENT
+	};
+
+	/**
 	 * Parses a configuration from a proper configuration file
 	 */
 	void init(std::string confFileName);
@@ -64,7 +72,12 @@ struct EvolverConfiguration {
 	/**
 	 * Population size
 	 */
-	unsigned int populationSize;
+	unsigned int mu;
+
+	/**
+	 * Offspring size
+	 */
+	unsigned int lambda;
 
 	/**
 	 * Amount of generations to be simulated
@@ -77,9 +90,9 @@ struct EvolverConfiguration {
 	unsigned int numSelect;
 
 	/**
-	 * Amount of worst robots to be replaced with past best robots
+	 * Employed replacement strategy
 	 */
-	unsigned int numReplace;
+	unsigned int replacement;
 
 	/**
 	 * Probability of mutation for any single brain parameter
@@ -90,6 +103,18 @@ struct EvolverConfiguration {
 	 * Sigma of brain parameter mutation
 	 */
 	double brainSigma;
+
+	/**
+	 * Lower bound for brain weights and biases
+	 * @todo treat weights and biases separately
+	 */
+	double minBrainWeight;
+
+	/**
+	 * Upper bound for brain weights and biases
+	 * @todo treat weights and biases separately
+	 */
+	double maxBrainWeight;
 
 	/**
 	 * Probability of crossover among brains

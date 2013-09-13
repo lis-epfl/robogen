@@ -41,14 +41,15 @@ Mutator::Mutator(double pBrainMutate, double brainMuteSigma,
 Mutator::~Mutator() {
 }
 
-Individual Mutator::mutate(std::pair<Individual,Individual> parents){
+RobotRepresentation Mutator::mutate(std::pair<RobotRepresentation,
+		RobotRepresentation> parents){
 	// TODO copy first!
 	this->crossover(parents.first,parents.second);
 	this->mutate(parents.first);
 	return parents.first;
 }
 
-bool Mutator::mutate(Individual &robot){
+bool Mutator::mutate(RobotRepresentation &robot){
 	bool mutated = false;
 	// mutate brain TODO conf bits?
 	if (type_ == BRAIN_MUTATOR || type_ == BRAIN_BODY_PARAM_MUTATOR ||
@@ -83,7 +84,7 @@ bool Mutator::mutate(Individual &robot){
 	return mutated;
 }
 
-bool Mutator::crossover(Individual &a, Individual &b){
+bool Mutator::crossover(RobotRepresentation &a, RobotRepresentation &b){
 	if (!weightCrossover_(rng_)) return false;
 	// at first, only one-point TODO two-point
 

@@ -43,11 +43,11 @@ void Selector::initPopulation(boost::shared_ptr<Population> pop){
 Selector::~Selector() {
 }
 
-std::pair<Individual, Individual> Selector::select(){
+std::pair<RobotRepresentation, RobotRepresentation> Selector::select(){
 	iterator_ %= nselected_;
-	std::pair<Individual, Individual> retpair;
-	retpair.first = preselection_[iterator_++%nselected_];
-	retpair.second = preselection_[iterator_++%nselected_];
+	std::pair<RobotRepresentation, RobotRepresentation> retpair(
+			RobotRepresentation(preselection_[iterator_++%nselected_]),
+			RobotRepresentation(preselection_[iterator_++%nselected_]));
 	return retpair;
 }
 

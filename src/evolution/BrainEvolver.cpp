@@ -33,7 +33,6 @@
 #include "evolution/engine/Population.h"
 #include "evolution/engine/Selector.h"
 #include "evolution/engine/Mutator.h"
-#include "evolution/engine/Replacer.h"
 
 using namespace robogen;
 
@@ -53,13 +52,12 @@ int main(int argc, char *argv[]){
 	// set up evolution
 	Selector s(conf.numSelect,rng);
 	Mutator m(conf.pBrainMutate, conf.brainSigma, conf.pBrainCrossover, rng);
-	Replacer r(conf.numReplace);
 	boost::shared_ptr<EvolverLog>log(new EvolverLog(std::string(argv[1])));
 
 	// parse robot from file & initialize population
 	RobotRepresentation referenceBot(conf.referenceRobotFile);
 	boost::shared_ptr<Population> current(new Population(
-			referenceBot,conf.populationSize,rng)),	previous;
+			referenceBot,conf.mu,rng)),	previous;
 
 	// open sockets for communication with simulator processes
 	std::vector<TcpSocket*> sockets(conf.sockets.size());
@@ -93,6 +91,6 @@ int main(int argc, char *argv[]){
 		}
 		// replace
 		current.reset(new Population(children, conf.mu));
-		log->logGeneration(i,*current.get());
+		log->logGeneration(generation,*current.get());
 	}
 }

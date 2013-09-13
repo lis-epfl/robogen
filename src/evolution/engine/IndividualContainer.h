@@ -30,11 +30,13 @@
 #define INDIVIDUALCONTAINER_H_
 
 #include <vector>
-#include "evolution/engine/Individual.h"
+#include "evolution/representation/RobotRepresentation.h"
 
 namespace robogen {
 
-class IndividualContainer: public std::vector<Individual> {
+// TODO transform to shared pointer?
+
+class IndividualContainer: public std::vector<RobotRepresentation> {
 public:
 	IndividualContainer();
 	virtual ~IndividualContainer();
@@ -61,10 +63,12 @@ public:
 	/**
 	 * @return whether all Individuals are evaluated
 	 */
-	bool areEvaluated();
+	bool areEvaluated() const;
+
+protected:
+	bool evaluated_;
 
 private:
-	bool evaluated_;
 	bool sorted_;
 };
 

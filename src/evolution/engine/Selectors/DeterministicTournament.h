@@ -45,8 +45,7 @@ public:
 	virtual ~DeterministicTournament();
 
 	/**
-	 * Allows selector to perform pre-selection actions, i.e. select pool from
-	 * which selected individuals shall stem - prepairing pool
+	 * Regiesters population
 	 */
 	virtual void initPopulation(boost::shared_ptr<Population> pop);
 
@@ -55,7 +54,13 @@ public:
 	 * @param pop the old population
 	 * @return the new population
 	 */
-	virtual std::pair<Individual, Individual> select();
+	virtual std::pair<RobotRepresentation, RobotRepresentation> select();
+
+private:
+	/**
+	 * Selection pool population
+	 */
+	boost::shared_ptr<Population> population_;
 };
 
 }

@@ -58,23 +58,16 @@ public:
 			&rng);
 
 	/**
-	 * Constructs a population that will contain the specified robots.
-	 * @param robots Robots to be used as population
-	 * @deprecated
-	 */
-	Population(std::vector<Individual> &robots);
-
-	/**
 	 * Creates a population from the popSize best individuals of origin.
 	 */
-	Population(const IndividualContainer &origin, int popSize);
+	Population(const IndividualContainer &origin, unsigned int popSize);
 
 	virtual ~Population();
 
 	/**
 	 * @return Best robot of the population
 	 */
-	Individual &best() const;
+	RobotRepresentation &best();
 
 	/**
 	 * Sets the passed references to best, average and standard deviation.

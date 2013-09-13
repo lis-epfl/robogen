@@ -175,6 +175,9 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r){
 			*(r.neuralNetwork_.get())));
 	// assignment of std::set should work fine
 	idToPart_ = r.idToPart_;
+	// fitness and associated flag are same
+	fitness_ = r.fitness_;
+	evaluated_ = r.evaluated_;
 }
 
 RobotRepresentation &RobotRepresentation::operator=(
@@ -184,6 +187,8 @@ RobotRepresentation &RobotRepresentation::operator=(
 	neuralNetwork_.reset(new NeuralNetworkRepresentation(
 			*(r.neuralNetwork_.get())));
 	idToPart_ = r.idToPart_;
+	fitness_ = r.fitness_;
+	evaluated_ = r.evaluated_;
 	return *this;
 }
 
@@ -317,8 +322,22 @@ robogenMessage::Robot RobotRepresentation::serialize(){
 	return message;
 }
 
-double RobotRepresentation::evaluate(TcpSocket *socket,
-		std::string simulatorConfFile){
+void RobotRepresentation::randomizeBrain(boost::random::mt19937	&rng){
+	neuralNetwork_->initializeRandomly(rng);
+}
+
+void RobotRepresentation::getBrainGenome(std::vector<double*> &weights,
+		std::vector<double*> &biases){
+	neuralNetwork_->getGenome(weights, biases);
+}
+
+boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain()
+const{
+	return neuralNetwork_;
+}
+
+void RobotRepresentation::evaluate(TcpSocket *socket,
+		std::string &simulatorConfFile){
 	// 1. Prepare message to simulator
 	boost::shared_ptr<robogenMessage::Robot> rsp =
 			boost::shared_ptr<robogenMessage::Robot>(
@@ -353,23 +372,30 @@ double RobotRepresentation::evaluate(TcpSocket *socket,
 		exit(EXIT_FAILURE);
 	}
 	else {
-		return resultPacket.getMessage()->fitness();
+		fitness_ = resultPacket.getMessage()->fitness();
+		evaluated_ = true;
 	}
 
 }
 
-void RobotRepresentation::randomizeBrain(boost::random::mt19937	&rng){
-	neuralNetwork_->initializeRandomly(rng);
+double RobotRepresentation::getFitness() const{
+	return fitness_;
 }
 
-void RobotRepresentation::getBrainGenome(std::vector<double*> &weights,
-		std::vector<double*> &biases){
-	neuralNetwork_->getGenome(weights, biases);
+bool RobotRepresentation::isEvaluated() const{
+	return evaluated_;
 }
 
-boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain()
-const{
-	return neuralNetwork_;
+void RobotRepresentation::setDirty(){
+	evaluated_ = false;
+}
+
+bool operator >(const RobotRepresentation &a, const RobotRepresentation &b){
+	if (!a.isEvaluated() || !b.isEvaluated()){
+		throw RobotRepresentationException("Operator >: Trying to compare "\
+				"non-evaluated robots!");
+	}
+	return a.getFitness()>b.getFitness();
 }
 
 }

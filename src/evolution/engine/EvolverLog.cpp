@@ -80,7 +80,7 @@ EvolverLog::EvolverLog(std::string confFile) {
 EvolverLog::~EvolverLog() {
 }
 
-void EvolverLog::logGeneration(int step, const Population &population){
+void EvolverLog::logGeneration(int step, Population &population){
 	// log best, avg, stddev
 	double best,average,stdev;
 	population.getStat(best,average,stdev);

@@ -28,7 +28,9 @@
 
 #include "evolution/engine/IndividualContainer.h"
 #include <algorithm>
-#include "evolution/engine/Individual.h"
+#include <queue>
+#include <boost/thread.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace robogen {
 
@@ -46,12 +48,12 @@ IndividualContainer::~IndividualContainer() {
  * @param socket socket to simulator
  * @param confFile simulator configuration file to be used for evaluations
  */
-void evaluationThread(std::queue<Individual*> *indiQueue,
+void evaluationThread(std::queue<RobotRepresentation*> *indiQueue,
 		boost::mutex *queueMutex, TcpSocket *socket, std::string &confFile){
 	while (true){
 		boost::mutex::scoped_lock lock(*queueMutex);
 		if (indiQueue->empty()) return;
-		Individual *current = indiQueue->front(); indiQueue->pop();
+		RobotRepresentation *current = indiQueue->front(); indiQueue->pop();
 		std::cout << "." <<	std::flush;
 		lock.unlock();
 
@@ -63,7 +65,7 @@ void IndividualContainer::evaluate(std::string confFile,
 		std::vector<TcpSocket*> &sockets){
 
 	// 1. Create mutexed queue of Individual pointers
-	std::queue<Individual*> indiQueue;
+	std::queue<RobotRepresentation*> indiQueue;
 	boost::mutex queueMutex;
 	for (unsigned int i=0; i<this->size(); i++){
 		if (!this->at(i).isEvaluated()){
@@ -86,6 +88,8 @@ void IndividualContainer::evaluate(std::string confFile,
 	evaluators.join_all();
 	// newline after per-individual dots
 	std::cout << std::endl;
+
+	evaluated_ = true;
 }
 
 void IndividualContainer::sort(){
@@ -99,6 +103,10 @@ IndividualContainer &IndividualContainer::operator += (
 	this->insert(this->end(),other.begin(),other.end());
 	sorted_ = false;
 	return *this;
+}
+
+bool IndividualContainer::areEvaluated() const{
+	return evaluated_;
 }
 
 

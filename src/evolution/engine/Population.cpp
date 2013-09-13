@@ -35,8 +35,6 @@
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/max.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
-#include <boost/thread.hpp>
-#include <boost/thread/mutex.hpp>
 #include "robogen.pb.h"
 #include "utils/network/ProtobufPacket.h"
 
@@ -48,39 +46,33 @@ PopulationException::PopulationException(const std::string& w) :
 Population::Population(RobotRepresentation &robot, int popSize,
 		boost::random::mt19937	&rng) : IndividualContainer() {
 	// fill population vector
-	this->resize(popSize);
 	for (int i=0; i<popSize; i++){
-		this->at(i) = new RobotRepresentation(robot);
-		this->at(i).randomizeBrain(rng);
-		this->at(i).setDirty();
+		this->push_back(RobotRepresentation(robot));
+		this->back().randomizeBrain(rng);
+		this->back().setDirty();
 	}
 }
 
-Population::Population(std::vector<Individual> &robots) : evaluated_(true){
-	// need to explicitly call copy constructor!!! This is puzzling...
-	robots_.clear();
-	robots_.resize(robots.size());
-	for (unsigned int i=0; i<robots.size(); i++){
-		robots_[i] = robots[i];
-		robots_[i].robot = boost::shared_ptr<RobotRepresentation>(
-				new RobotRepresentation(*robots[i].robot.get()));
+Population::Population(const IndividualContainer &origin, unsigned int popSize){
+	if (!origin.areEvaluated()){
+		throw PopulationException("Trying to initialize population of n best "\
+				"Robots from IndividualContainer which is not evaluated!");
 	}
-}
-
-Population::Population(const IndividualContainer &origin, int popSize){
-	IndividualContainer(origin);
-	// clone: Make sure to invoke copy constructor TODO feels weird
-	for (unsigned int i=0; i<this->size(); ++i){
-		this->at(i) = this->at(i).clone();
+	for (unsigned int i=0; i<origin.size(); i++){
+		this->push_back(RobotRepresentation(origin[i]));
 	}
 	this->sort();
-	this->resize(popSize);
+	// idea was to call this->resize(popSize);, but that requires a default
+	// constructor to be present for RobotRepresentation, which is not the case
+	// on purpose
+	while (this->size()>popSize) this->pop_back();
+	this->evaluated_ = true;
 }
 
 Population::~Population() {
 }
 
-Individual &Population::best() const{
+RobotRepresentation &Population::best(){
 	if (!this->areEvaluated()){
 		throw PopulationException("Trying to get best individual from"\
 				" non-evaluated population!");
@@ -89,15 +81,15 @@ Individual &Population::best() const{
 	return this->at(0);
 }
 
-void Population::getStat(double &best, double &average, double &stdev) const{
+void Population::getStat(double &bestFit, double &average, double &stdev) const{
 	boost::accumulators::accumulator_set<double,
 	boost::accumulators::stats<boost::accumulators::tag::mean,
 	boost::accumulators::tag::variance,
 	boost::accumulators::tag::max> > acc;
 	for (unsigned int i=0; i<this->size(); i++) acc(this->at(i).getFitness());
-	best = boost::accumulators::max(acc);
+	bestFit = boost::accumulators::max(acc);
 	average = boost::accumulators::mean(acc);
-	std = std::sqrt((double)boost::accumulators::variance(acc));
+	stdev = std::sqrt((double)boost::accumulators::variance(acc));
 }
 
 } /* namespace robogen */

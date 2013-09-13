@@ -33,63 +33,29 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include "evolution/engine/Population.h"
+#include "evolution/representation/RobotRepresentation.h"
 
 namespace robogen {
 
 /**
- * Class containing the logic of selection for an evaluated population.
- * @todo do different strategies with derived classes?
+ * Selector interface definition
  */
 class Selector {
 public:
 	/**
-	 * Creates a ranking selector that selects the n best individuals
-	 * and embeds them periodically into the next population.
-	 * @param n amount of individuals to be selected
-	 * @param rng random number generator to be used
-	 */
-	Selector(int n, boost::random::mt19937 &rng);
-
-	/**
 	 * Allows selector to perform pre-selection actions, i.e. select pool from
 	 * which selected individuals shall stem.
 	 */
-	virtual void initPopulation(boost::shared_ptr<Population> pop);
+	virtual void initPopulation(boost::shared_ptr<Population> pop) = 0;
 
 	/**
 	 * Selects two parents from a population
 	 * @param pop the old population
 	 * @return the new population
 	 */
-	virtual std::pair<Individual, Individual> select();
+	virtual std::pair<RobotRepresentation, RobotRepresentation> select() = 0;
 
 	virtual ~Selector();
-
-private:
-	/**
-	 * Amount of best individuals that are selected
-	 */
-	int nselected_;
-
-	/**
-	 * Random number generator to be used
-	 */
-	boost::random::mt19937 &rng_;
-
-	/**
-	 * Shared pointer to Population
-	 */
-	boost::shared_ptr<Population> pop_;
-
-	/**
-	 * Vector of individuals preselected in initialisation step
-	 */
-	std::vector<Individual> preselection_;
-
-	/**
-	 * Selection iterator through preselection
-	 */
-	int iterator_;
 };
 
 } /* namespace robogen */
