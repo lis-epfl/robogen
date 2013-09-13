@@ -63,17 +63,21 @@ public:
 		return message;
 	}
 
+	void evaluate(TcpSocket *socket, std::string conf){
+
+	}
+
 	/**
 	 * @return fitness of string
 	 * @todo eliminate dead code
 	 */
-	/*double evaluate(TcpSocket *socket, std::string conf){
+	double getFitness() const{
 		double retval = 0.;
 		for (unsigned int i=0; i<array_.size(); i++){
 			retval -= array_[i]*array_[i];
 		}
 		return retval;
-	}*/
+	}
 
 	/**
 	 * Initialization
@@ -97,9 +101,24 @@ public:
 		}
 	}
 
+	bool isEvaluated(){
+		return true;
+	}
+
+	void setDirty(){
+
+	}
+
 private:
 	std::vector<double> array_;
 };
+
+/**
+ * Operator > returns true if fitness of a exceeds fitness of b
+ */
+inline bool operator >(const RobotRepresentation &a, const RobotRepresentation &b){
+	return a.getFitness()>b.getFitness();
+}
 
 }
 

@@ -33,6 +33,7 @@
 #include "evolution/engine/Population.h"
 #include "evolution/engine/Selector.h"
 #include "evolution/engine/Mutator.h"
+#include "evolution/engine/Selectors/DeterministicTournament.h"
 
 using namespace robogen;
 
@@ -50,8 +51,10 @@ int main(int argc, char *argv[]){
 	boost::random::mt19937 rng;
 
 	// set up evolution
-	Selector s(conf.numSelect,rng);
-	Mutator m(conf.pBrainMutate, conf.brainSigma, conf.pBrainCrossover, rng);
+	boost::shared_ptr<Selector> s(
+			new DeterministicTournament(conf.numSelect,rng));
+	Mutator m(conf.pBrainMutate, conf.brainSigma, conf.pBrainCrossover,
+			conf.minBrainWeight, conf.maxBrainWeight, rng);
 	boost::shared_ptr<EvolverLog>log(new EvolverLog(std::string(argv[1])));
 
 	// parse robot from file & initialize population
@@ -79,9 +82,10 @@ int main(int argc, char *argv[]){
 			++generation){
 		// create children
 		IndividualContainer children;
+		s->initPopulation(current);
 		for (unsigned int i = 0; i<conf.lambda; i++){
 			// don't forget to copy construct!!!
-			children.push_back(m.mutate(s.select()));
+			children.push_back(m.mutate(s->select()));
 		}
 		// evaluate children
 		children.evaluate(conf.simulatorConfFile, sockets);

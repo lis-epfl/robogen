@@ -37,25 +37,40 @@
 
 namespace robogen {
 
+class SelectorException : public std::runtime_error {
+public:
+	SelectorException(const std::string& w) : std::runtime_error(w){}
+};
+
 /**
  * Selector interface definition
  */
 class Selector {
 public:
+	Selector(){
+
+	}
+
 	/**
 	 * Allows selector to perform pre-selection actions, i.e. select pool from
 	 * which selected individuals shall stem.
 	 */
-	virtual void initPopulation(boost::shared_ptr<Population> pop) = 0;
+	virtual void initPopulation(boost::shared_ptr<Population> pop){
+
+	}
 
 	/**
 	 * Selects two parents from a population
 	 * @param pop the old population
 	 * @return the new population
 	 */
-	virtual std::pair<RobotRepresentation, RobotRepresentation> select() = 0;
+	virtual std::pair<RobotRepresentation, RobotRepresentation> select(){
 
-	virtual ~Selector();
+	}
+
+	virtual ~Selector(){
+
+	}
 };
 
 } /* namespace robogen */

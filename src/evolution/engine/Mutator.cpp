@@ -32,10 +32,13 @@
 namespace robogen {
 
 Mutator::Mutator(double pBrainMutate, double brainMuteSigma,
-		double pBrainCrossover, boost::random::mt19937 &rng) :
+		double pBrainCrossover, double brainMin, double brainMax,
+		boost::random::mt19937 &rng) :
 		type_(BRAIN_MUTATOR), weightMutate_(pBrainMutate),
+		weightDistribution_(0.,brainMuteSigma),
 		weightCrossover_(pBrainCrossover),
-		weightDistribution_(0.,brainMuteSigma), rng_(rng){
+		brainMin_(brainMin), brainMax_(brainMax),
+		rng_(rng){
 }
 
 Mutator::~Mutator() {
@@ -64,8 +67,8 @@ bool Mutator::mutate(RobotRepresentation &robot){
 				*weights[i] += weightDistribution_(rng_);
 			}
 			// normalize
-			if (*weights[i]>1.) *weights[i] = 1.;
-			if (*weights[i]<-1.) *weights[i] = -1;
+			if (*weights[i]>brainMax_) *weights[i] = brainMax_;
+			if (*weights[i]<brainMin_) *weights[i] = brainMin_;
 		}
 		// mutate biases
 		for (unsigned int i=0; i<biases.size(); ++i){
@@ -74,8 +77,8 @@ bool Mutator::mutate(RobotRepresentation &robot){
 				*biases[i] += weightDistribution_(rng_);
 			}
 			// normalize
-			if (*biases[i]>1.) *biases[i] = 1.;
-			if (*biases[i]<-1.) *biases[i] = -1.;
+			if (*biases[i]>brainMax_) *biases[i] = brainMax_;
+			if (*biases[i]<brainMin_) *biases[i] = brainMin_;
 		}
 		if (mutated){
 			robot.setDirty();

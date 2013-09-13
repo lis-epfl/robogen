@@ -30,7 +30,7 @@
 #define DETERMINISTICTOURNAMENT_H_
 
 #include <utility>
-#include "evolution/engine/Selector.cpp"
+#include "evolution/engine/Selector.h"
 
 namespace robogen{
 
@@ -40,7 +40,7 @@ public:
 	 * Initializes a deterministic tournament that for each parent
 	 * randomly draws n robots, the best robot getting the place
 	 */
-	DeterministicTournament(int n, boost::random::mt19937 &rng);
+	DeterministicTournament(unsigned int tSize, boost::random::mt19937 &rng);
 
 	virtual ~DeterministicTournament();
 
@@ -61,6 +61,16 @@ private:
 	 * Selection pool population
 	 */
 	boost::shared_ptr<Population> population_;
+
+	/**
+	 * Tournament size
+	 */
+	unsigned int tSize_;
+
+	/**
+	 * Random number generator reference
+	 */
+	boost::random::mt19937 &rng_;
 };
 
 }

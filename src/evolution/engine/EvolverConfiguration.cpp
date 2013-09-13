@@ -62,7 +62,7 @@ void EvolverConfiguration::init(std::string confFileName) {
 				->required(), "Amount of generations to be evaluated")
 		("numSelect",
 				boost::program_options::value<unsigned int>(&numSelect),
-				"Amount of best individuals to be selected by rank")
+				"Amount of participants in deterministic Tournament")
 		("replacement",
 				boost::program_options::value<std::string>()->required(),
 				"Type of replacement strategy: comma or plus")

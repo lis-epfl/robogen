@@ -53,7 +53,7 @@ public:
 	 * @param pBrainCrossover probability for crossover among brains
 	 */
 	Mutator(double pBrainMutate, double brainMuteSigma, double pBrainCrossover,
-			boost::random::mt19937 &rng);
+			double brainMin, double brainMax, boost::random::mt19937 &rng);
 
 	virtual ~Mutator();
 
@@ -88,8 +88,10 @@ private:
 	 * Diverse distributions to be used for mutation
 	 */
 	boost::random::bernoulli_distribution<double> weightMutate_;
-	boost::random::bernoulli_distribution<double> weightCrossover_;
 	boost::random::normal_distribution<double> weightDistribution_;
+	boost::random::bernoulli_distribution<double> weightCrossover_;
+	double brainMin_;
+	double brainMax_;
 
 	/**
 	 * Random number generator
