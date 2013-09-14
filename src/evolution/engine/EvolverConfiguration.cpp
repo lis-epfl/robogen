@@ -60,8 +60,11 @@ void EvolverConfiguration::init(std::string confFileName) {
 		("numGenerations",
 				boost::program_options::value<unsigned int>(&numGenerations)
 				->required(), "Amount of generations to be evaluated")
-		("numSelect",
-				boost::program_options::value<unsigned int>(&numSelect),
+		("selection",
+				boost::program_options::value<std::string>()->required(),
+				"Type of selection strategy: deterministic-tournament")
+		("tournamentSize",
+				boost::program_options::value<unsigned int>(&tournamentSize),
 				"Amount of participants in deterministic Tournament")
 		("replacement",
 				boost::program_options::value<std::string>()->required(),
@@ -83,6 +86,18 @@ void EvolverConfiguration::init(std::string confFileName) {
 			boost::program_options::parse_config_file<char>(
 					confFileName.c_str(), desc, true), vm);
 	boost::program_options::notify(vm);
+
+	// parse selection type
+	if (vm["selection"].as<std::string>() == "deterministic-tournament"){
+		selection = DETERMINISTIC_TOURNAMENT;
+	}
+	else {
+		std::stringstream ss;
+		ss << "Specified selection strategy \"" <<
+				vm["selection"].as<std::string>() <<
+				"\" unknown. Options are \"deterministic-tournament\" or ...";
+		throw EvolverConfigurationException(ss.str());
+	}
 
 	// parse replacement type
 	if (vm["replacement"].as<std::string>() == "comma"){
@@ -136,6 +151,15 @@ void EvolverConfiguration::init(std::string confFileName) {
 
 	// now that everything is parsed, we verify configuration validity
 	// ===================================
+
+	// - if selection is deterministic tournament, 1 <= tournamentSize <= mu
+	if (selection == DETERMINISTIC_TOURNAMENT && (tournamentSize < 1 ||
+			tournamentSize > mu)){
+		std::stringstream ss;
+		ss << "Specified tournament size should be between 1 and mu, "\
+				"but is " << tournamentSize;
+		throw EvolverConfigurationException(ss.str());
+	}
 
 	// - if replacement is comma, lambda must exceed mu
 	if (replacement == COMMA_REPLACEMENT && lambda < mu){

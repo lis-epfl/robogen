@@ -50,8 +50,14 @@ struct EvolverConfiguration {
 	 * Types of replacement strategies
 	 */
 	enum ReplacementTypes{
-		PLUS_REPLACEMENT,
-		COMMA_REPLACEMENT
+		PLUS_REPLACEMENT, COMMA_REPLACEMENT
+	};
+
+	/**
+	 * Types of selection strategies
+	 */
+	enum SelectionTypes{
+		DETERMINISTIC_TOURNAMENT
 	};
 
 	/**
@@ -85,9 +91,14 @@ struct EvolverConfiguration {
 	unsigned int numGenerations;
 
 	/**
-	 * Amount of robots to be selected
+	 * Employed selection strategy
 	 */
-	unsigned int numSelect;
+	unsigned int selection;
+
+	/**
+	 * Tournament size for tournaments
+	 */
+	unsigned int tournamentSize;
 
 	/**
 	 * Employed replacement strategy

@@ -51,8 +51,15 @@ int main(int argc, char *argv[]){
 	boost::random::mt19937 rng;
 
 	// set up evolution
-	boost::shared_ptr<Selector> s(
-			new DeterministicTournament(conf.numSelect,rng));
+	boost::shared_ptr<Selector> s;
+	if (conf.selection == conf.DETERMINISTIC_TOURNAMENT){
+		s.reset(new DeterministicTournament(conf.tournamentSize,rng));
+	}
+	else{
+		std::cout << "Selection type id " << conf.selection << " unknown." <<
+				std::endl;
+		return EXIT_FAILURE;
+	}
 	Mutator m(conf.pBrainMutate, conf.brainSigma, conf.pBrainCrossover,
 			conf.minBrainWeight, conf.maxBrainWeight, rng);
 	boost::shared_ptr<EvolverLog>log(new EvolverLog(std::string(argv[1])));
