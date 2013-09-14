@@ -17,7 +17,7 @@
 #include "arduino/ArduinoNNCompiler.h"
 #include "model/sensors/Sensor.h"
 
-#define LOG_DIRECTORY_PREFIX "FileViewer_"
+#define LOG_DIRECTORY_PREFIX "results/FileViewer_"
 #define LOG_DIRECTORY_FACET "%Y%m%d-%H%M%S"
 #define TRAJECTORY_LOG_FILE "trajectoryLog.txt"
 #define SENSOR_LABEL_FILE "sensorLabels.txt"
@@ -119,17 +119,21 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 		throw std::string("Can't copy starting position file\n")+err.what();
 	}
 
-	// copy octave script TODO copy any .m files maybe?
-	boost::filesystem::path octFrom(OCTAVE_SCRIPT);
-	ss.str(""); ss.clear();
-	ss << logPathSs.str() << "/" << octFrom.filename().string();
-	boost::filesystem::path octTo(ss.str());
-	try{
-		boost::filesystem::copy_file(octFrom, octTo);
-	} catch (boost::filesystem::filesystem_error &err){
-		std::cout << "Didn't find " << OCTAVE_SCRIPT << "... " <<
-				"If this script were in the execution directory, "\
-				"I'd copy it to the result directory for you!" << std::endl;
+	// copy any m files
+	for (boost::filesystem::directory_iterator
+			it(boost::filesystem::current_path());
+			it != boost::filesystem::directory_iterator(); ++it){
+		if (boost::filesystem::extension(it->path()) == ".m"){
+			ss.str(""); ss.clear();
+			ss << logPathSs.str() << "/" << it->path().filename().string();
+			boost::filesystem::path mTo(ss.str());
+			try{
+				boost::filesystem::copy_file(it->path(), mTo);
+			} catch (boost::filesystem::filesystem_error &err){
+				std::cout << "Problem when copying m file " << it->path() <<
+						std::endl;
+			}
+		}
 	}
 
 	// write out sensor Labels file

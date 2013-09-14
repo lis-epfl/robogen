@@ -25,6 +25,7 @@ try
 catch
 	disp "Empty or non-standard-named obstacle text file. Can't load."
 end_try_catch
+axis("square");
 title("Robot trajectory");
 
 %% Plot sensor values

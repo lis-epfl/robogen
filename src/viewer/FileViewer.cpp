@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
 	//Creating the viewer
 	osgViewer::Viewer viewer;
 
-	viewer.setUpViewInWindow(300, 300, 1280, 1024);
+	viewer.setUpViewInWindow(200, 200, 800, 600);
 
 	osg::ref_ptr<KeyboardHandler> keyboardEvent(new KeyboardHandler());
 

@@ -29,7 +29,7 @@
 
 namespace robogen {
 
-const float LightSource::RADIUS = 0.1;
+const float LightSource::RADIUS = 0.02;
 
 LightSource::LightSource(dSpaceID odeSpace, const osg::Vec3& position,
 		float intensity) :
@@ -37,7 +37,6 @@ LightSource::LightSource(dSpaceID odeSpace, const osg::Vec3& position,
 
 	lightSource_ = dCreateSphere(odeSpace, RADIUS);
 	dGeomSetPosition(lightSource_, position.x(), position.y(), position.z());
-
 }
 
 LightSource::~LightSource() {

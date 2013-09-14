@@ -36,7 +36,7 @@
 
 namespace robogen {
 
-#define LOG_DIRECTORY_PREFIX "BrainEvolution_"
+#define LOG_DIRECTORY_PREFIX "results/BrainEvolution_"
 #define LOG_DIRECTORY_FACET "%Y%m%d-%H%M%S"
 #define BAS_LOG_FILE "BestAvgStd.txt"
 #define GENERATION_BEST_PREFIX "GenerationBest-"
