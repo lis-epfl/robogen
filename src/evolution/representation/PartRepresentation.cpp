@@ -7,6 +7,7 @@
 
 #include "evolution/representation/PartRepresentation.h"
 #include <sstream>
+#include <iostream>
 
 #include "evolution/representation/parts/ActiveCardanRepresentation.h"
 #include "evolution/representation/parts/ActiveHingeRepresentation.h"
@@ -29,7 +30,8 @@ PartRepresentationException::PartRepresentationException(const std::string& w) :
 
 PartRepresentation::PartRepresentation(std::string id,
 		int orientation, int arity, std::string type):
-		id_(id), arity_(arity), orientation_(orientation), type_(type){
+		id_(id), arity_(arity), orientation_(orientation), type_(type),
+		parent_(NULL) {
 	children_.resize(arity_,boost::shared_ptr<PartRepresentation>());
 }
 
@@ -46,6 +48,17 @@ int PartRepresentation::getOrientation(){
 
 int PartRepresentation::getArity(){
 	return arity_;
+}
+
+int PartRepresentation::numDescendants(){
+	int descendants = 0;
+	for (unsigned int i=0; i<children_.size(); ++i){
+		// child and all its children
+		if (children_[i].get()){
+			++descendants += children_[i]->numDescendants();
+		}
+	}
+	return descendants;
 }
 
 std::string &PartRepresentation::getType(){
@@ -69,6 +82,11 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::setChild(int n,
 		ss << "Attempt to access non-existing slot " << n << " of part "
 				<< this->getId() << " with arity " << arity_;
 		throw PartRepresentationException(ss.str());
+	}
+	// don't try to access part if void
+	if (part){
+		part->setParent(this);
+		part->setPosition(n);
 	}
 	part.swap(children_[n-1]);
 	return part;
@@ -178,6 +196,22 @@ void PartRepresentation::addSubtreeToBodyMessage(
 			this->getChild(i)->addSubtreeToBodyMessage(bodyMessage, false);
 		}
 	}
+}
+
+void PartRepresentation::setParent(PartRepresentation *parent){
+	parent_ = parent;
+}
+
+PartRepresentation *PartRepresentation::getParent(){
+	return parent_;
+}
+
+void PartRepresentation::setPosition(int position){
+	position_ = position;
+}
+
+int PartRepresentation::getPosition(){
+	return position_;
 }
 
 } /* namespace robogen */

@@ -62,7 +62,7 @@ int main(int argc, char *argv[]){
 	}
 	Mutator m(conf.pBrainMutate, conf.brainSigma, conf.pBrainCrossover,
 			conf.minBrainWeight, conf.maxBrainWeight, rng);
-	boost::shared_ptr<EvolverLog>log(new EvolverLog(std::string(argv[1])));
+	boost::shared_ptr<EvolverLog> log(new EvolverLog(std::string(argv[1])));
 
 	// parse robot from file & initialize population
 	RobotRepresentation referenceBot(conf.referenceRobotFile);

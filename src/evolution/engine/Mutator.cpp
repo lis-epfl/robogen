@@ -84,6 +84,58 @@ bool Mutator::mutate(RobotRepresentation &robot){
 			robot.setDirty();
 		}
 	}
+
+#ifdef BODY_MUTATION
+	while (true){
+		// check velidity of body
+		int errorCode;
+		std::vector<std::pair<std::string, std::string> > offenders;
+		if (!verifier_.verify(robot, errorCode, offenders)){
+			if (errorCode == BodyVerifier::SELF_INTERSECTION){
+				std::cout << "Robot body has following intersection pairs:"
+						<< std::endl;
+				for (unsigned int i=0; i<offenders.size(); ++i){
+					// get robots IdPartMap: Volatile, so needs update
+					const RobotRepresentation::IdPartMap idPartMap =
+							robot.getBody();
+					std::cout << offenders[i].first << " with " <<
+							offenders[i].second << std::endl;
+
+					// check if offending body part hasn't been removed yet
+					if (idPartMap.find(offenders[i].first) == idPartMap.end() ||
+							idPartMap.find(offenders[i].second) ==
+									idPartMap.end()){
+						continue;
+					}
+					// will remove body part with less descendants (i.e. this
+					// covers the case where one part descends from the other)
+					int numDesc[] = {idPartMap.find(offenders[i].first)->
+							second.lock()->numDescendants(),
+							idPartMap.find(offenders[i].second)->
+							second.lock()->numDescendants()
+					};
+					std::cout << offenders[i].first << " has " <<
+							numDesc[0] << " descendants" << std::endl;
+					std::cout << offenders[i].second << " has " <<
+							numDesc[1] << " descendants" << std::endl;
+					if (numDesc[0]>numDesc[1]){
+						robot.trimBodyAt(offenders[i].second);
+						std::cout << "Removing latter" << std::endl;
+					}
+					else{
+						robot.trimBodyAt(offenders[i].first);
+						std::cout << "Removing former" << std::endl;
+					}
+				}
+			}
+		}
+		else{
+			break;
+		}
+	}
+#endif
+
+
 	return mutated;
 }
 

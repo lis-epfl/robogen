@@ -54,7 +54,7 @@ public:
 	/**
 	 * Empty serialization
 	 */
-	robogenMessage::Robot serialize(){
+	robogenMessage::Robot serialize() const{
 		robogenMessage::Robot message;
 		message.set_id(1);
 		message.set_configuration("");

@@ -61,13 +61,13 @@ public:
  * methods.
  */
 class RobotRepresentation{
+public:
 	/**
 	 * Map from an id string to a weak pointer of a part representation
 	 */
 	typedef std::map<std::string, boost::weak_ptr<PartRepresentation> >
 	IdPartMap;
 
-public:
 	/**
 	 * Return codes for getSensorType(body id)
 	 */
@@ -104,7 +104,7 @@ public:
 	 * @return robot message of this robot to be transmitted to simulator
 	 * or stored as population checkpoint
 	 */
-	robogenMessage::Robot serialize();
+	robogenMessage::Robot serialize() const;
 
 	/**
 	 * Initializes the brain to be completely random.
@@ -120,9 +120,14 @@ public:
 			std::vector<double*> &biases);
 
 	/**
-	 * @return a const reference to the robots brain
+	 * @return a shared pointer to the robots brain
 	 */
 	boost::shared_ptr<NeuralNetworkRepresentation> getBrain() const;
+
+	/**
+	 * @return a shared pointer to the robots body
+	 */
+	const IdPartMap &getBody() const;
 
 	/**
 	 * Evaluate individual using given socket and given configuration file.
@@ -143,6 +148,13 @@ public:
 	 * Makes robot be not evaluated again
 	 */
 	void setDirty();
+
+	/**
+	 * Removes body part and all children at indicated position. Does not pop
+	 * just one body part as TODO popBodyPart() does.
+	 * @return false upon failure
+	 */
+	bool trimBodyAt(std::string id);
 
 private:
 	/**

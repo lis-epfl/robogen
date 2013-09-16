@@ -173,8 +173,19 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r){
 	// neural network pointer needs to be reset to a copy-constructed instance
 	neuralNetwork_.reset(new NeuralNetworkRepresentation(
 			*(r.neuralNetwork_.get())));
-	// assignment of std::set should work fine
-	idToPart_ = r.idToPart_;
+	// rebuild ID to part map
+	idToPart_.clear();
+	std::queue<boost::shared_ptr<PartRepresentation> > q;
+	q.push(bodyTree_);
+	while (!q.empty()){
+		boost::shared_ptr<PartRepresentation> cur = q.front(); q.pop();
+		idToPart_[cur->getId()] =  boost::weak_ptr<PartRepresentation>(cur);
+		for (int i=1; i<=cur->getArity(); ++i){
+			if (cur->getChild(i)){
+				q.push(cur->getChild(i));
+			}
+		}
+	}
 	// fitness and associated flag are same
 	fitness_ = r.fitness_;
 	evaluated_ = r.evaluated_;
@@ -186,7 +197,19 @@ RobotRepresentation &RobotRepresentation::operator=(
 	bodyTree_ = r.bodyTree_->cloneSubtree();
 	neuralNetwork_.reset(new NeuralNetworkRepresentation(
 			*(r.neuralNetwork_.get())));
-	idToPart_ = r.idToPart_;
+	// rebuild ID to part map
+	idToPart_.clear();
+	std::queue<boost::shared_ptr<PartRepresentation> > q;
+	q.push(bodyTree_);
+	while (!q.empty()){
+		boost::shared_ptr<PartRepresentation> cur = q.front(); q.pop();
+		idToPart_[cur->getId()] =  boost::weak_ptr<PartRepresentation>(cur);
+		for (int i=1; i<=cur->getArity(); ++i){
+			if (cur->getChild(i)){
+				q.push(cur->getChild(i));
+			}
+		}
+	}
 	fitness_ = r.fitness_;
 	evaluated_ = r.evaluated_;
 	return *this;
@@ -308,7 +331,7 @@ int RobotRepresentation::getSensorType(const std::string &id){
 	}
 }
 
-robogenMessage::Robot RobotRepresentation::serialize(){
+robogenMessage::Robot RobotRepresentation::serialize() const{
 	robogenMessage::Robot message;
 	// id - this can probably be removed
 	message.set_id(1);
@@ -334,6 +357,10 @@ void RobotRepresentation::getBrainGenome(std::vector<double*> &weights,
 boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain()
 const{
 	return neuralNetwork_;
+}
+
+const RobotRepresentation::IdPartMap &RobotRepresentation::getBody() const{
+	return idToPart_;
 }
 
 void RobotRepresentation::evaluate(TcpSocket *socket,
@@ -388,6 +415,32 @@ bool RobotRepresentation::isEvaluated() const{
 
 void RobotRepresentation::setDirty(){
 	evaluated_ = false;
+}
+
+bool RobotRepresentation::trimBodyAt(std::string id){
+	// thanks to shared pointer magic, we only need to reset the shared pointer
+	// to the indicated body part
+	PartRepresentation *parent = idToPart_[id].lock()->getParent();
+	int position = idToPart_[id].lock()->getPosition();
+	if (!parent){
+		std::cout << "Trying to remove root body part!" << std::endl;
+		return false;
+	}
+	std::cout << "Has references: " << idToPart_[id].lock().use_count() << std::endl;
+	parent->setChild(position, boost::shared_ptr<PartRepresentation>());
+	if (!parent->getChild(position)){
+		std::cout << "Successfully removed" << std:: endl;
+	}
+	// need to update the id to body part map! Easily done with weak pointers
+	for (IdPartMap::iterator it = idToPart_.begin(); it != idToPart_.end();){
+		if (!it->second.lock()){
+			idToPart_.erase(it++);
+			std::cout << "Had a part to erase! " << parent << std::endl;
+		}
+		else ++it;
+	}
+
+	return true;
 }
 
 bool operator >(const RobotRepresentation &a, const RobotRepresentation &b){

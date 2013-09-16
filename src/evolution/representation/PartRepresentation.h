@@ -67,8 +67,7 @@ public:
 	 * http://stackoverflow.com/questions/5731217/how-to-copy-create-derived-
 	 * class-instance-from-a-pointer-to-a-polymorphic-base-c
 	 * @return new derived instance of the part
-	 * @todo per design, this results in a recursive call. Is this robust for
-	 * bigger robots?
+	 * @todo recursive pattern robust for bigger robots?
 	 */
 	virtual boost::shared_ptr<PartRepresentation> cloneSubtree() = 0;
 
@@ -100,6 +99,11 @@ public:
 	int getArity();
 
 	/**
+	 * @return amount of children, recursively: Total amount of dependent parts
+	 */
+	int numDescendants();
+
+	/**
 	 * @param n slot of the child part to get
 	 */
 	boost::shared_ptr<PartRepresentation> getChild(int n);
@@ -122,10 +126,30 @@ public:
 	 * Add subtree to given body message.
 	 * @param bodyMessage message of the body to be completed with the subtree
 	 * @param amIRoot if set to true, will dsignate itself as root part
-	 * @todo another recursive pattern
+	 * @todo recursive pattern robust for bigger robots?
 	 */
 	void addSubtreeToBodyMessage(robogenMessage::Body *bodyMessage,
 			bool amIRoot);
+
+	/**
+	 * @param parent parent to be set
+	 */
+	void setParent(PartRepresentation *parent);
+
+	/**
+	 * @return parent part
+	 */
+	PartRepresentation *getParent();
+
+	/**
+	 * Set slot id on parent part
+	 */
+	void setPosition(int position);
+
+	/**
+	 * @return slot occupied on parent part
+	 */
+	int getPosition();
 
 protected:
 	/**
@@ -166,6 +190,16 @@ private:
 	 * Children of this part in the body tree
 	 */
 	std::vector<boost::shared_ptr<PartRepresentation> > children_;
+
+	/**
+	 * Parent body part - raw pointer as present (or NULL) by design
+	 */
+	PartRepresentation *parent_;
+
+	/**
+	 * Slot occupied on parent part
+	 */
+	int position_;
 
 };
 
