@@ -86,53 +86,34 @@ bool Mutator::mutate(RobotRepresentation &robot){
 	}
 
 #ifdef BODY_MUTATION
-	while (true){
-		// check velidity of body
-		int errorCode;
-		std::vector<std::pair<std::string, std::string> > offenders;
-		if (!verifier_.verify(robot, errorCode, offenders)){
-			if (errorCode == BodyVerifier::SELF_INTERSECTION){
-				std::cout << "Robot body has following intersection pairs:"
-						<< std::endl;
-				for (unsigned int i=0; i<offenders.size(); ++i){
-					// get robots IdPartMap: Volatile, so needs update
-					const RobotRepresentation::IdPartMap idPartMap =
-							robot.getBody();
-					std::cout << offenders[i].first << " with " <<
-							offenders[i].second << std::endl;
-
-					// check if offending body part hasn't been removed yet
-					if (idPartMap.find(offenders[i].first) == idPartMap.end() ||
-							idPartMap.find(offenders[i].second) ==
-									idPartMap.end()){
-						continue;
-					}
-					// will remove body part with less descendants (i.e. this
-					// covers the case where one part descends from the other)
-					int numDesc[] = {idPartMap.find(offenders[i].first)->
-							second.lock()->numDescendants(),
-							idPartMap.find(offenders[i].second)->
-							second.lock()->numDescendants()
-					};
-					std::cout << offenders[i].first << " has " <<
-							numDesc[0] << " descendants" << std::endl;
-					std::cout << offenders[i].second << " has " <<
-							numDesc[1] << " descendants" << std::endl;
-					if (numDesc[0]>numDesc[1]){
-						robot.trimBodyAt(offenders[i].second);
-						std::cout << "Removing latter" << std::endl;
-					}
-					else{
-						robot.trimBodyAt(offenders[i].first);
-						std::cout << "Removing former" << std::endl;
-					}
-				}
-			}
+	// let's work with hard coded mutation probability as long as this is
+	// experimental. Later, make it an option of the Mutator or even create
+	// a derived mutator, much like the selector is implemented.
+	// 1. Hard mutation: body tree mutation
+	double pBodyMutate = 0.3;
+	boost::random::bernoulli_distribution<double> bodyMutate(pBodyMutate);
+	if (bodyMutate(rng_)){
+		// a) Add or remove a body part
+		// slight bias to adding, as remove may take away more than one bpart
+		boost::random::bernoulli_distribution<double> addNotRemove(0.6);
+		if (addNotRemove(rng_)){
+			// robot.addRandomBodyPart(rng_);
 		}
-		else{
-			break;
+		else {
+			// robot.popRandomBodyPart(rng_);
+		}
+		// b) Change orientation of a body part
+		double pRotate = 0.2;
+		boost::random::bernoulli_distribution<double> rotate(pRotate);
+		if (rotate(rng_)){
+			// robot.rotateRandomBodyPart(rng_);
 		}
 	}
+	// 2. Soft mutation: body parameter mutation
+	// TODO continue here
+	// currently, let's fix body anyways for demo purposes. Later, we can do
+	// this only whenever necessary.
+	BodyVerifier::fixRobotBody(robot);
 #endif
 
 

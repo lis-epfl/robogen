@@ -439,6 +439,12 @@ bool RobotRepresentation::trimBodyAt(std::string id){
 		}
 		else ++it;
 	}
+	// TODO complete this: Cf. constructor from robot text file. sensorMap and
+	// motorMap could be probably implemented as a RobotRep. property
+
+	// neuralNetwork_->adoptBody(sensorMap, motorMap);
+
+	// TODO then, complete adoptBody()
 
 	return true;
 }

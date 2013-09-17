@@ -38,6 +38,9 @@
 #include "evolution/representation/RobotRepresentation.h"
 #include "utils/network/TcpSocket.h"
 
+// enable the following to perform body mutation:
+// #define BODY_MUTATION
+
 namespace robogen {
 
 class PopulationException : public std::runtime_error {

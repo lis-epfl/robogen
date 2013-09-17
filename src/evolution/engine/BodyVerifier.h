@@ -29,6 +29,10 @@
 #include "robogen.pb.h"
 #include "viewer/FileViewerLog.h"
 #include "evolution/representation/RobotRepresentation.h"
+// includes pasted from FileViewer.cpp for the sake of please just work
+
+// Comment the following if you don't want OSG popping up all the time
+#define VISUAL_DEBUG
 
 namespace robogen {
 
@@ -50,12 +54,9 @@ public:
 	};
 
 	/**
-	 * Creates an ODE/OSG instance ready to review robots. Should be similar to
-	 * file viewer code.
+	 * ODE collision callback which identifies intersecting body parts
 	 */
-	BodyVerifier();
-
-	virtual ~BodyVerifier();
+	static void collisionCallback(void*, dGeomID o1, dGeomID o2);
 
 	/**
 	 * Verifies a given robot design. Should be similar to file viewer code
@@ -64,10 +65,28 @@ public:
 	 * @param affectedBodyParts if error, identifiers of affected body parts
 	 * @return true if robot valid, false otherwise
 	 */
-	bool verify(const RobotRepresentation &robot, int &errorCode,
-			std::vector<std::pair<std::string,std::string> > &affectedBodyParts);
+	static bool verify(const RobotRepresentation &robot, int &errorCode,
+			std::vector<std::pair<std::string,std::string> >&affectedBodyParts);
 
-	static void collisionCallback(void*, dGeomID o1, dGeomID o2);
+	/**
+	 * Suggested routine for handling a robot body with potential
+	 * self-intersections: For each pair of offending body parts, the amount
+	 * of bodyparts in the substree of each offending part is counted and the
+	 * body part with less subtree parts is trimmed. In particular, this handles
+	 * the problem where one part is in the subtree of the other per definition.
+	 * Other routines can be implemented using verify().
+	 * @param robot robot to be treated
+	 */
+	static bool fixRobotBody(RobotRepresentation &robot);
+
+private:
+	/**
+	 * Private constructor prevents instantiation
+	 */
+	BodyVerifier();
+
+	virtual ~BodyVerifier();
+
 
 };
 

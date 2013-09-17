@@ -37,6 +37,9 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include "robogen.pb.h"
 #include "utils/network/ProtobufPacket.h"
+#ifdef BODY_MUTATION
+#include "evolution/engine/BodyVerifier.h"
+#endif
 
 namespace robogen {
 
@@ -50,6 +53,10 @@ Population::Population(RobotRepresentation &robot, int popSize,
 		this->push_back(RobotRepresentation(robot));
 		this->back().randomizeBrain(rng);
 		this->back().setDirty();
+#ifdef BODY_MUTATION
+		// this->back().randomizeBody(); // TODO stub
+		BodyVerifier::fixRobotBody(this->back());
+#endif
 	}
 }
 

@@ -30,7 +30,7 @@
 #define MUTATOR_H_
 
 // enable the following to perform body mutation:
-//#define BODY_MUTATION
+// #define BODY_MUTATION
 
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/bernoulli_distribution.hpp>
@@ -101,13 +101,6 @@ private:
 	 * Random number generator
 	 */
 	boost::random::mt19937 &rng_;
-
-#ifdef BODY_MUTATION
-	/**
-	 * Robot body verifier
-	 */
-	BodyVerifier verifier_;
-#endif
 };
 
 } /* namespace robogen */

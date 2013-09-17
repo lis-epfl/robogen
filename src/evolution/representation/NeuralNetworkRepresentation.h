@@ -125,11 +125,16 @@ public:
 	 * This is a stub for body evolution.
 	 * Refreshes the sensor and motor cache sets according to the passed body,
 	 * removes dangling weights and biases and randomly initializes new ones.
+	 * SUGGESTED IMPLEMENTATION:
+	 * Copy sensor parts and motor parts maps. Then, iterate through neurons_.
+	 * If corresponding body part found in either map, remove that body part
+	 * from that map, else remove neuron from neurons_. Finally, create a neuron
+	 * in neurons_ for each remaining part. Update weights in a similar way.
 	 * @param motors motor id's to be registered
 	 * @param sensors sensor id's to be registered
 	 */
-	void adoptBody(std::map<std::string,int> &sensorParts,
-			std::map<std::string,int> &motorParts);
+	void adoptBody(const std::map<std::string,int> &sensorParts,
+			const std::map<std::string,int> &motorParts);
 
 	/**
 	 * This is a conversion to a linear representation, which is currently
