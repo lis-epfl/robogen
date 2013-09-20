@@ -31,8 +31,6 @@
 
 namespace robogen {
 
-ModelException::ModelException(const std::string& w) : std::runtime_error(w){}
-
 Model::Model(dWorldID odeWorld, dSpaceID odeSpace, std::string id) :
 		odeWorld_(odeWorld), odeSpace_(odeSpace), id_(id) {
 }

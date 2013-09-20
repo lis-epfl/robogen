@@ -54,7 +54,8 @@ public:
 	 * @param pop the old population
 	 * @return the new population
 	 */
-	virtual std::pair<RobotRepresentation, RobotRepresentation> select();
+	virtual bool select(boost::shared_ptr<std::pair<RobotRepresentation,
+			RobotRepresentation> > &selected);
 
 private:
 	/**

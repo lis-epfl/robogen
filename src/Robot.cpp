@@ -201,9 +201,16 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 	bodyConnections_.reserve(robotBody.connection_size());
 	for (int i = 0; i < robotBody.connection_size(); ++i) {
+		try{
 		bodyConnections_.push_back(boost::shared_ptr<Connection>(
 				new Connection(robotBody.connection(i), bodyPartsMap_,
 						bodyParts_)));
+		}
+		catch(ConnectionException &e){
+			std::cout << "Problem when connecting body parts:" << std::endl
+					<< "\t" << e.what() << std::endl;
+			return false;
+		}
 		// TODO dirty, cleaner would be to just use them Model pointers!
 		// would mean no boost graph
 		boost::add_edge(bodyPartsMap_[robotBody.connection(i).src()],
@@ -223,7 +230,7 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 		std::cout
 		<< "The robot body has some disconnected component (ConnComponents: "
 		<< numComponents << ")" << std::endl;
-		throw std::runtime_error("Exception in robot body connection");
+		return false;
 	}
 	// End of connectivity check
 
@@ -390,12 +397,12 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	}
 
 	std::cout << "Contents of unordered sensors:" << std::endl;
-	for (int i=0; i<sensors_.size(); ++i){
+	for (unsigned int i=0; i<sensors_.size(); ++i){
 		std::cout << sensors_[i]->getLabel() << std::endl;
 	}
 	sensors_ = orderedSensors;
 	std::cout << "Contents of ordered sensors:" << std::endl;
-	for (int i=0; i<sensors_.size(); ++i){
+	for (unsigned int i=0; i<sensors_.size(); ++i){
 		std::cout << sensors_[i]->getLabel() << std::endl;
 	}
 	motors_ = orderedMotors;

@@ -43,11 +43,12 @@
 
 namespace robogen {
 
-PopulationException::PopulationException(const std::string& w) :
-						std::runtime_error(w){}
+Population::Population() : IndividualContainer(){
 
-Population::Population(RobotRepresentation &robot, int popSize,
-		boost::random::mt19937	&rng) : IndividualContainer() {
+}
+
+bool Population::init(RobotRepresentation &robot, int popSize,
+		boost::random::mt19937	&rng){
 	// fill population vector
 	for (int i=0; i<popSize; i++){
 		this->push_back(RobotRepresentation(robot));
@@ -58,12 +59,14 @@ Population::Population(RobotRepresentation &robot, int popSize,
 		BodyVerifier::fixRobotBody(this->back());
 #endif
 	}
+	return true;
 }
 
-Population::Population(const IndividualContainer &origin, unsigned int popSize){
+bool Population::init(const IndividualContainer &origin, unsigned int popSize){
 	if (!origin.areEvaluated()){
-		throw PopulationException("Trying to initialize population of n best "\
-				"Robots from IndividualContainer which is not evaluated!");
+		std::cout << "Trying to initialize population of n best Robots from "\
+				"IndividualContainer which is not evaluated!" << std::endl;
+		return false;
 	}
 	for (unsigned int i=0; i<origin.size(); i++){
 		this->push_back(RobotRepresentation(origin[i]));
@@ -74,21 +77,25 @@ Population::Population(const IndividualContainer &origin, unsigned int popSize){
 	// on purpose
 	while (this->size()>popSize) this->pop_back();
 	this->evaluated_ = true;
+	return true;
 }
 
 Population::~Population() {
 }
 
 RobotRepresentation &Population::best(){
-	if (!this->areEvaluated()){
-		throw PopulationException("Trying to get best individual from"\
-				" non-evaluated population!");
+	if (!this->areEvaluated()){ // undefined behavior. No exception (hint)
+		return this->at(0);
 	}
 	this->sort();
 	return this->at(0);
 }
 
-void Population::getStat(double &bestFit, double &average, double &stdev) const{
+bool Population::getStat(double &bestFit, double &average, double &stdev) const{
+	if (!this->areEvaluated()){
+		std::cout << "Trying to get stats on non-evaluated population" <<
+				std::endl;
+	}
 	boost::accumulators::accumulator_set<double,
 	boost::accumulators::stats<boost::accumulators::tag::mean,
 	boost::accumulators::tag::variance,
@@ -97,6 +104,7 @@ void Population::getStat(double &bestFit, double &average, double &stdev) const{
 	bestFit = boost::accumulators::max(acc);
 	average = boost::accumulators::mean(acc);
 	stdev = std::sqrt((double)boost::accumulators::variance(acc));
+	return true;
 }
 
 } /* namespace robogen */

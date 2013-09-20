@@ -4,7 +4,7 @@
  * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2014
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -46,11 +46,12 @@ void DeterministicTournament::initPopulation(boost::shared_ptr<Population> pop){
 }
 
 // http://sureshamrita.wordpress.com/2011/08/27/random_shuffle-boost-generator/
-std::pair<RobotRepresentation, RobotRepresentation>
-DeterministicTournament::select(){
-	if (!population_.get()){
-		throw  SelectorException("Trying to perform selection, but no "\
-				"population initiated!");
+bool DeterministicTournament::select(boost::shared_ptr<std::pair<
+		RobotRepresentation, RobotRepresentation> > &selected){
+	if (!population_){
+		std::cout << "Trying to perform selection, but no "\
+				"population initiated!" << std::endl;
+		return false;
 	}
 	RobotRepresentation *selection[] = {NULL,NULL};
 	// prepare stuff for random_shuffle
@@ -77,9 +78,11 @@ DeterministicTournament::select(){
 		// remove selected parent from robots competing for other position
 		shuffVec.erase(shuffVec.begin() + selectionIndex);
 	}
-	return std::pair<RobotRepresentation, RobotRepresentation>(
-			RobotRepresentation(*selection[0]),
-			RobotRepresentation(*selection[1]));
+	selected = boost::shared_ptr<std::pair<RobotRepresentation,
+			RobotRepresentation> > (new std::pair<RobotRepresentation,
+					RobotRepresentation>(RobotRepresentation(*selection[0]),
+							RobotRepresentation(*selection[1])));
+	return true;
 }
 
 }

@@ -44,11 +44,6 @@
 
 namespace robogen {
 
-class NeuralNetworkRepresentationException : public std::runtime_error {
-public:
-	NeuralNetworkRepresentationException(const std::string& w);
-};
-
 class NeuralNetworkRepresentation {
 public:
 	/**
@@ -104,14 +99,14 @@ public:
 	 * Sets the weight from sensor or motor "from" to motor "to" to value after
 	 * verifying validness of connection
 	 */
-	void setWeight(std::string fromPart, int fromIoId, std::string toPart,
+	bool setWeight(std::string fromPart, int fromIoId, std::string toPart,
 			int toIoId, double value);
 
 	/**
 	 * Sets the bias of specified neuron after verifying that this is not an
 	 * input layer neuron.
 	 */
-	void setBias(std::string bodyPart, int ioId, double value);
+	bool setBias(std::string bodyPart, int ioId, double value);
 
 	/**
 	 * Provides weight and bias handles for a mutator.
@@ -148,8 +143,9 @@ public:
 	 * 	for each output (destination)
 	 * 	 put weight
 	 * @warning this code depends on the layer architecture of the ANN
+	 * @todo this property is currently not used. Remove?
 	 */
-	void getLinearRepresentation(std::vector<ioPair> &inputs,
+	bool getLinearRepresentation(std::vector<ioPair> &inputs,
 			std::vector<ioPair> &outputs, std::vector<double> &weights,
 			std::vector<double> &biases);
 

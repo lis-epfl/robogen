@@ -43,27 +43,27 @@
 
 namespace robogen {
 
-class PopulationException : public std::runtime_error {
-public:
-	PopulationException(const std::string& w);
-};
-
 class Population : public IndividualContainer {
 public:
 	/**
-	 * Constructs a population from a given robot body, keeping the body
+	 * Empty constructor initializes IndividualContainer class
+	 */
+	Population();
+
+	/**
+	 * Initializes a population from a given robot body, keeping the body
 	 * constant, but randomly initializing the brain.
 	 * @param robot Reference robot body
 	 * @param popSize chosen size for population
 	 * @param rng boost random number generator for diverse purposes
 	 */
-	Population(RobotRepresentation &robot, int popSize, boost::random::mt19937
+	bool init(RobotRepresentation &robot, int popSize, boost::random::mt19937
 			&rng);
 
 	/**
 	 * Creates a population from the popSize best individuals of origin.
 	 */
-	Population(const IndividualContainer &origin, unsigned int popSize);
+	bool init(const IndividualContainer &origin, unsigned int popSize);
 
 	virtual ~Population();
 
@@ -76,7 +76,7 @@ public:
 	 * Sets the passed references to best, average and standard deviation.
 	 * Requires the population to be evaluated.
 	 */
-	void getStat(double &best, double &average, double &stdev) const;
+	bool getStat(double &best, double &average, double &stdev) const;
 };
 
 } /* namespace robogen */

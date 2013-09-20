@@ -28,16 +28,22 @@
 
 #include "config/StartPosition.h"
 #include <osg/Vec2>
-#include <stdexcept>
+#include <iostream>
 
 namespace robogen{
 
-StartPosition::StartPosition(osg::Vec2 position, float azimuth):
-		position_(position), azimuth_(azimuth){
+StartPosition::StartPosition(){
+}
+
+bool StartPosition::init(osg::Vec2 position, float azimuth){
+	position_ = position;
+	azimuth_ = azimuth;
 	if(azimuth_<0. || azimuth>360.){
-		throw std::runtime_error("Start position azimuth is not between 0 and"\
-				" 360 degrees");
+		std::cout << "Start position azimuth" << azimuth << " is not between 0"\
+				" and 360 degrees" << std::endl;
+		return false;
 	}
+	return true;
 }
 
 osg::Vec2 StartPosition::getPosition(){

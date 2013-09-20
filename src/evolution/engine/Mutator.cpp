@@ -133,7 +133,7 @@ bool Mutator::crossover(RobotRepresentation &a, RobotRepresentation &b){
 	// 2. select crossover point
 	unsigned int maxpoint = weights[0].size() + biases[0].size() - 1;
 	if (maxpoint != weights[1].size() + biases[1].size() - 1){
-		//TODO exception, TODO what if sum same, but not parts?
+		//TODO error handling, TODO what if sum same, but not parts?
 		std::cout << "Genomes not of same size!" << std::endl;
 	}
 	boost::random::uniform_int_distribution<unsigned int> pointSel(1,maxpoint);

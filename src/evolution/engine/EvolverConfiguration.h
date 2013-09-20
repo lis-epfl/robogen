@@ -36,11 +36,6 @@
 
 namespace robogen {
 
-class EvolverConfigurationException : public std::runtime_error {
-public:
-	EvolverConfigurationException(const std::string& w);
-};
-
 /**
  * The choice is made to use a struct as we want to easily write access to new
  * parameters of the configuration class
@@ -63,7 +58,7 @@ struct EvolverConfiguration {
 	/**
 	 * Parses a configuration from a proper configuration file
 	 */
-	void init(std::string confFileName);
+	bool init(std::string confFileName);
 
 	/**
 	 * File for reference robot

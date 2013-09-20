@@ -39,14 +39,6 @@
 namespace robogen {
 
 /**
- * Exception class for things that go wrong with part representation.
- */
-class PartRepresentationException : public std::runtime_error {
-public:
-	PartRepresentationException(const std::string& w);
-};
-
-/**
  * Part representation to be used for evolution. More lightweight than the
  * part representation of the simulator, and implements evolution-specific
  * methods.
@@ -111,10 +103,9 @@ public:
 	/**
 	 * @param n slot of the child part to be set/replaced
 	 * @param part shared pointer to a part which is to be included at the slot
-	 * @return shared pointer to part previously present at slot
+	 * @return true if successful
 	 */
-	boost::shared_ptr<PartRepresentation> setChild(int n,
-			boost::shared_ptr<PartRepresentation> part);
+	bool setChild(int n, boost::shared_ptr<PartRepresentation> part);
 
 	/**
 	 * Factory pattern to create derived classes, i.e. body part representations

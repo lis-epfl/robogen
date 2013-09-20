@@ -62,12 +62,19 @@ int main(int argc, char *argv[]){
 	}
 	Mutator m(conf.pBrainMutate, conf.brainSigma, conf.pBrainCrossover,
 			conf.minBrainWeight, conf.maxBrainWeight, rng);
-	boost::shared_ptr<EvolverLog> log(new EvolverLog(std::string(argv[1])));
+	boost::shared_ptr<EvolverLog> log(new EvolverLog());
+	if (!log->init(std::string(argv[1]))){
+		std::cout << "Error creating evolver log. Aborting." << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	// parse robot from file & initialize population
 	RobotRepresentation referenceBot(conf.referenceRobotFile);
-	boost::shared_ptr<Population> current(new Population(
-			referenceBot,conf.mu,rng)),	previous;
+	boost::shared_ptr<Population> current(new Population()), previous;
+	if (!current->init(referenceBot,conf.mu,rng)){
+		std::cout << "Error when intializing population!" << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	// open sockets for communication with simulator processes
 	std::vector<TcpSocket*> sockets(conf.sockets.size());
@@ -84,15 +91,21 @@ int main(int argc, char *argv[]){
 
 	// run evolution TODO stopping criterion
 	current->evaluate(conf.simulatorConfFile,sockets);
-	log->logGeneration(1,*current.get());
+	if (!log->logGeneration(1,*current.get())) return EXIT_FAILURE;
 	for (unsigned int generation=2; generation<=conf.numGenerations;
 			++generation){
 		// create children
 		IndividualContainer children;
 		s->initPopulation(current);
 		for (unsigned int i = 0; i<conf.lambda; i++){
-			// don't forget to copy construct!!!
-			children.push_back(m.mutate(s->select()));
+			boost::shared_ptr<std::pair<RobotRepresentation,
+			RobotRepresentation> > selection;
+			if (!s->select(selection)){
+				std::cout << "Selector::select() failed." << std::endl;
+				return EXIT_FAILURE;
+			}
+			children.push_back(m.mutate(*selection.get()));
+			// TODO mutate() error handling?
 		}
 		// evaluate children
 		children.evaluate(conf.simulatorConfFile, sockets);
@@ -101,7 +114,11 @@ int main(int argc, char *argv[]){
 			children += *current.get();
 		}
 		// replace
-		current.reset(new Population(children, conf.mu));
-		log->logGeneration(generation,*current.get());
+		current.reset(new Population());
+		if(!current->init(children, conf.mu)){
+			std::cout << "Error when intializing population!" << std::endl;
+			return EXIT_FAILURE;
+		}
+		if (!log->logGeneration(generation,*current.get())) return EXIT_FAILURE;
 	}
 }

@@ -240,6 +240,9 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 				" poorly formatted root node");
 	}
 	current = PartRepresentation::create(type,id,orientation,params);
+	if (!current){
+		throw RobotRepresentationException("");
+	}
 	bodyTree_ = current;
 	idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
 
@@ -259,6 +262,9 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 			parentStack.pop();
 		}
 		current = PartRepresentation::create(type,id,orientation,params);
+		if (!current){
+			throw RobotRepresentationException("");
+		}
 		if (parentStack.top()->getChild(slot)){
 			std::stringstream ss;
 			ss << "Attempt to overwrite child " <<
@@ -267,7 +273,9 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 					current->getId();
 			throw RobotRepresentationException(ss.str());
 		}
-		parentStack.top()->setChild(slot, current);
+		if (!parentStack.top()->setChild(slot, current)){
+			throw RobotRepresentationException("");
+		}
 		idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
 	}
 
@@ -292,11 +300,15 @@ RobotRepresentation::RobotRepresentation(std::string robotTextFile){
 	// weights
 	while (robotTextFileReadWeightLine(file, from, fromIoId, to, toIoId,
 			value)){
-		neuralNetwork_->setWeight(from, fromIoId, to, toIoId, value);
+		if (!neuralNetwork_->setWeight(from, fromIoId, to, toIoId, value)){
+			throw RobotRepresentationException("");
+		}
 	}
 	// biases
 	while (robotTextFileReadBiasLine(file, to, toIoId, value)){
-		neuralNetwork_->setBias(to, toIoId, value);
+		if (!neuralNetwork_->setBias(to, toIoId, value)){
+			throw RobotRepresentationException("");
+		}
 	}
 	file.close();
 }
@@ -427,7 +439,8 @@ bool RobotRepresentation::trimBodyAt(std::string id){
 		return false;
 	}
 	std::cout << "Has references: " << idToPart_[id].lock().use_count() << std::endl;
-	parent->setChild(position, boost::shared_ptr<PartRepresentation>());
+	if (!parent->setChild(position, boost::shared_ptr<PartRepresentation>()))
+		throw RobotRepresentationException("");
 	if (!parent->getChild(position)){
 		std::cout << "Successfully removed" << std:: endl;
 	}

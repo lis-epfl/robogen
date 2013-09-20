@@ -38,10 +38,12 @@ namespace robogen{
 class StartPosition{
 
 public:
+	StartPosition();
+
 	/**
 	 * Initializes start position to given position and azimuth
 	 */
-	StartPosition(osg::Vec2 position, float azimuth);
+	bool init(osg::Vec2 position, float azimuth);
 
 	/**
 	 * @return starting position

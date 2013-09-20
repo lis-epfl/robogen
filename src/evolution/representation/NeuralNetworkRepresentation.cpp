@@ -36,9 +36,6 @@
 
 namespace robogen {
 
-NeuralNetworkRepresentationException::NeuralNetworkRepresentationException(
-		const std::string& w) : std::runtime_error(w){}
-
 NeuralNetworkRepresentation &NeuralNetworkRepresentation::operator =(
 		const NeuralNetworkRepresentation &original){
 	// deep copy neurons
@@ -132,63 +129,66 @@ void NeuralNetworkRepresentation::initializeRandomly(boost::random::mt19937
 	}
 }
 
-void NeuralNetworkRepresentation::setWeight(std::string from, int fromIoId,
+bool NeuralNetworkRepresentation::setWeight(std::string from, int fromIoId,
 		std::string to, int toIoId, double value){
 	std::map<std::pair<std::string,int>, boost::shared_ptr<NeuronRepresentation>
 	>::iterator fi = neurons_.find(std::pair<std::string, int>(from, fromIoId));
 	std::map<std::pair<std::string,int>, boost::shared_ptr<NeuronRepresentation>
 	>::iterator ti = neurons_.find(std::pair<std::string, int>(to, toIoId));
 	if (fi==neurons_.end()){
-		std::stringstream ss;
-		ss << "Specified weight input io id pair " << from << " " << fromIoId <<
-				" is not in the body cache of the neural network."\
-				"Candidates are:\n";
+		std::cout << "Specified weight input io id pair " << from << " " <<
+				fromIoId <<	" is not in the body cache of the neural network."\
+				"Candidates are:" << std::endl;
 		for (fi = neurons_.begin(); fi != neurons_.end(); ++fi){
-			ss << "(" << fi->first.first << " " << fi->first.second << "), ";
+			std::cout << "(" << fi->first.first << " " << fi->first.second <<
+					"), ";
 		}
-		throw NeuralNetworkRepresentationException(ss.str());
+		std::cout << std::endl;
+		return false;
 	}
 	if (ti==neurons_.end()){
-		std::stringstream ss;
-		ss << "Specified weight output io id pair " << to << " " << toIoId
-				<< " is not in the body cache of the neural network."\
-				"Candidates are:\n";
+		std::cout << "Specified weight output io id pair " << to << " " <<
+				toIoId << " is not in the body cache of the neural network."\
+				"Candidates are:" << std::endl;
 		for (ti = neurons_.begin(); ti != neurons_.end(); ++ti){
-			ss << "(" << ti->first.first << " " << ti->first.second << "), ";
+			std::cout << "(" << ti->first.first << " " << ti->first.second <<
+					"), ";
 		}
-		throw NeuralNetworkRepresentationException(ss.str());
+		std::cout << std::endl;
+		return false;
 	}
 	if (ti->second->isInput()){
-		std::stringstream ss;
-		ss << "Attempted to make connection to input layer neuron " << to <<
-				" " << toIoId;
-		throw NeuralNetworkRepresentationException(ss.str());
+		std::cout << "Attempted to make connection to input layer neuron " << to
+				<< " " << toIoId << std::endl;
+		return false;
 	}
 	weights_[std::pair<std::string, std::string>(fi->second->getId(),
 			ti->second->getId())] = value;
+	return true;
 }
 
-void NeuralNetworkRepresentation::setBias(std::string bodyPart, int ioId,
+bool NeuralNetworkRepresentation::setBias(std::string bodyPart, int ioId,
 		double value){
 	std::map<std::pair<std::string,int>, boost::shared_ptr<NeuronRepresentation>
 	>::iterator it = neurons_.find(std::pair<std::string, int>(bodyPart, ioId));
 	if (it==neurons_.end()){
-		std::stringstream ss;
-		ss << "Specified weight output io id pair " << bodyPart << " " << ioId
+		std::cout << "Specified weight output io id pair " << bodyPart << " " << ioId
 				<< " is not in the body cache of the neural network."\
-				"Candidates are:\n";
+				"Candidates are:" << std::endl;
 		for (it = neurons_.begin(); it != neurons_.end(); ++it){
-			ss << "(" << it->first.first << ", " << it->first.second << "), ";
+			std::cout << "(" << it->first.first << ", " << it->first.second <<
+					"), ";
 		}
-		throw NeuralNetworkRepresentationException(ss.str());
+		std::cout << std::endl;
+		return false;
 	}
 	if (it->second->isInput()){
-		std::stringstream ss;
-		ss << "Attempted to assign bias to input layer neuron " << bodyPart <<
-				" " << ioId;
-		throw NeuralNetworkRepresentationException(ss.str());
+		std::cout << "Attempted to assign bias to input layer neuron " <<
+				bodyPart <<	" " << ioId;
+		return false;
 	}
 	it->second->setBias(value);
+	return true;
 }
 
 void NeuralNetworkRepresentation::getGenome(std::vector<double*> &weights,
@@ -205,7 +205,7 @@ void NeuralNetworkRepresentation::getGenome(std::vector<double*> &weights,
 	}
 }
 
-void NeuralNetworkRepresentation::getLinearRepresentation(
+bool NeuralNetworkRepresentation::getLinearRepresentation(
 		std::vector<ioPair> &inputs, std::vector<ioPair> &outputs,
 		std::vector<double> &weights, std::vector<double> &biases){
 	std::vector<boost::shared_ptr<NeuronRepresentation> > inputNeurons;
@@ -231,11 +231,11 @@ void NeuralNetworkRepresentation::getLinearRepresentation(
 							inputNeurons[i]->getId(),
 							outputNeurons[j]->getId()));
 			if (it == weights_.end()){
-				std::stringstream ss;
-				ss << "Can't get weight from " << inputNeurons[i]->getId()
-								<< " to " << outputNeurons[j]->getId()
-								<< "\nIs the weight map filled properly?";
-				throw NeuralNetworkRepresentationException(ss.str());
+				std::cout << "Can't get weight from "
+						<< inputNeurons[i]->getId()
+						<< " to " << outputNeurons[j]->getId()
+						<< "\nIs the weight map filled properly?" << std::endl;
+				return false;
 			}
 			weights.push_back(it->second);
 		}
@@ -247,17 +247,18 @@ void NeuralNetworkRepresentation::getLinearRepresentation(
 							outputNeurons[i]->getId(),
 							outputNeurons[j]->getId()));
 			if (it == weights_.end()){
-				std::stringstream ss;
-				ss << "Can't get weight from " << outputNeurons[i]->getId()
-									<< " to " << outputNeurons[j]->getId()
-									<< "\nIs the weight map filled properly?";
-				throw NeuralNetworkRepresentationException(ss.str());
+				std::cout << "Can't get weight from "
+						<< outputNeurons[i]->getId()
+						<< " to " << outputNeurons[j]->getId()
+						<< "\nIs the weight map filled properly?" << std::endl;
+				return false;
 			}
 			weights.push_back(it->second);
 		}
 		// fill bias vector properly
 		biases.push_back(*outputNeurons[i]->getBiasPointer());
 	}
+	return true;
 }
 
 robogenMessage::Brain NeuralNetworkRepresentation::serialize(){

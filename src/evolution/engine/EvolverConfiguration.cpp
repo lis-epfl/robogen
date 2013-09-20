@@ -27,20 +27,18 @@
  */
 
 #include "evolution/engine/EvolverConfiguration.h"
+#include <iostream>
 #include <sstream>
 #include <boost/program_options.hpp>
 #include <boost/regex.hpp>
 
 namespace robogen {
 
-EvolverConfigurationException::EvolverConfigurationException(
-		const std::string& w) : std::runtime_error(w){}
-
 /**
  * Parses options from given conf file.
  * @todo default values
  */
-void EvolverConfiguration::init(std::string confFileName) {
+bool EvolverConfiguration::init(std::string confFileName) {
 	// boost-parse options
 	boost::program_options::options_description desc("Allowed options");
 	// DON'T AUTO-INDENT THE FOLLOWING ON ECLIPSE:
@@ -92,11 +90,11 @@ void EvolverConfiguration::init(std::string confFileName) {
 		selection = DETERMINISTIC_TOURNAMENT;
 	}
 	else {
-		std::stringstream ss;
-		ss << "Specified selection strategy \"" <<
+		std::cout << "Specified selection strategy \"" <<
 				vm["selection"].as<std::string>() <<
-				"\" unknown. Options are \"deterministic-tournament\" or ...";
-		throw EvolverConfigurationException(ss.str());
+				"\" unknown. Options are \"deterministic-tournament\" or ..."
+				 << std::endl;
+		return false;
 	}
 
 	// parse replacement type
@@ -107,11 +105,10 @@ void EvolverConfiguration::init(std::string confFileName) {
 		replacement = PLUS_REPLACEMENT;
 	}
 	else {
-		std::stringstream ss;
-		ss << "Specified replacement strategy \"" <<
+		std::cout << "Specified replacement strategy \"" <<
 				vm["replacement"].as<std::string>() <<
-				"\" unknown. Options are \"comma\" or \"plus\"";
-		throw EvolverConfigurationException(ss.str());
+				"\" unknown. Options are \"comma\" or \"plus\"" << std::endl;
+		return false;
 	}
 
 	// parse brain bounds.
@@ -121,17 +118,16 @@ void EvolverConfiguration::init(std::string confFileName) {
 	// match[0]:whole string, match[1]:min, match[2]:max
 	if (!boost::regex_match(vm["brainBounds"].as<std::string>().c_str(),
 			match, boundsRegex)){
-		std::stringstream ss;
-		ss << "Supplied bounds argument \"" <<
+		std::cout << "Supplied bounds argument \"" <<
 				vm["brainBounds"].as<std::string>() <<
-				"\" does not match pattern <min>:<max>";
-		throw EvolverConfigurationException(ss.str());
+				"\" does not match pattern <min>:<max>" << std::endl;
+		return false;
 	}
 	minBrainWeight = std::atof(match[1].first);
 	maxBrainWeight = std::atof(match[2].first);
 
 	// parse sockets. The used regex is not super-restrictive, but we count
-	// on the TcpSocket to throw... else:
+	// on the TcpSocket to find the error... else:
 	// http://www.regular-expressions.info/examples.html
 	static const boost::regex socketRegex("^([\\d\\.]*):(\\d*)$");
 	std::vector<std::string> encSocket =
@@ -140,10 +136,10 @@ void EvolverConfiguration::init(std::string confFileName) {
 	for (unsigned int i = 0; i<encSocket.size(); i++){
 		// match[0]:whole string, match[1]:IP, match[2]:port
 		if (!boost::regex_match(encSocket[i].c_str(), match, socketRegex)){
-			std::stringstream ss;
-			ss << "Supplied socket argument \"" << encSocket[i] <<
-					"\" does not match pattern <ip address>:<port>";
-			throw EvolverConfigurationException(ss.str());
+			std::cout << "Supplied socket argument \"" << encSocket[i] <<
+					"\" does not match pattern <ip address>:<port>" <<
+					std::endl;
+			return false;
 		}
 		sockets.push_back(std::pair<std::string, int>(std::string(match[1]),
 				std::atoi(match[2].first)));
@@ -155,48 +151,45 @@ void EvolverConfiguration::init(std::string confFileName) {
 	// - if selection is deterministic tournament, 1 <= tournamentSize <= mu
 	if (selection == DETERMINISTIC_TOURNAMENT && (tournamentSize < 1 ||
 			tournamentSize > mu)){
-		std::stringstream ss;
-		ss << "Specified tournament size should be between 1 and mu, "\
-				"but is " << tournamentSize;
-		throw EvolverConfigurationException(ss.str());
+		std::cout << "Specified tournament size should be between 1 and mu, "\
+				"but is " << tournamentSize << std::endl;
+		return false;
 	}
 
 	// - if replacement is comma, lambda must exceed mu
 	if (replacement == COMMA_REPLACEMENT && lambda < mu){
-		std::stringstream ss;
-		ss << "If replacement is comma, lambda must be bigger than mu, but "\
-				"lambda is " << lambda << " and mu is " << mu;
-		throw EvolverConfigurationException(ss.str());
+		std::cout << "If replacement is comma, lambda must be bigger than mu, but "\
+				"lambda is " << lambda << " and mu is " << mu << std::endl;
+		return false;
 	}
 
 	// - brain bounds max must > min
 	if (maxBrainWeight < minBrainWeight){
-		std::stringstream ss;
-		ss << "Minimum brain bound " << minBrainWeight << " exceeds maximum "
-				<< maxBrainWeight;
-		throw EvolverConfigurationException(ss.str());
+		std::cout << "Minimum brain bound " << minBrainWeight << " exceeds maximum "
+				<< maxBrainWeight << std::endl;
+		return false;
 	}
 
 	// - 0. <= probabilities <= 1.
 	if (pBrainMutate > 1. || pBrainMutate < 0.){
-		std::stringstream ss;
-		ss << "Brain mutation probability parameter " << pBrainMutate <<
-				" not between 0 and 1!";
-		throw EvolverConfigurationException(ss.str());
+		std::cout << "Brain mutation probability parameter " << pBrainMutate <<
+				" not between 0 and 1!" << std::endl;
+		return false;
 	}
 	if (pBrainCrossover > 1. || pBrainCrossover < 0.){
-		std::stringstream ss;
-		ss << "Brain crossover probability parameter " << pBrainCrossover <<
-				" not between 0 and 1!";
-		throw EvolverConfigurationException(ss.str());
+		std::cout << "Brain crossover probability parameter " << pBrainCrossover <<
+				" not between 0 and 1!" << std::endl;
+		return false;
 	}
 
 	// - sigma needs to be positive
 	if (brainSigma < 0.){
-		std::stringstream ss;
-		ss << "Brain sigma (" << brainSigma << ") must be positive";
-		throw EvolverConfigurationException(ss.str());
+		std::cout << "Brain sigma (" << brainSigma << ") must be positive" <<
+				std::endl;
+		return false;
 	}
+
+	return true;
 }
 
 }

@@ -39,15 +39,6 @@
 namespace robogen {
 
 /**
- * An exception for when anything goes wrong with the Model, especially
- * initialization.
- */
-class ModelException : public std::runtime_error {
-public:
-	ModelException(const std::string& w);
-};
-
-/**
  * A slot center must always be place on the external surface of the slot
  */
 class Model {

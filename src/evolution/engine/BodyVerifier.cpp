@@ -148,6 +148,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 
 
 bool BodyVerifier::fixRobotBody(RobotRepresentation &robot){
+	bool changed = false;
 	while (true){
 		// check velidity of body
 		int errorCode;
@@ -189,6 +190,7 @@ bool BodyVerifier::fixRobotBody(RobotRepresentation &robot){
 						robot.trimBodyAt(offenders[i].first);
 						std::cout << "Removing former" << std::endl;
 					}
+					changed = true;
 				}
 			}
 		}
@@ -196,6 +198,7 @@ bool BodyVerifier::fixRobotBody(RobotRepresentation &robot){
 			break;
 		}
 	}
+	return changed;
 }
 
 

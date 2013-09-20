@@ -25,9 +25,6 @@
 
 namespace robogen {
 
-PartRepresentationException::PartRepresentationException(const std::string& w) :
-																std::runtime_error(w){}
-
 PartRepresentation::PartRepresentation(std::string id,
 		int orientation, int arity, std::string type):
 		id_(id), arity_(arity), orientation_(orientation), type_(type),
@@ -67,29 +64,27 @@ std::string &PartRepresentation::getType(){
 
 boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(int n){
 	if (n<1 || n>arity_){
-		std::stringstream ss;
-		ss << "Attempt to access non-existing slot " << n << " of part "
-				<< this->getId() << " with arity " << arity_;
-		throw PartRepresentationException(ss.str());
+		std::cout << "Attempt to access non-existing slot " << n << " of part "
+				<< this->getId() << " with arity " << arity_ << std::endl;
+		return boost::shared_ptr<PartRepresentation>();
 	}
 	return children_[n-1];
 }
 
-boost::shared_ptr<PartRepresentation> PartRepresentation::setChild(int n,
+bool PartRepresentation::setChild(int n,
 		boost::shared_ptr<PartRepresentation> part){
 	if (n<1 || n>arity_){
-		std::stringstream ss;
-		ss << "Attempt to access non-existing slot " << n << " of part "
-				<< this->getId() << " with arity " << arity_;
-		throw PartRepresentationException(ss.str());
+		std::cout << "Attempt to access non-existing slot " << n << " of part "
+				<< this->getId() << " with arity " << arity_ << std::endl;
+		return false;
 	}
 	// don't try to access part if void
 	if (part){
 		part->setParent(this);
 		part->setPosition(n);
 	}
-	part.swap(children_[n-1]);
-	return part;
+	children_[n-1] = part;
+	return true;
 }
 
 boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
@@ -103,10 +98,9 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 				new FixedBrickRepresentation(id, orientation));
 	case 'B':
 		if (params.size() != 3){
-			std::stringstream ss;
-			ss << "Parameter count is not 3 on parametric bar joint with id "
-					<< id;
-			throw PartRepresentationException(ss.str());
+			std::cout << "Parameter count is not 3 on parametric bar joint "\
+					"with id " << id << std::endl;
+			return boost::shared_ptr<PartRepresentation>();
 		}
 		return boost::shared_ptr<PartRepresentation>(
 				new ParametricBarJointRepresentation(id, orientation, params[0],
@@ -128,25 +122,25 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 				new RotatorRepresentation(id, orientation));
 	case 'W':
 		if (params.size() != 1){
-			std::stringstream ss;
-			ss << "Parameter count is not 1 on passive wheel with id " << id;
-			throw PartRepresentationException(ss.str());
+			std::cout << "Parameter count is not 1 on passive wheel with id " <<
+					id << std::endl;
+			return boost::shared_ptr<PartRepresentation>();
 		}
 		return boost::shared_ptr<PartRepresentation>(
 				new PassiveWheelRepresentation(id, orientation, params[0]));
 	case 'J':
 		if (params.size() != 1){
-			std::stringstream ss;
-			ss << "Parameter count is not 1 on active wheel with id " << id;
-			throw PartRepresentationException(ss.str());
+			std::cout << "Parameter count is not 1 on active wheel with id " <<
+					id << std::endl;
+			return boost::shared_ptr<PartRepresentation>();
 		}
 		return boost::shared_ptr<PartRepresentation>(
 				new ActiveWheelRepresentation(id, orientation, params[0]));
 	case 'G':
 		if (params.size() != 1){
-			std::stringstream ss;
-			ss << "Parameter count is not 1 on active wheg with id " << id;
-			throw PartRepresentationException(ss.str());
+			std::cout << "Parameter count is not 1 on active wheg with id " <<
+					id;
+			return boost::shared_ptr<PartRepresentation>();
 		}
 		return boost::shared_ptr<PartRepresentation>(
 				new ActiveWhegRepresentation(id, orientation, params[0]));
@@ -157,9 +151,8 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 		return boost::shared_ptr<PartRepresentation>(
 				new TouchSensorRepresentation(id, orientation));
 	default:
-		std::stringstream ss;
-		ss << "Unknown part type specified: " << type;
-		throw PartRepresentationException(ss.str());
+		std::cout << "Unknown part type specified: " << type << std::endl;
+		return boost::shared_ptr<PartRepresentation>();
 	}
 }
 

@@ -41,7 +41,10 @@ namespace robogen {
 #define BAS_LOG_FILE "BestAvgStd.txt"
 #define GENERATION_BEST_PREFIX "GenerationBest-"
 
-EvolverLog::EvolverLog(std::string confFile) {
+EvolverLog::EvolverLog(){
+}
+
+bool EvolverLog::init(std::string confFile) {
 	// create log directory with time stamp
 	std::stringstream logPathSs;
 	logPathSs << LOG_DIRECTORY_PREFIX;
@@ -54,17 +57,17 @@ EvolverLog::EvolverLog(std::string confFile) {
 	try{
 		boost::filesystem::create_directories(logPath);
 	} catch(const boost::filesystem::filesystem_error &err){
-		//TODO throw EvolverLogError
-		throw std::string("Evolver log can't create log directory.\n") +
-				err.what();
+		std::cout << err.what() << std::endl << "Evolver log can't create log"\
+				" directory.\n" << std::endl;
+		return false;
 	}
 
 	// open trajectory log
 	std::string basLogPath = logPathSs.str() + "/" + BAS_LOG_FILE;
 	bestAvgStd_.open(basLogPath.c_str());
 	if (!bestAvgStd_.is_open()){
-		//TODO throw EvolverLogError
-		throw std::string("Can't open Best/Average/STD log file");
+		std::cout << "Can't open Best/Average/STD log file" << std::endl;
+		return false;
 	}
 
 	// copy evolution configuration file
@@ -75,12 +78,18 @@ EvolverLog::EvolverLog(std::string confFile) {
 	ss << logPath_ << "/" << confFrom.filename().string();
 	boost::filesystem::path confTo(ss.str());
 	boost::filesystem::copy_file(confFrom, confTo);
+	return true;
 }
 
 EvolverLog::~EvolverLog() {
 }
 
-void EvolverLog::logGeneration(int step, Population &population){
+bool EvolverLog::logGeneration(int step, Population &population){
+	if (!population.areEvaluated()){
+		std::cout << "EvolverLog::logGeneration(): Trying to log non-evaluated"\
+				" population!" << std::endl;
+		return false;
+	}
 	// log best, avg, stddev
 	double best,average,stdev;
 	population.getStat(best,average,stdev);
@@ -100,6 +109,7 @@ void EvolverLog::logGeneration(int step, Population &population){
 	bestRobot.serialize().SerializeToOstream(&curRobotFile);
 	curRobotFile.close();
 #endif /* FAKEROBOTREPRESENTATION_H */
+	return true;
 }
 
 } /* namespace robogen */

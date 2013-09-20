@@ -4,7 +4,7 @@
  * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Titus Cieslewski
+ * Copyright © 2012-2013
  *
  * Laboratory of Intelligent Systems, EPFL
  *

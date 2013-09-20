@@ -37,12 +37,18 @@ namespace robogen {
 class EvolverLog {
 public:
 	/**
+	 * Empty constructor
+	 */
+	EvolverLog();
+
+	/**
 	 * Initiate evolver log. Creates a directory according to the current time
 	 * with BestAvgStd.txt inside and a copy of the generating configuration
 	 * file.
 	 * @param confFile evolution configuration file
+	 * @return true if successful
 	 */
-	EvolverLog(std::string confFile);
+	bool init(std::string confFile);
 
 	virtual ~EvolverLog();
 
@@ -53,7 +59,7 @@ public:
 	 * @param population Population to be checkpointed. Non-const on purpose,
 	 * as population->best() calls population->sort()
 	 */
-	void logGeneration(int step, Population &population);
+	bool logGeneration(int step, Population &population);
 
 private:
 	/**
