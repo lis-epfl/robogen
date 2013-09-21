@@ -54,7 +54,6 @@ message Robot {
 message Obstacle {
   required float x = 1;
   required float y = 2;
-  required float z = 3;
   required float xSize = 4;
   required float ySize = 5;
   required float zSize = 6;
@@ -71,7 +70,7 @@ message RobogenConfig {
   required float terrainWidth = 1;
   required float terrainLength = 2;
   repeated Obstacle obstacles = 3;
-  required string scenario = 4;
+  required int32 scenario = 4;
   required float lightSourceHeight = 5;
   required float timeStep = 6;
   required int32 nTimeSteps = 7;

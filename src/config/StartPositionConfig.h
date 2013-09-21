@@ -33,6 +33,7 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include "config/StartPosition.h"
+#include "robogen.pb.h"
 
 namespace robogen {
 
@@ -69,6 +70,18 @@ public:
 			return boost::shared_ptr<StartPosition>();
 		}
 		return startPosition_[i];
+	}
+
+	/**
+	 * Serialize starting positions into a RobogenConfig message
+	 */
+	void serialize(robogenMessage::RobogenConfig &message){
+		for (unsigned int i=0; i<startPosition_.size(); ++i){
+			robogenMessage::StartPosition *curr = message.add_startpositions();
+			curr->set_azimuth(startPosition_[i]->getAzimuth());
+			curr->set_x(startPosition_[i]->getPosition().x());
+			curr->set_y(startPosition_[i]->getPosition().y());
+		}
 	}
 
 private:
