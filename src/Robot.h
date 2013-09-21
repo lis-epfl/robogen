@@ -68,15 +68,18 @@ typedef boost::graph_traits<BodyGraph>::edge_descriptor BodyEdge;
 class Robot {
 
 public:
+	/**
+	 * Error-less constructor.
+	 */
+	Robot();
 
 	/**
 	 * Initializes a Robogen robot from a robogen message
 	 * @param odeWorld
 	 * @param odeSpace
 	 * @param robotSpec
-	 * @throw runtime error if the robot was decoded incorrectly
 	 */
-	Robot(dWorldID odeWorld, dSpaceID odeSpace,
+	bool init(dWorldID odeWorld, dSpaceID odeSpace,
 			const robogenMessage::Robot& robotSpec);
 
 	/**
@@ -155,7 +158,6 @@ private:
 
 	/**
 	 * Connects all body parts to the root part
-	 * @throw std::runtime_error if fails to connect parts
 	 */
 	void reconnect();
 

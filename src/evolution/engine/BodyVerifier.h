@@ -48,6 +48,7 @@ public:
 	 * error codes used to indicate the problem with a given robot design
 	 */
 	enum errorCodes{
+		INTERNAL_ERROR,
 		ARDUINO_CONSTRAINTS_EXCESS,
 		MISSING_CORE_COMPONENT,
 		SELF_INTERSECTION

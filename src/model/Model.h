@@ -216,7 +216,7 @@ public:
 	 * @param orientation integer between 0 and 3, specifying the amount of
 	 * additional 90 degree increments after attaching the part to its parent.
 	 */
-	void setOrientationToParentSlot(int orientation);
+	bool setOrientationToParentSlot(int orientation);
 
 	/**
 	 * Get orientation to parent slot.

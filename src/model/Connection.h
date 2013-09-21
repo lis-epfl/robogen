@@ -51,20 +51,19 @@ public:
 class Connection {
 public:
 	/**
+	 * Error-less contructor
+	 */
+	Connection();
+
+	/**
 	 * Creates a connection from the specified connection message
 	 * @param c Connection message to be used (uses string id's)
 	 * @param map mapping from string id to index in vector of body part
 	 * @param vec std::vector containing the body part shared pointers
 	 */
-	Connection(const robogenMessage::BodyConnection &c,
+	bool init(const robogenMessage::BodyConnection &c,
 			std::map<std::string, unsigned int> &map,
 			std::vector<boost::shared_ptr<Model> > &vec);
-
-	/**
-	 * Stub for member function to replace RobogenUtils::connect
-	 * TODO
-	 */
-	void toOde();
 
 	/**
 	 * TODO remove once toOde is in place

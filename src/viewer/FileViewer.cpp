@@ -174,7 +174,11 @@ int main(int argc, char *argv[]) {
 	}
 	// case .txt file
 	else if(boost::filesystem::path(argv[1]).extension().string() == ".txt"){
-		RobotRepresentation robot(robotFileString);
+		RobotRepresentation robot;
+		if (!robot.init(argv[1])){
+			std::cout << "Failed interpreting robot text file!" << std::cout;
+			return EXIT_FAILURE;
+		}
 		robotMessage = robot.serialize();
 	}
 	else{
@@ -197,8 +201,11 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 	// Generate Robot
 	// ---------------------------------------
-	boost::shared_ptr<Robot> robot(new Robot(odeWorld, odeSpace,
-			robotMessage));
+	boost::shared_ptr<Robot> robot(new Robot);
+	if(!robot->init(odeWorld, odeSpace, robotMessage)){
+		std::cout << "Problems decoding the robot. Quit." << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	// Register sensors
 	std::vector<boost::shared_ptr<Sensor> > sensors = robot->getSensors();
@@ -291,9 +298,13 @@ int main(int argc, char *argv[]) {
 	// Set up log files
 	// ---------------------------------------
 
-	boost::shared_ptr<FileViewerLog> log(new FileViewerLog(std::string(argv[1]),
+	boost::shared_ptr<FileViewerLog> log(new FileViewerLog);
+	if (!log->init(std::string(argv[1]),
 			std::string(argv[2]), configuration->getObstacleFile(),
-			configuration->getStartPosFile(), robot));
+			configuration->getStartPosFile(), robot)){
+		std::cout << "Problem initializing log!" << std::endl;
+		return EXIT_FAILURE;
+	}
 
 
 	// ---------------------------------------

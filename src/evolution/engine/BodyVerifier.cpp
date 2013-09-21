@@ -51,6 +51,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 		std::vector<std::pair<std::string,std::string> > &affectedBodyParts){
 
 	bool success = true;
+	errorCode = INTERNAL_ERROR;
 	// TODO check arduino constraints satisfied before anything else!
 
 	// Initialize ODE
@@ -72,7 +73,12 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	// parse robot message
 	robogenMessage::Robot robotMessage = robotRep.serialize();
 	// parse robot
-	boost::shared_ptr<Robot> robot(new Robot(odeWorld,odeSpace,robotMessage));
+	boost::shared_ptr<Robot> robot(new Robot);
+	if (!robot->init(odeWorld,odeSpace,robotMessage)){
+		std::cout << "Problem when initializing robot in body verifier!" <<
+				std::endl;
+		return false;
+	}
 	std::vector<boost::shared_ptr<Model> > bodyParts = robot->getBodyParts();
 
 #ifdef VISUAL_DEBUG
@@ -192,6 +198,11 @@ bool BodyVerifier::fixRobotBody(RobotRepresentation &robot){
 					}
 					changed = true;
 				}
+			}
+			if (errorCode == BodyVerifier::INTERNAL_ERROR){
+				std::cout << "Body verification failed due to internal error!"
+						<< std::endl;
+				return false;
 			}
 		}
 		else{

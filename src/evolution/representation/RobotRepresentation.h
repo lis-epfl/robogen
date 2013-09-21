@@ -47,15 +47,6 @@
 namespace robogen{
 
 /**
- * Exception class for exceptions that happen when dealing with a robot
- * representation.
- */
-class RobotRepresentationException : public std::runtime_error {
-public:
-	RobotRepresentationException(const std::string& w);
-};
-
-/**
  * Robot representation to be used for evolution. More lightweight than the
  * robot representation of the simulator, and implements evolution-specific
  * methods.
@@ -69,36 +60,28 @@ public:
 	IdPartMap;
 
 	/**
-	 * Return codes for getSensorType(body id)
-	 */
-	enum SensorTypes{
-		LIGHT_SENSOR,
-		TOUCH_SENSOR,
-		IMU
-	};
-
-	/**
 	 * Copy constructor: Deep copy body parts and Neural network
+	 * TODO not error-safe
 	 */
 	RobotRepresentation(const RobotRepresentation &r);
 
 	/**
 	 * assignment operator: Deep copy body parts and Neural network
+	 * TODO not error-safe
 	 */
 	RobotRepresentation &operator=(const RobotRepresentation &r);
+
+	/**
+	 * Error-less constructor for memory assignment
+	 */
+	RobotRepresentation();
 
 	/**
 	 * Constructs a robot representation from a robot text file
 	 * @param robotTextFile text file of the robot description
 	 * @todo make a better handling of formatting errors
 	 */
-	RobotRepresentation(std::string robotTextFile);
-
-	/**
-	 * This function is used by the arduino code compiler
-	 * @return type of sensor for the given body part id
-	 */
-	int getSensorType(const std::string &id);
+	bool init(std::string robotTextFile);
 
 	/**
 	 * @return robot message of this robot to be transmitted to simulator

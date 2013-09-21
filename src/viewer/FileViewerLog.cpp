@@ -30,7 +30,10 @@
 
 namespace robogen{
 
-FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
+FileViewerLog::FileViewerLog(){
+}
+
+bool FileViewerLog::init(std::string robotFile, std::string confFile,
 		std::string obstacleFile, std::string startPosFile,
 		boost::shared_ptr<Robot> robot) {
 	// create log directory with time stamp
@@ -44,28 +47,31 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	try{
 		boost::filesystem::create_directories(logPath);
 	} catch(const boost::filesystem::filesystem_error &err){
-		//TODO throw FileViewerLogError
-		throw std::string("File viewer log can't create log directory.\n") +
-				err.what();
+		std::cout << "File viewer log can't create log directory." << std::endl
+				<< err.what() << std::endl;
+		return false;
 	}
 
 	// open trajectory log
 	std::string trajectoryLogPath = logPathSs.str() + "/" + TRAJECTORY_LOG_FILE;
 	trajectoryLog_.open(trajectoryLogPath.c_str());
 	if (!trajectoryLog_.is_open()){
-		throw std::string("Can't open trajectory log file");
+		std::cout << "Can't open trajectory log file" << std::endl;
+		return false;
 	}
 	// open sensor log
 	std::string sensorLogPath = logPathSs.str() + "/" + SENSOR_LOG_FILE;
 	sensorLog_.open(sensorLogPath.c_str());
 	if (!sensorLog_.is_open()){
-		throw std::string("Can't open sensor log file");
+		std::cout << "Can't open sensor log file" << std::endl;
+		return false;
 	}
 	// open motor log
 	std::string motorLogPath = logPathSs.str() + "/" + MOTOR_LOG_FILE;
 	motorLog_.open(motorLogPath.c_str());
 	if (!motorLog_.is_open()){
-		throw std::string("Can't open motor log file");
+		std::cout << "Can't open motor log file" << std::endl;
+		return false;
 	}
 
 	// compile neural network representation for Arduino
@@ -74,7 +80,8 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	std::ofstream arduinoNN;
 	arduinoNN.open(arduinoNNPath.c_str());
 	if (!motorLog_.is_open()){
-		throw std::string("Can't open motor log file");
+		std::cout << "Can't open motor log file" << std::endl;
+		return false;
 	}
 	ArduinoNNCompiler::compile(*robot.get(),arduinoNN);
 
@@ -86,7 +93,9 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	try{
 		boost::filesystem::copy_file(robotFrom, robotTo);
 	} catch (boost::filesystem::filesystem_error &err){
-		throw std::string("Can't copy robot file\n")+err.what();
+		std::cout << "Can't copy robot file" << std::endl << err.what() <<
+				std::endl;
+		return false;
 	}
 	// copy configuration file
 	boost::filesystem::path confFrom(confFile);
@@ -96,7 +105,9 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	try{
 		boost::filesystem::copy_file(confFrom, confTo);
 	} catch (boost::filesystem::filesystem_error &err){
-		throw std::string("Can't copy configuration file\n")+err.what();
+		std::cout << "Can't copy configuration file" << std::endl << err.what()
+				<< std::endl;
+		return false;
 	}
 	// copy obstacle file
 	boost::filesystem::path obsFrom(obstacleFile);
@@ -106,7 +117,9 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	try{
 		boost::filesystem::copy_file(obsFrom, obsTo);
 	} catch (boost::filesystem::filesystem_error &err){
-		throw std::string("Can't copy obstacle file\n")+err.what();
+		std::cout << "Can't copy obstacle file\n"<< std::endl << err.what() <<
+				std::endl;
+		return false;
 	}
 	// copy starting position file
 	boost::filesystem::path staPoFrom(startPosFile);
@@ -116,7 +129,9 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	try{
 		boost::filesystem::copy_file(staPoFrom, staPoTo);
 	} catch (boost::filesystem::filesystem_error &err){
-		throw std::string("Can't copy starting position file\n")+err.what();
+		std::cout << "Can't copy starting position file" << std::endl <<
+				err.what() << std::endl;
+		return false;
 	}
 
 	// copy any m files
@@ -142,12 +157,14 @@ FileViewerLog::FileViewerLog(std::string robotFile, std::string confFile,
 	std::ofstream sensorLabel;
 	sensorLabel.open(sensorLabelPath.c_str());
 	if (!sensorLabel.is_open()){
-		throw std::string("Can't open sensor label file");
+		std::cout << "Can't open sensor label file" << std::endl;
+		return false;
 	}
 	std::vector<boost::shared_ptr<Sensor> > sensors = robot->getSensors();
 	for (unsigned int i=0; i<sensors.size(); i++){
 		sensorLabel << sensors[i]->getLabel() << std::endl;
 	}
+	return true;
 }
 
 FileViewerLog::~FileViewerLog(){}

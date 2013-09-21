@@ -31,11 +31,14 @@ namespace robogen{
  */
 class FileViewerLog{
 public:
+	FileViewerLog();
+
 	/**
 	 * Initializes the directory, copies the inputs and opens the log files for
 	 * writing.
+	 * @return true if successful
 	 */
-	FileViewerLog(std::string robotFile, std::string confFile,
+	bool init(std::string robotFile, std::string confFile,
 			std::string obstacleFile, std::string startPosFile,
 			boost::shared_ptr<Robot> robot);
 

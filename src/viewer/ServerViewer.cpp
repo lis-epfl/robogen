@@ -210,12 +210,9 @@ int main(int argc, char* argv[]) {
 						// ---------------------------------------
 						// Generate Robot
 						// ---------------------------------------
-						boost::shared_ptr<Robot> robot;
-						try{
-							robot.reset(new Robot(odeWorld, odeSpace,
-									*packet.getMessage().get()));
-						}
-						catch(std::runtime_error &e){
+						boost::shared_ptr<Robot> robot(new Robot);
+						if(!robot->init(odeWorld, odeSpace,
+									*packet.getMessage().get())){
 							std::cout << "Problems decoding the robot. Quit."
 									<< std::endl;
 							return EXIT_FAILURE;

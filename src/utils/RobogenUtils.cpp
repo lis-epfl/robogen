@@ -322,7 +322,10 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
    }
 
    // set orientation at slot to parent
-   model->setOrientationToParentSlot(bodyPart.orientation());
+   if (!model->setOrientationToParentSlot(bodyPart.orientation())){
+	   std::cout << "Problem when setting orientation to parent slot of " <<
+			   id << std::endl;
+   }
 
    return model;
 

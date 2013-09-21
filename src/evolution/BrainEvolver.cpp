@@ -69,7 +69,11 @@ int main(int argc, char *argv[]){
 	}
 
 	// parse robot from file & initialize population
-	RobotRepresentation referenceBot(conf.referenceRobotFile);
+	RobotRepresentation referenceBot;
+	if (!referenceBot.init(conf.referenceRobotFile)){
+		std::cout << "Failed interpreting robot from text file" << std::endl;
+		return EXIT_FAILURE;
+	}
 	boost::shared_ptr<Population> current(new Population()), previous;
 	if (!current->init(referenceBot,conf.mu,rng)){
 		std::cout << "Error when intializing population!" << std::endl;

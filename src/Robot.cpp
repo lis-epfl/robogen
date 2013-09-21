@@ -85,12 +85,14 @@ private:
 
 };
 
-// Define property of edge (contains the body connection retrieved from a
-// robogen message)
+Robot::Robot(){
+}
 
-Robot::Robot(dWorldID odeWorld, dSpaceID odeSpace,
-		const robogenMessage::Robot& robotSpec) :
-		odeWorld_(odeWorld), odeSpace_(odeSpace) {
+bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
+		const robogenMessage::Robot& robotSpec){
+
+	odeWorld_ = odeWorld;
+	odeSpace_ = odeSpace;
 
 	connectionJointGroup_ = dJointGroupCreate(0);
 	this->id_ = robotSpec.id();
@@ -98,16 +100,20 @@ Robot::Robot(dWorldID odeWorld, dSpaceID odeSpace,
 	const robogenMessage::Body& body = robotSpec.body();
 	const robogenMessage::Brain& brain = robotSpec.brain();
 	if (!this->decodeBody(body)) {
-		throw std::runtime_error(
-				"Cannot decode the body of the robot. Exiting.");
+		std::cout << "Cannot decode the body of the robot. Exiting." <<
+				std::endl;
+		return false;
 	}
 	// decode brain needs to come after decode body, as IO reordering
 	if (!this->decodeBrain(brain)) {
-		throw std::runtime_error(
-				"Cannot decode the brain of the robot. Exiting.");
+		std::cout << "Cannot decode the brain of the robot. Exiting." <<
+				std::endl;
+		return false;
 	}
 
 	configurationFile_ = robotSpec.configuration();
+
+	return true;
 }
 
 Robot::~Robot() {
@@ -201,14 +207,11 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 	bodyConnections_.reserve(robotBody.connection_size());
 	for (int i = 0; i < robotBody.connection_size(); ++i) {
-		try{
 		bodyConnections_.push_back(boost::shared_ptr<Connection>(
-				new Connection(robotBody.connection(i), bodyPartsMap_,
-						bodyParts_)));
-		}
-		catch(ConnectionException &e){
-			std::cout << "Problem when connecting body parts:" << std::endl
-					<< "\t" << e.what() << std::endl;
+				new Connection()));
+		if(!bodyConnections_.back()->init(robotBody.connection(i),
+				bodyPartsMap_, bodyParts_)){
+			std::cout << "Problem when connecting body parts!" << std::endl;
 			return false;
 		}
 		// TODO dirty, cleaner would be to just use them Model pointers!

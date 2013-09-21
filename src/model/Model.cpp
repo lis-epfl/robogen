@@ -266,24 +266,21 @@ dxGeom* Model::createCapsuleGeom(dBodyID body, float mass, const osg::Vec3& pos,
 }
 
 dJointID Model::fixBodies(dBodyID b1, dBodyID b2, const osg::Vec3& /*axis*/) {
-
-	//dJointID joint = dJointCreateSlider(this->getPhysicsWorld(), 0);
 	dJointID joint = dJointCreateFixed(this->getPhysicsWorld(), 0);
 	dJointAttach(joint, b1, b2);
 	dJointSetFixed(joint);
-	//dJointSetSliderAxis(joint, axis.x(), axis.y(), axis.z());
-	//dJointSetSliderParam(joint, dParamLoStop, 0);
-	//dJointSetSliderParam(joint, dParamHiStop, 0);
 	return joint;
 
 }
 
-void Model::setOrientationToParentSlot(int orientation){
+bool Model::setOrientationToParentSlot(int orientation){
 	if (orientation < 0 || orientation > 3){
-		throw std::runtime_error("Specified orientation to parent slot is not"\
-				" between 0 and 3.");
+		std::cout << "Specified orientation to parent slot is not"\
+				" between 0 and 3." << std::endl;
+		return false;
 	}
 	this->orientationToParentSlot_ = orientation;
+	return true;
 }
 
 int Model::getOrientationToParentSlot(){

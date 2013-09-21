@@ -34,49 +34,42 @@
 
 namespace robogen{
 
-ConnectionException::ConnectionException(const std::string &w) :
-		std::runtime_error(w){}
+Connection::Connection(){
+}
 
-Connection::Connection(const robogenMessage::BodyConnection &c,
+bool Connection::init(const robogenMessage::BodyConnection &c,
 		std::map<std::string, unsigned int> &map,
-		std::vector<boost::shared_ptr<Model> > &vec) :
-		fromSlot_(c.srcslot()), toSlot_(c.destslot()){
+		std::vector<boost::shared_ptr<Model> > &vec){
+
+	fromSlot_ = c.srcslot();
+	toSlot_ = c.destslot();
 
 	// identify from node
 	std::map<std::string, unsigned int>::iterator it =
 			map.find(c.src());
 	if (it == map.end()){
-		std::stringstream ss;
-		ss << "Error initializing Connection: Source id" << c.src() << " could"\
-				" not be resolved in body parts map passed to constructor.";
-		throw ConnectionException(ss.str());
+		std::cout << "Error initializing Connection: Source id" << c.src() <<
+				" could not be resolved in body parts map passed to init." <<
+				std::endl;
+		return false;
 	}
 	from_ = vec[(it->second)]; // TODO catch out of bounds
 
 	// identify to node
 	it = map.find(c.dest());
 	if (it == map.end()){
-		std::stringstream ss;
-		ss << "Error initializing Connection: Destination id" << c.dest() <<
-				" could not be resolved in body parts map passed to "\
-				"constructor.";
-		throw ConnectionException(ss.str());
+		std::cout << "Error initializing Connection: Destination id" << c.dest()
+				<< " could not be resolved in body parts map passed to "\
+				"constructor." << std::endl;
+		return false;
 	}
 	if (vec[it->second] == from_){
-		std::stringstream ss;
-		ss << "Error initializing Connection: Destination id" << c.dest() <<
-				" is same as source id!";
-		throw ConnectionException(ss.str());
+		std::cout << "Error initializing Connection: Destination id" << c.dest() <<
+				" is same as source id!" << std::endl;
+		return false;
 	}
 	to_ = vec[(it->second)];
-
-	// TODO verify proper slot id's: Model::arity() though this is kind of done
-	// internally in the Model derived classes' getSlot() already
-
-}
-
-void Connection::toOde(){
-
+	return true;
 }
 
 boost::shared_ptr<Model> Connection::getFrom(){

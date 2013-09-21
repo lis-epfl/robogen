@@ -113,8 +113,8 @@ int main(int argc, char* argv[]) {
 									packet.getMessage()->configuration());
 					if (configuration == NULL) {
 						std::cout
-								<< "Problems parsing the configuration file. Quit."
-								<< std::endl;
+						<< "Problems parsing the configuration file. Quit."
+						<< std::endl;
 						return EXIT_FAILURE;
 					}
 
@@ -129,8 +129,8 @@ int main(int argc, char* argv[]) {
 					}
 
 					std::cout
-							<< "-----------------------------------------------"
-							<< std::endl;
+					<< "-----------------------------------------------"
+					<< std::endl;
 
 					while (scenario->remainingTrials()) {
 
@@ -159,12 +159,9 @@ int main(int argc, char* argv[]) {
 						// ---------------------------------------
 						// Generate Robot
 						// ---------------------------------------
-						boost::shared_ptr<Robot> robot;
-						try{
-							robot.reset(new Robot(odeWorld, odeSpace,
-									*packet.getMessage().get()));
-						}
-						catch(std::runtime_error &e){
+						boost::shared_ptr<Robot> robot(new Robot);
+						if(!robot->init(odeWorld, odeSpace,
+								*packet.getMessage().get())){
 							std::cout << "Problems decoding the robot. Quit."
 									<< std::endl;
 							return EXIT_FAILURE;
@@ -172,8 +169,8 @@ int main(int argc, char* argv[]) {
 
 
 						std::cout << "Evaluating individual " << robot->getId()
-								<< ", trial: " << scenario->getCurTrial()
-								<< std::endl;
+										<< ", trial: " << scenario->getCurTrial()
+										<< std::endl;
 
 						// Register sensors
 						std::vector<boost::shared_ptr<Sensor> > sensors =
@@ -249,7 +246,7 @@ int main(int argc, char* argv[]) {
 								if (boost::dynamic_pointer_cast<
 										PerceptiveComponent>(bodyParts[i])) {
 									boost::dynamic_pointer_cast<
-											PerceptiveComponent>(bodyParts[i])->updateSensors(
+									PerceptiveComponent>(bodyParts[i])->updateSensors(
 											env);
 								}
 							}
@@ -260,19 +257,19 @@ int main(int argc, char* argv[]) {
 										sensors[i])) {
 									networkInput[i] =
 											boost::dynamic_pointer_cast<
-													TouchSensor>(sensors[i])->read();
+											TouchSensor>(sensors[i])->read();
 								} else if (boost::dynamic_pointer_cast<
 										LightSensor>(sensors[i])) {
 									networkInput[i] =
 											boost::dynamic_pointer_cast<
-													LightSensor>(sensors[i])->read(
+											LightSensor>(sensors[i])->read(
 													env->getLightSources(),
 													env->getAmbientLight());
 								} else if (boost::dynamic_pointer_cast<
 										SimpleSensor>(sensors[i])) {
 									networkInput[i] =
 											boost::dynamic_pointer_cast<
-													SimpleSensor>(sensors[i])->read();
+											SimpleSensor>(sensors[i])->read();
 								}
 							}
 							::feed(neuralNetwork.get(), &networkInput[0]);
@@ -290,7 +287,7 @@ int main(int argc, char* argv[]) {
 
 									boost::shared_ptr<ServoMotor> motor =
 											boost::dynamic_pointer_cast<
-													ServoMotor>(motors[i]);
+											ServoMotor>(motors[i]);
 
 									if (motor->isVelocityDriven()) {
 										motor->setVelocity(networkOutputs[i]);
@@ -302,8 +299,8 @@ int main(int argc, char* argv[]) {
 
 							if (!scenario->afterSimulationStep()) {
 								std::cout
-										<< "Cannot execute scenario after simulation step. Quit."
-										<< std::endl;
+								<< "Cannot execute scenario after simulation step. Quit."
+								<< std::endl;
 								return EXIT_FAILURE;
 							}
 
