@@ -3,6 +3,7 @@ simulatorConfFile=conf.txt
 mu=20
 lambda=10
 selection=deterministic-tournament
+replacement=plus
 tournamentSize=5
 numGenerations=3
 pBrainMutate=.3
