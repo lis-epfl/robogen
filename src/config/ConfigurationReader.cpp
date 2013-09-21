@@ -47,29 +47,29 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 
 	boost::program_options::options_description desc("Allowed options");
 	desc.add_options()
-					("terrainType", boost::program_options::value<std::string>(),
-							"Terrain type: flat or rough")
-							("terrainHeightField", boost::program_options::value<std::string>(),
-									"Height Field for terrain generation")
-									("terrainWidth", boost::program_options::value<float>(),
-											"Terrain width")
-											("terrainHeight", boost::program_options::value<float>(),
-													"Terrain height")
-													("terrainLength", boost::program_options::value<float>(),
-															"Terrain length")
-															("obstaclesConfigFile",boost::program_options::value<std::string>(),
-																	"Obstacles configuration file")
-																	("scenario", boost::program_options::value<std::string>(),
-																			"Experiment scenario")
-																			("lightSourceHeight", boost::program_options::value<float>(),
-																					"Height of light source")
-																					("timeStep", boost::program_options::value<float>(),
-																							"Time step duration")
-																							("nTimeSteps", boost::program_options::value<unsigned int>(),
-																									"Number of timesteps")
-																									("startPositionConfigFile",
-																											boost::program_options::value<std::string>(),
-																											"Start Positions Configuration File");
+			("terrainType", boost::program_options::value<std::string>(),
+					"Terrain type: flat or rough")
+			("terrainHeightField", boost::program_options::value<std::string>(),
+					"Height Field for terrain generation")
+			("terrainWidth", boost::program_options::value<float>(),
+					"Terrain width")
+			("terrainHeight", boost::program_options::value<float>(),
+					"Terrain height")
+			("terrainLength", boost::program_options::value<float>(),
+					"Terrain length")
+			("obstaclesConfigFile",boost::program_options::value<std::string>(),
+					"Obstacles configuration file")
+			("scenario", boost::program_options::value<std::string>(),
+					"Experiment scenario")
+			("lightSourceHeight", boost::program_options::value<float>(),
+					"Height of light source")
+			("timeStep", boost::program_options::value<float>(),
+					"Time step duration")
+			("nTimeSteps", boost::program_options::value<unsigned int>(),
+					"Number of timesteps")
+			("startPositionConfigFile",
+					boost::program_options::value<std::string>(),
+					"Start Positions Configuration File");
 
 	boost::program_options::variables_map vm;
 	boost::program_options::store(
