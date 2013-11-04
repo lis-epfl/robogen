@@ -2,6 +2,7 @@
  * @(#) RobogenConfig.h   1.0   Mar 12, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Titus Cieslewski (dev@titus-c.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2013 Andrea Maesani
@@ -32,6 +33,7 @@
 #include "config/ObstaclesConfig.h"
 #include "config/StartPositionConfig.h"
 #include "config/TerrainConfig.h"
+#include "robogen.pb.h"
 
 namespace robogen {
 
@@ -47,7 +49,7 @@ public:
 	};
 
 	/**
-	 * Initializes a robogen config object
+	 * Initializes a robogen config object from configuration parameters
 	 */
 	RobogenConfig(SimulationScenario scenario, unsigned int timeSteps,
 			float timeStepLength, boost::shared_ptr<TerrainConfig> terrain,
@@ -65,6 +67,11 @@ public:
 		simulationTime_ = timeSteps * timeStepLength;
 
 	}
+
+	/**
+	 * Initializes a robogen config object from a message
+	 */
+	RobogenConfig(const robogenMessage::RobogenConfig &message);
 
 	/**
 	 * Destructor
@@ -141,6 +148,22 @@ public:
 	 */
 	float getLightSourceHeight(){
 		return lightSourceHeight_;
+	}
+
+	/**
+	 * Convert configuration into configuration message.
+	 */
+	robogenMessage::RobogenConfig serialize() const{
+		robogenMessage::RobogenConfig ret;
+		ret.set_lightsourceheight(lightSourceHeight_);
+		ret.set_ntimesteps(timeSteps_);
+		ret.set_scenario(scenario_);
+		ret.set_terrainlength(terrain_->getLength());
+		ret.set_terrainwidth(terrain_->getWidth());
+		ret.set_timestep(timeStepLength_);
+		obstacles_->serialize(ret);
+		startPositions_->serialize(ret);
+		return ret;
 	}
 
 private:

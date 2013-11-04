@@ -31,6 +31,7 @@
 #include <osg/Vec2>
 #include <osg/Vec3>
 #include <vector>
+#include "robogen.pb.h"
 
 namespace robogen {
 
@@ -77,6 +78,21 @@ public:
 	 */
 	const std::vector<float>& getDensity() const{
 		return density_;
+	}
+
+	/**
+	 * Serialize obstacles into a RobogenConfig message
+	 */
+	void serialize(robogenMessage::RobogenConfig &message){
+		for (unsigned int i=0; i<coordinates_.size(); ++i){
+			robogenMessage::Obstacle *curr = message.add_obstacles();
+			curr->set_density(density_[i]);
+			curr->set_x(coordinates_[i].x());
+			curr->set_y(coordinates_[i].y());
+			curr->set_xsize(size_[i].x());
+			curr->set_ysize(size_[i].y());
+			curr->set_zsize(size_[i].z());
+		}
 	}
 
 private:
