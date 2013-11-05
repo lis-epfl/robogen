@@ -38,6 +38,8 @@
 #include "evolution/engine/BodyVerifier.h"
 #include "evolution/engine/EvolverConfiguration.h"
 
+#define MAX_MUTATION_ATTEMPTS 100 //TODO move this somewhere else
+
 namespace robogen {
 
 class Mutator {
@@ -45,10 +47,9 @@ public:
 	/**
 	 * Types of mutators
 	 */
-	enum types{
-		BRAIN_MUTATOR,
-		BRAIN_BODY_PARAM_MUTATOR, 	// just putting the idea out there
-		FULL_MUTATOR 				// the holy grail of the robogen developer
+	enum types {
+		BRAIN_MUTATOR, BRAIN_BODY_PARAM_MUTATOR, // just putting the idea out there
+		FULL_MUTATOR // the holy grail of the robogen developer
 	};
 
 	/**
@@ -57,15 +58,15 @@ public:
 	 * @param brainMuteSigma sigma of normal distribution for brain mutation
 	 * @param pBrainCrossover probability for crossover among brains
 	 */
-	Mutator::Mutator(EvolverConfiguration &conf, boost::random::mt19937 &rng);
+	Mutator(EvolverConfiguration &conf, boost::random::mt19937 &rng);
 
 	virtual ~Mutator();
 
 	/**
 	 * Performs mutation and crossover on a pair of robots
 	 */
-	RobotRepresentation mutate(std::pair<RobotRepresentation,
-			RobotRepresentation> parents);
+	RobotRepresentation mutate(
+			std::pair<RobotRepresentation, RobotRepresentation> parents);
 
 	/**
 	 * Mutates a single robot
@@ -109,14 +110,20 @@ private:
 	 */
 	boost::random::mt19937 &rng_;
 
-
-	boost::shared_ptr<RobotRepresentation> removeSubtree( boost::shared_ptr<RobotRepresentation> robot );
-	boost::shared_ptr<RobotRepresentation> duplicateSubtree( boost::shared_ptr<RobotRepresentation> robot );
-	boost::shared_ptr<RobotRepresentation> swapSubtrees( boost::shared_ptr<RobotRepresentation> robot );
-	boost::shared_ptr<RobotRepresentation> insertNode( boost::shared_ptr<RobotRepresentation> robot );
-	boost::shared_ptr<RobotRepresentation> removeNode( boost::shared_ptr<RobotRepresentation> robot );
-	boost::shared_ptr<RobotRepresentation> mutateParams( boost::shared_ptr<RobotRepresentation> robot );
-
+	void mutateBody(boost::shared_ptr<RobotRepresentation> &robot);
+	bool removeSubtree(boost::shared_ptr<RobotRepresentation> &robot);
+	/*
+	boost::shared_ptr<RobotRepresentation> duplicateSubtree(
+			boost::shared_ptr<RobotRepresentation> robot);
+	boost::shared_ptr<RobotRepresentation> swapSubtrees(
+			boost::shared_ptr<RobotRepresentation> robot);
+	boost::shared_ptr<RobotRepresentation> insertNode(
+			boost::shared_ptr<RobotRepresentation> robot);
+	boost::shared_ptr<RobotRepresentation> removeNode(
+			boost::shared_ptr<RobotRepresentation> robot);
+	boost::shared_ptr<RobotRepresentation> mutateParams(
+			boost::shared_ptr<RobotRepresentation> robot);
+	*/
 };
 
 } /* namespace robogen */

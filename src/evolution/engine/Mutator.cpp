@@ -48,9 +48,15 @@ Mutator::~Mutator() {
 RobotRepresentation Mutator::mutate(
 		std::pair<RobotRepresentation, RobotRepresentation> parents) {
 	// TODO copy first!
-	this->crossover(parents.first, parents.second);
-	this->mutate(parents.first);
-	return parents.first;
+	//this->crossover(parents.first, parents.second);
+	//this->mutate(parents.first);
+	boost::shared_ptr<RobotRepresentation> offspring =
+			boost::shared_ptr<RobotRepresentation>(
+					new RobotRepresentation(parents.first));
+	this->mutateBody(offspring);
+
+	return RobotRepresentation(*offspring.get());
+	//return parents.first;
 }
 
 bool Mutator::mutate(RobotRepresentation &robot) {
@@ -159,32 +165,35 @@ bool Mutator::crossover(RobotRepresentation &a, RobotRepresentation &b) {
 	return true;
 }
 
-typedef boost::shared_ptr<RobotRepresentation> (*MutationOperator)(
-		boost::shared_ptr<RobotRepresentation>);
+typedef bool (Mutator::*MutationOperator)(
+		boost::shared_ptr<RobotRepresentation>&);
 
 typedef std::pair<MutationOperator,
-		boost::random::bernoulli_distribution<double>& > MutOpPair;
+		boost::random::bernoulli_distribution<double> > MutOpPair;
 
-boost::shared_ptr<RobotRepresentation> Mutator::mutate(
-		boost::shared_ptr<RobotRepresentation> robot) {
+void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation> &robot) {
 
 	MutOpPair mutOpPairs[] =
-			{	MutOpPair(this->removeSubtree, subtreeRemoval_),
-				MutOpPair(this->duplicateSubtree, subtreeDuplication_),
-				MutOpPair(this->swapSubtrees, subTreeSwap_),
-				MutOpPair(this->insertNode, nodeInsert)),
-				MutOpPair(this->removeNode, nodeRemoval_),
-				MutOpPair(this->mutateParams, paramaMutate_)
+			{	std::make_pair(&Mutator::removeSubtree, subtreeRemoval_)
+				//std::make_pair(&Mutator::duplicateSubtree, subtreeDuplication_),
+				//std::make_pair(&Mutator::swapSubtrees, subtreeSwap_),
+				//std::make_pair(&Mutator::insertNode, nodeInsert_),
+				//std::make_pair(&Mutator::removeNode, nodeRemoval_),
+				//std::make_pair(&Mutator::mutateParams, paramMutate_)
 			};
 	int numOperators = sizeof(mutOpPairs) / sizeof(MutOpPair);
 	for (int i = 0; i < numOperators; ++i) {
 		MutationOperator mutOp = mutOpPairs[i].first;
 		boost::random::bernoulli_distribution<double> dist =
 				mutOpPairs[i].second;
-		if(dist(rng_)) {
+		if(1) {//dist(rng_)) {
 			for (int attempt = 0; attempt < MAX_MUTATION_ATTEMPTS; ++attempt) {
-				boost::shared_ptr<RobotRepresentation> newBot = mutOp(robot);
-				if ( BodyVerifier::verify(newBot) ) {
+				boost::shared_ptr<RobotRepresentation> newBot =
+						boost::shared_ptr<RobotRepresentation>(
+								new RobotRepresentation(*robot.get()));
+
+				(this->*mutOp)(newBot);
+				if ( true /*BodyVerifier::verify(newBot)*/ ) {
 					robot = newBot;
 					robot->setDirty();
 					break;
@@ -192,38 +201,44 @@ boost::shared_ptr<RobotRepresentation> Mutator::mutate(
 			}
 		}
 	}
-
 }
 
 
-boost::shared_ptr<RobotRepresentation> Mutator::removeSubtree(
-		boost::shared_ptr<RobotRepresentation> robot) {
+bool Mutator::removeSubtree(boost::shared_ptr<RobotRepresentation> &robot) {
 
+	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
+	boost::random::uniform_int_distribution<> dist(0, idPartMap.size()-1);
+	RobotRepresentation::IdPartMap::const_iterator element = idPartMap.begin();
+	std::advance( element, dist(rng_) );
+
+	robot->trimBodyAt(element->first);
+
+	return true;
 }
 
-boost::shared_ptr<RobotRepresentation> Mutator::duplicateSubtree(
-		boost::shared_ptr<RobotRepresentation> robot) {
-
+/*
+bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation> robot) {
+	return boost::shared_ptr<RobotRepresentation>();
 }
 
 boost::shared_ptr<RobotRepresentation> Mutator::swapSubtrees(
 		boost::shared_ptr<RobotRepresentation> robot) {
-
+	return boost::shared_ptr<RobotRepresentation>();
 }
 
 boost::shared_ptr<RobotRepresentation> Mutator::insertNode(
 		boost::shared_ptr<RobotRepresentation> robot) {
-
+	return boost::shared_ptr<RobotRepresentation>();
 }
 
 boost::shared_ptr<RobotRepresentation> Mutator::removeNode(
 		boost::shared_ptr<RobotRepresentation> robot) {
-
+	return boost::shared_ptr<RobotRepresentation>();
 }
 
 boost::shared_ptr<RobotRepresentation> Mutator::mutateParams(
 		boost::shared_ptr<RobotRepresentation> robot) {
-
+	return boost::shared_ptr<RobotRepresentation>();
 }
-
+*/
 } /* namespace robogen */
