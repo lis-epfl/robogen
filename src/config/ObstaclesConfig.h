@@ -81,9 +81,9 @@ public:
 	}
 
 	/**
-	 * Serialize obstacles into a RobogenConfig message
+	 * Serialize obstacles into a SimulatorConf message
 	 */
-	void serialize(robogenMessage::RobogenConfig &message){
+	void serialize(robogenMessage::SimulatorConf &message){
 		for (unsigned int i=0; i<coordinates_.size(); ++i){
 			robogenMessage::Obstacle *curr = message.add_obstacles();
 			curr->set_density(density_[i]);

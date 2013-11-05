@@ -71,7 +71,7 @@ public:
 	/**
 	 * Initializes a robogen config object from a message
 	 */
-	RobogenConfig(const robogenMessage::RobogenConfig &message);
+	RobogenConfig(const robogenMessage::SimulatorConf &message);
 
 	/**
 	 * Destructor
@@ -153,11 +153,15 @@ public:
 	/**
 	 * Convert configuration into configuration message.
 	 */
-	robogenMessage::RobogenConfig serialize() const{
-		robogenMessage::RobogenConfig ret;
+	robogenMessage::SimulatorConf serialize() const{
+		robogenMessage::SimulatorConf ret;
 		ret.set_lightsourceheight(lightSourceHeight_);
 		ret.set_ntimesteps(timeSteps_);
-		ret.set_scenario(scenario_);
+		if (scenario_ == CHASING) {
+			ret.set_scenario("chasing");
+		} else if (scenario_ == RACING) {
+			ret.set_scenario("racing");
+		}
 		ret.set_terrainlength(terrain_->getLength());
 		ret.set_terrainwidth(terrain_->getWidth());
 		ret.set_timestep(timeStepLength_);

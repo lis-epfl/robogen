@@ -73,9 +73,9 @@ public:
 	}
 
 	/**
-	 * Serialize starting positions into a RobogenConfig message
+	 * Serialize starting positions into a SimulatorConf message
 	 */
-	void serialize(robogenMessage::RobogenConfig &message){
+	void serialize(robogenMessage::SimulatorConf &message){
 		for (unsigned int i=0; i<startPosition_.size(); ++i){
 			robogenMessage::StartPosition *curr = message.add_startpositions();
 			curr->set_azimuth(startPosition_[i]->getAzimuth());

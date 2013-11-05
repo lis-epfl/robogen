@@ -48,7 +48,6 @@ message Robot {
   required int32 id = 1;
   required Body body = 2; 
   required Brain brain = 3;
-  required string configuration = 4;
 }
 
 message Obstacle {
@@ -66,20 +65,20 @@ message StartPosition {
   required float azimuth = 3;
 }
 
-message RobogenConfig {
+message SimulatorConf {
   required float terrainWidth = 1;
   required float terrainLength = 2;
   repeated Obstacle obstacles = 3;
-  required int32 scenario = 4;
+  required string scenario = 4;
   required float lightSourceHeight = 5;
   required float timeStep = 6;
   required int32 nTimeSteps = 7;
   repeated StartPosition startPositions = 8;
 }
 
-message Task {
+message EvaluationRequest {
   required Robot robot = 1;
-  required RobogenConfig conf = 2;
+  required SimulatorConf configuration = 2;
 }
 
 message EvaluationResult {

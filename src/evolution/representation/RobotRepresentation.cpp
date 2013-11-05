@@ -322,9 +322,6 @@ robogenMessage::Robot RobotRepresentation::serialize() const{
 	bodyTree_->addSubtreeToBodyMessage(message.mutable_body(), true);
 	// brain
 	*(message.mutable_brain()) = neuralNetwork_->serialize();
-	// configuration - void - IMO this does not belong here from an OO perspect.
-	// being set by the evolution engine when sending to the simulator
-	message.set_configuration("");
 	return message;
 }
 
@@ -347,13 +344,16 @@ const RobotRepresentation::IdPartMap &RobotRepresentation::getBody() const{
 }
 
 void RobotRepresentation::evaluate(TcpSocket *socket,
-		std::string &simulatorConfFile){
+		boost::shared_ptr<RobogenConfig> robotConf){
+
 	// 1. Prepare message to simulator
-	boost::shared_ptr<robogenMessage::Robot> rsp =
-			boost::shared_ptr<robogenMessage::Robot>(
-					new robogenMessage::Robot(serialize()));
-	rsp->set_configuration(simulatorConfFile);
-	ProtobufPacket<robogenMessage::Robot>	robotPacket(rsp);
+	boost::shared_ptr<robogenMessage::EvaluationRequest> evalReq(new robogenMessage::EvaluationRequest());
+	robogenMessage::Robot* evalRobot = evalReq->mutable_robot();
+	robogenMessage::SimulatorConf* evalConf = evalReq->mutable_configuration();
+	*evalRobot = serialize();
+	*evalConf = robotConf->serialize();
+
+	ProtobufPacket<robogenMessage::EvaluationRequest> robotPacket(evalReq);
 	std::vector<unsigned char> forgedMessagePacket;
 	robotPacket.forge(forgedMessagePacket);
 
@@ -367,11 +367,14 @@ void RobotRepresentation::evaluate(TcpSocket *socket,
 	std::vector<unsigned char> responseMessage;
 	socket->read(responseMessage,
 			ProtobufPacket<robogenMessage::EvaluationResult>::HEADER_SIZE);
+
 	// Decode the Header and read the payload-message-size
 	size_t msgLen = resultPacket.decodeHeader(responseMessage);
 	responseMessage.clear();
+
 	// Read the fitness payload message
 	socket->read(responseMessage, msgLen);
+
 	// Decode the packet
 	resultPacket.decodePayload(responseMessage);
 
