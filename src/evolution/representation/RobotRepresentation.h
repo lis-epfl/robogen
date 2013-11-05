@@ -58,8 +58,7 @@ public:
 	/**
 	 * Map from an id string to a weak pointer of a part representation
 	 */
-	typedef std::map<std::string, boost::weak_ptr<PartRepresentation> >
-	IdPartMap;
+	typedef std::map<std::string, boost::weak_ptr<PartRepresentation> > IdPartMap;
 
 	/**
 	 * Copy constructor: Deep copy body parts and Neural network

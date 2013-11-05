@@ -40,7 +40,7 @@ namespace robogen {
  * The choice is made to use a struct as we want to easily write access to new
  * parameters of the configuration class
  */
-struct EvolverConfiguration {
+typedef struct EvolverConfiguration {
 	/**
 	 * Types of replacement strategies
 	 */
@@ -131,7 +131,7 @@ struct EvolverConfiguration {
 	 * Sockets to be used to connect to the server
 	 */
 	std::vector<std::pair<std::string, int> > sockets;
-};
+} EvolverConfiguration;
 
 } /* namespace robogen */
 #endif /* EVOLVERCONFIGURATION_H_ */
