@@ -61,7 +61,8 @@ public:
 	 * @param brainMuteSigma sigma of normal distribution for brain mutation
 	 * @param pBrainCrossover probability for crossover among brains
 	 */
-	Mutator(boost::shared_ptr<EvolverConfiguration> conf, boost::random::mt19937 &rng);
+	Mutator(boost::shared_ptr<EvolverConfiguration> conf,
+			boost::random::mt19937 &rng);
 
 	virtual ~Mutator();
 
@@ -87,6 +88,11 @@ public:
 	bool crossover(RobotRepresentation &a, RobotRepresentation &b);
 
 private:
+	/**
+	 * Evolver Configuration
+	 */
+	boost::shared_ptr<EvolverConfiguration> conf_;
+
 	/**
 	 * Type of mutator behavior from types enum
 	 */
@@ -121,10 +127,7 @@ private:
 	bool removeNode(boost::shared_ptr<RobotRepresentation>& robot);
 	bool mutateParams(boost::shared_ptr<RobotRepresentation>& robot);
 
-	/**
-	 * Evolver Configuration
-	 */
-	boost::shared_ptr<EvolverConfiguration> conf_;
+
 };
 
 } /* namespace robogen */

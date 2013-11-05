@@ -339,7 +339,7 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	// Select node type
 	boost::random::uniform_int_distribution<> distType(0,
 			conf_->allowedBodyPartTypes.size() - 1);
-	std::string type = conf_->allowedBodyPartTypes[distType(rng_)];
+	char type = conf_->allowedBodyPartTypes[distType(rng_)];
 
 	// TODO: return robot->insertNode(parent, slotId, type)
 
