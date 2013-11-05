@@ -142,10 +142,30 @@ public:
 	 */
 	bool trimBodyAt(std::string id);
 
-	std::string RobotRepresentation::GenerateUniqueIdFromSomeId();
+	/**
+	 * @return a string unique id
+	 */
+	std::string generateUniqueIdFromSomeId();
+
+	/**
+	 * update id of 'node' to make it unique and call recursively all existing childs to do the same
+	 * @param node
+	 */
 	bool insertSubTreeRecursivelyToMap(boost::shared_ptr<PartRepresentation> node);
-	bool duplicateSubTree(std::string id_src, std::string id_dst, int slotid);
-	bool insertNode(std::string id_dst,	boost::shared_ptr<PartRepresentation> node, int slotid1, int slotid2);
+
+	/**
+	 * Clone 'srcId' node and insert it slot 'slotId', then recursively update id's in the map
+	 * @param srcId
+	 * @param destId
+	 * @param slotId
+	 */
+	bool duplicateSubTree(std::string srcId, std::string destId, int slotId);
+
+	/**
+	 * 'node' will replace some node 'prev_subnode' at slot 'slotId1' of 'destId' node
+	 *  then 'prev_subnode' will be inserted at 'slotId2' of 'node'
+	 */
+	bool insertNode(std::string destId,	boost::shared_ptr<PartRepresentation> node, int slotId1, int slotId2);
 	bool removeNode(std::string id_node);
 
 

@@ -34,6 +34,7 @@
 #include <map>
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include "robogen.pb.h"
 
 namespace robogen {
@@ -137,12 +138,12 @@ public:
 	/**
 	 * @param parent parent to be set
 	 */
-	void setParent(PartRepresentation *parent);
+	void setParent(PartRepresentation* parent);
 
 	/**
 	 * @return parent part
 	 */
-	PartRepresentation *getParent();
+	PartRepresentation* getParent();
 
 	/**
 	 * Set slot id on parent part
@@ -224,7 +225,7 @@ private:
 	/**
 	 * Parent body part - raw pointer as present (or NULL) by design
 	 */
-	PartRepresentation *parent_;
+	PartRepresentation* parent_;
 
 	/**
 	 * Slot occupied on parent part

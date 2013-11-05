@@ -27,8 +27,7 @@ namespace robogen {
 
 PartRepresentation::PartRepresentation(std::string id, int orientation,
 		int arity, std::string type) :
-		id_(id), arity_(arity), orientation_(orientation), type_(type), parent_(
-		NULL) {
+		id_(id), arity_(arity), orientation_(orientation), type_(type) {
 	children_.resize(arity_, boost::shared_ptr<PartRepresentation>());
 }
 
@@ -104,6 +103,7 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(int n) {
 
 bool PartRepresentation::setChild(int n,
 		boost::shared_ptr<PartRepresentation> part) {
+
 	if (n < 1 || n > arity_) {
 		std::cout << "Attempt to access non-existing slot " << n << " of part "
 				<< this->getId() << " with arity " << arity_ << std::endl;
@@ -116,77 +116,78 @@ bool PartRepresentation::setChild(int n,
 	}
 	children_[n - 1] = part;
 	return true;
-}
-
-static std::string getPartType(char c) {
-
-	switch (type) {
-	case 'E':
-		return boost::shared_ptr<PartRepresentation>(
-				new CoreComponentRepresentation(id, orientation));
-	case 'F':
-		return boost::shared_ptr<PartRepresentation>(
-				new FixedBrickRepresentation(id, orientation));
-	case 'B':
-		if (params.size() != 3) {
-			std::cout << "Parameter count is not 3 on parametric bar joint "
-					"with id " << id << std::endl;
-			return boost::shared_ptr<PartRepresentation>();
-		}
-		return boost::shared_ptr<PartRepresentation>(
-				new ParametricBarJointRepresentation(id, orientation, params[0],
-						params[1], params[2]));
-	case 'H':
-		return boost::shared_ptr<PartRepresentation>(
-				new PassiveHingeRepresentation(id, orientation));
-	case 'I':
-		return boost::shared_ptr<PartRepresentation>(
-				new ActiveHingeRepresentation(id, orientation));
-	case 'C':
-		return boost::shared_ptr<PartRepresentation>(
-				new PassiveCardanRepresentation(id, orientation));
-	case 'K':
-		return boost::shared_ptr<PartRepresentation>(
-				new ActiveCardanRepresentation(id, orientation));
-	case 'R':
-		return boost::shared_ptr<PartRepresentation>(
-				new RotatorRepresentation(id, orientation));
-	case 'W':
-		if (params.size() != 1) {
-			std::cout << "Parameter count is not 1 on passive wheel with id "
-					<< id << std::endl;
-			return boost::shared_ptr<PartRepresentation>();
-		}
-		return boost::shared_ptr<PartRepresentation>(
-				new PassiveWheelRepresentation(id, orientation, params[0]));
-	case 'J':
-		if (params.size() != 1) {
-			std::cout << "Parameter count is not 1 on active wheel with id "
-					<< id << std::endl;
-			return boost::shared_ptr<PartRepresentation>();
-		}
-		return boost::shared_ptr<PartRepresentation>(
-				new ActiveWheelRepresentation(id, orientation, params[0]));
-	case 'G':
-		if (params.size() != 1) {
-			std::cout << "Parameter count is not 1 on active wheg with id "
-					<< id;
-			return boost::shared_ptr<PartRepresentation>();
-		}
-		return boost::shared_ptr<PartRepresentation>(
-				new ActiveWhegRepresentation(id, orientation, params[0]));
-	case 'L':
-		return boost::shared_ptr<PartRepresentation>(
-				new LightSensorRepresentation(id, orientation));
-	case 'T':
-		return boost::shared_ptr<PartRepresentation>(
-				new TouchSensorRepresentation(id, orientation));
-	default:
-		std::cout << "Unknown part type specified: " << type << std::endl;
-		return boost::shared_ptr<PartRepresentation>();
-	}
 
 }
+/*
+ static std::string getPartType(char c) {
+
+ switch (type) {
+ case 'E':
+ return boost::shared_ptr<PartRepresentation>(
+ new CoreComponentRepresentation(id, orientation));
+ case 'F':
+ return boost::shared_ptr<PartRepresentation>(
+ new FixedBrickRepresentation(id, orientation));
+ case 'B':
+ if (params.size() != 3) {
+ std::cout << "Parameter count is not 3 on parametric bar joint "
+ "with id " << id << std::endl;
+ return boost::shared_ptr<PartRepresentation>();
+ }
+ return boost::shared_ptr<PartRepresentation>(
+ new ParametricBarJointRepresentation(id, orientation, params[0],
+ params[1], params[2]));
+ case 'H':
+ return boost::shared_ptr<PartRepresentation>(
+ new PassiveHingeRepresentation(id, orientation));
+ case 'I':
+ return boost::shared_ptr<PartRepresentation>(
+ new ActiveHingeRepresentation(id, orientation));
+ case 'C':
+ return boost::shared_ptr<PartRepresentation>(
+ new PassiveCardanRepresentation(id, orientation));
+ case 'K':
+ return boost::shared_ptr<PartRepresentation>(
+ new ActiveCardanRepresentation(id, orientation));
+ case 'R':
+ return boost::shared_ptr<PartRepresentation>(
+ new RotatorRepresentation(id, orientation));
+ case 'W':
+ if (params.size() != 1) {
+ std::cout << "Parameter count is not 1 on passive wheel with id "
+ << id << std::endl;
+ return boost::shared_ptr<PartRepresentation>();
+ }
+ return boost::shared_ptr<PartRepresentation>(
+ new PassiveWheelRepresentation(id, orientation, params[0]));
+ case 'J':
+ if (params.size() != 1) {
+ std::cout << "Parameter count is not 1 on active wheel with id "
+ << id << std::endl;
+ return boost::shared_ptr<PartRepresentation>();
+ }
+ return boost::shared_ptr<PartRepresentation>(
+ new ActiveWheelRepresentation(id, orientation, params[0]));
+ case 'G':
+ if (params.size() != 1) {
+ std::cout << "Parameter count is not 1 on active wheg with id "
+ << id;
+ return boost::shared_ptr<PartRepresentation>();
+ }
+ return boost::shared_ptr<PartRepresentation>(
+ new ActiveWhegRepresentation(id, orientation, params[0]));
+ case 'L':
+ return boost::shared_ptr<PartRepresentation>(
+ new LightSensorRepresentation(id, orientation));
+ case 'T':
+ return boost::shared_ptr<PartRepresentation>(
+ new TouchSensorRepresentation(id, orientation));
+ default:
+ std::cout << "Unknown part type specified: " << type << std::endl;
+ return boost::shared_ptr<PartRepresentation>();
+ }
+
+ }*/
 
 boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 		std::string id, int orientation, std::vector<double> params) {
@@ -325,11 +326,11 @@ std::vector<std::string> PartRepresentation::getDescendantsIds() {
 
 }
 
-void PartRepresentation::setParent(PartRepresentation *parent) {
+void PartRepresentation::setParent(PartRepresentation* parent) {
 	parent_ = parent;
 }
 
-PartRepresentation *PartRepresentation::getParent() {
+PartRepresentation* PartRepresentation::getParent() {
 	return parent_;
 }
 

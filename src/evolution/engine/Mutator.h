@@ -44,7 +44,9 @@
 namespace robogen {
 
 class Mutator {
+
 public:
+
 	/**
 	 * Types of mutators
 	 */
