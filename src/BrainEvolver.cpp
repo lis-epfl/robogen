@@ -47,14 +47,14 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 
 	if (argc != 2) {
-		std::cout << "Bad amount of arguments. Usage: robogen-brain-evolver "
-				"<configuration file>" << std::endl;
+		std::cout << "Bad amount of arguments. " << std::endl
+				<< " Usage: robogen-brain-evolver "
+						"<configuration file>" << std::endl;
 		return EXIT_FAILURE;
 	}
 	struct EvolverConfiguration conf;
 	if (!conf.init(std::string(argv[1]))) {
-		std::cout
-				<< "Problems parsing the evolution configuration file. Quit."
+		std::cout << "Problems parsing the evolution configuration file. Quit."
 				<< std::endl;
 		return EXIT_FAILURE;
 	}
@@ -62,8 +62,7 @@ int main(int argc, char *argv[]) {
 	boost::shared_ptr<RobogenConfig> robotConf =
 			ConfigurationReader::parseConfigurationFile(conf.simulatorConfFile);
 	if (robotConf == NULL) {
-		std::cout
-				<< "Problems parsing the robot configuration file. Quit."
+		std::cout << "Problems parsing the robot configuration file. Quit."
 				<< std::endl;
 		return EXIT_FAILURE;
 	}
@@ -118,7 +117,6 @@ int main(int argc, char *argv[]) {
 		}
 #endif
 	}
-
 
 	// ---------------------------------------
 	// run evolution TODO stopping criterion

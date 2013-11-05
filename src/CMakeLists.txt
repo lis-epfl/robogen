@@ -115,8 +115,8 @@ add_executable(robogen-brain-evolver BrainEvolver.cpp)
 target_link_libraries(robogen-brain-evolver robogen ${ROBOGEN_DEPENDENCIES})
 
 # Robogen simulator server
-add_executable(robogen-simulator RobogenServer.cpp)
-target_link_libraries(robogen-simulator robogen ${ROBOGEN_DEPENDENCIES})
+add_executable(robogen-server RobogenServer.cpp)
+target_link_libraries(robogen-server robogen ${ROBOGEN_DEPENDENCIES})
 
 # Robot Viewer (from file)
 add_executable(robogen-file-viewer viewer/FileViewer.cpp)
