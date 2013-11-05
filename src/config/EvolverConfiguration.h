@@ -131,6 +131,15 @@ typedef struct EvolverConfiguration {
 	 * Sockets to be used to connect to the server
 	 */
 	std::vector<std::pair<std::string, int> > sockets;
+
+	/**
+	 * Allowed body part types
+	 * TODO: Read this from configuration file
+	 */
+	std::vector<std::string> allowedBodyPartTypes;
+
+	// TODO: Add probabilities for body mutations
+
 } EvolverConfiguration;
 
 } /* namespace robogen */

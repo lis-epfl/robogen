@@ -38,13 +38,19 @@
 
 namespace robogen {
 
+
+
 /**
  * Part representation to be used for evolution. More lightweight than the
  * part representation of the simulator, and implements evolution-specific
  * methods.
  */
 class PartRepresentation {
+
 public:
+
+	static std::map<class PartRepresentation, std::string> PART_REPRESENTATION_TYPE_MAP;
+
 	/**
 	 * @param id name of the part
 	 * @param orientation orientation of the part when attached to parent part
@@ -110,8 +116,8 @@ public:
 	/**
 	 * Factory pattern to create derived classes, i.e. body part representations
 	 */
-	static boost::shared_ptr<PartRepresentation> create(char type, std::string
-			id, int orientation, std::vector<double> params);
+	static boost::shared_ptr<PartRepresentation> create(char type,
+			std::string id, int orientation, std::vector<double> params);
 
 	/**
 	 * Add subtree to given body message.
@@ -142,6 +148,32 @@ public:
 	 */
 	int getPosition();
 
+	/**
+	 * @return the number of children
+	 */
+	unsigned int getChildrenCount();
+
+	/**
+	 * @return the positions of the free slots
+	 */
+	std::vector<unsigned int> getFreeChildSlots();
+
+	/**
+	 * @return the ids of all ancestors of this part
+	 */
+	std::vector<std::string> getAncestorsIds();
+
+	/**
+	 * @return the ids of all descendants of this part
+	 */
+	std::vector<std::string> getDescendantsIds();
+
+	/**
+	 * @param c the short-form of the type
+	 * @return the type of the string
+	 */
+	static std::string getPartType(char c);
+
 protected:
 	/**
 	 * As of now, only derived classes need to call this for cloning, so it's
@@ -157,15 +189,16 @@ protected:
 	std::map<std::string, double> params_;
 
 private:
+
 	/**
 	 * Identifier string (name) of this part
 	 */
 	std::string id_;
 
 	/**
-	 * Type, as required for protobuf serialization of derived classes
+	 * orientation of the part when attached to parent part
 	 */
-	std::string type_;
+	int orientation_;
 
 	/**
 	 * Arity: Amount of available children slots
@@ -173,9 +206,9 @@ private:
 	const int arity_;
 
 	/**
-	 * orientation of the part when attached to parent part
+	 * Type, as required for protobuf serialization of derived classes
 	 */
-	int orientation_;
+	std::string type_;
 
 	/**
 	 * Children of this part in the body tree

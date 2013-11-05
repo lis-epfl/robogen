@@ -50,7 +50,8 @@ IndividualContainer::~IndividualContainer() {
  * @param confFile simulator configuration file to be used for evaluations
  */
 void evaluationThread(std::queue<RobotRepresentation*> *indiQueue,
-		boost::mutex *queueMutex, TcpSocket *socket, boost::shared_ptr<RobogenConfig> robotConf) {
+		boost::mutex *queueMutex, TcpSocket *socket,
+		boost::shared_ptr<RobogenConfig> robotConf) {
 	while (true) {
 		boost::mutex::scoped_lock lock(*queueMutex);
 		if (indiQueue->empty())

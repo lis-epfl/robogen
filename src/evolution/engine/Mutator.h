@@ -34,9 +34,10 @@
 
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/bernoulli_distribution.hpp>
+
+#include "config/EvolverConfiguration.h"
 #include "evolution/representation/RobotRepresentation.h"
 #include "evolution/engine/BodyVerifier.h"
-#include "evolution/engine/EvolverConfiguration.h"
 
 #define MAX_MUTATION_ATTEMPTS 100 //TODO move this somewhere else
 
@@ -58,7 +59,7 @@ public:
 	 * @param brainMuteSigma sigma of normal distribution for brain mutation
 	 * @param pBrainCrossover probability for crossover among brains
 	 */
-	Mutator(EvolverConfiguration &conf, boost::random::mt19937 &rng);
+	Mutator(boost::shared_ptr<EvolverConfiguration> conf, boost::random::mt19937 &rng);
 
 	virtual ~Mutator();
 
@@ -110,20 +111,18 @@ private:
 	 */
 	boost::random::mt19937 &rng_;
 
-	void mutateBody(boost::shared_ptr<RobotRepresentation> &robot);
-	bool removeSubtree(boost::shared_ptr<RobotRepresentation> &robot);
-	/*
-	boost::shared_ptr<RobotRepresentation> duplicateSubtree(
-			boost::shared_ptr<RobotRepresentation> robot);
-	boost::shared_ptr<RobotRepresentation> swapSubtrees(
-			boost::shared_ptr<RobotRepresentation> robot);
-	boost::shared_ptr<RobotRepresentation> insertNode(
-			boost::shared_ptr<RobotRepresentation> robot);
-	boost::shared_ptr<RobotRepresentation> removeNode(
-			boost::shared_ptr<RobotRepresentation> robot);
-	boost::shared_ptr<RobotRepresentation> mutateParams(
-			boost::shared_ptr<RobotRepresentation> robot);
-	*/
+	void mutateBody(boost::shared_ptr<RobotRepresentation>& robot);
+	bool removeSubtree(boost::shared_ptr<RobotRepresentation>& robot);
+	bool duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot);
+	bool swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot);
+	bool insertNode(boost::shared_ptr<RobotRepresentation>& robot);
+	bool removeNode(boost::shared_ptr<RobotRepresentation>& robot);
+	bool mutateParams(boost::shared_ptr<RobotRepresentation>& robot);
+
+	/**
+	 * Evolver Configuration
+	 */
+	boost::shared_ptr<EvolverConfiguration> conf_;
 };
 
 } /* namespace robogen */
