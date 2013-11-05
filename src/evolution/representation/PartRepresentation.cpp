@@ -39,6 +39,11 @@ std::string &PartRepresentation::getId(){
 	return id_;
 }
 
+void PartRepresentation::setId(std::string newid)
+{
+	id_ = newid;
+}
+
 int PartRepresentation::getOrientation(){
 	return orientation_;
 }

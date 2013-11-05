@@ -78,7 +78,13 @@ public:
 	/**
 	 * @return identifier of part
 	 */
+	void setId(std::string newid);
+
+	/**
+	 * @return identifier of part
+	 */
 	std::string &getId();
+
 
 	/**
 	 * @return type of the part
