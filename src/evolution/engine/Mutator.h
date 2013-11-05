@@ -36,6 +36,7 @@
 #include <boost/random/bernoulli_distribution.hpp>
 #include "evolution/representation/RobotRepresentation.h"
 #include "evolution/engine/BodyVerifier.h"
+#include "evolution/engine/EvolverConfiguration.h"
 
 namespace robogen {
 
@@ -56,8 +57,7 @@ public:
 	 * @param brainMuteSigma sigma of normal distribution for brain mutation
 	 * @param pBrainCrossover probability for crossover among brains
 	 */
-	Mutator(double pBrainMutate, double brainMuteSigma, double pBrainCrossover,
-			double brainMin, double brainMax, boost::random::mt19937 &rng);
+	Mutator::Mutator(EvolverConfiguration &conf, boost::random::mt19937 &rng);
 
 	virtual ~Mutator();
 
@@ -97,10 +97,26 @@ private:
 	double brainMin_;
 	double brainMax_;
 
+	boost::random::bernoulli_distribution<double> subtreeRemoval_;
+	boost::random::bernoulli_distribution<double> subtreeDuplication_;
+	boost::random::bernoulli_distribution<double> subtreeSwap_;
+	boost::random::bernoulli_distribution<double> nodeInsert_;
+	boost::random::bernoulli_distribution<double> nodeRemoval_;
+	boost::random::bernoulli_distribution<double> paramMutate_;
+
 	/**
 	 * Random number generator
 	 */
 	boost::random::mt19937 &rng_;
+
+
+	boost::shared_ptr<RobotRepresentation> removeSubtree( boost::shared_ptr<RobotRepresentation> robot );
+	boost::shared_ptr<RobotRepresentation> duplicateSubtree( boost::shared_ptr<RobotRepresentation> robot );
+	boost::shared_ptr<RobotRepresentation> swapSubtrees( boost::shared_ptr<RobotRepresentation> robot );
+	boost::shared_ptr<RobotRepresentation> insertNode( boost::shared_ptr<RobotRepresentation> robot );
+	boost::shared_ptr<RobotRepresentation> removeNode( boost::shared_ptr<RobotRepresentation> robot );
+	boost::shared_ptr<RobotRepresentation> mutateParams( boost::shared_ptr<RobotRepresentation> robot );
+
 };
 
 } /* namespace robogen */

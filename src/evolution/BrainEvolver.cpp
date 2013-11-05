@@ -44,7 +44,7 @@ int main(int argc, char *argv[]){
 				"<configuration file>" << std::endl;
 		return EXIT_FAILURE;
 	}
-	struct EvolverConfiguration conf;
+	EvolverConfiguration conf;
 	conf.init(std::string(argv[1]));
 
 	// create random number generator
@@ -60,8 +60,7 @@ int main(int argc, char *argv[]){
 				std::endl;
 		return EXIT_FAILURE;
 	}
-	Mutator m(conf.pBrainMutate, conf.brainSigma, conf.pBrainCrossover,
-			conf.minBrainWeight, conf.maxBrainWeight, rng);
+	Mutator m(conf, rng);
 	boost::shared_ptr<EvolverLog> log(new EvolverLog());
 	if (!log->init(std::string(argv[1]))){
 		std::cout << "Error creating evolver log. Aborting." << std::endl;

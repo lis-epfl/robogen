@@ -31,56 +31,61 @@
 
 namespace robogen {
 
-Mutator::Mutator(double pBrainMutate, double brainMuteSigma,
-		double pBrainCrossover, double brainMin, double brainMax,
-		boost::random::mt19937 &rng) :
-		type_(BRAIN_MUTATOR), weightMutate_(pBrainMutate),
-		weightDistribution_(0.,brainMuteSigma),
-		weightCrossover_(pBrainCrossover),
-		brainMin_(brainMin), brainMax_(brainMax),
-		rng_(rng){
+Mutator::Mutator(EvolverConfiguration &conf, boost::random::mt19937 &rng) :
+		type_(BRAIN_MUTATOR), weightMutate_(conf.pBrainMutate),
+		weightDistribution_(0., conf.brainSigma),
+		weightCrossover_(conf.pBrainCrossover),
+		brainMin_(conf.minBrainWeight), brainMax_(conf.maxBrainWeight),
+		rng_(rng) {
+
+	//TODO move type to conf, init other distributions if needed
+
 }
 
 Mutator::~Mutator() {
 }
 
-RobotRepresentation Mutator::mutate(std::pair<RobotRepresentation,
-		RobotRepresentation> parents){
+RobotRepresentation Mutator::mutate(
+		std::pair<RobotRepresentation, RobotRepresentation> parents) {
 	// TODO copy first!
-	this->crossover(parents.first,parents.second);
+	this->crossover(parents.first, parents.second);
 	this->mutate(parents.first);
 	return parents.first;
 }
 
-bool Mutator::mutate(RobotRepresentation &robot){
+bool Mutator::mutate(RobotRepresentation &robot) {
 	bool mutated = false;
 	// mutate brain TODO conf bits?
-	if (type_ == BRAIN_MUTATOR || type_ == BRAIN_BODY_PARAM_MUTATOR ||
-			type_ == FULL_MUTATOR){
+	if (type_ == BRAIN_MUTATOR || type_ == BRAIN_BODY_PARAM_MUTATOR
+			|| type_ == FULL_MUTATOR) {
 		std::vector<double*> weights;
 		std::vector<double*> biases;
-		robot.getBrainGenome(weights,biases);
+		robot.getBrainGenome(weights, biases);
 		// mutate weights
-		for (unsigned int i=0; i<weights.size(); ++i){
-			if (weightMutate_(rng_)){
+		for (unsigned int i = 0; i < weights.size(); ++i) {
+			if (weightMutate_(rng_)) {
 				mutated = true;
 				*weights[i] += weightDistribution_(rng_);
 			}
 			// normalize
-			if (*weights[i]>brainMax_) *weights[i] = brainMax_;
-			if (*weights[i]<brainMin_) *weights[i] = brainMin_;
+			if (*weights[i] > brainMax_)
+				*weights[i] = brainMax_;
+			if (*weights[i] < brainMin_)
+				*weights[i] = brainMin_;
 		}
 		// mutate biases
-		for (unsigned int i=0; i<biases.size(); ++i){
-			if (weightMutate_(rng_)){
+		for (unsigned int i = 0; i < biases.size(); ++i) {
+			if (weightMutate_(rng_)) {
 				mutated = true;
 				*biases[i] += weightDistribution_(rng_);
 			}
 			// normalize
-			if (*biases[i]>brainMax_) *biases[i] = brainMax_;
-			if (*biases[i]<brainMin_) *biases[i] = brainMin_;
+			if (*biases[i] > brainMax_)
+				*biases[i] = brainMax_;
+			if (*biases[i] < brainMin_)
+				*biases[i] = brainMin_;
 		}
-		if (mutated){
+		if (mutated) {
 			robot.setDirty();
 		}
 	}
@@ -92,11 +97,11 @@ bool Mutator::mutate(RobotRepresentation &robot){
 	// 1. Hard mutation: body tree mutation
 	double pBodyMutate = 0.3;
 	boost::random::bernoulli_distribution<double> bodyMutate(pBodyMutate);
-	if (bodyMutate(rng_)){
+	if (bodyMutate(rng_)) {
 		// a) Add or remove a body part
 		// slight bias to adding, as remove may take away more than one bpart
 		boost::random::bernoulli_distribution<double> addNotRemove(0.6);
-		if (addNotRemove(rng_)){
+		if (addNotRemove(rng_)) {
 			// robot.addRandomBodyPart(rng_);
 		}
 		else {
@@ -105,7 +110,7 @@ bool Mutator::mutate(RobotRepresentation &robot){
 		// b) Change orientation of a body part
 		double pRotate = 0.2;
 		boost::random::bernoulli_distribution<double> rotate(pRotate);
-		if (rotate(rng_)){
+		if (rotate(rng_)) {
 			// robot.rotateRandomBodyPart(rng_);
 		}
 	}
@@ -116,42 +121,109 @@ bool Mutator::mutate(RobotRepresentation &robot){
 	BodyVerifier::fixRobotBody(robot);
 #endif
 
-
 	return mutated;
 }
 
-bool Mutator::crossover(RobotRepresentation &a, RobotRepresentation &b){
-	if (!weightCrossover_(rng_)) return false;
+bool Mutator::crossover(RobotRepresentation &a, RobotRepresentation &b) {
+	if (!weightCrossover_(rng_))
+		return false;
 	// at first, only one-point TODO two-point
 
 	// 1. get genomes
 	std::vector<double*> weights[2];
 	std::vector<double*> biases[2];
-	a.getBrainGenome(weights[0],biases[0]);
-	b.getBrainGenome(weights[1],biases[1]);
+	a.getBrainGenome(weights[0], biases[0]);
+	b.getBrainGenome(weights[1], biases[1]);
 
 	// 2. select crossover point
 	unsigned int maxpoint = weights[0].size() + biases[0].size() - 1;
-	if (maxpoint != weights[1].size() + biases[1].size() - 1){
+	if (maxpoint != weights[1].size() + biases[1].size() - 1) {
 		//TODO error handling, TODO what if sum same, but not parts?
 		std::cout << "Genomes not of same size!" << std::endl;
 	}
-	boost::random::uniform_int_distribution<unsigned int> pointSel(1,maxpoint);
+	boost::random::uniform_int_distribution<unsigned int> pointSel(1, maxpoint);
 	int selectedPoint = pointSel(rng_);
 
 	// 3. perform crossover
-	for (unsigned int i=selectedPoint; i<=maxpoint; i++){
-		if (i<weights[0].size()){
-			std::swap(*weights[0][i],*weights[1][i]);
-		}
-		else{
-			int j = i-weights[0].size();
-			std::swap(*biases[0][j],*biases[1][j]);
+	for (unsigned int i = selectedPoint; i <= maxpoint; i++) {
+		if (i < weights[0].size()) {
+			std::swap(*weights[0][i], *weights[1][i]);
+		} else {
+			int j = i - weights[0].size();
+			std::swap(*biases[0][j], *biases[1][j]);
 		}
 	}
 
-	a.setDirty(); b.setDirty();
+	a.setDirty();
+	b.setDirty();
 	return true;
+}
+
+typedef boost::shared_ptr<RobotRepresentation> (*MutationOperator)(
+		boost::shared_ptr<RobotRepresentation>);
+
+typedef std::pair<MutationOperator,
+		boost::random::bernoulli_distribution<double>& > MutOpPair;
+
+boost::shared_ptr<RobotRepresentation> Mutator::mutate(
+		boost::shared_ptr<RobotRepresentation> robot) {
+
+	MutOpPair mutOpPairs[] =
+			{	MutOpPair(this->removeSubtree, subtreeRemoval_),
+				MutOpPair(this->duplicateSubtree, subtreeDuplication_),
+				MutOpPair(this->swapSubtrees, subTreeSwap_),
+				MutOpPair(this->insertNode, nodeInsert)),
+				MutOpPair(this->removeNode, nodeRemoval_),
+				MutOpPair(this->mutateParams, paramaMutate_)
+			};
+	int numOperators = sizeof(mutOpPairs) / sizeof(MutOpPair);
+	for (int i = 0; i < numOperators; ++i) {
+		MutationOperator mutOp = mutOpPairs[i].first;
+		boost::random::bernoulli_distribution<double> dist =
+				mutOpPairs[i].second;
+		if(dist(rng_)) {
+			for (int attempt = 0; attempt < MAX_MUTATION_ATTEMPTS; ++attempt) {
+				boost::shared_ptr<RobotRepresentation> newBot = mutOp(robot);
+				if ( BodyVerifier::verify(newBot) ) {
+					robot = newBot;
+					robot->setDirty();
+					break;
+				}
+			}
+		}
+	}
+
+}
+
+
+boost::shared_ptr<RobotRepresentation> Mutator::removeSubtree(
+		boost::shared_ptr<RobotRepresentation> robot) {
+
+}
+
+boost::shared_ptr<RobotRepresentation> Mutator::duplicateSubtree(
+		boost::shared_ptr<RobotRepresentation> robot) {
+
+}
+
+boost::shared_ptr<RobotRepresentation> Mutator::swapSubtrees(
+		boost::shared_ptr<RobotRepresentation> robot) {
+
+}
+
+boost::shared_ptr<RobotRepresentation> Mutator::insertNode(
+		boost::shared_ptr<RobotRepresentation> robot) {
+
+}
+
+boost::shared_ptr<RobotRepresentation> Mutator::removeNode(
+		boost::shared_ptr<RobotRepresentation> robot) {
+
+}
+
+boost::shared_ptr<RobotRepresentation> Mutator::mutateParams(
+		boost::shared_ptr<RobotRepresentation> robot) {
+
 }
 
 } /* namespace robogen */
