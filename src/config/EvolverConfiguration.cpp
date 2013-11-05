@@ -26,11 +26,11 @@
  * @(#) $Id$
  */
 
-#include "evolution/engine/EvolverConfiguration.h"
 #include <iostream>
 #include <sstream>
 #include <boost/program_options.hpp>
 #include <boost/regex.hpp>
+#include "config/EvolverConfiguration.h"
 
 namespace robogen {
 
@@ -51,10 +51,10 @@ bool EvolverConfiguration::init(std::string confFileName) {
 				->required(), "Path to simulator configuration file")
 		("mu",
 				boost::program_options::value<unsigned int>(&mu)
-				->required(), "Size of population")
+				->required(), "Number of offspring")
 		("lambda",
 				boost::program_options::value<unsigned int>(&lambda)
-				->required(), "Size of offspring")
+				->required(), "Number of population individuals")
 		("numGenerations",
 				boost::program_options::value<unsigned int>(&numGenerations)
 				->required(), "Amount of generations to be evaluated")

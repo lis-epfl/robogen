@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
 
 					boost::shared_ptr<RobogenConfig> configuration =
 							ConfigurationReader::parseRobogenMessage(
-									packet.getMessage().configuration());
+									packet.getMessage()->configuration());
 					if (configuration == NULL) {
 						std::cout
 								<< "Problems parsing the configuration file. Quit."
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
 						// ---------------------------------------
 						boost::shared_ptr<Robot> robot(new Robot);
 						if (!robot->init(odeWorld, odeSpace,
-								*packet.getMessage().robot().get())) {
+								packet.getMessage()->robot())) {
 							std::cout << "Problems decoding the robot. Quit."
 									<< std::endl;
 							return EXIT_FAILURE;
@@ -345,7 +345,7 @@ int main(int argc, char* argv[]) {
 					boost::shared_ptr<robogenMessage::EvaluationResult> evalResultPacket(
 							new robogenMessage::EvaluationResult());
 					evalResultPacket->set_fitness(fitness);
-					evalResultPacket->set_id(packet.getMessage()->id());
+					evalResultPacket->set_id(packet.getMessage()->robot().id());
 					ProtobufPacket<robogenMessage::EvaluationResult> evalResult;
 					evalResult.setMessage(evalResultPacket);
 

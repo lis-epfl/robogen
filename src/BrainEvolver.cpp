@@ -27,8 +27,8 @@
  */
 
 #include <boost/shared_ptr.hpp>
+#include "config/EvolverConfiguration.h"
 #include "evolution/representation/RobotRepresentation.h"
-#include "evolution/engine/EvolverConfiguration.h"
 #include "evolution/engine/EvolverLog.h"
 #include "evolution/engine/Population.h"
 #include "evolution/engine/Selector.h"
@@ -97,8 +97,8 @@ int main(int argc, char *argv[]) {
 		std::cout << "Failed interpreting robot from text file" << std::endl;
 		return EXIT_FAILURE;
 	}
-	boost::shared_ptr<Population> current(new Population()), previous;
-	if (!current->init(referenceBot, conf.mu, rng)) {
+	boost::shared_ptr<Population> population(new Population()), previous;
+	if (!population->init(referenceBot, conf.lambda, rng)) {
 		std::cout << "Error when intializing population!" << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -124,8 +124,8 @@ int main(int argc, char *argv[]) {
 	// run evolution TODO stopping criterion
 	// ---------------------------------------
 
-	current->evaluate(robotConf, sockets);
-	if (!log->logGeneration(1, *current.get())) {
+	population->evaluate(robotConf, sockets);
+	if (!log->logGeneration(1, *population.get())) {
 		return EXIT_FAILURE;
 	}
 
@@ -133,8 +133,8 @@ int main(int argc, char *argv[]) {
 			++generation) {
 		// create children
 		IndividualContainer children;
-		s->initPopulation(current);
-		for (unsigned int i = 0; i < conf.lambda; i++) {
+		s->initPopulation(population);
+		for (unsigned int i = 0; i < conf.mu; i++) {
 			boost::shared_ptr<
 					std::pair<RobotRepresentation, RobotRepresentation> > selection;
 			if (!s->select(selection)) {
@@ -148,15 +148,15 @@ int main(int argc, char *argv[]) {
 		children.evaluate(robotConf, sockets);
 		// comma or plus?
 		if (conf.replacement == conf.PLUS_REPLACEMENT) {
-			children += *current.get();
+			children += *population.get();
 		}
 		// replace
-		current.reset(new Population());
-		if (!current->init(children, conf.mu)) {
+		population.reset(new Population());
+		if (!population->init(children, conf.lambda)) {
 			std::cout << "Error when intializing population!" << std::endl;
 			return EXIT_FAILURE;
 		}
-		if (!log->logGeneration(generation, *current.get()))
+		if (!log->logGeneration(generation, *population.get()))
 			return EXIT_FAILURE;
 	}
 }
