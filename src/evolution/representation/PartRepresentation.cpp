@@ -40,7 +40,12 @@ std::string &PartRepresentation::getId() {
 }
 
 int PartRepresentation::getOrientation() {
+
 	return orientation_;
+}
+
+void PartRepresentation::setId(std::string newid) {
+	id_ = newid;
 }
 
 int PartRepresentation::getArity() {

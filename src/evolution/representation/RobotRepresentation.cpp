@@ -181,6 +181,7 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r){
 	// fitness and associated flag are same
 	fitness_ = r.fitness_;
 	evaluated_ = r.evaluated_;
+	maxid_ = r.maxid_;
 }
 
 RobotRepresentation &RobotRepresentation::operator=(
@@ -204,10 +205,12 @@ RobotRepresentation &RobotRepresentation::operator=(
 	}
 	fitness_ = r.fitness_;
 	evaluated_ = r.evaluated_;
+	maxid_ = r.maxid_;
 	return *this;
 }
 
 RobotRepresentation::RobotRepresentation(){
+	maxid_ = 1000;
 }
 
 bool RobotRepresentation::init(std::string robotTextFile){
@@ -311,6 +314,8 @@ bool RobotRepresentation::init(std::string robotTextFile){
 		}
 	}
 	file.close();
+
+	maxid_ = 1000;
 	return true;
 }
 
@@ -438,8 +443,99 @@ bool RobotRepresentation::trimBodyAt(std::string id){
 	return true;
 }
 
+// generate a string/ unique id using maxid_ counter
+std::string RobotRepresentation::GenerateUniqueIdFromSomeId()
+{
+	std::string new_unique_id = 'myid' + std::string::to_string(maxid_);
+	maxid_++;
+	return new_unique_id;
+}
+
+// update id of 'node' to make it unique and call recursively all existing childs to do the same
+bool RobotRepresentation::insertSubTreeRecursivelyToMap(boost::shared_ptr<PartRepresentation> node)
+{
+	std::string new_unique_id = GenerateUniqueIdFromSomeId();
+	node->setId(new_unique_id);
+	idToPart_[new_unique_id] =  boost::weak_ptr<PartRepresentation>(node);
+	for (int i=1; i<=node->getArity(); i++)
+	{
+		if (node->getChild(i))
+			insertSubTreeRecursivelyToMap( node->getChild(i) );
+	}
+	return true;
+}
+
+
+// clone 'id_src' node and insert it slot 'sloitid', then recursively update id's in the map
+bool RobotRepresentation::duplicateSubTree(std::string id_src,
+		std::string id_dst, int slotid)
+{
+	PartRepresentation *src = idToPart_[id_src];		// find src part by id
+	PartRepresentation *dst = idToPart_[id_dst];		// find dst part by id
+	boost::shared_ptr<PartRepresentation> clone = src->cloneSubtree();
+	dst->setChild(slotid, clone);
+	insertSubTreeRecursivelyToMap(clone);
+	return true;
+}
+
+// 'node' will replace some node 'prev_subnode' at slot 'slodit1' of 'id_dst' node,
+// then 'prev_subnode' will be inserted at 'slodit2' of 'node'
+bool RobotRepresentation::insertNode(std::string id_dst,
+		boost::shared_ptr<PartRepresentation> node, int slotid1, int slotid2)
+{
+	PartRepresentation *dst = idToPart_[id_dst];		// find dst part by id
+	boost::shared_ptr<PartRepresentation> prev_subnode = dst->getChild(slotid1);
+	dst->setChild(slotid1,node);
+	node->setChild(slotid2,prev_subnode);
+	std::string new_unique_id = GenerateUniqueIdFromSomeId();
+	node->setId(new_unique_id);
+	return true;
+}
+
+bool RobotRepresentation::removeNode(std::string id_node)
+{
+	// find the guy
+	PartRepresentation *theguy = idToPart_[id_node];
+
+	// find who is the parent of the guy
+	boost::shared_ptr<PartRepresentation> parent = NULL;
+	for(boost::weak_ptr<PartRepresentation> >::iterator
+			it = idToPart_.begin(); it != idToPart_.end(); it++)
+	{
+		for (int i=1; i<=it->second->getArity(); i++)
+			{
+				if (it->second->getChild(i))
+					if (it->second->getChild(i).getId() == id_node )
+						parent = it->second;
+			}
+	}
+	if (parent == NULL)
+		return false;
+	int nFreeSlots = parent->getArity() - parent->numDescendants();
+	if (nFreeSlots != theguy->numDescendants())
+		return false;
+
+	int indx = 1;
+	for (int i=1; i<=parent->getArity(); i++)
+	{
+		if (parent->getChild(i) == NULL)
+		{
+			// this never will be infinite cycle given that nFreeSlots were computed correctly
+			while(theguy->getChild(indx) == NULL)
+				indx = indx + 1;
+			parent->setChild(i, theguy->getChild(indx));
+		}
+	}
+	return true;
+}
+
+
+
 bool operator >(const RobotRepresentation &a, const RobotRepresentation &b){
 	return a.getFitness()>b.getFitness();
+}
+
+
 }
 
 }
