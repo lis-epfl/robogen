@@ -131,11 +131,6 @@ public:
 			double& minZ, double& maxZ);
 
 	/**
-	 * @return the configuration file
-	 */
-	const std::string& getConfigurationFile() const;
-
-	/**
 	 * @return the robot ID
 	 */
 	int getId() const;
@@ -215,11 +210,6 @@ private:
 	 * The core component of the robot
 	 */
 	boost::shared_ptr<Model> coreComponent_;
-
-	/**
-	 * Robot configuration file
-	 */
-	std::string configurationFile_;
 
 	/**
 	 * Robot ID

@@ -30,6 +30,7 @@
 #define INDIVIDUALCONTAINER_H_
 
 #include <vector>
+#include "config/RobogenConfig.h"
 #include "evolution/representation/RobotRepresentation.h"
 
 namespace robogen {
@@ -38,6 +39,7 @@ namespace robogen {
 
 class IndividualContainer: public std::vector<RobotRepresentation> {
 public:
+
 	IndividualContainer();
 	virtual ~IndividualContainer();
 
@@ -45,10 +47,10 @@ public:
 	 * Evaluate the population using the given scenario config and the given
 	 * sockets to transmit the robot to simulator instances in parallel. Then
 	 * order the population by fitness.
-	 * @param confFile simulation configuration file
+	 * @param robotConfig the robot configuration
 	 * @param sockets a vector of Socket pointers. On each should be a simulator
 	 */
-	void evaluate(std::string confFile, std::vector<TcpSocket*> &sockets);
+	void evaluate(boost::shared_ptr<RobogenConfig> robotConfig, std::vector<TcpSocket*> &sockets);
 
 	/**
 	 * Sorts individuals from best to worst.

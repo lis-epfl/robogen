@@ -39,10 +39,12 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <boost/random/mersenne_twister.hpp>
-#include "robogen.pb.h"
+
+#include "config/RobogenConfig.h"
 #include "evolution/representation/PartRepresentation.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
 #include "utils/network/TcpSocket.h"
+#include "robogen.pb.h"
 
 namespace robogen{
 
@@ -113,8 +115,10 @@ public:
 
 	/**
 	 * Evaluate individual using given socket and given configuration file.
+	 * @param socket
+	 * @param robotConf
 	 */
-	void evaluate(TcpSocket *socket, std::string &confFile);
+	void evaluate(TcpSocket *socket, boost::shared_ptr<RobogenConfig> robotConf);
 
 	/**
 	 * @return fitness of individual
