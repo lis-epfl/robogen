@@ -111,8 +111,7 @@ int main(int argc, char *argv[]) {
 		sockets[i] = new TcpSocket;
 #ifndef FAKEROBOTREPRESENTATION_H // do not bother with sockets when using
 		// benchmark
-		if (!sockets[i]->open(conf->sockets[i].first,
-				conf->sockets[i].second)) {
+		if (!sockets[i]->open(conf->sockets[i].first, conf->sockets[i].second)){
 			std::cout << "Could not open connection to simulator" << std::endl;
 			return EXIT_FAILURE;
 		}

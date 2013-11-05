@@ -60,9 +60,7 @@ public:
 	 * @return the new population
 	 */
 	virtual bool select(boost::shared_ptr<std::pair<RobotRepresentation,
-			RobotRepresentation> > &selected){
-		return false;
-	}
+			RobotRepresentation> > &selected) = 0;
 
 	virtual ~Selector(){
 
