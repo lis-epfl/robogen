@@ -56,9 +56,26 @@ typedef struct EvolverConfiguration {
 	};
 
 	/**
+	 * Types of body mutation.
+	 * Last entry is used to get the amount of operators
+	 */
+	enum BodyMutationOperators{
+		SUBTREE_REMOVAL, SUBTREE_DUPLICATION, SUBTREE_SWAPPING,
+		NODE_INSERTION, NODE_REMOVAL, PARAMETER_MODIFICATION,
+		ORIENTATION_CHANGE, SENSOR_SWAP, LINK_CHANGE, ACTIVE_PASSIVE,
+		NUM_BODY_OPERATORS
+	};
+
+	static const std::string BodyMutationOperatorsProbabilityCodes[];
+
+
+	/**
 	 * Parses a configuration from a proper configuration file
 	 */
 	bool init(std::string confFileName);
+
+	// GENERAL EVOLUTION PARAMS
+	// ========================================================================
 
 	/**
 	 * File for reference robot
@@ -101,6 +118,14 @@ typedef struct EvolverConfiguration {
 	unsigned int replacement;
 
 	/**
+	 * Sockets to be used to connect to the server
+	 */
+	std::vector<std::pair<std::string, int> > sockets;
+
+	// BRAIN EVOLUTION PARAMS
+	// ========================================================================
+
+	/**
 	 * Probability of mutation for any single brain parameter
 	 */
 	double pBrainMutate;
@@ -127,18 +152,16 @@ typedef struct EvolverConfiguration {
 	 */
 	double pBrainCrossover;
 
-	/**
-	 * Sockets to be used to connect to the server
-	 */
-	std::vector<std::pair<std::string, int> > sockets;
+	// BODY EVOLUTION PARAMS
+	// ========================================================================
 
 	/**
 	 * Allowed body part types
 	 * TODO: Read this from configuration file
 	 */
-	std::vector<std::string> allowedBodyPartTypes;
+	std::vector<char> allowedBodyPartTypes;
 
-	// TODO: Add probabilities for body mutations
+	double bodyOperatorProbability[NUM_BODY_OPERATORS];
 
 } EvolverConfiguration;
 

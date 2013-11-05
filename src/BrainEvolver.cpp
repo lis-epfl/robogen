@@ -52,15 +52,16 @@ int main(int argc, char *argv[]) {
 						"<configuration file>" << std::endl;
 		return EXIT_FAILURE;
 	}
-	struct EvolverConfiguration conf;
-	if (!conf.init(std::string(argv[1]))) {
+	boost::shared_ptr<EvolverConfiguration> conf;
+	if (!conf->init(std::string(argv[1]))) {
 		std::cout << "Problems parsing the evolution configuration file. Quit."
 				<< std::endl;
 		return EXIT_FAILURE;
 	}
 
 	boost::shared_ptr<RobogenConfig> robotConf =
-			ConfigurationReader::parseConfigurationFile(conf.simulatorConfFile);
+			ConfigurationReader::parseConfigurationFile(
+					conf->simulatorConfFile);
 	if (robotConf == NULL) {
 		std::cout << "Problems parsing the robot configuration file. Quit."
 				<< std::endl;
@@ -72,10 +73,10 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 
 	boost::shared_ptr<Selector> s;
-	if (conf.selection == conf.DETERMINISTIC_TOURNAMENT) {
-		s.reset(new DeterministicTournament(conf.tournamentSize, rng));
+	if (conf->selection == conf->DETERMINISTIC_TOURNAMENT) {
+		s.reset(new DeterministicTournament(conf->tournamentSize, rng));
 	} else {
-		std::cout << "Selection type id " << conf.selection << " unknown."
+		std::cout << "Selection type id " << conf->selection << " unknown."
 				<< std::endl;
 		return EXIT_FAILURE;
 	}
@@ -91,12 +92,12 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 
 	RobotRepresentation referenceBot;
-	if (!referenceBot.init(conf.referenceRobotFile)) {
+	if (!referenceBot.init(conf->referenceRobotFile)) {
 		std::cout << "Failed interpreting robot from text file" << std::endl;
 		return EXIT_FAILURE;
 	}
 	boost::shared_ptr<Population> population(new Population()), previous;
-	if (!population->init(referenceBot, conf.lambda, rng)) {
+	if (!population->init(referenceBot, conf->lambda, rng)) {
 		std::cout << "Error when intializing population!" << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -105,12 +106,12 @@ int main(int argc, char *argv[]) {
 	// open sockets for communication with simulator processes
 	// ---------------------------------------
 
-	std::vector<TcpSocket*> sockets(conf.sockets.size());
-	for (unsigned int i = 0; i < conf.sockets.size(); i++) {
+	std::vector<TcpSocket*> sockets(conf->sockets.size());
+	for (unsigned int i = 0; i < conf->sockets.size(); i++) {
 		sockets[i] = new TcpSocket;
 #ifndef FAKEROBOTREPRESENTATION_H // do not bother with sockets when using
 		// benchmark
-		if (!sockets[i]->open(conf.sockets[i].first, conf.sockets[i].second)) {
+		if (!sockets[i]->open(conf->sockets[i].first, conf->sockets[i].second)){
 			std::cout << "Could not open connection to simulator" << std::endl;
 			return EXIT_FAILURE;
 		}
@@ -126,12 +127,12 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	for (unsigned int generation = 2; generation <= conf.numGenerations;
+	for (unsigned int generation = 2; generation <= conf->numGenerations;
 			++generation) {
 		// create children
 		IndividualContainer children;
 		s->initPopulation(population);
-		for (unsigned int i = 0; i < conf.mu; i++) {
+		for (unsigned int i = 0; i < conf->mu; i++) {
 			boost::shared_ptr<
 					std::pair<RobotRepresentation, RobotRepresentation> > selection;
 			if (!s->select(selection)) {
@@ -144,12 +145,12 @@ int main(int argc, char *argv[]) {
 		// evaluate children
 		children.evaluate(robotConf, sockets);
 		// comma or plus?
-		if (conf.replacement == conf.PLUS_REPLACEMENT) {
+		if (conf->replacement == conf->PLUS_REPLACEMENT) {
 			children += *population.get();
 		}
 		// replace
 		population.reset(new Population());
-		if (!population->init(children, conf.lambda)) {
+		if (!population->init(children, conf->lambda)) {
 			std::cout << "Error when intializing population!" << std::endl;
 			return EXIT_FAILURE;
 		}
