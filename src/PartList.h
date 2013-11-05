@@ -30,7 +30,10 @@
 #define ROBOGEN_PARTLIST_H_
 
 #include <map>
+#include <vector>
 #include <string>
+
+namespace robogen {
 
 #define PART_TYPE_ACTIVE_CARDAN 	"ActiveCardan"
 #define PART_TYPE_ACTIVE_HINGE 		"ActiveHinge"
@@ -46,10 +49,12 @@
 #define PART_TYPE_ROTATOR 			"Rotator"
 #define PART_TYPE_TOUCH_SENSOR 		"TouchSensor"
 
-std::map<char, std::string> PART_TYPE_MAP;
-std::map<std::string, unsigned int> PART_TYPE_ARITY_MAP;
-std::map<std::string, unsigned int> PART_TYPE_PARAM_COUNT_MAP;
-std::map<std::string, std::vector<std::string> > PART_TYPE_MOTORS_MAP;
-std::map<std::string, std::vector<std::string> > PART_TYPE_SENSORS_MAP;
+extern std::map<char, std::string> PART_TYPE_MAP;
+extern std::map<std::string, unsigned int> PART_TYPE_ARITY_MAP;
+extern std::map<std::string, unsigned int> PART_TYPE_PARAM_COUNT_MAP;
+extern std::map<std::string, std::vector<std::string> > PART_TYPE_MOTORS_MAP;
+extern std::map<std::string, std::vector<std::string> > PART_TYPE_SENSORS_MAP;
+
+} /* namespace robogen */
 
 #endif /* ROBOGEN_PARTLIST_H_ */

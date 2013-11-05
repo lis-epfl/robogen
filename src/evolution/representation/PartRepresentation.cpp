@@ -132,7 +132,9 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 
 	return boost::shared_ptr<PartRepresentation>(
 			new PartRepresentation(id, orientation,
-					PART_TYPE_ARITY_MAP[partType], partType, params));
+					PART_TYPE_ARITY_MAP[partType], partType, params,
+					PART_TYPE_MOTORS_MAP[partType],
+					PART_TYPE_SENSORS_MAP[partType]));
 
 }
 
@@ -211,7 +213,8 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::cloneSubtree() {
 
 	boost::shared_ptr<PartRepresentation> theClone(
 			new PartRepresentation(this->getId(), this->getOrientation(),
-					this->getArity(), this->getType(), this->getParams()));
+					this->getArity(), this->getType(), this->getParams(),
+					this->getMotors(), this->getSensors()));
 	// deep copy all children
 	for (int i = 1; i <= this->getArity(); i++) {
 		if (this->getChild(i)) {

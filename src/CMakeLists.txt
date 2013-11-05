@@ -83,6 +83,7 @@ file (GLOB_RECURSE
      viewer/*.cpp
      Robot.cpp
      Robogen.cpp
+     PartList.cpp
 )
  
 

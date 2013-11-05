@@ -164,7 +164,7 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 
 		model.reset(new CoreComponentModel(odeWorld, odeSpace, id, false));
 
-	} else if (bodyPart.type().compare(PART_TYPE_PARAMETRIC_BRICK) == 0) {
+	} else if (bodyPart.type().compare(PART_TYPE_PARAM_JOINT) == 0) {
 
 		if (bodyPart.evolvableparam_size() != 3) {
 			std::cerr
@@ -179,7 +179,7 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 						bodyPart.evolvableparam(1).paramvalue(),
 						bodyPart.evolvableparam(2).paramvalue()));
 
-	} else if (bodyPart.type().compare(PART_TYPE_ACTIVE_ROTATOR) == 0) {
+	} else if (bodyPart.type().compare(PART_TYPE_ROTATOR) == 0) {
 
 		model.reset(new RotateJointModel(odeWorld, odeSpace, id));
 
