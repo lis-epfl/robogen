@@ -5,33 +5,27 @@
  *      Author: lis
  */
 
-#include "evolution/representation/PartRepresentation.h"
-#include <sstream>
 #include <iostream>
+#include <sstream>
 
-#include "evolution/representation/parts/ActiveCardanRepresentation.h"
-#include "evolution/representation/parts/ActiveHingeRepresentation.h"
-#include "evolution/representation/parts/ActiveWheelRepresentation.h"
-#include "evolution/representation/parts/ActiveWhegRepresentation.h"
-#include "evolution/representation/parts/CoreComponentRepresentation.h"
-#include "evolution/representation/parts/FixedBrickRepresentation.h"
-#include "evolution/representation/parts/LightSensorRepresentation.h"
-#include "evolution/representation/parts/ParametricBarJointRepresentation.h"
-#include "evolution/representation/parts/PassiveCardanRepresentation.h"
-#include "evolution/representation/parts/PassiveHingeRepresentation.h"
-#include "evolution/representation/parts/PassiveWheelRepresentation.h"
-#include "evolution/representation/parts/RotatorRepresentation.h"
-#include "evolution/representation/parts/TouchSensorRepresentation.h"
+#include "evolution/representation/PartRepresentation.h"
+#include "PartList.h"
 
 namespace robogen {
 
 PartRepresentation::PartRepresentation(std::string id, int orientation,
-		int arity, std::string type) :
-		id_(id), arity_(arity), orientation_(orientation), type_(type) {
+		int arity, const std::string& type, const std::vector<double>& params,
+		const std::vector<std::string>& motors,
+		const std::vector<std::string>& sensors) :
+		id_(id), orientation_(orientation), arity_(arity), type_(type), params_(
+				params), motors_(motors), sensors_(sensors) {
+
 	children_.resize(arity_, boost::shared_ptr<PartRepresentation>());
+
 }
 
 PartRepresentation::~PartRepresentation() {
+
 }
 
 std::string &PartRepresentation::getId() {
@@ -118,166 +112,52 @@ bool PartRepresentation::setChild(int n,
 	return true;
 
 }
-/*
- static std::string getPartType(char c) {
-
- switch (type) {
- case 'E':
- return boost::shared_ptr<PartRepresentation>(
- new CoreComponentRepresentation(id, orientation));
- case 'F':
- return boost::shared_ptr<PartRepresentation>(
- new FixedBrickRepresentation(id, orientation));
- case 'B':
- if (params.size() != 3) {
- std::cout << "Parameter count is not 3 on parametric bar joint "
- "with id " << id << std::endl;
- return boost::shared_ptr<PartRepresentation>();
- }
- return boost::shared_ptr<PartRepresentation>(
- new ParametricBarJointRepresentation(id, orientation, params[0],
- params[1], params[2]));
- case 'H':
- return boost::shared_ptr<PartRepresentation>(
- new PassiveHingeRepresentation(id, orientation));
- case 'I':
- return boost::shared_ptr<PartRepresentation>(
- new ActiveHingeRepresentation(id, orientation));
- case 'C':
- return boost::shared_ptr<PartRepresentation>(
- new PassiveCardanRepresentation(id, orientation));
- case 'K':
- return boost::shared_ptr<PartRepresentation>(
- new ActiveCardanRepresentation(id, orientation));
- case 'R':
- return boost::shared_ptr<PartRepresentation>(
- new RotatorRepresentation(id, orientation));
- case 'W':
- if (params.size() != 1) {
- std::cout << "Parameter count is not 1 on passive wheel with id "
- << id << std::endl;
- return boost::shared_ptr<PartRepresentation>();
- }
- return boost::shared_ptr<PartRepresentation>(
- new PassiveWheelRepresentation(id, orientation, params[0]));
- case 'J':
- if (params.size() != 1) {
- std::cout << "Parameter count is not 1 on active wheel with id "
- << id << std::endl;
- return boost::shared_ptr<PartRepresentation>();
- }
- return boost::shared_ptr<PartRepresentation>(
- new ActiveWheelRepresentation(id, orientation, params[0]));
- case 'G':
- if (params.size() != 1) {
- std::cout << "Parameter count is not 1 on active wheg with id "
- << id;
- return boost::shared_ptr<PartRepresentation>();
- }
- return boost::shared_ptr<PartRepresentation>(
- new ActiveWhegRepresentation(id, orientation, params[0]));
- case 'L':
- return boost::shared_ptr<PartRepresentation>(
- new LightSensorRepresentation(id, orientation));
- case 'T':
- return boost::shared_ptr<PartRepresentation>(
- new TouchSensorRepresentation(id, orientation));
- default:
- std::cout << "Unknown part type specified: " << type << std::endl;
- return boost::shared_ptr<PartRepresentation>();
- }
-
- }*/
 
 boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 		std::string id, int orientation, std::vector<double> params) {
 
-	switch (type) {
-	case 'E':
-		return boost::shared_ptr<PartRepresentation>(
-				new CoreComponentRepresentation(id, orientation));
-	case 'F':
-		return boost::shared_ptr<PartRepresentation>(
-				new FixedBrickRepresentation(id, orientation));
-	case 'B':
-		if (params.size() != 3) {
-			std::cout << "Parameter count is not 3 on parametric bar joint "
-					"with id " << id << std::endl;
-			return boost::shared_ptr<PartRepresentation>();
-		}
-		return boost::shared_ptr<PartRepresentation>(
-				new ParametricBarJointRepresentation(id, orientation, params[0],
-						params[1], params[2]));
-	case 'H':
-		return boost::shared_ptr<PartRepresentation>(
-				new PassiveHingeRepresentation(id, orientation));
-	case 'I':
-		return boost::shared_ptr<PartRepresentation>(
-				new ActiveHingeRepresentation(id, orientation));
-	case 'C':
-		return boost::shared_ptr<PartRepresentation>(
-				new PassiveCardanRepresentation(id, orientation));
-	case 'K':
-		return boost::shared_ptr<PartRepresentation>(
-				new ActiveCardanRepresentation(id, orientation));
-	case 'R':
-		return boost::shared_ptr<PartRepresentation>(
-				new RotatorRepresentation(id, orientation));
-	case 'W':
-		if (params.size() != 1) {
-			std::cout << "Parameter count is not 1 on passive wheel with id "
-					<< id << std::endl;
-			return boost::shared_ptr<PartRepresentation>();
-		}
-		return boost::shared_ptr<PartRepresentation>(
-				new PassiveWheelRepresentation(id, orientation, params[0]));
-	case 'J':
-		if (params.size() != 1) {
-			std::cout << "Parameter count is not 1 on active wheel with id "
-					<< id << std::endl;
-			return boost::shared_ptr<PartRepresentation>();
-		}
-		return boost::shared_ptr<PartRepresentation>(
-				new ActiveWheelRepresentation(id, orientation, params[0]));
-	case 'G':
-		if (params.size() != 1) {
-			std::cout << "Parameter count is not 1 on active wheg with id "
-					<< id;
-			return boost::shared_ptr<PartRepresentation>();
-		}
-		return boost::shared_ptr<PartRepresentation>(
-				new ActiveWhegRepresentation(id, orientation, params[0]));
-	case 'L':
-		return boost::shared_ptr<PartRepresentation>(
-				new LightSensorRepresentation(id, orientation));
-	case 'T':
-		return boost::shared_ptr<PartRepresentation>(
-				new TouchSensorRepresentation(id, orientation));
-	default:
-		std::cout << "Unknown part type specified: " << type << std::endl;
+	if (PART_TYPE_MAP.count(type) == 0) {
+		std::cout << "Unknown part type '" << type << "'" << std::endl;
 		return boost::shared_ptr<PartRepresentation>();
 	}
+
+	std::string partType = PART_TYPE_MAP[type];
+	if (params.size() != PART_TYPE_PARAM_COUNT_MAP[partType]) {
+		std::cout << "The parameter count (" << params.size()
+				<< ") does not equal the requested parameter count ("
+				<< PART_TYPE_PARAM_COUNT_MAP[partType] << ") for the part: '"
+				<< id << "'" << std::endl;
+		return boost::shared_ptr<PartRepresentation>();
+	}
+
+	return boost::shared_ptr<PartRepresentation>(
+			new PartRepresentation(id, orientation,
+					PART_TYPE_ARITY_MAP[partType], partType, params));
 
 }
 
 void PartRepresentation::addSubtreeToBodyMessage(
 		robogenMessage::Body *bodyMessage, bool amIRoot) {
+
 	// first, insert self
 	robogenMessage::BodyPart* serialization = bodyMessage->add_part();
+
 	// required string id = 1;
 	serialization->set_id(id_);
+
 	// required string type = 2;
 	serialization->set_type(this->getType());
+
 	// required bool root = 3;
 	serialization->set_root(amIRoot);
+
 	// repeated EvolvableParameter evolvableParam = 4;
-	for (std::map<std::string, double>::iterator it = params_.begin();
-			it != params_.end(); it++) {
+	for (unsigned int i = 0; i < params_.size(); ++i) {
 		robogenMessage::EvolvableParameter *param =
 				serialization->add_evolvableparam();
-		param->set_paramname(it->first);
-		param->set_paramvalue(it->second);
+		param->set_paramvalue(params_[i]);
 	}
+
 	// required int32 orientation = 5;
 	serialization->set_orientation(orientation_);
 
@@ -293,6 +173,7 @@ void PartRepresentation::addSubtreeToBodyMessage(
 			this->getChild(i)->addSubtreeToBodyMessage(bodyMessage, false);
 		}
 	}
+
 }
 
 std::vector<std::string> PartRepresentation::getAncestorsIds() {
@@ -326,6 +207,25 @@ std::vector<std::string> PartRepresentation::getDescendantsIds() {
 
 }
 
+boost::shared_ptr<PartRepresentation> PartRepresentation::cloneSubtree() {
+
+	boost::shared_ptr<PartRepresentation> theClone(
+			new PartRepresentation(this->getId(), this->getOrientation(),
+					this->getArity(), this->getType(), this->getParams()));
+	// deep copy all children
+	for (int i = 1; i <= this->getArity(); i++) {
+		if (this->getChild(i)) {
+			theClone->setChild(i, this->getChild(i)->cloneSubtree());
+		}
+	}
+	return theClone;
+
+}
+
+std::vector<double> PartRepresentation::getParams() {
+	return params_;
+}
+
 void PartRepresentation::setParent(PartRepresentation* parent) {
 	parent_ = parent;
 }
@@ -340,6 +240,14 @@ void PartRepresentation::setPosition(int position) {
 
 int PartRepresentation::getPosition() {
 	return position_;
+}
+
+std::vector<std::string> PartRepresentation::getMotors() {
+	return motors_;
+}
+
+std::vector<std::string> PartRepresentation::getSensors() {
+	return sensors_;
 }
 
 } /* namespace robogen */

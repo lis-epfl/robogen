@@ -39,8 +39,6 @@
 
 namespace robogen {
 
-
-
 /**
  * Part representation to be used for evolution. More lightweight than the
  * part representation of the simulator, and implements evolution-specific
@@ -55,12 +53,17 @@ public:
 	/**
 	 * @param id name of the part
 	 * @param orientation orientation of the part when attached to parent part
+	 * @param arity arity of the part
+	 * @param type of the part
+	 * @param params parameters of the part
 	 */
 	PartRepresentation(std::string id, int orientation, int arity,
-			const std::string type);
+			const std::string& type, const std::vector<double>& params,
+			const std::vector<std::string>& motors,
+			const std::vector<std::string>& sensors);
 
 	/**
-	 * copy constructor replacement with deep copy of children
+	 * Clone subtree
 	 * copy constructor is not very useful, as we mostly want to copy derived
 	 * classes from pointers to the base class. Thus, we'll use this trick:
 	 * http://stackoverflow.com/questions/5731217/how-to-copy-create-derived-
@@ -68,19 +71,12 @@ public:
 	 * @return new derived instance of the part
 	 * @todo recursive pattern robust for bigger robots?
 	 */
-	virtual boost::shared_ptr<PartRepresentation> cloneSubtree() = 0;
+	boost::shared_ptr<PartRepresentation> cloneSubtree();
 
+	/**
+	 * Destructor
+	 */
 	virtual ~PartRepresentation();
-
-	/**
-	 * @return vector containing motor identifiers
-	 */
-	virtual std::vector<std::string> getMotors() = 0;
-
-	/**
-	 * @return vector containing sensor identifiers
-	 */
-	virtual std::vector<std::string> getSensors() = 0;
 
 	/**
 	 * @return identifier of part
@@ -92,11 +88,15 @@ public:
 	 */
 	std::string &getId();
 
-
 	/**
 	 * @return type of the part
 	 */
 	std::string &getType();
+
+	/**
+	 * @return the parameters of the part
+	 */
+	std::vector<double> getParams();
 
 	/**
 	 * @return arity = number of child slots of part
@@ -176,24 +176,22 @@ public:
 	std::vector<std::string> getDescendantsIds();
 
 	/**
-	 * @param c the short-form of the type
-	 * @return the type of the string
+	 * @return vector containing motor identifiers
 	 */
-	static std::string getPartType(char c);
+	std::vector<std::string> getMotors();
+
+	/**
+	 * @return vector containing sensor identifiers
+	 */
+	std::vector<std::string> getSensors();
 
 protected:
+
 	/**
 	 * As of now, only derived classes need to call this for cloning, so it's
 	 * protected
 	 */
 	int getOrientation();
-
-	/**
-	 * Map of all parameters, necessary for serialization. Protected, so that
-	 * derived classes can insert parameters. Initialization in constructor
-	 * would have been cleaner, but, with C++, alas, impossible.
-	 */
-	std::map<std::string, double> params_;
 
 private:
 
@@ -231,6 +229,21 @@ private:
 	 * Slot occupied on parent part
 	 */
 	int position_;
+
+	/**
+	 * Parameters of the body part
+	 */
+	std::vector<double> params_;
+
+	/**
+	 * Motors
+	 */
+	std::vector<std::string> motors_;
+
+	/**
+	 * Sensors
+	 */
+	std::vector<std::string> sensors_;
 
 };
 

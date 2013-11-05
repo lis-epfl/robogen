@@ -36,9 +36,6 @@
 #include <queue>
 #include <boost/regex.hpp>
 #include "evolution/representation/PartRepresentation.h"
-#include "evolution/representation/parts/CoreComponentRepresentation.h"
-#include "evolution/representation/parts/LightSensorRepresentation.h"
-#include "evolution/representation/parts/TouchSensorRepresentation.h"
 #include "utils/network/ProtobufPacket.h"
 
 namespace robogen {
@@ -290,6 +287,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	std::map<std::string, int> sensorMap, motorMap;
 	for (std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator it =
 			idToPart_.begin(); it != idToPart_.end(); it++) {
+
 		// omitting weak pointer checks, as this really shouldn't go wrong here!
 		if (it->second.lock()->getMotors().size()) {
 			motorMap[it->first] = it->second.lock()->getMotors().size();
@@ -297,8 +295,11 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 		if (it->second.lock()->getSensors().size()) {
 			sensorMap[it->first] = it->second.lock()->getSensors().size();
 		}
+
 	}
+
 	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
+
 	// weights
 	while (robotTextFileReadWeightLine(file, from, fromIoId, to, toIoId, value)) {
 		if (!neuralNetwork_->setWeight(from, fromIoId, to, toIoId, value)) {
@@ -306,6 +307,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 			return false;
 		}
 	}
+
 	// biases
 	while (robotTextFileReadBiasLine(file, to, toIoId, value)) {
 		if (!neuralNetwork_->setBias(to, toIoId, value)) {
@@ -407,6 +409,7 @@ void RobotRepresentation::setDirty() {
 }
 
 bool RobotRepresentation::trimBodyAt(std::string id) {
+
 	// thanks to shared pointer magic, we only need to reset the shared pointer
 	// to the indicated body part
 	PartRepresentation *parent = idToPart_[id].lock()->getParent();
@@ -440,6 +443,7 @@ bool RobotRepresentation::trimBodyAt(std::string id) {
 	// TODO then, complete adoptBody()
 
 	return true;
+
 }
 
 std::string RobotRepresentation::generateUniqueIdFromSomeId() {
