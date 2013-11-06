@@ -55,6 +55,9 @@ public:
 	 */
 	Connection();
 
+	Connection(boost::shared_ptr<Model> from, int fromSlot,
+			boost::shared_ptr<Model> to, int toSlot);
+
 	/**
 	 * Creates a connection from the specified connection message
 	 * @param c Connection message to be used (uses string id's)
