@@ -48,6 +48,7 @@ EvolverConfiguration::BodyMutationOperatorsProbabilityCodes[] = {
 bool EvolverConfiguration::init(std::string confFileName) {
 	// cleanse operator probabilities before reading in (not specified = 0)
 	memset(bodyOperatorProbability, 0, sizeof(bodyOperatorProbability));
+	maxBodyMutationAttemps = 100; //seems like a reasonable default
 	// boost-parse options
 	boost::program_options::options_description desc("Allowed options");
 	// DON'T AUTO-INDENT THE FOLLOWING ON ECLIPSE:
@@ -260,6 +261,14 @@ bool EvolverConfiguration::init(std::string confFileName) {
 		std::cout << "Brain sigma (" << brainSigma << ") must be positive" <<
 				std::endl;
 		return false;
+	}
+
+	// if doing body evolution, then need at least one body part
+	if (evolutionMode == FULL_EVOLVER && allowedBodyPartTypes.size() == 0) {
+		std::cout << "If evolving bodies then need to define at least " <<
+				"one allowed body part to add." << std::endl;
+		return false;
+		// TODO - we need some way to make sure don't add multiple core comps
 	}
 
 	return true;

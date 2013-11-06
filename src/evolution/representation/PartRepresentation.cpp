@@ -89,7 +89,7 @@ std::string &PartRepresentation::getType() {
 }
 
 boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(unsigned int n) {
-	if (n > arity_ - 1) {
+	if (n  >= arity_ ) {
 		std::cout << "Attempt to access non-existing slot " << n << " of part "
 				<< this->getId() << " with arity " << arity_ << std::endl;
 		return boost::shared_ptr<PartRepresentation>();
@@ -100,7 +100,7 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(unsigned int 
 bool PartRepresentation::setChild(unsigned int n,
 		boost::shared_ptr<PartRepresentation> part) {
 
-	if (n > arity_ - 1) {
+	if (n  >= arity_ ) {
 		std::cout << "Attempt to access non-existing slot " << n << " of part "
 				<< this->getId() << " with arity " << arity_ << std::endl;
 		return false;

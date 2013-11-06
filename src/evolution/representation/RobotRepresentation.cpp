@@ -116,7 +116,8 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 					<< PART_TYPE_PARAM_COUNT_MAP[PART_TYPE_MAP[type]]
 					<< " params, but " << rawParams.size()
 					<< " were received\n";
-			return false;
+			throw std::runtime_error("");
+			//return false;
 		}
 		for (unsigned int i = 0; i < rawParams.size(); i++) {
 			std::pair<double, double> ranges =
@@ -129,7 +130,8 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 						<< " to be in [" << ranges.first << ", "
 						<< ranges.second << "], but " << rawParamValue
 						<< " was received\n";
-				return false;
+				//return false;
+				throw std::runtime_error("");
 			}
 			//add param in [0,1]
 			params.push_back(
@@ -147,8 +149,10 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 					<< "<0 or more tabs><slot index digit> <part type character> "
 					"<part id string> <orientation digit> <evt. parameters>"
 					<< std::endl;
+			throw std::runtime_error(""); //sorry Andrea
 		}
 		return false;
+
 	}
 }
 
@@ -257,7 +261,31 @@ bool RobotRepresentation::init() {
 	bodyTree_ = corePart;
 	idToPart_[coreId] = boost::weak_ptr<PartRepresentation>(corePart);
 
-	// TODO Add Brain.
+	// TODO abstract this to a different function so it doesn't
+	// duplicate what we have below
+
+
+	// process brain
+	std::string from, to;
+	int fromIoId, toIoId;
+	double value;
+	// create neural network: create map from body id to ioId for all sensor and
+	// motor body parts
+	std::map<std::string, int> sensorMap, motorMap;
+	for (std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator it =
+			idToPart_.begin(); it != idToPart_.end(); it++) {
+
+		// omitting weak pointer checks, as this really shouldn't go wrong here!
+		if (it->second.lock()->getMotors().size()) {
+			motorMap[it->first] = it->second.lock()->getMotors().size();
+		}
+		if (it->second.lock()->getSensors().size()) {
+			sensorMap[it->first] = it->second.lock()->getSensors().size();
+		}
+
+	}
+
+	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
 
 	return true;
 }
@@ -297,39 +325,43 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
 
 	// process other body parts
-	while (robotTextFileReadPartLine(file, indent, slot, type, id, orientation,
-			params)) {
-		if (!indent) {
-			std::cout << "Attempt to create multiple root nodes!" << std::endl;
-			return false;
+	try {
+		while (robotTextFileReadPartLine(file, indent, slot, type, id, orientation,
+				params)) {
+			if (!indent) {
+				std::cout << "Attempt to create multiple root nodes!" << std::endl;
+				return false;
+			}
+			// indentation: Adding children to current
+			if (indent > (parentStack.size())) {
+				parentStack.push(current);
+			}
+			// indentation: done adding children to top of parent stack
+			for (; indent < (parentStack.size());) {
+				parentStack.pop();
+			}
+			current = PartRepresentation::create(type, id, orientation, params);
+			if (!current) {
+				std::cout << "Failed to create node." << std::endl;
+				return false;
+			}
+			if (parentStack.top()->getChild(slot)) {
+				std::cout << "Attempt to overwrite child "
+						<< parentStack.top()->getChild(slot)->getId() << " of "
+						<< parentStack.top()->getId() << " with "
+						<< current->getId() << std::endl;
+				return false;
+			}
+			if (!parentStack.top()->setChild(slot, current)) {
+				std::cout << "Failed to set child." << std::endl;
+				return false;
+			}
+			idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
 		}
-		// indentation: Adding children to current
-		if (indent > (parentStack.size())) {
-			parentStack.push(current);
-		}
-		// indentation: done adding children to top of parent stack
-		for (; indent < (parentStack.size());) {
-			parentStack.pop();
-		}
-		current = PartRepresentation::create(type, id, orientation, params);
-		if (!current) {
-			std::cout << "Failed to create node." << std::endl;
-			return false;
-		}
-		if (parentStack.top()->getChild(slot)) {
-			std::cout << "Attempt to overwrite child "
-					<< parentStack.top()->getChild(slot)->getId() << " of "
-					<< parentStack.top()->getId() << " with "
-					<< current->getId() << std::endl;
-			return false;
-		}
-		if (!parentStack.top()->setChild(slot, current)) {
-			std::cout << "Failed to set child." << std::endl;
-			return false;
-		}
-		idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
+	} catch ( std::runtime_error &e) {
+		std::cout << "Error parsing body file\n";
+		return false;
 	}
-
 	// process brain
 	std::string from, to;
 	int fromIoId, toIoId;
@@ -648,13 +680,14 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId,
 			parentPartSlot);
 
 	// Check the arity of the new part
-	if (parentPart->getChild(parentPartSlot) != NULL
-			&& newPart->getArity() < 1) {
+	if (childPart != NULL && newPart->getArity() < 1) {
 		return false;
 	}
 
 	parentPart->setChild(parentPartSlot, newPart);
-	newPart->setChild(newPartSlot, childPart);
+
+	if (childPart != NULL)
+		newPart->setChild(newPartSlot, childPart);
 
 	// Add to the map
 	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(newPart);

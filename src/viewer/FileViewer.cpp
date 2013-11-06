@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
 	else if(boost::filesystem::path(argv[1]).extension().string() == ".txt"){
 		RobotRepresentation robot;
 		if (!robot.init(argv[1])){
-			std::cout << "Failed interpreting robot text file!" << std::cout;
+			std::cout << "Failed interpreting robot text file!" << std::endl;
 			return EXIT_FAILURE;
 		}
 		robotMessage = robot.serialize();

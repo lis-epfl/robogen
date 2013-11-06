@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "Trying to evolve brain, but no robot file provided."
 				<< std::endl;
 		return EXIT_FAILURE;
-	} else if (!conf->referenceRobotFile.compare("")) {
+	} else if (conf->referenceRobotFile.compare("") != 0) {
 		if (!referenceBot->init(conf->referenceRobotFile)) {
 			std::cout << "Failed interpreting robot from text file"
 					<< std::endl;

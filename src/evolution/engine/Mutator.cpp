@@ -392,12 +392,19 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
 			type, "", curOrientation, parameters);
 
-	// Generate a random slot in the new node
-	boost::random::uniform_int_distribution<> distNewPartSlot(0,
-			newPart->getArity() - 1);
+	unsigned int newPartSlot = 0;
 
-	return robot->insertPart(parent->first, parentSlot, newPart,
-			distNewPartSlot(rng_));
+	if ( newPart->getArity() > 0 ) {
+		// Generate a random slot in the new node, if it has arity > 0
+		boost::random::uniform_int_distribution<> distNewPartSlot(0,
+				newPart->getArity() - 1);
+		newPartSlot = distNewPartSlot(rng_);
+	}
+	// otherwise just keep it at 0... inserting part will fail if arity is 0 and
+	// there were previously parts attached to the parent's chosen slot
+
+
+	return robot->insertPart(parent->first, parentSlot, newPart, newPartSlot);
 
 }
 
