@@ -388,20 +388,21 @@ bool Mutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
 	std::advance(partToMutate, dist(rng_));
 
 	std::vector<double> params = partToMutate->second.lock()->getParams();
-	if (params.size() > 0) {
+	// Select a random parameter/or orientation to mutate
+	boost::random::uniform_int_distribution<> distMutation(0,params.size());
+	unsigned int paramToMutate = distMutation(rng_);
 
-		// Select a random parameter to mutate
-		boost::random::uniform_int_distribution<> distMutation(0,
-				params.size() - 1);
-		unsigned int paramToMutate = distMutation(rng_);
-
+	if ( paramToMutate == params.size() ) { //mutate orientation
+		boost::random::uniform_int_distribution<> orientationDist(0, 3);
+		unsigned int newOrientation = orientationDist(rng_);
+		partToMutate->second.lock()->setOrientation(newOrientation);
+	} else {
 		params[paramToMutate] += paramDistribution_(rng_);
 		if (params[paramToMutate] < 0) {
 			params[paramToMutate] = 0;
 		} else if (params[paramToMutate] > 1) {
 			params[paramToMutate] = 1;
 		}
-
 	}
 
 	return true;

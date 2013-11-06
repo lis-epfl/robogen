@@ -189,10 +189,11 @@ public:
 	std::vector<std::string> getSensors();
 
 	/**
-	 * As of now, only derived classes need to call this for cloning, so it's
-	 * protected
+	 * @return the orientation of this part
 	 */
 	unsigned int getOrientation();
+
+	void setOrientation(unsigned int orientation);
 
 private:
 

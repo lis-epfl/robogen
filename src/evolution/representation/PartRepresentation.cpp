@@ -31,12 +31,16 @@ std::string &PartRepresentation::getId() {
 	return id_;
 }
 
+void PartRepresentation::setId(std::string newid) {
+	id_ = newid;
+}
+
 unsigned int PartRepresentation::getOrientation() {
 	return orientation_;
 }
 
-void PartRepresentation::setId(std::string newid) {
-	id_ = newid;
+void PartRepresentation::setOrientation(unsigned int orientation) {
+	orientation_ = orientation;
 }
 
 unsigned int PartRepresentation::getArity() {
