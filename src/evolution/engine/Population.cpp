@@ -52,7 +52,9 @@ bool Population::init(boost::shared_ptr<RobotRepresentation> robot, int popSize,
 	// fill population vector
 	for (int i = 0; i < popSize; i++) {
 
-		this->push_back(robot);
+		this->push_back(
+				boost::shared_ptr<RobotRepresentation>(
+						new RobotRepresentation(*robot.get())));
 		this->back()->randomizeBrain(rng);
 		this->back()->setDirty();
 
@@ -101,6 +103,7 @@ boost::shared_ptr<RobotRepresentation> Population::best() {
 
 bool Population::getStat(double &bestFit, double &average,
 		double &stdev) const {
+
 	if (!this->areEvaluated()) {
 		std::cout << "Trying to get stats on non-evaluated population"
 				<< std::endl;
@@ -115,6 +118,7 @@ bool Population::getStat(double &bestFit, double &average,
 	average = boost::accumulators::mean(acc);
 	stdev = std::sqrt((double) boost::accumulators::variance(acc));
 	return true;
+
 }
 
 } /* namespace robogen */
