@@ -139,11 +139,13 @@ std::map<std::string, std::vector<std::string> > initPartTypeSensorsMap() {
 template<typename _OrigKey, typename _OrigValue>
 std::map<_OrigValue, _OrigKey> inverseMap(
 		std::map<_OrigKey, _OrigValue> origMap) {
+
 	std::map<_OrigValue, _OrigKey> inverseMap;
-	for (typename std::map<_OrigKey, _OrigValue>::iterator iterator = origMap.begin();
-			iterator != origMap.end(); iterator++) {
+	for (typename std::map<_OrigKey, _OrigValue>::iterator iterator =
+			origMap.begin(); iterator != origMap.end(); iterator++) {
 		inverseMap[iterator->second] = iterator->first;
 	}
+
 	return inverseMap;
 }
 
