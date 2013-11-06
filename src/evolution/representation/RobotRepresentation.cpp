@@ -103,9 +103,38 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 		double param;
 		std::stringstream ss(match[6]);
 		params.clear();
+
+		std::vector<double> rawParams;
 		while (ss >> param) {
-			params.push_back(param);
+			rawParams.push_back(param);
 		}
+		if (rawParams.size()
+				!= PART_TYPE_PARAM_COUNT_MAP[PART_TYPE_MAP[type]]) {
+			std::cout << "Error reading body part from text file.\n"
+					<< PART_TYPE_MAP[type] << " requires "
+					<< PART_TYPE_PARAM_COUNT_MAP[PART_TYPE_MAP[type]]
+					<< " params, but " << rawParams.size()
+					<< " were received\n";
+			return false;
+		}
+		for (unsigned int i = 0; i < rawParams.size(); i++) {
+			std::pair<double, double> ranges =
+					PART_TYPE_PARAM_RANGE_MAP[std::make_pair(
+							PART_TYPE_MAP[type], i)];
+			double param = rawParams[i];
+			if (param < ranges.first || param > ranges.second) {
+				std::cout << "Error reading body part from text file.\n"
+						<< PART_TYPE_MAP[type] << " requires param " << i
+						<< " to be in [" << ranges.first << ", "
+						<< ranges.second << "], but " << param
+						<< " was received\n";
+				return false;
+			}
+			//add param in [0,1]
+			params.push_back(
+					(param - ranges.first) / (ranges.second - ranges.first) );
+		}
+
 		return true;
 	} else {
 		// additional info if poor formatting, i.e. line not empty
@@ -486,8 +515,10 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 		const std::string& subtreeDestPartId, int slotId) {
 
 	// find src part and dest part by id
-	boost::shared_ptr<PartRepresentation> src = idToPart_[subtreeRootPartId].lock();
-	boost::shared_ptr<PartRepresentation> dst = idToPart_[subtreeDestPartId].lock();
+	boost::shared_ptr<PartRepresentation> src =
+			idToPart_[subtreeRootPartId].lock();
+	boost::shared_ptr<PartRepresentation> dst =
+			idToPart_[subtreeDestPartId].lock();
 
 	// If source is root node, then return
 	if (src->getId().compare(bodyTree_->getId()) == 0) {
@@ -503,20 +534,23 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 
 }
 
-bool RobotRepresentation::insertPart(const std::string& parentPartId, int parentPartSlot,
-		boost::shared_ptr<PartRepresentation> newPart, int newPartSlot) {
+bool RobotRepresentation::insertPart(const std::string& parentPartId,
+		int parentPartSlot, boost::shared_ptr<PartRepresentation> newPart,
+		int newPartSlot) {
 
 	// Set new ID for the inserted node
 	std::string newUniqueId = this->generateUniqueIdFromSomeId();
 	newPart->setId(newUniqueId);
 
 	// find dst part by id
-	boost::shared_ptr<PartRepresentation> parentPart = idToPart_[parentPartId].lock();
+	boost::shared_ptr<PartRepresentation> parentPart =
+			idToPart_[parentPartId].lock();
 	boost::shared_ptr<PartRepresentation> childPart = parentPart->getChild(
 			parentPartSlot);
 
 	// Check the arity of the new part
-	if (parentPart->getChild(parentPartSlot) != NULL && newPart->getArity() < 1) {
+	if (parentPart->getChild(parentPartSlot) != NULL
+			&& newPart->getArity() < 1) {
 		return false;
 	}
 
@@ -532,7 +566,8 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId, int parent
 
 bool RobotRepresentation::removePart(const std::string& partId) {
 
-	boost::shared_ptr<PartRepresentation> nodeToRemove = idToPart_[partId].lock();
+	boost::shared_ptr<PartRepresentation> nodeToRemove =
+			idToPart_[partId].lock();
 
 	// If root node, return
 	if (nodeToRemove->getId().compare(bodyTree_->getId()) == 0) {
