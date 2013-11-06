@@ -74,24 +74,14 @@ NeuralNetworkRepresentation::NeuralNetworkRepresentation(
 	for (std::map<std::string,int>::iterator it = sensorParts.begin();
 			it != sensorParts.end(); it++){
 		for (int i=0; i<it->second; i++){
-			std::stringstream id;
-			id << it->first << "-" << i;
-			neurons_[std::pair<std::string,int>(it->first,i)] =
-					boost::shared_ptr<NeuronRepresentation>(
-							new NeuronRepresentation(id.str(),"input",0.,
-									it->first,i));
+			insertNeuron(ioPair(it->first,i),false);
 		}
 	}
 	// generate neurons from motor body parts
 	for (std::map<std::string,int>::iterator it = motorParts.begin();
 			it != motorParts.end(); it++){
 		for (int i=0; i<it->second; i++){
-			std::stringstream id;
-			id << it->first << "-" << i;
-			neurons_[std::pair<std::string,int>(it->first,i)] =
-					boost::shared_ptr<NeuronRepresentation>(
-							new NeuronRepresentation(id.str(),"output",0.,
-									it->first,i));
+			insertNeuron(ioPair(it->first,i),true);
 		}
 	}
 }
@@ -203,6 +193,108 @@ void NeuralNetworkRepresentation::getGenome(std::vector<double*> &weights,
 	for (NeuronMap::iterator it = neurons_.begin(); it!= neurons_.end(); ++it){
 		biases.push_back(it->second->getBiasPointer());
 	}
+}
+
+std::string NeuralNetworkRepresentation::insertNeuron(ioPair identification,
+		bool isOutput){
+	boost::shared_ptr<NeuronRepresentation> neuron =
+			boost::shared_ptr<NeuronRepresentation>(new NeuronRepresentation(
+					identification, isOutput, 0.));
+	// insert into map
+	neurons_[identification] = neuron;
+	// generate weights
+	for (NeuronMap::iterator it = neurons_.begin(); it!=neurons_.end(); ++it){
+		// generate incoming
+		if (isOutput){
+			weights_[StringPair(it->second->getId(),neuron->getId())] = 0.;
+		}
+		// generate outgoing (no need to worry about double declaration of the
+		// recursion, as we deal with a map!)
+		if (!it->second->isInput())
+			weights_[StringPair(neuron->getId(),it->second->getId())] = 0.;
+	}
+	return neuron->getId();
+}
+
+void NeuralNetworkRepresentation::cloneNeurons(std::string oldPartId,
+		std::string newPartId, std::map<std::string, std::string> &oldNew){
+	std::vector<boost::weak_ptr<NeuronRepresentation> > neurons =
+			getBodyPartNeurons(oldPartId);
+	for (int i=0; i<neurons.size(); ++i){
+		// remove all weights of the neuron
+		boost::shared_ptr<NeuronRepresentation> neuron = neurons[i].lock();
+		oldNew[neuron->getId()] = insertNeuron(
+				ioPair(newPartId, neuron->getIoPair().second),
+				!neuron->isInput());
+	}
+}
+
+void NeuralNetworkRepresentation::generateCloneWeights(std::map<std::string,
+		std::string> &oldNew){
+	typedef std::map<std::string, std::string> MyMap;
+	// for every neuron in the cloned tree
+	for (MyMap::iterator it=oldNew.begin(); it!=oldNew.end();++it){
+		std::string oldRon = it->first;
+		std::string newRon = it->second;
+		// for every weight
+		for (WeightMap::iterator it=weights_.begin();it!=weights_.end();++it){
+			// if outgoing
+			if (it->first.first == oldRon){
+				// if destination neuron was in original subtree
+				if (oldNew.find(it->first.second) != oldNew.end()){
+					weights_[StringPair(newRon,
+							oldNew.find(it->first.second)->second)] =
+									it->second;
+				}
+				else{
+					weights_[StringPair(newRon,	it->first.second)] =
+							it->second;
+				}
+			}
+			// if incoming
+			if (it->first.second == oldRon){
+				// if destination neuron was in original subtree
+				if (oldNew.find(it->first.first) != oldNew.end()){
+					weights_[StringPair(oldNew.find(it->first.first)->second,
+							newRon)] = it->second;
+				}
+				else{
+					weights_[StringPair(it->first.first, newRon)] =
+							it->second;
+				}
+			}
+		}
+	}
+}
+
+void NeuralNetworkRepresentation::removeNeurons(std::string bodyPartId){
+	std::vector<boost::weak_ptr<NeuronRepresentation> > neurons =
+			getBodyPartNeurons(bodyPartId);
+	for (int i=0; i<neurons.size(); ++i){
+		// remove all weights of the neuron
+		boost::shared_ptr<NeuronRepresentation> neuron = neurons[i].lock();
+		assert(neuron);
+		for (WeightMap::iterator it = weights_.begin();it!=weights_.end();++it){
+			if (it->first.first == neuron->getId() ||
+					it->first.second == neuron->getId()){
+				weights_.erase(it);
+			}
+		}
+		// remove the neuron itself
+		neurons_.erase(neurons_.find(neuron->getIoPair()));
+	}
+}
+
+std::vector<boost::weak_ptr<NeuronRepresentation> >
+NeuralNetworkRepresentation::getBodyPartNeurons(
+		std::string bodyPart){
+	std::vector<boost::weak_ptr<NeuronRepresentation> > ret;
+	// go through neurons, check body part id
+	int ioId=0;
+	while (neurons_[ioPair(bodyPart,ioId)])
+		ret.push_back(boost::weak_ptr<NeuronRepresentation>(
+				neurons_[ioPair(bodyPart,ioId)]));
+	return ret;
 }
 
 bool NeuralNetworkRepresentation::getLinearRepresentation(

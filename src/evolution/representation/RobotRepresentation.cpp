@@ -42,7 +42,7 @@
 namespace robogen {
 
 RobotRepresentation::RobotRepresentation() :
-		maxid_(1000) {
+				maxid_(1000) {
 
 }
 
@@ -114,7 +114,7 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 			std::cout << "Error reading body part from text file. Received:\n"
 					<< line << "\nbut expected format:\n"
 					<< "<0 or more tabs><slot index digit> <part type character> "
-							"<part id string> <orientation digit> <evt. parameters>"
+					"<part id string> <orientation digit> <evt. parameters>"
 					<< std::endl;
 		}
 		return false;
@@ -149,8 +149,8 @@ bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
 			std::cout << "Error reading weight from text file. Received:\n"
 					<< line << "\nbut expected format:\n"
 					<< "<source part id string> <source part io id> "
-							"<destination part id string> <destination part io id> "
-							"<weight>" << std::endl;
+					"<destination part id string> <destination part io id> "
+					"<weight>" << std::endl;
 		}
 		return false;
 	}
@@ -180,7 +180,7 @@ bool robotTextFileReadBiasLine(std::ifstream &file, std::string &node,
 			std::cout << "Error reading brain bias from text file. Received:\n"
 					<< line << "\nbut expected format:\n"
 					<< "<part id string> <part io id> "
-							"<bias>" << std::endl;
+					"<bias>" << std::endl;
 		}
 		return false;
 	}
@@ -414,7 +414,19 @@ void RobotRepresentation::setDirty() {
 	evaluated_ = false;
 }
 
+void RobotRepresentation::recurseNeuronRemoval(
+		boost::shared_ptr<PartRepresentation> part) {
+	neuralNetwork_->removeNeurons(part->getId());
+	for (int i = 0; i < part->getArity(); i++) {
+		if (part->getChild(i)) {
+			this->recurseNeuronRemoval(part->getChild(i));
+		}
+	}
+}
+
 bool RobotRepresentation::trimBodyAt(const std::string& id) {
+	// kill all neurons and their weights
+	recurseNeuronRemoval(idToPart_[id].lock());
 
 	// thanks to shared pointer magic, we only need to reset the shared pointer
 	// to the indicated body part
@@ -425,7 +437,7 @@ bool RobotRepresentation::trimBodyAt(const std::string& id) {
 		return false;
 	}
 	std::cout << "Has references: " << idToPart_[id].lock().use_count()
-			<< std::endl;
+					<< std::endl;
 	if (!parent->setChild(position, boost::shared_ptr<PartRepresentation>())) {
 		std::cout << "Failed trimming robot body!" << std::endl;
 		return false;
@@ -441,13 +453,6 @@ bool RobotRepresentation::trimBodyAt(const std::string& id) {
 		} else
 			++it;
 	}
-	// TODO complete this: Cf. constructor from robot text file. sensorMap and
-	// motorMap could be probably implemented as a RobotRep. property
-
-	// neuralNetwork_->adoptBody(sensorMap, motorMap);
-
-	// TODO then, complete adoptBody()
-
 	return true;
 
 }
@@ -463,17 +468,21 @@ std::string RobotRepresentation::generateUniqueIdFromSomeId() {
 
 }
 
-bool RobotRepresentation::addPartsToMap(
-		boost::shared_ptr<PartRepresentation> part) {
-
+bool RobotRepresentation::addClonesToMap(
+		boost::shared_ptr<PartRepresentation> part,
+		std::map<std::string, std::string> &neuronReMapping) {
+	std::string oldId = part->getId();
 	std::string newUniqueId = this->generateUniqueIdFromSomeId();
 	part->setId(newUniqueId);
+	// insert part in map
 	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(part);
+	// clone neurons, save mapping
+	neuralNetwork_->cloneNeurons(oldId, part->getId(),neuronReMapping);
 
 	for (int i = 0; i < part->getArity(); i++) {
 
 		if (part->getChild(i)) {
-			this->addPartsToMap(part->getChild(i));
+			this->addClonesToMap(part->getChild(i), neuronReMapping);
 		}
 
 	}
@@ -497,7 +506,13 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 	boost::shared_ptr<PartRepresentation> clone = src->cloneSubtree();
 	dst->setChild(slotId, clone);
 
-	this->addPartsToMap(clone);
+	std::map<std::string, std::string> neuronReMapping;
+
+	// insert clones into part map and generate neurons
+	this->addClonesToMap(clone, neuronReMapping);
+
+	// correctly generate the weights
+	neuralNetwork_->generateCloneWeights(neuronReMapping);
 
 	return true;
 
@@ -509,6 +524,17 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId, int parent
 	// Set new ID for the inserted node
 	std::string newUniqueId = this->generateUniqueIdFromSomeId();
 	newPart->setId(newUniqueId);
+
+	// create Neurons in NeuralNetwork
+	std::vector<std::string> sensors = newPart->getSensors();
+	for (int i=0; i<sensors.size(); ++i){
+		neuralNetwork_->insertNeuron(ioPair(newPart->getId(),i), false);
+	}
+	std::vector<std::string> motors = newPart->getMotors();
+		for (int i=0; i<motors.size(); ++i){
+		neuralNetwork_->insertNeuron(ioPair(newPart->getId(),sensors.size()+i),
+				true);
+	}
 
 	// find dst part by id
 	boost::shared_ptr<PartRepresentation> parentPart = idToPart_[parentPartId].lock();
@@ -551,6 +577,9 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 		return false;
 	}
 
+	// remove neurons and all their connections
+	neuralNetwork_->removeNeurons(partId);
+
 	int indx = 0;
 	for (int i = 0; i < parent->getArity(); i++) {
 
@@ -568,6 +597,7 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 			}
 		}
 	}
+
 
 	return true;
 }

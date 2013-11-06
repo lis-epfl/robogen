@@ -55,7 +55,7 @@ public:
 	 * @param maxForce maximum force the motor can produce
 	 */
 	ServoMotor(dJointID joint, float maxForce,
-			NeuralNetworkRepresentation::ioPair id);
+			ioPair id);
 
 	/**
 	 * Apply the motor to the provided joint. Initializes a servo controlled in position.
@@ -65,7 +65,7 @@ public:
 	 * @param proportional control gain
 	 */
 	ServoMotor(dJointID joint, float maxForce, float gain,
-			NeuralNetworkRepresentation::ioPair id);
+			ioPair id);
 
 	/**
 	 * Destructor

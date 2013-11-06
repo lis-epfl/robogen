@@ -150,14 +150,6 @@ public:
 	std::string generateUniqueIdFromSomeId();
 
 	/**
-	 * Insert parts to the body id-parts map
-	 *
-	 * @param part the root of the subtree to be inserted into the body id to parts map
-	 * @return true if the operation completed successfully, false otherwise
-	 */
-	bool addPartsToMap(boost::shared_ptr<PartRepresentation> part);
-
-	/**
 	 * Duplicate a subtree in the body tree
 	 *
 	 * @param subtreeRootPartId the root of the subtree to duplicate
@@ -196,6 +188,20 @@ public:
 
 private:
 	/**
+	 *
+	 */
+	void recurseNeuronRemoval(boost::shared_ptr<PartRepresentation> part);
+
+	/**
+	 * Insert parts to the body id-parts map
+	 *
+	 * @param part the root of the subtree to be inserted into the body id to parts map
+	 * @return true if the operation completed successfully, false otherwise
+	 */
+	bool addClonesToMap(boost::shared_ptr<PartRepresentation> part,
+			std::map<std::string, std::string> &neuronReMapping);
+
+	/**
 	 * Points to the root of the robot body tree
 	 */
 	boost::shared_ptr<PartRepresentation> bodyTree_;
@@ -217,8 +223,8 @@ private:
 	double fitness_;
 
 	/**
-		 * Counter for unique ID.
-    */
+	 * Counter for unique ID.
+	 */
 	int maxid_;
 
 

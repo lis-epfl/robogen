@@ -35,6 +35,11 @@
 
 namespace robogen {
 
+/**
+ * Body part Id, IO Id
+ */
+typedef std::pair<std::string,int> ioPair;
+
 class NeuronRepresentation {
 public:
 	/**
@@ -44,8 +49,7 @@ public:
 	 * neuron needs to be associated to the latter, but in the future, hidden
 	 * layers could be implemented by omitting the specification of the latter.
 	 */
-	NeuronRepresentation(std::string id, std::string layer, double bias,
-			std::string bodyPart, int ioId);
+	NeuronRepresentation(ioPair identification,	bool isOutput, double bias);
 
 	virtual ~NeuronRepresentation();
 
@@ -69,6 +73,8 @@ public:
 	 */
 	double *getBiasPointer();
 
+	ioPair getIoPair();
+
 	/**
 	 * Transfer to proto buffer message.
 	 */
@@ -76,31 +82,25 @@ public:
 
 private:
 	/**
+	 * Identification (body part id, IO ID) of neuron
+	 */
+	ioPair identification_;
+
+	/**
 	 * Identifier of the neuron.
 	 */
 	std::string id_;
 
 	/**
-	 * Layer identification.
-	 * @todo enumerate
+	 * Layer identification. If true, Neuron is in Output layer, i.e.
+	 * corresponds to a motor
 	 */
-	std::string layer_;
+	bool isOutput_;
 
 	/**
 	 * Bias of the given Neuron
 	 */
 	double bias_;
-
-	/**
-	 * Associated body part id.
-	 */
-	std::string bodyPart_;
-
-	/**
-	 * Input/output device ID of the sensor/motor to be associated with the
-	 * neuron with respect to the body part.
-	 */
-	int ioId_;
 };
 
 } /* namespace robogen */

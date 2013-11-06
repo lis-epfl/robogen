@@ -46,16 +46,13 @@ namespace robogen {
 
 class NeuralNetworkRepresentation {
 public:
+	typedef std::pair<std::string,std::string> StringPair;
+
 	/**
 	 * Map from (source neuron id, dest neuron id) to weight value.
 	 * TODO use these typedefs
 	 */
-	typedef std::map<std::pair<std::string,std::string>, double> WeightMap;
-
-	/**
-	 * Body part Id, IO Id
-	 */
-	typedef std::pair<std::string,int> ioPair;
+	typedef std::map<StringPair, double> WeightMap;
 
 	/**
 	 * Maps from IO identifier pair to a neuron shared pointer
@@ -117,19 +114,32 @@ public:
 	void getGenome(std::vector<double*> &weights, std::vector<double*> &biases);
 
 	/**
-	 * This is a stub for body evolution.
-	 * Refreshes the sensor and motor cache sets according to the passed body,
-	 * removes dangling weights and biases and randomly initializes new ones.
-	 * SUGGESTED IMPLEMENTATION:
-	 * Copy sensor parts and motor parts maps. Then, iterate through neurons_.
-	 * If corresponding body part found in either map, remove that body part
-	 * from that map, else remove neuron from neurons_. Finally, create a neuron
-	 * in neurons_ for each remaining part. Update weights in a similar way.
-	 * @param motors motor id's to be registered
-	 * @param sensors sensor id's to be registered
+	 * Inserts a Neuron
 	 */
-	void adoptBody(const std::map<std::string,int> &sensorParts,
-			const std::map<std::string,int> &motorParts);
+	std::string insertNeuron(ioPair identification, bool isOutput);
+
+	/**
+	 * Clones all neurons from a part. Saves the mapping for subsequent referral
+	 */
+	void cloneNeurons(std::string oldPartId, std::string newPartId,
+			std::map<std::string, std::string> &oldNew);
+
+	/**
+	 * Once neurons of a subtree have been cloned, properly clone weights.
+	 * TODO TEST TEST TEST
+	 */
+	void generateCloneWeights(std::map<std::string, std::string> &oldNew);
+
+	/**
+	 * Removes all neurons and weights attached to the supplied part
+	 */
+	void removeNeurons(std::string bodyPartId);
+
+	/**
+	 * Returns all neurons attached to the supplied part todo private?
+	 */
+	std::vector<boost::weak_ptr<NeuronRepresentation> >
+	getBodyPartNeurons(std::string bodyPart);
 
 	/**
 	 * This is a conversion to a linear representation, which is currently

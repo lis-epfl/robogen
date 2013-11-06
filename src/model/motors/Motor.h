@@ -38,14 +38,14 @@ class Motor {
 	
 public:
 	
-	Motor(NeuralNetworkRepresentation::ioPair id);
+	Motor(ioPair id);
 
 	virtual ~Motor() {}
 
-	NeuralNetworkRepresentation::ioPair getId();
+	ioPair getId();
 
 private:
-	NeuralNetworkRepresentation::ioPair id_;
+	ioPair id_;
 };
 
 }
