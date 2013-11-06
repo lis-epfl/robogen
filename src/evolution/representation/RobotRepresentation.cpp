@@ -242,6 +242,11 @@ RobotRepresentation &RobotRepresentation::operator=(
 	return *this;
 }
 
+bool RobotRepresentation::init() {
+	//TODO generate a base robot with just the core component
+	return true;
+}
+
 bool RobotRepresentation::init(std::string robotTextFile) {
 
 	// open file

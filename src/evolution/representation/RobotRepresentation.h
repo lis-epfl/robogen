@@ -79,6 +79,13 @@ public:
 	 */
 	RobotRepresentation &operator=(const RobotRepresentation &r);
 
+
+	/**
+	 * Constructs a robot representation from nothing.
+	 * Will have just the core component.
+	 */
+	bool init();
+
 	/**
 	 * Constructs a robot representation from a robot text file
 	 * @param robotTextFile text file of the robot description
