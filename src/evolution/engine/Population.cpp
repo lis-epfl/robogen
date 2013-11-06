@@ -121,4 +121,4 @@ bool Population::getStat(double &bestFit, double &average,
 
 }
 
-} /* namespace robogen */
+}

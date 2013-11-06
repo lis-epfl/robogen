@@ -94,7 +94,6 @@ private:
 	bool removeNode(boost::shared_ptr<RobotRepresentation>& robot);
 	bool mutateParams(boost::shared_ptr<RobotRepresentation>& robot);
 
-
 	/**
 	 * Evolver Configuration
 	 */

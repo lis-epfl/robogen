@@ -133,7 +133,8 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 			}
 			//add param in [0,1]
 			params.push_back(
-					(rawParamValue - ranges.first) / (ranges.second - ranges.first) );
+					(rawParamValue - ranges.first)
+							/ (ranges.second - ranges.first));
 		}
 
 		return true;
@@ -243,7 +244,21 @@ RobotRepresentation &RobotRepresentation::operator=(
 }
 
 bool RobotRepresentation::init() {
-	//TODO generate a base robot with just the core component
+
+	// Generate a core component
+	std::string coreId = "CoreComponent";
+	boost::shared_ptr<PartRepresentation> corePart = PartRepresentation::create(
+			INVERSE_PART_TYPE_MAP[PART_TYPE_CORE_COMPONENT], coreId, 0,
+			std::vector<double>());
+	if (!corePart) {
+		std::cout << "Failed to create root node" << std::endl;
+		return false;
+	}
+	bodyTree_ = corePart;
+	idToPart_[coreId] = boost::weak_ptr<PartRepresentation>(corePart);
+
+	// TODO Add Brain.
+
 	return true;
 }
 
