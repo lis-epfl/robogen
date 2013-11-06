@@ -51,13 +51,16 @@ public:
 	static std::map<class PartRepresentation, std::string> PART_REPRESENTATION_TYPE_MAP;
 
 	/**
+	 * Intializes a body part.
+	 * The orientation takes a value in [0,3] that correspond to a rotation {0, 90, 180, 270} degrees.
+	 *
 	 * @param id name of the part
 	 * @param orientation orientation of the part when attached to parent part
 	 * @param arity arity of the part
 	 * @param type of the part
 	 * @param params parameters of the part
 	 */
-	PartRepresentation(std::string id, int orientation, int arity,
+	PartRepresentation(std::string id, unsigned int orientation, unsigned int arity,
 			const std::string& type, const std::vector<double>& params,
 			const std::vector<std::string>& motors,
 			const std::vector<std::string>& sensors);
@@ -185,13 +188,11 @@ public:
 	 */
 	std::vector<std::string> getSensors();
 
-protected:
-
 	/**
 	 * As of now, only derived classes need to call this for cloning, so it's
 	 * protected
 	 */
-	int getOrientation();
+	unsigned int getOrientation();
 
 private:
 
@@ -203,12 +204,12 @@ private:
 	/**
 	 * orientation of the part when attached to parent part
 	 */
-	int orientation_;
+	unsigned int orientation_;
 
 	/**
 	 * Arity: Amount of available children slots
 	 */
-	const int arity_;
+	unsigned int arity_;
 
 	/**
 	 * Type, as required for protobuf serialization of derived classes

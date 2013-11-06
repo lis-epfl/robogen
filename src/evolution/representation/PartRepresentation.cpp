@@ -13,8 +13,8 @@
 
 namespace robogen {
 
-PartRepresentation::PartRepresentation(std::string id, int orientation,
-		int arity, const std::string& type, const std::vector<double>& params,
+PartRepresentation::PartRepresentation(std::string id, unsigned int orientation,
+		unsigned int arity, const std::string& type, const std::vector<double>& params,
 		const std::vector<std::string>& motors,
 		const std::vector<std::string>& sensors) :
 		id_(id), orientation_(orientation), arity_(arity), type_(type), parent_(NULL), params_(
@@ -31,8 +31,7 @@ std::string &PartRepresentation::getId() {
 	return id_;
 }
 
-int PartRepresentation::getOrientation() {
-
+unsigned int PartRepresentation::getOrientation() {
 	return orientation_;
 }
 

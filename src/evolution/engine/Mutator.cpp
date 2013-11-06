@@ -341,9 +341,8 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	char type = conf_->allowedBodyPartTypes[distType(rng_)];
 
 	// Randomly generate node orientation
-	float orientations[4] = { 0, 90, 180, 270 };
 	boost::random::uniform_int_distribution<> orientationDist(0, 3);
-	float curOrientation = orientations[orientationDist(rng_)];
+	unsigned int curOrientation = orientationDist(rng_);
 
 	// Randomly generate parameters
 	unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP[PART_TYPE_MAP[type]];
