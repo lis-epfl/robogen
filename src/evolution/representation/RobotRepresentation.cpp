@@ -38,6 +38,7 @@
 #include <boost/regex.hpp>
 #include "evolution/representation/PartRepresentation.h"
 #include "utils/network/ProtobufPacket.h"
+#include "PartList.h"
 
 namespace robogen {
 
@@ -121,18 +122,18 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 			std::pair<double, double> ranges =
 					PART_TYPE_PARAM_RANGE_MAP[std::make_pair(
 							PART_TYPE_MAP[type], i)];
-			double param = rawParams[i];
-			if (param < ranges.first || param > ranges.second) {
+			double rawParamValue = rawParams[i];
+			if (rawParamValue < ranges.first || rawParamValue > ranges.second) {
 				std::cout << "Error reading body part from text file.\n"
 						<< PART_TYPE_MAP[type] << " requires param " << i
 						<< " to be in [" << ranges.first << ", "
-						<< ranges.second << "], but " << param
+						<< ranges.second << "], but " << rawParamValue
 						<< " was received\n";
 				return false;
 			}
 			//add param in [0,1]
 			params.push_back(
-					(param - ranges.first) / (ranges.second - ranges.first) );
+					(rawParamValue - ranges.first) / (ranges.second - ranges.first) );
 		}
 
 		return true;
