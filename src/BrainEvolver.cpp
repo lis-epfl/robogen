@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	boost::shared_ptr<Population> population(new Population()), previous;
-	if (!population->init(referenceBot, conf->lambda, rng, mutator,
+	if (!population->init(referenceBot, conf->mu, rng, mutator,
 			growBodies)) {
 		std::cout << "Error when initializing population!" << std::endl;
 		return EXIT_FAILURE;
@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 		// create children
 		IndividualContainer children;
 		s->initPopulation(population);
-		for (unsigned int i = 0; i < conf->mu; i++) {
+		for (unsigned int i = 0; i < conf->lambda; i++) {
 			std::pair<boost::shared_ptr<RobotRepresentation>,
 					boost::shared_ptr<RobotRepresentation> > selection;
 			if (!s->select(selection)) {
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
 
 		// replace
 		population.reset(new Population());
-		if (!population->init(children, conf->lambda)) {
+		if (!population->init(children, conf->mu)) {
 			std::cout << "Error when initializing population!" << std::endl;
 			return EXIT_FAILURE;
 		}
