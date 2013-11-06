@@ -57,7 +57,7 @@ public:
 	 * @param popSize chosen size for population
 	 * @param rng boost random number generator for diverse purposes
 	 */
-	bool init(RobotRepresentation &robot, int popSize, boost::random::mt19937
+	bool init(boost::shared_ptr<RobotRepresentation> robot, int popSize, boost::random::mt19937
 			&rng);
 
 	/**
@@ -70,7 +70,7 @@ public:
 	/**
 	 * @return Best robot of the population
 	 */
-	RobotRepresentation &best();
+	boost::shared_ptr<RobotRepresentation> best();
 
 	/**
 	 * Sets the passed references to best, average and standard deviation.

@@ -35,39 +35,52 @@ namespace robogen {
 
 Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::random::mt19937 &rng) :
-		conf_(conf), type_(BRAIN_MUTATOR), rng_(rng) {
-	/*weightMutate_(conf.pBrainMutate), weightDistribution_(
-	 0., conf.brainSigma), weightCrossover_(conf.pBrainCrossover), brainMin_(
-	 conf.minBrainWeight), brainMax_(conf.maxBrainWeight),*/
+		conf_(conf), rng_(rng), weightMutate_(conf->pBrainMutate), weightDistribution_(
+				0., conf->brainSigma), weightCrossover_(conf->pBrainCrossover), brainMin_(
+				conf->minBrainWeight), brainMax_(conf->maxBrainWeight), subtreeRemovalDist_(
+				conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_REMOVAL]), subtreeDuplicationDist_(
+				conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_DUPLICATION]), subtreeSwapDist_(
+				conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_SWAPPING]), nodeInsertDist_(
+				conf->bodyOperatorProbability[EvolverConfiguration::NODE_INSERTION]), nodeRemovalDist_(
+				conf->bodyOperatorProbability[EvolverConfiguration::NODE_REMOVAL]), paramMutateDist_(
+				(conf->bodyOperatorProbability[EvolverConfiguration::PARAMETER_MODIFICATION])) {
 
-	//TODO move type to conf, init other distributions if needed
 }
 
 Mutator::~Mutator() {
 }
 
-RobotRepresentation Mutator::mutate(
-		std::pair<RobotRepresentation, RobotRepresentation> parents) {
-	// TODO copy first!
-	//this->crossover(parents.first, parents.second);
-	//this->mutate(parents.first);
-	boost::shared_ptr<RobotRepresentation> offspring = boost::shared_ptr<
-			RobotRepresentation>(new RobotRepresentation(parents.first));
+boost::shared_ptr<RobotRepresentation> Mutator::mutate(
+		boost::shared_ptr<RobotRepresentation> parent1,
+		boost::shared_ptr<RobotRepresentation> parent2) {
 
-	this->mutateBody(offspring);
+	boost::shared_ptr<RobotRepresentation> offspring1 = boost::shared_ptr<
+			RobotRepresentation>(new RobotRepresentation(*parent1.get()));
+	boost::shared_ptr<RobotRepresentation> offspring2 = boost::shared_ptr<
+			RobotRepresentation>(new RobotRepresentation(*parent2.get()));
 
-	return RobotRepresentation(*offspring.get());
-	//return parents.first;
+	// only allow crossover if doing just brain mutation
+	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_MUTATOR) {
+		this->crossover(offspring1, offspring2);
+	}
+
+	// Mutate
+	this->mutate(offspring1);
+
+	return offspring1;
 }
 
-bool Mutator::mutate(RobotRepresentation &robot) {
+bool Mutator::mutate(boost::shared_ptr<RobotRepresentation>& robot) {
+
 	bool mutated = false;
+
 	// mutate brain TODO conf bits?
-	if (type_ == BRAIN_MUTATOR || type_ == BRAIN_BODY_PARAM_MUTATOR
-			|| type_ == FULL_MUTATOR) {
+	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_MUTATOR
+			|| conf_->evolutionMode == EvolverConfiguration::FULL_MUTATOR) {
 		std::vector<double*> weights;
 		std::vector<double*> biases;
-		robot.getBrainGenome(weights, biases);
+		robot->getBrainGenome(weights, biases);
+
 		// mutate weights
 		for (unsigned int i = 0; i < weights.size(); ++i) {
 			if (weightMutate_(rng_)) {
@@ -93,53 +106,29 @@ bool Mutator::mutate(RobotRepresentation &robot) {
 				*biases[i] = brainMin_;
 		}
 		if (mutated) {
-			robot.setDirty();
+			robot->setDirty();
 		}
 	}
 
-#ifdef BODY_MUTATION
-	// let's work with hard coded mutation probability as long as this is
-	// experimental. Later, make it an option of the Mutator or even create
-	// a derived mutator, much like the selector is implemented.
-	// 1. Hard mutation: body tree mutation
-	double pBodyMutate = 0.3;
-	boost::random::bernoulli_distribution<double> bodyMutate(pBodyMutate);
-	if (bodyMutate(rng_)) {
-		// a) Add or remove a body part
-		// slight bias to adding, as remove may take away more than one bpart
-		boost::random::bernoulli_distribution<double> addNotRemove(0.6);
-		if (addNotRemove(rng_)) {
-			// robot.addRandomBodyPart(rng_);
-		}
-		else {
-			// robot.popRandomBodyPart(rng_);
-		}
-		// b) Change orientation of a body part
-		double pRotate = 0.2;
-		boost::random::bernoulli_distribution<double> rotate(pRotate);
-		if (rotate(rng_)) {
-			// robot.rotateRandomBodyPart(rng_);
-		}
+	if (conf_->evolutionMode == EvolverConfiguration::FULL_MUTATOR) {
+		this->mutateBody(robot);
 	}
-	// 2. Soft mutation: body parameter mutation
-	// TODO continue here
-	// currently, let's fix body anyways for demo purposes. Later, we can do
-	// this only whenever necessary.
-	BodyVerifier::fixRobotBody(robot);
-#endif
 
 	return mutated;
 }
 
-bool Mutator::crossover(RobotRepresentation &a, RobotRepresentation &b) {
-	if (!weightCrossover_(rng_))
+bool Mutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
+		boost::shared_ptr<RobotRepresentation>& b) {
+
+	if (!weightCrossover_(rng_)) {
 		return false;
+	}
 
 	// 1. get genomes
 	std::vector<double*> weights[2];
 	std::vector<double*> biases[2];
-	a.getBrainGenome(weights[0], biases[0]);
-	b.getBrainGenome(weights[1], biases[1]);
+	a->getBrainGenome(weights[0], biases[0]);
+	b->getBrainGenome(weights[1], biases[1]);
 
 	// 2. select crossover point
 	unsigned int maxpoint = weights[0].size() + biases[0].size() - 1;
@@ -160,8 +149,8 @@ bool Mutator::crossover(RobotRepresentation &a, RobotRepresentation &b) {
 		}
 	}
 
-	a.setDirty();
-	b.setDirty();
+	a->setDirty();
+	b->setDirty();
 	return true;
 }
 
@@ -171,7 +160,7 @@ typedef bool (Mutator::*MutationOperator)(
 typedef std::pair<MutationOperator,
 		boost::random::bernoulli_distribution<double> > MutOpPair;
 
-void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation> &robot) {
+void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	MutOpPair mutOpPairs[] = { std::make_pair(&Mutator::removeSubtree,
 			subtreeRemovalDist_), std::make_pair(&Mutator::duplicateSubtree,
@@ -266,7 +255,7 @@ bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 
 bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 
-	// Get a random root of the tree to duplicate (TODO: excluding the root node)
+	// Get a random root of the tree to duplicate
 	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
@@ -316,8 +305,7 @@ bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 	boost::shared_ptr<PartRepresentation> rootPart2 =
 			idPartMap.at(rootPartId2).lock();
 
-	// TODO Implement return robot->swapSubtrees(rootNodePart1, rootPart2);
-	return true;
+	return robot->swapSubTrees(rootPart1->getId(), rootPart2->getId());
 
 }
 
@@ -342,9 +330,8 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	char type = conf_->allowedBodyPartTypes[distType(rng_)];
 
 	// Randomly generate node orientation
-	float orientations[4] = { 0, 90, 180, 270 };
 	boost::random::uniform_int_distribution<> orientationDist(0, 3);
-	float curOrientation = orientations[orientationDist(rng_)];
+	unsigned int curOrientation = orientationDist(rng_);
 
 	// Randomly generate parameters
 	unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP[PART_TYPE_MAP[type]];
@@ -390,20 +377,21 @@ bool Mutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
 	std::advance(partToMutate, dist(rng_));
 
 	std::vector<double> params = partToMutate->second.lock()->getParams();
-	if (params.size() > 0) {
+	// Select a random parameter/or orientation to mutate
+	boost::random::uniform_int_distribution<> distMutation(0, params.size());
+	unsigned int paramToMutate = distMutation(rng_);
 
-		// Select a random parameter to mutate
-		boost::random::uniform_int_distribution<> distMutation(0,
-				params.size() - 1);
-		unsigned int paramToMutate = distMutation(rng_);
-
+	if (paramToMutate == params.size()) { //mutate orientation
+		boost::random::uniform_int_distribution<> orientationDist(0, 3);
+		unsigned int newOrientation = orientationDist(rng_);
+		partToMutate->second.lock()->setOrientation(newOrientation);
+	} else {
 		params[paramToMutate] += paramDistribution_(rng_);
 		if (params[paramToMutate] < 0) {
 			params[paramToMutate] = 0;
 		} else if (params[paramToMutate] > 1) {
 			params[paramToMutate] = 1;
 		}
-
 	}
 
 	return true;

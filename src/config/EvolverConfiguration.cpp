@@ -76,6 +76,9 @@ bool EvolverConfiguration::init(std::string confFileName) {
 		("replacement",
 				boost::program_options::value<std::string>()->required(),
 				"Type of replacement strategy: comma or plus")
+		("evolutionMode",
+				boost::program_options::value<std::string>()->required(),
+				"Mode of evolution: brain or full")
 		("pBrainMutate", boost::program_options::value<double>
 				(&pBrainMutate),"Probability of mutation for any single brain "\
 				"parameter")
@@ -129,6 +132,21 @@ bool EvolverConfiguration::init(std::string confFileName) {
 				"\" unknown. Options are \"comma\" or \"plus\"" << std::endl;
 		return false;
 	}
+
+	// parse evolution mode
+	if (vm["evolutionMode"].as<std::string>() == "brain"){
+		evolutionMode = BRAIN_MUTATOR;
+	}
+	else if (vm["evolutionMode"].as<std::string>() == "full"){
+		evolutionMode = FULL_MUTATOR;
+	}
+	else {
+		std::cout << "Specified evolution mode \"" <<
+				vm["evolutionMode"].as<std::string>() <<
+				"\" unknown. Options are \"brain\" or \"full\"" << std::endl;
+		return false;
+	}
+
 
 	// parse brain bounds.
 	static const boost::regex boundsRegex(

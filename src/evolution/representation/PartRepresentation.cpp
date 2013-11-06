@@ -13,8 +13,8 @@
 
 namespace robogen {
 
-PartRepresentation::PartRepresentation(std::string id, int orientation,
-		int arity, const std::string& type, const std::vector<double>& params,
+PartRepresentation::PartRepresentation(std::string id, unsigned int orientation,
+		unsigned int arity, const std::string& type, const std::vector<double>& params,
 		const std::vector<std::string>& motors,
 		const std::vector<std::string>& sensors) :
 		id_(id), orientation_(orientation), arity_(arity), type_(type), parent_(NULL), params_(
@@ -31,20 +31,23 @@ std::string &PartRepresentation::getId() {
 	return id_;
 }
 
-int PartRepresentation::getOrientation() {
-
-	return orientation_;
-}
-
 void PartRepresentation::setId(std::string newid) {
 	id_ = newid;
 }
 
-int PartRepresentation::getArity() {
+unsigned int PartRepresentation::getOrientation() {
+	return orientation_;
+}
+
+void PartRepresentation::setOrientation(unsigned int orientation) {
+	orientation_ = orientation;
+}
+
+unsigned int PartRepresentation::getArity() {
 	return arity_;
 }
 
-int PartRepresentation::numDescendants() {
+unsigned int PartRepresentation::numDescendants() {
 
 	int descendants = 0;
 	for (unsigned int i = 0; i < children_.size(); ++i) {
@@ -85,8 +88,8 @@ std::string &PartRepresentation::getType() {
 	return type_;
 }
 
-boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(int n) {
-	if (n < 0 || n > arity_ - 1) {
+boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(unsigned int n) {
+	if (n > arity_ - 1) {
 		std::cout << "Attempt to access non-existing slot " << n << " of part "
 				<< this->getId() << " with arity " << arity_ << std::endl;
 		return boost::shared_ptr<PartRepresentation>();
@@ -94,10 +97,10 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(int n) {
 	return children_[n];
 }
 
-bool PartRepresentation::setChild(int n,
+bool PartRepresentation::setChild(unsigned int n,
 		boost::shared_ptr<PartRepresentation> part) {
 
-	if (n < 0 || n > arity_ - 1) {
+	if (n > arity_ - 1) {
 		std::cout << "Attempt to access non-existing slot " << n << " of part "
 				<< this->getId() << " with arity " << arity_ << std::endl;
 		return false;
@@ -156,14 +159,18 @@ void PartRepresentation::addSubtreeToBodyMessage(
 	for (unsigned int i = 0; i < params_.size(); ++i) {
 		robogenMessage::EvolvableParameter *param =
 				serialization->add_evolvableparam();
-		param->set_paramvalue(params_[i]);
+
+		//convert parameters from [0,1] back to valid range
+		std::pair<double, double> ranges = PART_TYPE_PARAM_RANGE_MAP[std::make_pair(this->getType(), i)];
+		double paramValue = (params_[i] * (ranges.second - ranges.first)) + ranges.first;
+		param->set_paramvalue(paramValue);
 	}
 
 	// required int32 orientation = 5;
 	serialization->set_orientation(orientation_);
 
 	// treat children, including connection
-	for (int i = 0; i < arity_; i++) {
+	for (unsigned int i = 0; i < arity_; i++) {
 		if (this->getChild(i)) {
 			robogenMessage::BodyConnection *connection =
 					bodyMessage->add_connection();
@@ -215,7 +222,7 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::cloneSubtree() {
 					this->getArity(), this->getType(), this->getParams(),
 					this->getMotors(), this->getSensors()));
 	// deep copy all children
-	for (int i = 0; i < this->getArity(); i++) {
+	for (unsigned int i = 0; i < this->getArity(); i++) {
 		if (this->getChild(i)) {
 			theClone->setChild(i, this->getChild(i)->cloneSubtree());
 		}

@@ -91,8 +91,8 @@ int main(int argc, char *argv[]) {
 	// parse robot from file & initialize population
 	// ---------------------------------------
 
-	RobotRepresentation referenceBot;
-	if (!referenceBot.init(conf->referenceRobotFile)) {
+	boost::shared_ptr<RobotRepresentation> referenceBot(new RobotRepresentation());
+	if (!referenceBot->init(conf->referenceRobotFile)) {
 		std::cout << "Failed interpreting robot from text file" << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -133,28 +133,32 @@ int main(int argc, char *argv[]) {
 		IndividualContainer children;
 		s->initPopulation(population);
 		for (unsigned int i = 0; i < conf->mu; i++) {
-			boost::shared_ptr<
-					std::pair<RobotRepresentation, RobotRepresentation> > selection;
+			std::pair<boost::shared_ptr<RobotRepresentation>,
+							boost::shared_ptr<RobotRepresentation> > selection;
 			if (!s->select(selection)) {
 				std::cout << "Selector::select() failed." << std::endl;
 				return EXIT_FAILURE;
 			}
-			children.push_back(m.mutate(*selection.get()));
-			// TODO mutate() error handling?
+			children.push_back(m.mutate(selection.first, selection.second));
 		}
+
 		// evaluate children
 		children.evaluate(robotConf, sockets);
+
 		// comma or plus?
 		if (conf->replacement == conf->PLUS_REPLACEMENT) {
 			children += *population.get();
 		}
+
 		// replace
 		population.reset(new Population());
 		if (!population->init(children, conf->lambda)) {
 			std::cout << "Error when intializing population!" << std::endl;
 			return EXIT_FAILURE;
 		}
-		if (!log->logGeneration(generation, *population.get()))
+
+		if (!log->logGeneration(generation, *population.get())) {
 			return EXIT_FAILURE;
+		}
 	}
 }
