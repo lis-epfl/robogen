@@ -80,7 +80,7 @@ public:
 	 * @param robotSpec
 	 */
 	bool init(dWorldID odeWorld, dSpaceID odeSpace,
-			const robogenMessage::Robot& robotSpec);
+			robogenMessage::Robot& robotSpec);
 
 	/**
 	 * Destructor
@@ -135,6 +135,16 @@ public:
 	 */
 	int getId() const;
 
+	/**
+	 * @return message that generated the robot
+	 */
+	robogenMessage::Robot& getMessage();
+
+	const std::vector<boost::shared_ptr<Connection> >& getBodyConnections()
+			const;
+	void traverseBody(const std::vector<boost::shared_ptr<Model> >,
+			const std::vector<boost::shared_ptr<Connection> >);
+	int getRoot();
 private:
 
 	/**
@@ -230,6 +240,12 @@ private:
 	 * Joint group of connections between parts
 	 */
 	dJointGroupID connectionJointGroup_;
+
+	/**
+	 * Contains the robot message
+	 */
+
+	robogenMessage::Robot* robotMessage_;
 };
 
 }

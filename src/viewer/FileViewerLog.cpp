@@ -15,6 +15,7 @@
 #include <boost/timer/timer.hpp>
 #include <boost/shared_ptr.hpp>
 #include "arduino/ArduinoNNCompiler.h"
+#include "printing/BodyCompiler.h"
 #include "model/sensors/Sensor.h"
 
 #define LOG_DIRECTORY_PREFIX "results/FileViewer_"
@@ -25,6 +26,7 @@
 #define MOTOR_LOG_FILE "motorLog.txt"
 #define TIME_LOG_FILE "timeLog.txt"
 #define ARDUINO_NN_FILE "NeuralNetwork.h"
+#define BODY_FILE "bodyRepresentation.txt"
 #define LOG_COL_WIDTH 12
 #define OCTAVE_SCRIPT "robogenPlot.m"
 
@@ -80,10 +82,21 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 	std::ofstream arduinoNN;
 	arduinoNN.open(arduinoNNPath.c_str());
 	if (!motorLog_.is_open()){
-		std::cout << "Can't open motor log file" << std::endl;
+		std::cout << "Can't open arduino neural net log file" << std::endl;
 		return false;
 	}
 	ArduinoNNCompiler::compile(*robot.get(),arduinoNN);
+
+	// compile neural network representation for Body
+	// open motor log
+	std::string bodyPath = logPathSs.str() + "/" + BODY_FILE;
+	std::ofstream body;
+	body.open(bodyPath.c_str());
+	if (!motorLog_.is_open()){
+		std::cout << "Can't open body log file" << std::endl;
+		return false;
+	}
+	BodyCompiler::compile(*robot.get(),body);
 
 	// copy robot file
 	boost::filesystem::path robotFrom(robotFile);

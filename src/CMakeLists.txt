@@ -77,6 +77,7 @@ file (GLOB_RECURSE
      evolution/representation/*.cpp
      evolution/representation/parts/*.cpp
      model/*.cpp
+     printing/*.cpp
      render/*.cpp
      scenario/*.cpp
      utils/*.cpp
