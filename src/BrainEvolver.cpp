@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
 
 	// create random number generator
 	boost::random::mt19937 rng;
+	//TODO allow ability to configure seed
 
 	// ---------------------------------------
 	// verify usage and load configuration
@@ -80,7 +81,8 @@ int main(int argc, char *argv[]) {
 				<< std::endl;
 		return EXIT_FAILURE;
 	}
-	Mutator m(conf, rng);
+	boost::shared_ptr<Mutator> mutator = boost::shared_ptr<Mutator>(
+			new Mutator(conf, rng));
 	boost::shared_ptr<EvolverLog> log(new EvolverLog());
 	if (!log->init(std::string(argv[1]))) {
 		std::cout << "Error creating evolver log. Aborting." << std::endl;
@@ -91,14 +93,33 @@ int main(int argc, char *argv[]) {
 	// parse robot from file & initialize population
 	// ---------------------------------------
 
-	boost::shared_ptr<RobotRepresentation> referenceBot(new RobotRepresentation());
-	if (!referenceBot->init(conf->referenceRobotFile)) {
-		std::cout << "Failed interpreting robot from text file" << std::endl;
+	boost::shared_ptr<RobotRepresentation> referenceBot(
+			new RobotRepresentation());
+	bool growBodies = false;
+	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
+			&& conf->referenceRobotFile.compare("")) {
+		std::cout << "Trying to evolve brain, but no robot file provided."
+				<< std::endl;
 		return EXIT_FAILURE;
+	} else if (!conf->referenceRobotFile.compare("")) {
+		if (!referenceBot->init(conf->referenceRobotFile)) {
+			std::cout << "Failed interpreting robot from text file"
+					<< std::endl;
+			return EXIT_FAILURE;
+		}
+	} else { //doing body evolution and don't have a reference robot
+		if (referenceBot->init()) {
+			growBodies = true;
+		} else {
+			std::cout << "Failed creating base robot for body evolution"
+					<< std::endl;
+			return EXIT_FAILURE;
+		}
 	}
 	boost::shared_ptr<Population> population(new Population()), previous;
-	if (!population->init(referenceBot, conf->lambda, rng)) {
-		std::cout << "Error when intializing population!" << std::endl;
+	if (!population->init(referenceBot, conf->lambda, rng, mutator,
+			growBodies)) {
+		std::cout << "Error when initializing population!" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -111,7 +132,8 @@ int main(int argc, char *argv[]) {
 		sockets[i] = new TcpSocket;
 #ifndef FAKEROBOTREPRESENTATION_H // do not bother with sockets when using
 		// benchmark
-		if (!sockets[i]->open(conf->sockets[i].first, conf->sockets[i].second)){
+		if (!sockets[i]->open(conf->sockets[i].first,
+				conf->sockets[i].second)) {
 			std::cout << "Could not open connection to simulator" << std::endl;
 			return EXIT_FAILURE;
 		}
@@ -134,12 +156,13 @@ int main(int argc, char *argv[]) {
 		s->initPopulation(population);
 		for (unsigned int i = 0; i < conf->mu; i++) {
 			std::pair<boost::shared_ptr<RobotRepresentation>,
-							boost::shared_ptr<RobotRepresentation> > selection;
+					boost::shared_ptr<RobotRepresentation> > selection;
 			if (!s->select(selection)) {
 				std::cout << "Selector::select() failed." << std::endl;
 				return EXIT_FAILURE;
 			}
-			children.push_back(m.mutate(selection.first, selection.second));
+			children.push_back(
+					mutator->mutate(selection.first, selection.second));
 		}
 
 		// evaluate children
@@ -153,7 +176,7 @@ int main(int argc, char *argv[]) {
 		// replace
 		population.reset(new Population());
 		if (!population->init(children, conf->lambda)) {
-			std::cout << "Error when intializing population!" << std::endl;
+			std::cout << "Error when initializing population!" << std::endl;
 			return EXIT_FAILURE;
 		}
 

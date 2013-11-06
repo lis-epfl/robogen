@@ -37,13 +37,14 @@
 #include "evolution/engine/IndividualContainer.h"
 #include "evolution/representation/RobotRepresentation.h"
 #include "utils/network/TcpSocket.h"
+#include "evolution/engine/Mutator.h"
 
 // enable the following to perform body mutation:
 // #define BODY_MUTATION
 
 namespace robogen {
 
-class Population : public IndividualContainer {
+class Population: public IndividualContainer {
 public:
 	/**
 	 * Empty constructor initializes IndividualContainer class
@@ -56,9 +57,12 @@ public:
 	 * @param robot Reference robot body
 	 * @param popSize chosen size for population
 	 * @param rng boost random number generator for diverse purposes
+	 * @param mutator Mutator for possibly growing bodies randomly
+	 * @param growBodies bool whether we should grow bodies or not
 	 */
-	bool init(boost::shared_ptr<RobotRepresentation> robot, int popSize, boost::random::mt19937
-			&rng);
+	bool init(boost::shared_ptr<RobotRepresentation> robot, int popSize,
+			boost::random::mt19937 &rng, boost::shared_ptr<Mutator> mutator,
+			bool growBodies);
 
 	/**
 	 * Creates a population from the popSize best individuals of origin.

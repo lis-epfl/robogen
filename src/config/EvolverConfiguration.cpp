@@ -86,6 +86,9 @@ bool EvolverConfiguration::init(std::string confFileName) {
 				&brainSigma), "Sigma of brain parameter mutation")
 		("brainBounds", boost::program_options::value<std::string>()
 				->required(), "Bounds of brain weights. Format: min:max")
+		("numInitialParts", boost::program_options::value<std::string>()
+						->required(), "Number of initial body parts (not "\
+						"including core component). Format: min:max")
 		("pBrainCrossover",
 				boost::program_options::value<double>(
 				&pBrainCrossover), "Probability of crossover among brains")
@@ -135,10 +138,10 @@ bool EvolverConfiguration::init(std::string confFileName) {
 
 	// parse evolution mode
 	if (vm["evolutionMode"].as<std::string>() == "brain"){
-		evolutionMode = BRAIN_MUTATOR;
+		evolutionMode = BRAIN_EVOLVER;
 	}
 	else if (vm["evolutionMode"].as<std::string>() == "full"){
-		evolutionMode = FULL_MUTATOR;
+		evolutionMode = FULL_EVOLVER;
 	}
 	else {
 		std::cout << "Specified evolution mode \"" <<
@@ -162,6 +165,21 @@ bool EvolverConfiguration::init(std::string confFileName) {
 	}
 	minBrainWeight = std::atof(match[1].first);
 	maxBrainWeight = std::atof(match[2].first);
+
+	static const boost::regex initPartsRegex(
+				"^(\\d+):(\\d+)$");
+	if (!vm["numInitialParts"].as<std::string>().compare("") == 0) {
+		if (!boost::regex_match(vm["numInitialParts"].as<std::string>().c_str(),
+				match, initPartsRegex)){
+			std::cout << "Supplied numInitialParts argument \"" <<
+					vm["numInitialParts"].as<std::string>() <<
+					"\" does not match pattern <min>:<max>" << std::endl;
+			return false;
+		}
+		minNumInitialParts = std::atof(match[1].first);
+		maxNumInitialParts = std::atof(match[2].first);
+	}
+
 
 	// parse sockets. The used regex is not super-restrictive, but we count
 	// on the TcpSocket to find the error... else:

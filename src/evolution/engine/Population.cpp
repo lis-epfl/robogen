@@ -47,7 +47,8 @@ Population::Population() :
 }
 
 bool Population::init(boost::shared_ptr<RobotRepresentation> robot, int popSize,
-		boost::random::mt19937 &rng) {
+		boost::random::mt19937 &rng, boost::shared_ptr<Mutator> mutator,
+		bool growBodies) {
 
 	// fill population vector
 	for (int i = 0; i < popSize; i++) {
@@ -58,6 +59,9 @@ bool Population::init(boost::shared_ptr<RobotRepresentation> robot, int popSize,
 		this->back()->randomizeBrain(rng);
 		this->back()->setDirty();
 
+		if (growBodies) {
+			mutator->growBodyRandomly(this->back());
+		}
 		// this->back().randomizeBody(); // TODO stub
 		//BodyVerifier::fixRobotBody(this->back());
 	}
