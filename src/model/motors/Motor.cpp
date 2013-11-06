@@ -30,11 +30,11 @@
 
 namespace robogen{
 
-Motor::Motor(NeuralNetworkRepresentation::ioPair id) : id_(id){
+Motor::Motor(ioPair id) : id_(id){
 
 }
 
-NeuralNetworkRepresentation::ioPair Motor::getId(){
+ioPair Motor::getId(){
 	return id_;
 }
 

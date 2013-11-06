@@ -41,14 +41,14 @@ const float ServoMotor::MIN_VELOCITY = -3;
 const float ServoMotor::MAX_VELOCITY = 3;
 
 ServoMotor::ServoMotor(dJointID joint, float maxForce, float gain,
-		NeuralNetworkRepresentation::ioPair id) : Motor(id),
+		ioPair id) : Motor(id),
 		joint_(joint), maxForce_(maxForce), gain_(gain), isVelocityDriven_(
 				false){
 	dJointSetHingeParam(joint_, dParamFMax, maxForce_);
 }
 
 ServoMotor::ServoMotor(dJointID joint, float maxForce,
-		NeuralNetworkRepresentation::ioPair id) : Motor(id),
+		ioPair id) : Motor(id),
 		joint_(joint), maxForce_(maxForce), gain_(0), isVelocityDriven_(
 				true) {
 	dJointSetHingeParam(joint_, dParamFMax, maxForce_);

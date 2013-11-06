@@ -27,12 +27,16 @@
  */
 
 #include "evolution/representation/NeuronRepresentation.h"
+#include <sstream>
 
 namespace robogen {
 
-NeuronRepresentation::NeuronRepresentation(std::string id, std::string layer,
-		double bias, std::string bodyPart, int ioId) :
-		id_(id), layer_(layer), bias_(bias), bodyPart_(bodyPart), ioId_(ioId){
+NeuronRepresentation::NeuronRepresentation(ioPair identification,
+		bool isOutput, double bias) :
+		identification_(identification), isOutput_(isOutput), bias_(bias){
+	std::stringstream ss;
+	ss << identification.first + "-" << identification.second;
+	id_ = ss.str();
 }
 
 NeuronRepresentation::~NeuronRepresentation() {
@@ -43,7 +47,7 @@ std::string &NeuronRepresentation::getId(){
 }
 
 bool NeuronRepresentation::isInput(){
-	return layer_ == "input";
+	return !isOutput_;
 }
 
 void NeuronRepresentation::setBias(double value){
@@ -54,13 +58,17 @@ double *NeuronRepresentation::getBiasPointer(){
 	return &bias_;
 }
 
+ioPair NeuronRepresentation::getIoPair(){
+	return identification_;
+}
+
 robogenMessage::Neuron NeuronRepresentation::serialize(){
 	robogenMessage::Neuron serialization;
 	serialization.set_id(id_);
-	serialization.set_layer(layer_);
+	serialization.set_layer(isOutput_?("output"):("input"));
 	serialization.set_biasweight(bias_);
-	serialization.set_bodypartid(bodyPart_);
-	serialization.set_ioid(ioId_);
+	serialization.set_bodypartid(identification_.first);
+	serialization.set_ioid(identification_.second);
 	return serialization;
 }
 

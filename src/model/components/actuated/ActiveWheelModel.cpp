@@ -94,7 +94,7 @@ bool ActiveWheelModel::initModel() {
    // Create servo
    this->motor_.reset(
          new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE,
-        		 NeuralNetworkRepresentation::ioPair(this->getId(),0)));
+        		 ioPair(this->getId(),0)));
 
    return true;
 

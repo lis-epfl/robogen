@@ -105,7 +105,7 @@ bool RotateJointModel::initModel() {
 	this->motor_.reset(
 			new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE,
 					ServoMotor::DEFAULT_GAIN,
-					NeuralNetworkRepresentation::ioPair(this->getId(),0)));
+					ioPair(this->getId(),0)));
 
 	return true;
 
