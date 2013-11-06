@@ -37,73 +37,83 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include "robogen.pb.h"
 #include "utils/network/ProtobufPacket.h"
-#ifdef BODY_MUTATION
 #include "evolution/engine/BodyVerifier.h"
-#endif
 
 namespace robogen {
 
-Population::Population() : IndividualContainer(){
+Population::Population() :
+		IndividualContainer() {
 
 }
 
-bool Population::init(RobotRepresentation &robot, int popSize,
-		boost::random::mt19937	&rng){
+bool Population::init(boost::shared_ptr<RobotRepresentation> robot, int popSize,
+		boost::random::mt19937 &rng) {
+
 	// fill population vector
-	for (int i=0; i<popSize; i++){
-		this->push_back(RobotRepresentation(robot));
-		this->back().randomizeBrain(rng);
-		this->back().setDirty();
-#ifdef BODY_MUTATION
+	for (int i = 0; i < popSize; i++) {
+
+		this->push_back(robot);
+		this->back()->randomizeBrain(rng);
+		this->back()->setDirty();
+
 		// this->back().randomizeBody(); // TODO stub
-		BodyVerifier::fixRobotBody(this->back());
-#endif
+		//BodyVerifier::fixRobotBody(this->back());
 	}
 	return true;
 }
 
-bool Population::init(const IndividualContainer &origin, unsigned int popSize){
-	if (!origin.areEvaluated()){
-		std::cout << "Trying to initialize population of n best Robots from "\
+bool Population::init(const IndividualContainer &origin, unsigned int popSize) {
+
+	if (!origin.areEvaluated()) {
+		std::cout << "Trying to initialize population of n best Robots from "
 				"IndividualContainer which is not evaluated!" << std::endl;
 		return false;
 	}
-	for (unsigned int i=0; i<origin.size(); i++){
-		this->push_back(RobotRepresentation(origin[i]));
+
+	for (unsigned int i = 0; i < origin.size(); i++) {
+		this->push_back(origin[i]);
 	}
+
 	this->sort();
+
 	// idea was to call this->resize(popSize);, but that requires a default
 	// constructor to be present for RobotRepresentation, which is not the case
 	// on purpose
-	while (this->size()>popSize) this->pop_back();
+	while (this->size() > popSize) {
+		this->pop_back();
+	}
+
 	this->evaluated_ = true;
+
 	return true;
 }
 
 Population::~Population() {
 }
 
-RobotRepresentation &Population::best(){
-	if (!this->areEvaluated()){ // undefined behavior. No exception (hint)
+boost::shared_ptr<RobotRepresentation> Population::best() {
+	if (!this->areEvaluated()) { // undefined behavior. No exception (hint)
 		return this->at(0);
 	}
 	this->sort();
 	return this->at(0);
 }
 
-bool Population::getStat(double &bestFit, double &average, double &stdev) const{
-	if (!this->areEvaluated()){
-		std::cout << "Trying to get stats on non-evaluated population" <<
-				std::endl;
+bool Population::getStat(double &bestFit, double &average,
+		double &stdev) const {
+	if (!this->areEvaluated()) {
+		std::cout << "Trying to get stats on non-evaluated population"
+				<< std::endl;
 	}
 	boost::accumulators::accumulator_set<double,
-	boost::accumulators::stats<boost::accumulators::tag::mean,
-	boost::accumulators::tag::variance,
-	boost::accumulators::tag::max> > acc;
-	for (unsigned int i=0; i<this->size(); i++) acc(this->at(i).getFitness());
+			boost::accumulators::stats<boost::accumulators::tag::mean,
+					boost::accumulators::tag::variance,
+					boost::accumulators::tag::max> > acc;
+	for (unsigned int i = 0; i < this->size(); i++)
+		acc(this->at(i)->getFitness());
 	bestFit = boost::accumulators::max(acc);
 	average = boost::accumulators::mean(acc);
-	stdev = std::sqrt((double)boost::accumulators::variance(acc));
+	stdev = std::sqrt((double) boost::accumulators::variance(acc));
 	return true;
 }
 

@@ -35,51 +35,52 @@ namespace robogen {
 
 Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::random::mt19937 &rng) :
-		conf_(conf), rng_(rng),
-		weightMutate_(conf->pBrainMutate),
-		weightDistribution_(0., conf->brainSigma),
-		weightCrossover_(conf->pBrainCrossover),
-		brainMin_(conf->minBrainWeight),
-		brainMax_(conf->maxBrainWeight),
-		subtreeRemovalDist_(conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_REMOVAL]),
-		subtreeDuplicationDist_(conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_DUPLICATION]),
-
-		subtreeSwapDist_(conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_SWAPPING]),
-		nodeInsertDist_(conf->bodyOperatorProbability[EvolverConfiguration::NODE_INSERTION]),
-		nodeRemovalDist_(conf->bodyOperatorProbability[EvolverConfiguration::NODE_REMOVAL]),
-		paramMutateDist_((conf->bodyOperatorProbability[EvolverConfiguration::PARAMETER_MODIFICATION])) {
+		conf_(conf), rng_(rng), weightMutate_(conf->pBrainMutate), weightDistribution_(
+				0., conf->brainSigma), weightCrossover_(conf->pBrainCrossover), brainMin_(
+				conf->minBrainWeight), brainMax_(conf->maxBrainWeight), subtreeRemovalDist_(
+				conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_REMOVAL]), subtreeDuplicationDist_(
+				conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_DUPLICATION]), subtreeSwapDist_(
+				conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_SWAPPING]), nodeInsertDist_(
+				conf->bodyOperatorProbability[EvolverConfiguration::NODE_INSERTION]), nodeRemovalDist_(
+				conf->bodyOperatorProbability[EvolverConfiguration::NODE_REMOVAL]), paramMutateDist_(
+				(conf->bodyOperatorProbability[EvolverConfiguration::PARAMETER_MODIFICATION])) {
 
 }
 
 Mutator::~Mutator() {
 }
 
-RobotRepresentation Mutator::mutate(
-		std::pair<RobotRepresentation, RobotRepresentation> parents) {
-	// TODO copy first!
+boost::shared_ptr<RobotRepresentation> Mutator::mutate(
+		boost::shared_ptr<RobotRepresentation> parent1,
+		boost::shared_ptr<RobotRepresentation> parent2) {
 
-	//only allow crossover if doing just brain mutation
-	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_MUTATOR)
-		this->crossover(parents.first, parents.second);
+	boost::shared_ptr<RobotRepresentation> offspring1 = boost::shared_ptr<
+			RobotRepresentation>(new RobotRepresentation(*parent1.get()));
+	boost::shared_ptr<RobotRepresentation> offspring2 = boost::shared_ptr<
+			RobotRepresentation>(new RobotRepresentation(*parent2.get()));
 
-	this->mutate(parents.first);
-	boost::shared_ptr<RobotRepresentation> offspring = boost::shared_ptr<
-			RobotRepresentation>(new RobotRepresentation(parents.first));
+	// only allow crossover if doing just brain mutation
+	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_MUTATOR) {
+		this->crossover(offspring1, offspring2);
+	}
 
+	// Mutate
+	this->mutate(offspring1);
 
-
-	return RobotRepresentation(*offspring.get());
-	//return parents.first;
+	return offspring1;
 }
 
-bool Mutator::mutate(RobotRepresentation &robot) {
+bool Mutator::mutate(boost::shared_ptr<RobotRepresentation>& robot) {
+
 	bool mutated = false;
+
 	// mutate brain TODO conf bits?
 	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_MUTATOR
 			|| conf_->evolutionMode == EvolverConfiguration::FULL_MUTATOR) {
 		std::vector<double*> weights;
 		std::vector<double*> biases;
-		robot.getBrainGenome(weights, biases);
+		robot->getBrainGenome(weights, biases);
+
 		// mutate weights
 		for (unsigned int i = 0; i < weights.size(); ++i) {
 			if (weightMutate_(rng_)) {
@@ -105,24 +106,29 @@ bool Mutator::mutate(RobotRepresentation &robot) {
 				*biases[i] = brainMin_;
 		}
 		if (mutated) {
-			robot.setDirty();
+			robot->setDirty();
 		}
-	} else if(conf_->evolutionMode == EvolverConfiguration::FULL_MUTATOR) {
-		//this->mutateBody(robot);
+	}
+
+	if (conf_->evolutionMode == EvolverConfiguration::FULL_MUTATOR) {
+		this->mutateBody(robot);
 	}
 
 	return mutated;
 }
 
-bool Mutator::crossover(RobotRepresentation &a, RobotRepresentation &b) {
-	if (!weightCrossover_(rng_))
+bool Mutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
+		boost::shared_ptr<RobotRepresentation>& b) {
+
+	if (!weightCrossover_(rng_)) {
 		return false;
+	}
 
 	// 1. get genomes
 	std::vector<double*> weights[2];
 	std::vector<double*> biases[2];
-	a.getBrainGenome(weights[0], biases[0]);
-	b.getBrainGenome(weights[1], biases[1]);
+	a->getBrainGenome(weights[0], biases[0]);
+	b->getBrainGenome(weights[1], biases[1]);
 
 	// 2. select crossover point
 	unsigned int maxpoint = weights[0].size() + biases[0].size() - 1;
@@ -143,8 +149,8 @@ bool Mutator::crossover(RobotRepresentation &a, RobotRepresentation &b) {
 		}
 	}
 
-	a.setDirty();
-	b.setDirty();
+	a->setDirty();
+	b->setDirty();
 	return true;
 }
 
@@ -154,7 +160,7 @@ typedef bool (Mutator::*MutationOperator)(
 typedef std::pair<MutationOperator,
 		boost::random::bernoulli_distribution<double> > MutOpPair;
 
-void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation> &robot) {
+void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	MutOpPair mutOpPairs[] = { std::make_pair(&Mutator::removeSubtree,
 			subtreeRemovalDist_), std::make_pair(&Mutator::duplicateSubtree,
@@ -372,10 +378,10 @@ bool Mutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	std::vector<double> params = partToMutate->second.lock()->getParams();
 	// Select a random parameter/or orientation to mutate
-	boost::random::uniform_int_distribution<> distMutation(0,params.size());
+	boost::random::uniform_int_distribution<> distMutation(0, params.size());
 	unsigned int paramToMutate = distMutation(rng_);
 
-	if ( paramToMutate == params.size() ) { //mutate orientation
+	if (paramToMutate == params.size()) { //mutate orientation
 		boost::random::uniform_int_distribution<> orientationDist(0, 3);
 		unsigned int newOrientation = orientationDist(rng_);
 		partToMutate->second.lock()->setOrientation(newOrientation);

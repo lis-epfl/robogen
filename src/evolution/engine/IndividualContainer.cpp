@@ -49,31 +49,38 @@ IndividualContainer::~IndividualContainer() {
  * @param socket socket to simulator
  * @param confFile simulator configuration file to be used for evaluations
  */
-void evaluationThread(std::queue<RobotRepresentation*> *indiQueue,
+void evaluationThread(
+		std::queue<boost::shared_ptr<RobotRepresentation> >& indiQueue,
 		boost::mutex *queueMutex, TcpSocket *socket,
 		boost::shared_ptr<RobogenConfig> robotConf) {
+
 	while (true) {
+
 		boost::mutex::scoped_lock lock(*queueMutex);
-		if (indiQueue->empty())
+		if (indiQueue.empty()) {
 			return;
-		RobotRepresentation *current = indiQueue->front();
-		indiQueue->pop();
+		}
+
+		boost::shared_ptr<RobotRepresentation> current = indiQueue.front();
+		indiQueue.pop();
 		std::cout << "." << std::flush;
 		lock.unlock();
 
 		current->evaluate(socket, robotConf);
+
 	}
+
 }
 
 void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 		std::vector<TcpSocket*> &sockets) {
 
 	// 1. Create mutexed queue of Individual pointers
-	std::queue<RobotRepresentation*> indiQueue;
+	std::queue<boost::shared_ptr<RobotRepresentation> > indiQueue;
 	boost::mutex queueMutex;
 	for (unsigned int i = 0; i < this->size(); i++) {
-		if (!this->at(i).isEvaluated()) {
-			indiQueue.push(&this->at(i));
+		if (!this->at(i)->isEvaluated()) {
+			indiQueue.push(this->at(i));
 		}
 	}
 	std::cout << indiQueue.size() << " individuals queued for evaluation."
@@ -85,30 +92,43 @@ void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 	// 3. Launch threads
 	for (unsigned int i = 0; i < sockets.size(); i++) {
 		evaluators.add_thread(
-				new boost::thread(evaluationThread, &indiQueue, &queueMutex,
+				new boost::thread(evaluationThread, indiQueue, &queueMutex,
 						sockets[i], robotConf));
 	}
 
 	// 4. Join threads. Individuals are now evaluated.
 	evaluators.join_all();
+
 	// newline after per-individual dots
 	std::cout << std::endl;
 
 	evaluated_ = true;
 }
 
+bool robotFitnessComparator(const boost::shared_ptr<RobotRepresentation>& a,
+		const boost::shared_ptr<RobotRepresentation>& b) {
+
+	return a->getFitness() > b->getFitness();
+
+}
+
 void IndividualContainer::sort() {
-	if (sorted_)
+
+	if (sorted_) {
 		return;
-	std::sort(this->begin(), this->end(), operator >);
+	}
+
+	std::sort(this->begin(), this->end(), robotFitnessComparator);
 	sorted_ = true;
 }
 
 IndividualContainer &IndividualContainer::operator +=(
 		const IndividualContainer &other) {
+
 	this->insert(this->end(), other.begin(), other.end());
 	sorted_ = false;
 	return *this;
+
 }
 
 bool IndividualContainer::areEvaluated() const {

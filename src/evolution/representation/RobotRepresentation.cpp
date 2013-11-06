@@ -660,10 +660,6 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 	return true;
 }
 
-bool operator >(const RobotRepresentation &a, const RobotRepresentation &b) {
-	return a.getFitness() > b.getFitness();
-}
-
 }
 
 #endif /* usage of fake robot representation */

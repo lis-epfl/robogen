@@ -61,8 +61,11 @@ public:
 	/**
 	 * Performs mutation and crossover on a pair of robots
 	 */
-	RobotRepresentation mutate(
-			std::pair<RobotRepresentation, RobotRepresentation> parents);
+	boost::shared_ptr<RobotRepresentation> mutate(boost::shared_ptr<RobotRepresentation> parent1,
+			boost::shared_ptr<RobotRepresentation> parent2);
+
+
+private:
 
 	/**
 	 * Mutates a single robot
@@ -70,16 +73,15 @@ public:
 	 * @todo specify bounds in the Neural Network, not here, e.g. with
 	 * a MutableDouble class
 	 */
-	bool mutate(RobotRepresentation &robot);
+	bool mutate(boost::shared_ptr<RobotRepresentation>& robot);
 
 	/**
 	 * Performs crossover between two robots
 	 * @return true if some crossover has been performed
 	 * @todo enable asymmetric crossover
 	 */
-	bool crossover(RobotRepresentation &a, RobotRepresentation &b);
-
-private:
+	bool crossover(boost::shared_ptr<RobotRepresentation>& a,
+			boost::shared_ptr<RobotRepresentation>& b);
 
 	/**
 	 * Mutation operators
@@ -104,16 +106,6 @@ private:
 	boost::random::mt19937 &rng_;
 
 	/**
-	 * Probability distribution for calling mutation operators
-	 */
-	boost::random::bernoulli_distribution<double> subtreeRemovalDist_;
-	boost::random::bernoulli_distribution<double> subtreeDuplicationDist_;
-	boost::random::bernoulli_distribution<double> subtreeSwapDist_;
-	boost::random::bernoulli_distribution<double> nodeInsertDist_;
-	boost::random::bernoulli_distribution<double> nodeRemovalDist_;
-	boost::random::bernoulli_distribution<double> paramMutateDist_;
-
-	/**
 	 * Diverse distributions to be used for mutation
 	 */
 	boost::random::bernoulli_distribution<double> weightMutate_;
@@ -124,14 +116,19 @@ private:
 	double brainMin_;
 	double brainMax_;
 
-
-
-
-
-
+	/**
+	 * Probability distribution for calling mutation operators
+	 */
+	boost::random::bernoulli_distribution<double> subtreeRemovalDist_;
+	boost::random::bernoulli_distribution<double> subtreeDuplicationDist_;
+	boost::random::bernoulli_distribution<double> subtreeSwapDist_;
+	boost::random::bernoulli_distribution<double> nodeInsertDist_;
+	boost::random::bernoulli_distribution<double> nodeRemovalDist_;
+	boost::random::bernoulli_distribution<double> paramMutateDist_;
 
 
 };
 
-} /* namespace robogen */
+}
+
 #endif /* MUTATOR_H_ */

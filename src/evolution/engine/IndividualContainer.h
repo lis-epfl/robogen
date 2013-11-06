@@ -37,7 +37,8 @@ namespace robogen {
 
 // TODO transform to shared pointer?
 
-class IndividualContainer: public std::vector<RobotRepresentation> {
+class IndividualContainer: public std::vector<boost::shared_ptr<RobotRepresentation> > {
+
 public:
 
 	IndividualContainer();
@@ -68,10 +69,13 @@ public:
 	bool areEvaluated() const;
 
 protected:
+
 	bool evaluated_;
 
 private:
+
 	bool sorted_;
+
 };
 
 } /* namespace robogen */
