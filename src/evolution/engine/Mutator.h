@@ -88,6 +88,19 @@ public:
 	bool crossover(RobotRepresentation &a, RobotRepresentation &b);
 
 private:
+
+	/**
+	 * Mutation operators
+	 */
+	void mutateBody(boost::shared_ptr<RobotRepresentation>& robot);
+	bool removeSubtree(boost::shared_ptr<RobotRepresentation>& robot);
+	bool duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot);
+	bool swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot);
+	bool insertNode(boost::shared_ptr<RobotRepresentation>& robot);
+	bool removeNode(boost::shared_ptr<RobotRepresentation>& robot);
+	bool mutateParams(boost::shared_ptr<RobotRepresentation>& robot);
+
+
 	/**
 	 * Evolver Configuration
 	 */
@@ -97,6 +110,21 @@ private:
 	 * Type of mutator behavior from types enum
 	 */
 	int type_;
+
+	/**
+	 * Random number generator
+	 */
+	boost::random::mt19937 &rng_;
+
+	/**
+	 * Probability distribution for calling mutation operators
+	 */
+	boost::random::bernoulli_distribution<double> subtreeRemovalDist_;
+	boost::random::bernoulli_distribution<double> subtreeDuplicationDist_;
+	boost::random::bernoulli_distribution<double> subtreeSwapDist_;
+	boost::random::bernoulli_distribution<double> nodeInsertDist_;
+	boost::random::bernoulli_distribution<double> nodeRemovalDist_;
+	boost::random::bernoulli_distribution<double> paramMutateDist_;
 
 	/**
 	 * Diverse distributions to be used for mutation
@@ -109,25 +137,11 @@ private:
 	double brainMin_;
 	double brainMax_;
 
-	boost::random::bernoulli_distribution<double> subtreeRemoval_;
-	boost::random::bernoulli_distribution<double> subtreeDuplication_;
-	boost::random::bernoulli_distribution<double> subtreeSwap_;
-	boost::random::bernoulli_distribution<double> nodeInsert_;
-	boost::random::bernoulli_distribution<double> nodeRemoval_;
-	boost::random::bernoulli_distribution<double> paramMutate_;
 
-	/**
-	 * Random number generator
-	 */
-	boost::random::mt19937 &rng_;
 
-	void mutateBody(boost::shared_ptr<RobotRepresentation>& robot);
-	bool removeSubtree(boost::shared_ptr<RobotRepresentation>& robot);
-	bool duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot);
-	bool swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot);
-	bool insertNode(boost::shared_ptr<RobotRepresentation>& robot);
-	bool removeNode(boost::shared_ptr<RobotRepresentation>& robot);
-	bool mutateParams(boost::shared_ptr<RobotRepresentation>& robot);
+
+
+
 
 
 };

@@ -54,7 +54,9 @@ namespace robogen{
  * methods.
  */
 class RobotRepresentation{
+
 public:
+
 	/**
 	 * Map from an id string to a weak pointer of a part representation
 	 */
@@ -67,15 +69,15 @@ public:
 	RobotRepresentation(const RobotRepresentation &r);
 
 	/**
+	 * Error-less constructor for memory assignment
+	 */
+	RobotRepresentation();
+
+	/**
 	 * assignment operator: Deep copy body parts and Neural network
 	 * TODO not error-safe
 	 */
 	RobotRepresentation &operator=(const RobotRepresentation &r);
-
-	/**
-	 * Error-less constructor for memory assignment
-	 */
-	RobotRepresentation();
 
 	/**
 	 * Constructs a robot representation from a robot text file
@@ -148,26 +150,44 @@ public:
 	std::string generateUniqueIdFromSomeId();
 
 	/**
-	 * update id of 'node' to make it unique and call recursively all existing childs to do the same
-	 * @param node
+	 * Insert parts to the body id-parts map
+	 *
+	 * @param part the root of the subtree to be inserted into the body id to parts map
+	 * @return true if the operation completed successfully, false otherwise
 	 */
-	bool insertSubTreeRecursivelyToMap(boost::shared_ptr<PartRepresentation> node);
+	bool addPartsToMap(boost::shared_ptr<PartRepresentation> part);
 
 	/**
-	 * Clone 'srcId' node and insert it slot 'slotId', then recursively update id's in the map
-	 * @param srcId
-	 * @param destId
-	 * @param slotId
+	 * Duplicate a subtree in the body tree
+	 *
+	 * @param subtreeRootPartId the root of the subtree to duplicate
+	 * @param subtreeDestPartId the destination part where the subtree will be attached to
+	 * @param slotId the slot identifier of the destination part where the subtree will be attached to
+	 * @return true if the operation completed successfully, false otherwise
 	 */
-	bool duplicateSubTree(const std::string& srcId, const std::string& destId, int slotId);
+	bool duplicateSubTree(const std::string& subtreeRootPartId,
+			const std::string& subtreeDestPartId, int slotId);
 
 	/**
-	 * 'node' will replace some node 'prev_subnode' at slot 'slotId1' of 'destId' node
-	 *  then 'prev_subnode' will be inserted at 'slotId2' of 'node'
+	 * Insert a part into the body tree
+	 *
+	 * @param parentPartId id of the part that will become the parent of newPart
+	 * @param parentPartSlot slot id where the newPart will be inserted
+	 * @param newPart the new part to insert
+	 * @param newPartSlot the slot of the new part where the subtree of parentPartId
+	 *        connected to parentPartSlot will be connected to
+	 * @return true if the operation completed successfully, false otherwise
 	 */
-	bool insertNode(const std::string& parent, int parentSlot,
-			boost::shared_ptr<PartRepresentation> newNode, int newNodeSlot);
-	bool removeNode(const std::string& id_node);
+	bool insertPart(const std::string& parentPartId, int parentPartSlot,
+			boost::shared_ptr<PartRepresentation> newPart, int newPartSlot);
+
+	/**
+	 * Remove a part from the body tree
+	 *
+	 * @param partId id of the part to remove
+	 * @return true if the operation completed successfully, false otherwise
+	 */
+	bool removePart(const std::string& partId);
 
 
 

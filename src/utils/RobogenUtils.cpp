@@ -209,8 +209,6 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 			return boost::shared_ptr<Model>();
 		}
 
-		float radius = 0;
-
 		model.reset(
 				new PassiveWheelModel(odeWorld, odeSpace, id,
 						bodyPart.evolvableparam(0).paramvalue()));

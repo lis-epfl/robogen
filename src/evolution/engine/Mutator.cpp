@@ -2,6 +2,7 @@
  * @(#) Mutator.cpp   1.0   Sep 2, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Andrea Maesani (andrea.maesani@epfl.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2013-2014 Titus Cieslewski
@@ -173,11 +174,12 @@ typedef std::pair<MutationOperator,
 void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation> &robot) {
 
 	MutOpPair mutOpPairs[] = { std::make_pair(&Mutator::removeSubtree,
-			subtreeRemoval_), std::make_pair(&Mutator::duplicateSubtree,
-			subtreeDuplication_), std::make_pair(&Mutator::swapSubtrees,
-			subtreeSwap_), std::make_pair(&Mutator::insertNode, nodeInsert_),
-			std::make_pair(&Mutator::removeNode, nodeRemoval_), std::make_pair(
-					&Mutator::mutateParams, paramMutate_) };
+			subtreeRemovalDist_), std::make_pair(&Mutator::duplicateSubtree,
+			subtreeDuplicationDist_), std::make_pair(&Mutator::swapSubtrees,
+			subtreeSwapDist_), std::make_pair(&Mutator::insertNode,
+			nodeInsertDist_), std::make_pair(&Mutator::removeNode,
+			nodeRemovalDist_), std::make_pair(&Mutator::mutateParams,
+			paramMutateDist_) };
 
 	int numOperators = sizeof(mutOpPairs) / sizeof(MutOpPair);
 	for (int i = 0; i < numOperators; ++i) {
@@ -214,11 +216,12 @@ bool Mutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 	// Get a random body node (TODO: excluding the root node)
 	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
-	RobotRepresentation::IdPartMap::const_iterator node = idPartMap.begin();
-	std::advance(node, dist(rng_));
+	RobotRepresentation::IdPartMap::const_iterator subtreeRootPart =
+			idPartMap.begin();
+	std::advance(subtreeRootPart, dist(rng_));
 
 	// Trim the body tree at the selected random body node
-	robot->trimBodyAt(node->first);
+	robot->trimBodyAt(subtreeRootPart->first);
 
 	return true;
 }
@@ -229,24 +232,27 @@ bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
-	RobotRepresentation::IdPartMap::const_iterator rootNode = idPartMap.begin();
-	std::advance(rootNode, dist(rng_));
+	RobotRepresentation::IdPartMap::const_iterator subtreeRootPart =
+			idPartMap.begin();
+	std::advance(subtreeRootPart, dist(rng_));
 
 	// Select another node
-	RobotRepresentation::IdPartMap::const_iterator destNode = idPartMap.begin();
-	std::advance(destNode, dist(rng_));
+	RobotRepresentation::IdPartMap::const_iterator subtreeDestPart =
+			idPartMap.begin();
+	std::advance(subtreeDestPart, dist(rng_));
 
 	// Check if the destination node has free slots
-	boost::shared_ptr<PartRepresentation> destPart = destNode->second.lock();
-	std::vector<unsigned int> freeSlots = destPart->getFreeChildSlots();
+	boost::shared_ptr<PartRepresentation> destPart =
+			subtreeDestPart->second.lock();
+	std::vector<unsigned int> freeSlots = destPart->getFreeSlots();
 	if (freeSlots.size() > 0) {
 
 		boost::random::uniform_int_distribution<> freeSlotsDist(0,
 				freeSlots.size() - 1);
 		unsigned int selectedSlotId = freeSlotsDist(rng_);
 
-		return robot->duplicateSubTree(rootNode->first, destNode->first,
-				selectedSlotId);
+		return robot->duplicateSubTree(subtreeRootPart->first,
+				subtreeDestPart->first, selectedSlotId);
 
 	} else {
 
@@ -264,11 +270,12 @@ bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
-	RobotRepresentation::IdPartMap::const_iterator rootNode1 =
+	RobotRepresentation::IdPartMap::const_iterator rootPartIt1 =
 			idPartMap.begin();
-	std::advance(rootNode1, dist(rng_));
+	std::advance(rootPartIt1, dist(rng_));
 
-	boost::shared_ptr<PartRepresentation> rootPart1 = rootNode1->second.lock();
+	boost::shared_ptr<PartRepresentation> rootPart1 =
+			rootPartIt1->second.lock();
 
 	// Get IDs of nodes to be considered for selection of second root
 	std::vector<std::string> ancestorIDs = rootPart1->getAncestorsIds();
@@ -303,16 +310,13 @@ bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 	}
 
 	// Select another node
-	boost::random::uniform_int_distribution<> distRootNode2(0,
+	boost::random::uniform_int_distribution<> distRootPart2(0,
 			validIds.size() - 1);
+	std::string rootPartId2 = validIds[distRootPart2(rng_)];
+	boost::shared_ptr<PartRepresentation> rootPart2 =
+			idPartMap.at(rootPartId2).lock();
 
-	std::string rootPartId2 = validIds[distRootNode2(rng_)];
-	boost::weak_ptr<PartRepresentation> rootPartPtr2 = idPartMap.at(
-			rootPartId2);
-
-	boost::shared_ptr<PartRepresentation> rootPart2 = rootPartPtr2.lock();
-
-	// TODO Implement return robot->swapSubtrees(rootPart1, rootPart2);
+	// TODO Implement return robot->swapSubtrees(rootNodePart1, rootPart2);
 	return true;
 
 }
@@ -351,14 +355,15 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	}
 
 	// Create the new part
-	boost::shared_ptr<PartRepresentation> newNode = PartRepresentation::create(
+	boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
 			type, "", curOrientation, parameters);
 
 	// Generate a random slot in the new node
-	boost::random::uniform_int_distribution<> distNewNodeSlot(0,
-			newNode->getArity() - 1);
+	boost::random::uniform_int_distribution<> distNewPartSlot(0,
+			newPart->getArity() - 1);
 
-	return robot->insertNode(parent->first, parentSlot, newNode, distNewNodeSlot(rng_));
+	return robot->insertPart(parent->first, parentSlot, newPart,
+			distNewPartSlot(rng_));
 
 }
 
@@ -367,11 +372,11 @@ bool Mutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	// Select node for removal (TODO: Exclude the root)
 	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
-	RobotRepresentation::IdPartMap::const_iterator nodeToRemove =
+	RobotRepresentation::IdPartMap::const_iterator partToRemove =
 			idPartMap.begin();
-	std::advance(nodeToRemove, dist(rng_));
+	std::advance(partToRemove, dist(rng_));
 
-	return robot->removeNode(nodeToRemove->first);
+	return robot->removePart(partToRemove->first);
 
 }
 
@@ -380,11 +385,11 @@ bool Mutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
 	// Select node for mutation
 	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
-	RobotRepresentation::IdPartMap::const_iterator nodeToMutate =
+	RobotRepresentation::IdPartMap::const_iterator partToMutate =
 			idPartMap.begin();
-	std::advance(nodeToMutate, dist(rng_));
+	std::advance(partToMutate, dist(rng_));
 
-	std::vector<double> params = nodeToMutate->second.lock()->getParams();
+	std::vector<double> params = partToMutate->second.lock()->getParams();
 	if (params.size() > 0) {
 
 		// Select a random parameter to mutate
@@ -405,4 +410,4 @@ bool Mutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
 
 }
 
-} /* namespace robogen */
+}

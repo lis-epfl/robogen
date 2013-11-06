@@ -70,7 +70,7 @@ unsigned int PartRepresentation::getChildrenCount() {
 
 }
 
-std::vector<unsigned int> PartRepresentation::getFreeChildSlots() {
+std::vector<unsigned int> PartRepresentation::getFreeSlots() {
 
 	std::vector<unsigned int> freeSlots;
 	for (unsigned int i = 0; i < children_.size(); ++i) {
