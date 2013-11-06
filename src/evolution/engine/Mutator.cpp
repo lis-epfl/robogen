@@ -35,12 +35,20 @@ namespace robogen {
 
 Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::random::mt19937 &rng) :
-		conf_(conf), type_(BRAIN_MUTATOR), rng_(rng) {
-	/*weightMutate_(conf.pBrainMutate), weightDistribution_(
-	 0., conf.brainSigma), weightCrossover_(conf.pBrainCrossover), brainMin_(
-	 conf.minBrainWeight), brainMax_(conf.maxBrainWeight),*/
+		conf_(conf), rng_(rng),
+		weightMutate_(conf->pBrainMutate),
+		weightDistribution_(0., conf->brainSigma),
+		weightCrossover_(conf->pBrainCrossover),
+		brainMin_(conf->minBrainWeight),
+		brainMax_(conf->maxBrainWeight),
+		subtreeRemovalDist_(conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_REMOVAL]),
+		subtreeDuplicationDist_(conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_DUPLICATION]),
 
-	//TODO move type to conf, init other distributions if needed
+		subtreeSwapDist_(conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_SWAPPING]),
+		nodeInsertDist_(conf->bodyOperatorProbability[EvolverConfiguration::NODE_INSERTION]),
+		nodeRemovalDist_(conf->bodyOperatorProbability[EvolverConfiguration::NODE_REMOVAL]),
+		paramMutateDist_((conf->bodyOperatorProbability[EvolverConfiguration::PARAMETER_MODIFICATION])) {
+
 }
 
 Mutator::~Mutator() {
@@ -49,12 +57,16 @@ Mutator::~Mutator() {
 RobotRepresentation Mutator::mutate(
 		std::pair<RobotRepresentation, RobotRepresentation> parents) {
 	// TODO copy first!
-	//this->crossover(parents.first, parents.second);
-	//this->mutate(parents.first);
+
+	//only allow crossover if doing just brain mutation
+	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_MUTATOR)
+		this->crossover(parents.first, parents.second);
+
+	this->mutate(parents.first);
 	boost::shared_ptr<RobotRepresentation> offspring = boost::shared_ptr<
 			RobotRepresentation>(new RobotRepresentation(parents.first));
 
-	this->mutateBody(offspring);
+
 
 	return RobotRepresentation(*offspring.get());
 	//return parents.first;
@@ -63,8 +75,8 @@ RobotRepresentation Mutator::mutate(
 bool Mutator::mutate(RobotRepresentation &robot) {
 	bool mutated = false;
 	// mutate brain TODO conf bits?
-	if (type_ == BRAIN_MUTATOR || type_ == BRAIN_BODY_PARAM_MUTATOR
-			|| type_ == FULL_MUTATOR) {
+	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_MUTATOR
+			|| conf_->evolutionMode == EvolverConfiguration::FULL_MUTATOR) {
 		std::vector<double*> weights;
 		std::vector<double*> biases;
 		robot.getBrainGenome(weights, biases);
@@ -95,38 +107,9 @@ bool Mutator::mutate(RobotRepresentation &robot) {
 		if (mutated) {
 			robot.setDirty();
 		}
+	} else if(conf_->evolutionMode == EvolverConfiguration::FULL_MUTATOR) {
+		//this->mutateBody(robot);
 	}
-
-#ifdef BODY_MUTATION
-	// let's work with hard coded mutation probability as long as this is
-	// experimental. Later, make it an option of the Mutator or even create
-	// a derived mutator, much like the selector is implemented.
-	// 1. Hard mutation: body tree mutation
-	double pBodyMutate = 0.3;
-	boost::random::bernoulli_distribution<double> bodyMutate(pBodyMutate);
-	if (bodyMutate(rng_)) {
-		// a) Add or remove a body part
-		// slight bias to adding, as remove may take away more than one bpart
-		boost::random::bernoulli_distribution<double> addNotRemove(0.6);
-		if (addNotRemove(rng_)) {
-			// robot.addRandomBodyPart(rng_);
-		}
-		else {
-			// robot.popRandomBodyPart(rng_);
-		}
-		// b) Change orientation of a body part
-		double pRotate = 0.2;
-		boost::random::bernoulli_distribution<double> rotate(pRotate);
-		if (rotate(rng_)) {
-			// robot.rotateRandomBodyPart(rng_);
-		}
-	}
-	// 2. Soft mutation: body parameter mutation
-	// TODO continue here
-	// currently, let's fix body anyways for demo purposes. Later, we can do
-	// this only whenever necessary.
-	BodyVerifier::fixRobotBody(robot);
-#endif
 
 	return mutated;
 }

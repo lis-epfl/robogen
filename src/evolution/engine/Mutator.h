@@ -48,14 +48,6 @@ class Mutator {
 public:
 
 	/**
-	 * Types of mutators
-	 */
-	enum types {
-		BRAIN_MUTATOR, BRAIN_BODY_PARAM_MUTATOR, // just putting the idea out there
-		FULL_MUTATOR // the holy grail of the robogen developer
-	};
-
-	/**
 	 * Creates a Robogen brain mutator with the specified settings
 	 * @param pBrainMutate probability for a weight or bias to mutate
 	 * @param brainMuteSigma sigma of normal distribution for brain mutation
@@ -105,11 +97,6 @@ private:
 	 * Evolver Configuration
 	 */
 	boost::shared_ptr<EvolverConfiguration> conf_;
-
-	/**
-	 * Type of mutator behavior from types enum
-	 */
-	int type_;
 
 	/**
 	 * Random number generator
