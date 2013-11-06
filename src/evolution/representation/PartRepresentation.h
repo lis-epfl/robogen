@@ -114,14 +114,14 @@ public:
 	/**
 	 * @param n slot of the child part to get
 	 */
-	boost::shared_ptr<PartRepresentation> getChild(int n);
+	boost::shared_ptr<PartRepresentation> getChild(unsigned int n);
 
 	/**
 	 * @param n slot of the child part to be set/replaced
 	 * @param part shared pointer to a part which is to be included at the slot
 	 * @return true if successful
 	 */
-	bool setChild(int n, boost::shared_ptr<PartRepresentation> part);
+	bool setChild(unsigned int n, boost::shared_ptr<PartRepresentation> part);
 
 	/**
 	 * Factory pattern to create derived classes, i.e. body part representations
