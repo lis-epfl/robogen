@@ -103,6 +103,8 @@ private:
 	 */
 	boost::random::bernoulli_distribution<double> weightMutate_;
 	boost::random::normal_distribution<double> weightDistribution_;
+	boost::random::normal_distribution<double> paramDistribution_;
+
 	boost::random::bernoulli_distribution<double> weightCrossover_;
 	double brainMin_;
 	double brainMax_;

@@ -140,7 +140,7 @@ public:
 	 * just one body part as TODO popBodyPart() does.
 	 * @return false upon failure
 	 */
-	bool trimBodyAt(std::string id);
+	bool trimBodyAt(const std::string& id);
 
 	/**
 	 * @return a string unique id
@@ -159,14 +159,15 @@ public:
 	 * @param destId
 	 * @param slotId
 	 */
-	bool duplicateSubTree(std::string srcId, std::string destId, int slotId);
+	bool duplicateSubTree(const std::string& srcId, const std::string& destId, int slotId);
 
 	/**
 	 * 'node' will replace some node 'prev_subnode' at slot 'slotId1' of 'destId' node
 	 *  then 'prev_subnode' will be inserted at 'slotId2' of 'node'
 	 */
-	bool insertNode(std::string destId,	boost::shared_ptr<PartRepresentation> node, int slotId1, int slotId2);
-	bool removeNode(std::string id_node);
+	bool insertNode(const std::string& parent, int parentSlot,
+			boost::shared_ptr<PartRepresentation> newNode, int newNodeSlot);
+	bool removeNode(const std::string& id_node);
 
 
 

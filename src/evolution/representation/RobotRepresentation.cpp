@@ -408,7 +408,7 @@ void RobotRepresentation::setDirty() {
 	evaluated_ = false;
 }
 
-bool RobotRepresentation::trimBodyAt(std::string id) {
+bool RobotRepresentation::trimBodyAt(const std::string& id) {
 
 	// thanks to shared pointer magic, we only need to reset the shared pointer
 	// to the indicated body part
@@ -476,8 +476,8 @@ bool RobotRepresentation::insertSubTreeRecursivelyToMap(
 
 }
 
-bool RobotRepresentation::duplicateSubTree(std::string srcId, std::string dstId,
-		int slotId) {
+bool RobotRepresentation::duplicateSubTree(const std::string& srcId,
+		const std::string& dstId, int slotId) {
 
 	// find src part and dest part by id
 	boost::shared_ptr<PartRepresentation> src = idToPart_[srcId].lock();
@@ -492,28 +492,34 @@ bool RobotRepresentation::duplicateSubTree(std::string srcId, std::string dstId,
 
 }
 
-bool RobotRepresentation::insertNode(std::string destId,
-		boost::shared_ptr<PartRepresentation> node, int slotId1, int slotId2) {
+bool RobotRepresentation::insertNode(const std::string& parent, int parentSlot,
+		boost::shared_ptr<PartRepresentation> newNode, int newNodeSlot) {
 
 	// Set new ID for the inserted node
 	std::string newUniqueId = this->generateUniqueIdFromSomeId();
-	node->setId(newUniqueId);
+	newNode->setId(newUniqueId);
 
 	// find dst part by id
-	boost::shared_ptr<PartRepresentation> dst = idToPart_[destId].lock();
-	boost::shared_ptr<PartRepresentation> prevSubnode = dst->getChild(slotId1);
+	boost::shared_ptr<PartRepresentation> parentPart = idToPart_[parent].lock();
+	boost::shared_ptr<PartRepresentation> childPart = parentPart->getChild(
+			parentSlot);
 
-	dst->setChild(slotId1, node);
-	node->setChild(slotId2, prevSubnode);
+	// Check the arity of the new part
+	if (parentPart->getChild(parentSlot) != NULL && newNode->getArity() < 1) {
+		return false;
+	}
+
+	parentPart->setChild(parentSlot, newNode);
+	newNode->setChild(newNodeSlot, childPart);
 
 	// Add to the map
-	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(node);
+	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(newNode);
 
 	return true;
 
 }
 
-bool RobotRepresentation::removeNode(std::string id) {
+bool RobotRepresentation::removeNode(const std::string&id) {
 
 	boost::shared_ptr<PartRepresentation> nodeToRemove = idToPart_[id].lock();
 
