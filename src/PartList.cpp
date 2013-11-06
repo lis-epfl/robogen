@@ -92,17 +92,17 @@ std::map<std::pair<std::string, unsigned int>, std::pair<double, double> >
 		std::pair<double, double> > partTypeParamRangeMap;
 
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_ACTIVE_WHEEL, 0)] =
-			std::make_pair(40.0,80.0); // radius in mm
+			std::make_pair(0.03,0.08); // radius in m   --- TODO update wiki
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_ACTIVE_WHEG, 0)] =
-			std::make_pair(40.0,80.0); // radius in mm
+			std::make_pair(0.03,0.08); // radius in m
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_JOINT, 0)] =
-			std::make_pair(20.0,40.0); // length in mm
+			std::make_pair(0.02,0.04); // length in m
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_JOINT, 1)] =
 			std::make_pair(-90.0,90.0); // tilt (alpha) in degrees
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_JOINT, 2)] =
 			std::make_pair(0.0,180.0); // rotation (beta) in degrees
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PASSIVE_WHEEL,0)] =
-			std::make_pair(40.0,80.0); // radius in mm
+			std::make_pair(0.03,0.08); // radius in m
 	return partTypeParamRangeMap;
 }
 

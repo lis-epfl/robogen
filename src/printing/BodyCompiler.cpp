@@ -158,11 +158,7 @@ void BodyCompiler::compile(Robot &robot, std::ofstream &file) {
 
 		const robogenMessage::Neuron& neuron = brain.neuron(i);
 
-		if (neuron.layer().compare("output") == 0) {
-
-			idToNeuron[neuron.id()] = &neuron;
-
-		}
+		idToNeuron[neuron.id()] = &neuron;
 
 	}
 
