@@ -46,14 +46,14 @@
 #include "utils/network/TcpSocket.h"
 #include "robogen.pb.h"
 
-namespace robogen{
+namespace robogen {
 
 /**
  * Robot representation to be used for evolution. More lightweight than the
  * robot representation of the simulator, and implements evolution-specific
  * methods.
  */
-class RobotRepresentation{
+class RobotRepresentation {
 
 public:
 
@@ -79,6 +79,13 @@ public:
 	 */
 	RobotRepresentation &operator=(const RobotRepresentation &r);
 
+
+	/**
+	 * Constructs a robot representation from nothing.
+	 * Will have just the core component.
+	 */
+	bool init();
+
 	/**
 	 * Constructs a robot representation from a robot text file
 	 * @param robotTextFile text file of the robot description
@@ -95,7 +102,7 @@ public:
 	/**
 	 * Initializes the brain to be completely random.
 	 */
-	void randomizeBrain(boost::random::mt19937	&rng);
+	void randomizeBrain(boost::random::mt19937 &rng);
 
 	/**
 	 * Provides weight and bias handles for a mutator.
@@ -120,7 +127,8 @@ public:
 	 * @param socket
 	 * @param robotConf
 	 */
-	void evaluate(TcpSocket *socket, boost::shared_ptr<RobogenConfig> robotConf);
+	void evaluate(TcpSocket *socket,
+			boost::shared_ptr<RobogenConfig> robotConf);
 
 	/**
 	 * @return fitness of individual
@@ -166,7 +174,17 @@ public:
 	 * @return true if the operation completed successfully, false otherwise
 	 */
 	bool duplicateSubTree(const std::string& subtreeRootPartId,
-			const std::string& subtreeDestPartId, int slotId);
+			const std::string& subtreeDestPartId, unsigned int slotId);
+
+	/**
+	 * Swap subtrees in the body tree
+	 *
+	 * @param subtreeRoot1 the root of the first subtree
+	 * @param subtreeRoot2 the root of the second subtree
+	 * @return true if the operation completed successfully, false otherwise
+	 */
+	bool swapSubTrees(const std::string& subtreeRoot1,
+			const std::string& subtreeRoot2);
 
 	/**
 	 * Insert a part into the body tree
@@ -178,8 +196,10 @@ public:
 	 *        connected to parentPartSlot will be connected to
 	 * @return true if the operation completed successfully, false otherwise
 	 */
-	bool insertPart(const std::string& parentPartId, int parentPartSlot,
-			boost::shared_ptr<PartRepresentation> newPart, int newPartSlot);
+	bool insertPart(const std::string& parentPartId,
+			unsigned int parentPartSlot,
+			boost::shared_ptr<PartRepresentation> newPart,
+			unsigned int newPartSlot);
 
 	/**
 	 * Remove a part from the body tree
@@ -189,7 +209,10 @@ public:
 	 */
 	bool removePart(const std::string& partId);
 
-
+	/**
+	 * @return the id of the root body part
+	 */
+	const std::string& getBodyRootId();
 
 private:
 	/**
@@ -214,19 +237,16 @@ private:
 	double fitness_;
 
 	/**
-		 * Counter for unique ID.
-    */
+	 * Counter for unique ID.
+	 */
 	int maxid_;
-
 
 	/**
 	 * Indicates whether robot evaluated
 	 */
 	bool evaluated_;
-	// DO NOT FORGET TO COMPLETE COPY CONSTRUCTOR AND ASSIGNMENT OPERATOR!!!
+
 };
-
-
 
 /**
  * Operator > returns true if fitness of a exceeds fitness of b

@@ -42,10 +42,13 @@ public:
 	 */
 	DeterministicTournament(unsigned int tSize, boost::random::mt19937 &rng);
 
+	/**
+	 * Destructor
+	 */
 	virtual ~DeterministicTournament();
 
 	/**
-	 * Regiesters population
+	 * Registers population
 	 */
 	virtual void initPopulation(boost::shared_ptr<Population> pop);
 
@@ -54,8 +57,8 @@ public:
 	 * @param pop the old population
 	 * @return the new population
 	 */
-	virtual bool select(boost::shared_ptr<std::pair<RobotRepresentation,
-			RobotRepresentation> > &selected);
+	virtual bool select(std::pair<boost::shared_ptr<RobotRepresentation>,
+			boost::shared_ptr<RobotRepresentation> > &selected);
 
 private:
 	/**

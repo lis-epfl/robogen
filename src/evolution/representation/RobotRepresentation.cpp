@@ -38,6 +38,7 @@
 #include <boost/regex.hpp>
 #include "evolution/representation/PartRepresentation.h"
 #include "utils/network/ProtobufPacket.h"
+#include "PartList.h"
 
 namespace robogen {
 
@@ -67,7 +68,7 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 		boost::shared_ptr<PartRepresentation> cur = q.front();
 		q.pop();
 		idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
-		for (int i = 1; i <= cur->getArity(); ++i) {
+		for (unsigned int i = 0; i < cur->getArity(); ++i) {
 			if (cur->getChild(i)) {
 				q.push(cur->getChild(i));
 			}
@@ -103,9 +104,39 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 		double param;
 		std::stringstream ss(match[6]);
 		params.clear();
+
+		std::vector<double> rawParams;
 		while (ss >> param) {
-			params.push_back(param);
+			rawParams.push_back(param);
 		}
+		if (rawParams.size()
+				!= PART_TYPE_PARAM_COUNT_MAP[PART_TYPE_MAP[type]]) {
+			std::cout << "Error reading body part from text file.\n"
+					<< PART_TYPE_MAP[type] << " requires "
+					<< PART_TYPE_PARAM_COUNT_MAP[PART_TYPE_MAP[type]]
+					<< " params, but " << rawParams.size()
+					<< " were received\n";
+			return false;
+		}
+		for (unsigned int i = 0; i < rawParams.size(); i++) {
+			std::pair<double, double> ranges =
+					PART_TYPE_PARAM_RANGE_MAP[std::make_pair(
+							PART_TYPE_MAP[type], i)];
+			double rawParamValue = rawParams[i];
+			if (rawParamValue < ranges.first || rawParamValue > ranges.second) {
+				std::cout << "Error reading body part from text file.\n"
+						<< PART_TYPE_MAP[type] << " requires param " << i
+						<< " to be in [" << ranges.first << ", "
+						<< ranges.second << "], but " << rawParamValue
+						<< " was received\n";
+				return false;
+			}
+			//add param in [0,1]
+			params.push_back(
+					(rawParamValue - ranges.first)
+							/ (ranges.second - ranges.first));
+		}
+
 		return true;
 	} else {
 		// additional info if poor formatting, i.e. line not empty
@@ -200,7 +231,7 @@ RobotRepresentation &RobotRepresentation::operator=(
 		boost::shared_ptr<PartRepresentation> cur = q.front();
 		q.pop();
 		idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
-		for (int i = 1; i <= cur->getArity(); ++i) {
+		for (unsigned int i = 0; i < cur->getArity(); ++i) {
 			if (cur->getChild(i)) {
 				q.push(cur->getChild(i));
 			}
@@ -210,6 +241,25 @@ RobotRepresentation &RobotRepresentation::operator=(
 	evaluated_ = r.evaluated_;
 	maxid_ = r.maxid_;
 	return *this;
+}
+
+bool RobotRepresentation::init() {
+
+	// Generate a core component
+	std::string coreId = "CoreComponent";
+	boost::shared_ptr<PartRepresentation> corePart = PartRepresentation::create(
+			INVERSE_PART_TYPE_MAP[PART_TYPE_CORE_COMPONENT], coreId, 0,
+			std::vector<double>());
+	if (!corePart) {
+		std::cout << "Failed to create root node" << std::endl;
+		return false;
+	}
+	bodyTree_ = corePart;
+	idToPart_[coreId] = boost::weak_ptr<PartRepresentation>(corePart);
+
+	// TODO Add Brain.
+
+	return true;
 }
 
 bool RobotRepresentation::init(std::string robotTextFile) {
@@ -347,8 +397,12 @@ boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain() c
 	return neuralNetwork_;
 }
 
-const RobotRepresentation::IdPartMap &RobotRepresentation::getBody() const {
+const RobotRepresentation::IdPartMap& RobotRepresentation::getBody() const {
 	return idToPart_;
+}
+
+const std::string& RobotRepresentation::getBodyRootId() {
+	return bodyTree_->getId();
 }
 
 void RobotRepresentation::evaluate(TcpSocket *socket,
@@ -466,7 +520,7 @@ bool RobotRepresentation::addPartsToMap(
 	part->setId(newUniqueId);
 	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(part);
 
-	for (int i = 1; i <= part->getArity(); i++) {
+	for (unsigned int i = 0; i < part->getArity(); i++) {
 
 		if (part->getChild(i)) {
 			this->addPartsToMap(part->getChild(i));
@@ -479,11 +533,18 @@ bool RobotRepresentation::addPartsToMap(
 }
 
 bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
-		const std::string& subtreeDestPartId, int slotId) {
+		const std::string& subtreeDestPartId, unsigned int slotId) {
 
 	// find src part and dest part by id
-	boost::shared_ptr<PartRepresentation> src = idToPart_[subtreeRootPartId].lock();
-	boost::shared_ptr<PartRepresentation> dst = idToPart_[subtreeDestPartId].lock();
+	boost::shared_ptr<PartRepresentation> src =
+			idToPart_[subtreeRootPartId].lock();
+	boost::shared_ptr<PartRepresentation> dst =
+			idToPart_[subtreeDestPartId].lock();
+
+	// If source is root node, then return
+	if (src->getId().compare(bodyTree_->getId()) == 0) {
+		return false;
+	}
 
 	boost::shared_ptr<PartRepresentation> clone = src->cloneSubtree();
 	dst->setChild(slotId, clone);
@@ -494,20 +555,75 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 
 }
 
-bool RobotRepresentation::insertPart(const std::string& parentPartId, int parentPartSlot,
-		boost::shared_ptr<PartRepresentation> newPart, int newPartSlot) {
+bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
+		const std::string& subtreeRoot2) {
+
+	// Get roots of the subtrees
+	boost::shared_ptr<PartRepresentation> root1 =
+			idToPart_[subtreeRoot1].lock();
+	boost::shared_ptr<PartRepresentation> root2 =
+			idToPart_[subtreeRoot2].lock();
+
+	// Check none of them is the root node
+	if (root1->getId().compare(bodyTree_->getId()) == 0
+			|| root2->getId().compare(bodyTree_->getId()) == 0) {
+		return false;
+	}
+
+	// Get parents and slots of each subtree
+	PartRepresentation* parentRoot1 = root1->getParent();
+	PartRepresentation* parentRoot2 = root2->getParent();
+
+	// Get the slots to which this nodes are connected
+	unsigned int slotParentRoot1 = 0;
+
+	for (unsigned int i = 0; i < parentRoot1->getArity(); ++i) {
+		if (parentRoot1->getChild(i) != NULL) {
+			if (parentRoot1->getChild(i)->getId().compare(parentRoot1->getId())
+					== 0) {
+				slotParentRoot1 = i;
+				break;
+			}
+		}
+	}
+
+	unsigned int slotParentRoot2 = 0;
+	for (unsigned int i = 0; i < parentRoot2->getArity(); ++i) {
+		if (parentRoot2->getChild(i) != NULL) {
+			if (parentRoot2->getChild(i)->getId().compare(parentRoot2->getId())
+					== 0) {
+				slotParentRoot2 = i;
+				break;
+			}
+		}
+	}
+
+	// Swap the subtrees
+	parentRoot2->setChild(slotParentRoot2, root1);
+	parentRoot1->setChild(slotParentRoot1, root2);
+
+	return true;
+
+}
+
+bool RobotRepresentation::insertPart(const std::string& parentPartId,
+		unsigned int parentPartSlot,
+		boost::shared_ptr<PartRepresentation> newPart,
+		unsigned int newPartSlot) {
 
 	// Set new ID for the inserted node
 	std::string newUniqueId = this->generateUniqueIdFromSomeId();
 	newPart->setId(newUniqueId);
 
 	// find dst part by id
-	boost::shared_ptr<PartRepresentation> parentPart = idToPart_[parentPartId].lock();
+	boost::shared_ptr<PartRepresentation> parentPart =
+			idToPart_[parentPartId].lock();
 	boost::shared_ptr<PartRepresentation> childPart = parentPart->getChild(
 			parentPartSlot);
 
 	// Check the arity of the new part
-	if (parentPart->getChild(parentPartSlot) != NULL && newPart->getArity() < 1) {
+	if (parentPart->getChild(parentPartSlot) != NULL
+			&& newPart->getArity() < 1) {
 		return false;
 	}
 
@@ -523,7 +639,13 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId, int parent
 
 bool RobotRepresentation::removePart(const std::string& partId) {
 
-	boost::shared_ptr<PartRepresentation> nodeToRemove = idToPart_[partId].lock();
+	boost::shared_ptr<PartRepresentation> nodeToRemove =
+			idToPart_[partId].lock();
+
+	// If root node, return
+	if (nodeToRemove->getId().compare(bodyTree_->getId()) == 0) {
+		return false;
+	}
 
 	// Get parent of node to be removed
 	PartRepresentation* parent = nodeToRemove->getParent();
@@ -532,13 +654,13 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 		return false;
 	}
 
-	int nFreeSlots = parent->getFreeSlots().size();
+	unsigned int nFreeSlots = parent->getFreeSlots().size();
 	if (nFreeSlots < nodeToRemove->numDescendants()) {
 		return false;
 	}
 
-	int indx = 1;
-	for (int i = 1; i <= parent->getArity(); i++) {
+	unsigned int indx = 0;
+	for (unsigned int i = 0; i < parent->getArity(); i++) {
 
 		if (parent->getChild(i) == NULL) {
 
@@ -556,10 +678,6 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 	}
 
 	return true;
-}
-
-bool operator >(const RobotRepresentation &a, const RobotRepresentation &b) {
-	return a.getFitness() > b.getFitness();
 }
 
 }

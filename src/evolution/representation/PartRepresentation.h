@@ -51,13 +51,16 @@ public:
 	static std::map<class PartRepresentation, std::string> PART_REPRESENTATION_TYPE_MAP;
 
 	/**
+	 * Intializes a body part.
+	 * The orientation takes a value in [0,3] that correspond to a rotation {0, 90, 180, 270} degrees.
+	 *
 	 * @param id name of the part
 	 * @param orientation orientation of the part when attached to parent part
 	 * @param arity arity of the part
 	 * @param type of the part
 	 * @param params parameters of the part
 	 */
-	PartRepresentation(std::string id, int orientation, int arity,
+	PartRepresentation(std::string id, unsigned int orientation, unsigned int arity,
 			const std::string& type, const std::vector<double>& params,
 			const std::vector<std::string>& motors,
 			const std::vector<std::string>& sensors);
@@ -101,24 +104,24 @@ public:
 	/**
 	 * @return arity = number of child slots of part
 	 */
-	int getArity();
+	unsigned int getArity();
 
 	/**
 	 * @return amount of children, recursively: Total amount of dependent parts
 	 */
-	int numDescendants();
+	unsigned int numDescendants();
 
 	/**
 	 * @param n slot of the child part to get
 	 */
-	boost::shared_ptr<PartRepresentation> getChild(int n);
+	boost::shared_ptr<PartRepresentation> getChild(unsigned int n);
 
 	/**
 	 * @param n slot of the child part to be set/replaced
 	 * @param part shared pointer to a part which is to be included at the slot
 	 * @return true if successful
 	 */
-	bool setChild(int n, boost::shared_ptr<PartRepresentation> part);
+	bool setChild(unsigned int n, boost::shared_ptr<PartRepresentation> part);
 
 	/**
 	 * Factory pattern to create derived classes, i.e. body part representations
@@ -185,13 +188,12 @@ public:
 	 */
 	std::vector<std::string> getSensors();
 
-protected:
-
 	/**
-	 * As of now, only derived classes need to call this for cloning, so it's
-	 * protected
+	 * @return the orientation of this part
 	 */
-	int getOrientation();
+	unsigned int getOrientation();
+
+	void setOrientation(unsigned int orientation);
 
 private:
 
@@ -203,12 +205,12 @@ private:
 	/**
 	 * orientation of the part when attached to parent part
 	 */
-	int orientation_;
+	unsigned int orientation_;
 
 	/**
 	 * Arity: Amount of available children slots
 	 */
-	const int arity_;
+	unsigned int arity_;
 
 	/**
 	 * Type, as required for protobuf serialization of derived classes

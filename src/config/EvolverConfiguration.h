@@ -56,6 +56,13 @@ typedef struct EvolverConfiguration {
 	};
 
 	/**
+	 * Modes of evolution
+	 */
+	enum EvolutionModes {
+		BRAIN_MUTATOR, FULL_MUTATOR
+	};
+
+	/**
 	 * Types of body mutation.
 	 * Last entry is used to get the amount of operators
 	 */
@@ -118,6 +125,11 @@ typedef struct EvolverConfiguration {
 	unsigned int replacement;
 
 	/**
+	 * Employed replacement strategy
+	 */
+	unsigned int evolutionMode;
+
+	/**
 	 * Sockets to be used to connect to the server
 	 */
 	std::vector<std::pair<std::string, int> > sockets;
@@ -162,6 +174,8 @@ typedef struct EvolverConfiguration {
 	std::vector<char> allowedBodyPartTypes;
 
 	double bodyOperatorProbability[NUM_BODY_OPERATORS];
+
+
 
 } EvolverConfiguration;
 
