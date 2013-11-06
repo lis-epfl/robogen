@@ -53,7 +53,8 @@ int main(int argc, char *argv[]) {
 						"<configuration file>" << std::endl;
 		return EXIT_FAILURE;
 	}
-	boost::shared_ptr<EvolverConfiguration> conf;
+	boost::shared_ptr<EvolverConfiguration> conf =
+			boost::shared_ptr<EvolverConfiguration>(new EvolverConfiguration());
 	if (!conf->init(std::string(argv[1]))) {
 		std::cout << "Problems parsing the evolution configuration file. Quit."
 				<< std::endl;

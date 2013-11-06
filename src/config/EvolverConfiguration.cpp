@@ -111,7 +111,14 @@ bool EvolverConfiguration::init(std::string confFileName) {
 	boost::program_options::store(
 			boost::program_options::parse_config_file<char>(
 					confFileName.c_str(), desc, true), vm);
-	boost::program_options::notify(vm);
+	try{
+		boost::program_options::notify(vm);
+	}
+	catch (boost::program_options::error& e) {
+		std::cout << "Error while processing options: " << e.what() <<
+				std::endl;
+		return false;
+	}
 
 	// parse selection type
 	if (vm["selection"].as<std::string>() == "deterministic-tournament"){
@@ -171,7 +178,7 @@ bool EvolverConfiguration::init(std::string confFileName) {
 
 	static const boost::regex initPartsRegex(
 				"^(\\d+):(\\d+)$");
-	if (!vm["numInitialParts"].as<std::string>().compare("") == 0) {
+	if (vm.count("numInitialParts") > 0) {
 		if (!boost::regex_match(vm["numInitialParts"].as<std::string>().c_str(),
 				match, initPartsRegex)){
 			std::cout << "Supplied numInitialParts argument \"" <<
