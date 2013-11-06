@@ -96,8 +96,8 @@ std::map<std::string, std::vector<std::string> > initPartTypeMotorsMap() {
 
 	{
 		std::string singleMotorParts[] = { PART_TYPE_ACTIVE_HINGE,
-		PART_TYPE_ACTIVE_WHEEL, PART_TYPE_ACTIVE_WHEG,
-		PART_TYPE_ACTIVE_HINGE };
+				PART_TYPE_ACTIVE_WHEEL, PART_TYPE_ACTIVE_WHEG,
+				PART_TYPE_ACTIVE_HINGE };
 		int numSingleMotorParts = 4;
 		for (int i = 0; i < numSingleMotorParts; i++) {
 			std::vector<std::string> motors;
@@ -136,8 +136,20 @@ std::map<std::string, std::vector<std::string> > initPartTypeSensorsMap() {
 	return partTypeSensorsMap;
 }
 
+template<typename _OrigKey, typename _OrigValue>
+std::map<_OrigValue, _OrigKey> inverseMap(
+		std::map<_OrigKey, _OrigValue> origMap) {
+	std::map<_OrigValue, _OrigKey> inverseMap;
+	for (typename std::map<_OrigKey, _OrigValue>::iterator iterator = origMap.begin();
+			iterator != origMap.end(); iterator++) {
+		inverseMap[iterator->second] = iterator->first;
+	}
+	return inverseMap;
+}
+
 //initialize the maps
 std::map<char, std::string> PART_TYPE_MAP = initPartTypeMap();
+std::map<std::string, char> INVERSE_PART_TYPE_MAP = inverseMap(PART_TYPE_MAP);
 std::map<std::string, unsigned int> PART_TYPE_ARITY_MAP =
 		initPartTypeArityMap();
 std::map<std::string, unsigned int> PART_TYPE_PARAM_COUNT_MAP =

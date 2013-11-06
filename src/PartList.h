@@ -50,6 +50,7 @@ namespace robogen {
 #define PART_TYPE_TOUCH_SENSOR 		"TouchSensor"
 
 extern std::map<char, std::string> PART_TYPE_MAP;
+extern std::map<std::string, char> INVERSE_PART_TYPE_MAP;
 extern std::map<std::string, unsigned int> PART_TYPE_ARITY_MAP;
 extern std::map<std::string, unsigned int> PART_TYPE_PARAM_COUNT_MAP;
 extern std::map<std::string, std::vector<std::string> > PART_TYPE_MOTORS_MAP;
