@@ -155,7 +155,11 @@ void PartRepresentation::addSubtreeToBodyMessage(
 	for (unsigned int i = 0; i < params_.size(); ++i) {
 		robogenMessage::EvolvableParameter *param =
 				serialization->add_evolvableparam();
-		param->set_paramvalue(params_[i]);
+
+		//convert parameters from [0,1] back to valid range
+		std::pair<double, double> ranges = PART_TYPE_PARAM_RANGE_MAP[std::make_pair(this->getType(), i)];
+		double paramValue = (params_[i] * (ranges.second - ranges.first)) + ranges.first;
+		param->set_paramvalue(paramValue);
 	}
 
 	// required int32 orientation = 5;
