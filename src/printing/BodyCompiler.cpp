@@ -31,7 +31,6 @@
  * @(#) $Id$
  */
 
-
 #include <stack>
 #include "printing/BodyCompiler.h"
 //#include "printing/BodyConfiguration.h"
@@ -46,6 +45,7 @@
 #include "model/sensors/TouchSensor.h"
 #include "model/sensors/SimpleSensor.h"
 #include "robogen.pb.h"
+#include "PartList.h"
 #include "evolution/representation/RobotRepresentation.h"
 
 namespace robogen {
@@ -56,101 +56,109 @@ BodyCompiler::BodyCompiler() {
 BodyCompiler::~BodyCompiler() {
 }
 
-void BodyCompiler::compile(Robot &robot,
-		std::ofstream &file){
+void BodyCompiler::compile(Robot &robot, std::ofstream &file) {
 
-
-	int nLight = 0, nTouch = 0, nServo = 0;
-	std::vector<int> input;
-
+	// Retrieve body parts and connections
 	std::vector<boost::shared_ptr<Model> > bodyParts = robot.getBodyParts();
-	const std::vector<boost::shared_ptr<Connection> > bodyConns = robot.getBodyConnections();
-	//robot.traverseBody(bodyParts,bodyConns);
+	const std::vector<boost::shared_ptr<Connection> > bodyConns =
+			robot.getBodyConnections();
 
-	// body traversal to type parts
-	// get body connections
-	std::map<boost::shared_ptr<Model>, std::vector<boost::shared_ptr<Connection> > > bodyGraph;
-	std::map<boost::shared_ptr<Model>, bool > traversed;
-
-	for(unsigned int i=0; i<bodyConns.size(); i++){
+	// Body Graph is a map between a part and all undirected connections linked to it
+	std::map<boost::shared_ptr<Model>,
+			std::vector<boost::shared_ptr<Connection> > > bodyGraph;
+	for (unsigned int i = 0; i < bodyConns.size(); i++) {
 		bodyGraph[bodyConns[i]->getFrom()].push_back(bodyConns[i]);
 		bodyGraph[bodyConns[i]->getTo()].push_back(bodyConns[i]);
 	}
-	std::stack<std::pair<boost::shared_ptr<Connection>, int> > todo;
-	boost::shared_ptr<Connection> dummy(new Connection(
-			boost::shared_ptr<Model>(),0,bodyParts[robot.getRoot()],0));
-	todo.push(std::pair<boost::shared_ptr<Connection>, int>(dummy,0));
 
-	traversed[bodyParts[robot.getRoot()]]= true;
+	// Traversed flags visited parts in the tree
+	std::map<boost::shared_ptr<Model>, bool> traversed;
 
+	// Stack of nodes to visit - pair of (nodes, depth)
+	std::stack<std::pair<boost::shared_ptr<Connection>, int> > nodesToVisit;
+
+	// Creates a dummy connection to the root node, and mark it as visited
+	boost::shared_ptr<Connection> dummy(
+			new Connection(boost::shared_ptr<Model>(), 0,
+					bodyParts[robot.getRoot()], 0));
+	nodesToVisit.push(std::pair<boost::shared_ptr<Connection>, int>(dummy, 0));
+	traversed[bodyParts[robot.getRoot()]] = true;
+
+	// Retrieve body parts also from message, to read body types and maps a
+	// body part id to its body type
 	const robogenMessage::Body &body = robot.getMessage().body();
-	std::map<std::string, const robogenMessage::BodyPart*> idToBodyPart;
-/*
-	for(int i=0; i<body.neuron_size(); i++){
+	std::map<std::string, char> partIdToType;
+	std::map<std::string, char> partIdToOrientation;
+	std::map<std::string, std::vector<double> > partIdToParams;
 
-
-		const robogenMessage::Neuron& neuron = brain.neuron(i);
-
-		if (neuron.layer().compare("output") == 0) {
-			//TODO: save to map the bodypartIDs
-
-			idToNeuron[neuron.id()] = &neuron;
-
+	for (int i = 0; i < body.part_size(); i++) {
+		const robogenMessage::BodyPart& bodyPart = body.part(i);
+		partIdToType[bodyPart.id()] = INVERSE_PART_TYPE_MAP[bodyPart.type()];
+		partIdToOrientation[bodyPart.id()] = bodyPart.orientation();
+		std::vector<double> params;
+		for (int j = 0; j < bodyPart.evolvableparam_size(); ++j) {
+			params.push_back(bodyPart.evolvableparam(j).paramvalue());
 		}
+		partIdToParams[bodyPart.id()] = params;
+	}
 
-	} */
+	// While there are nodes to visit
+	while (!nodesToVisit.empty()) {
 
-	while( !todo.empty() ){
-		std::pair<boost::shared_ptr<Connection>, int> current = todo.top();
-		todo.pop();
-		for (int i = 0; i< current.second; i++) {
+		// Get a node to visit
+		std::pair<boost::shared_ptr<Connection>, int> current =
+				nodesToVisit.top();
+		nodesToVisit.pop();
+
+		// Write correct indentation to file and current slot
+		for (int i = 0; i < current.second; i++) {
 			file << "\t";
 		}
+		file << current.first->getFromSlot() << " "
+				<< partIdToType[current.first->getTo()->getId()] << " "
+				<< current.first->getTo()->getId() << " "
+				<< current.first->getTo()->getOrientationToParentSlot();
+		for (unsigned int i = 0;
+				i < partIdToParams[current.first->getTo()->getId()].size();
+				i++) {
+			file << " " << partIdToParams[current.first->getTo()->getId()][i];
+		}
+		file << std::endl;
 
+		// Add children to the nodes to visit
+		for (unsigned int i = 0; i < bodyGraph[current.first->getTo()].size();
+				i++) {
 
-		file << current.first->getFromSlot() << " " << std::endl;
-		//TODO: pointercast to find out type
-		for(int i=0; i<bodyGraph[current.first->getTo()].size(); i++){
-			if(!traversed[bodyGraph[current.first->getTo()][i]->getTo()]){
-				todo.push(std::pair<boost::shared_ptr<Connection>, int>
-				(bodyGraph[current.first->getTo()][i],current.second+1));
+			if (!traversed[bodyGraph[current.first->getTo()][i]->getTo()]) {
+				nodesToVisit.push(
+						std::pair<boost::shared_ptr<Connection>, int>(
+								bodyGraph[current.first->getTo()][i],
+								current.second + 1));
 				traversed[bodyGraph[current.first->getTo()][i]->getTo()] = true;
 			}
 
-			if(!traversed[bodyGraph[current.first->getTo()][i]->getFrom()]){
-				todo.push(std::pair<boost::shared_ptr<Connection>, int>
-				(bodyGraph[current.first->getTo()][i],
-						current.second+1));
-				std::cout << "Titus loses" << std::endl;
+			if (!traversed[bodyGraph[current.first->getTo()][i]->getFrom()]) {
+				nodesToVisit.push(
+						std::pair<boost::shared_ptr<Connection>, int>(
+								bodyGraph[current.first->getTo()][i],
+								current.second + 1));
+				std::cout
+						<< "Error: tree traversal visited the same node twice!"
+						<< std::endl;
+				return;
 			}
 
 		}
 	}
-
-/*
-	for (unsigned int i=0; i<bodyParts.size(); i++){
-		// light sensor
-		bodyParts[i];
-		if (boost::dynamic_pointer_cast<LightSensor>(
-				bodyParts[i])){
-			// TODO: Type all parts, write out to file
-			file  << bodyParts[i]->getId() << std::endl;
-		}
-
-	} */
-
-
 
 	const robogenMessage::Brain &brain = robot.getMessage().brain();
 	std::map<std::string, const robogenMessage::Neuron*> idToNeuron;
 
-	for(int i=0; i<brain.neuron_size(); i++){
-
+	for (int i = 0; i < brain.neuron_size(); i++) {
 
 		const robogenMessage::Neuron& neuron = brain.neuron(i);
 
 		if (neuron.layer().compare("output") == 0) {
-			//TODO: save to map the bodypartIDs
 
 			idToNeuron[neuron.id()] = &neuron;
 
@@ -158,28 +166,29 @@ void BodyCompiler::compile(Robot &robot,
 
 	}
 
-	for (int i = 0; i < brain.connection_size(); ++i){
+	for (int i = 0; i < brain.connection_size(); ++i) {
 
-		const robogenMessage::NeuralConnection& connection =
-				brain.connection(i);
+		const robogenMessage::NeuralConnection& connection = brain.connection(
+				i);
 
-
-		file << idToNeuron[connection.src()]->bodypartid() << " " << idToNeuron[connection.src()]->ioid() << " " <<
-				idToNeuron[connection.dest()]->bodypartid() << " " << idToNeuron[connection.dest()]->ioid() << " " << connection.weight() << std::endl;
-
-
+		file << idToNeuron[connection.src()]->bodypartid() << " "
+				<< idToNeuron[connection.src()]->ioid() << " "
+				<< idToNeuron[connection.dest()]->bodypartid() << " "
+				<< idToNeuron[connection.dest()]->ioid() << " "
+				<< connection.weight() << std::endl;
 
 	}
+	file << std::endl;
+	file << std::endl;
 
-	for(int i=0; i<brain.neuron_size(); i++){
-
+	for (int i = 0; i < brain.neuron_size(); i++) {
 
 		const robogenMessage::Neuron& neuron = brain.neuron(i);
 
 		if (neuron.layer().compare("output") == 0) {
 
-			file << neuron.bodypartid() << " " << neuron.ioid() << " " <<
-					neuron.biasweight() << std::endl;
+			file << neuron.bodypartid() << " " << neuron.ioid() << " "
+					<< neuron.biasweight() << std::endl;
 
 		}
 
@@ -188,5 +197,4 @@ void BodyCompiler::compile(Robot &robot,
 }
 
 } /* namespace robogen */
-
 
