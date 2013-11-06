@@ -37,6 +37,10 @@ namespace robogen{
 Connection::Connection(){
 }
 
+Connection::Connection(boost::shared_ptr<Model> from, int fromSlot,
+			boost::shared_ptr<Model> to, int toSlot):from_(from),
+					fromSlot_(fromSlot), to_(to), toSlot_(toSlot) {}
+
 bool Connection::init(const robogenMessage::BodyConnection &c,
 		std::map<std::string, unsigned int> &map,
 		std::vector<boost::shared_ptr<Model> > &vec){

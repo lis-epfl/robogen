@@ -89,7 +89,9 @@ Robot::Robot(){
 }
 
 bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
-		const robogenMessage::Robot& robotSpec){
+		robogenMessage::Robot& robotSpec){
+
+	robotMessage_ = &robotSpec;
 
 	odeWorld_ = odeWorld;
 	odeSpace_ = odeSpace;
@@ -472,6 +474,9 @@ void Robot::reconnect(){
 	boost::breadth_first_search(*bodyTree_, rootNode_, boost::visitor(vis));
 }
 
+int Robot::getRoot(){
+	return rootNode_;
+}
 void Robot::translateRobot(const osg::Vec3& translation) {
 
 	for (unsigned int i = 0; i < this->bodyParts_.size(); ++i) {
@@ -546,6 +551,25 @@ const std::string& Robot::getConfigurationFile() const {
 
 int Robot::getId() const {
 	return id_;
+}
+
+
+
+robogenMessage::Robot& Robot::getMessage(){
+	return *robotMessage_;
+}
+
+const std::vector<boost::shared_ptr<Connection> >& Robot::getBodyConnections()
+const{
+
+return bodyConnections_;
+
+}
+
+void Robot::traverseBody(const std::vector<boost::shared_ptr<Model> >,
+		const std::vector<boost::shared_ptr<Connection> >){
+
+
 }
 
 }
