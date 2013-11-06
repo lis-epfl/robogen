@@ -87,18 +87,18 @@ std::string &PartRepresentation::getType() {
 }
 
 boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(int n) {
-	if (n < 1 || n > arity_) {
+	if (n < 0 || n > arity_ - 1) {
 		std::cout << "Attempt to access non-existing slot " << n << " of part "
 				<< this->getId() << " with arity " << arity_ << std::endl;
 		return boost::shared_ptr<PartRepresentation>();
 	}
-	return children_[n - 1];
+	return children_[n];
 }
 
 bool PartRepresentation::setChild(int n,
 		boost::shared_ptr<PartRepresentation> part) {
 
-	if (n < 1 || n > arity_) {
+	if (n < 0 || n > arity_ - 1) {
 		std::cout << "Attempt to access non-existing slot " << n << " of part "
 				<< this->getId() << " with arity " << arity_ << std::endl;
 		return false;
@@ -108,7 +108,7 @@ bool PartRepresentation::setChild(int n,
 		part->setParent(this);
 		part->setPosition(n);
 	}
-	children_[n - 1] = part;
+	children_[n] = part;
 	return true;
 
 }
@@ -164,7 +164,7 @@ void PartRepresentation::addSubtreeToBodyMessage(
 	serialization->set_orientation(orientation_);
 
 	// treat children, including connection
-	for (int i = 1; i <= arity_; i++) {
+	for (int i = 0; i < arity_; i++) {
 		if (this->getChild(i)) {
 			robogenMessage::BodyConnection *connection =
 					bodyMessage->add_connection();
@@ -216,7 +216,7 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::cloneSubtree() {
 					this->getArity(), this->getType(), this->getParams(),
 					this->getMotors(), this->getSensors()));
 	// deep copy all children
-	for (int i = 1; i <= this->getArity(); i++) {
+	for (int i = 0; i < this->getArity(); i++) {
 		if (this->getChild(i)) {
 			theClone->setChild(i, this->getChild(i)->cloneSubtree());
 		}

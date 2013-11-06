@@ -67,7 +67,7 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 		boost::shared_ptr<PartRepresentation> cur = q.front();
 		q.pop();
 		idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
-		for (int i = 1; i <= cur->getArity(); ++i) {
+		for (int i = 0; i < cur->getArity(); ++i) {
 			if (cur->getChild(i)) {
 				q.push(cur->getChild(i));
 			}
@@ -200,7 +200,7 @@ RobotRepresentation &RobotRepresentation::operator=(
 		boost::shared_ptr<PartRepresentation> cur = q.front();
 		q.pop();
 		idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
-		for (int i = 1; i <= cur->getArity(); ++i) {
+		for (int i = 0; i < cur->getArity(); ++i) {
 			if (cur->getChild(i)) {
 				q.push(cur->getChild(i));
 			}
@@ -466,7 +466,7 @@ bool RobotRepresentation::addPartsToMap(
 	part->setId(newUniqueId);
 	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(part);
 
-	for (int i = 1; i <= part->getArity(); i++) {
+	for (int i = 0; i < part->getArity(); i++) {
 
 		if (part->getChild(i)) {
 			this->addPartsToMap(part->getChild(i));
@@ -537,8 +537,8 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 		return false;
 	}
 
-	int indx = 1;
-	for (int i = 1; i <= parent->getArity(); i++) {
+	int indx = 0;
+	for (int i = 0; i < parent->getArity(); i++) {
 
 		if (parent->getChild(i) == NULL) {
 
