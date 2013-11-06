@@ -40,11 +40,11 @@ void PartRepresentation::setId(std::string newid) {
 	id_ = newid;
 }
 
-int PartRepresentation::getArity() {
+unsigned int PartRepresentation::getArity() {
 	return arity_;
 }
 
-int PartRepresentation::numDescendants() {
+unsigned int PartRepresentation::numDescendants() {
 
 	int descendants = 0;
 	for (unsigned int i = 0; i < children_.size(); ++i) {

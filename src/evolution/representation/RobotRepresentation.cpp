@@ -67,7 +67,7 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 		boost::shared_ptr<PartRepresentation> cur = q.front();
 		q.pop();
 		idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
-		for (int i = 0; i < cur->getArity(); ++i) {
+		for (unsigned int i = 0; i < cur->getArity(); ++i) {
 			if (cur->getChild(i)) {
 				q.push(cur->getChild(i));
 			}
@@ -229,7 +229,7 @@ RobotRepresentation &RobotRepresentation::operator=(
 		boost::shared_ptr<PartRepresentation> cur = q.front();
 		q.pop();
 		idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
-		for (int i = 0; i < cur->getArity(); ++i) {
+		for (unsigned int i = 0; i < cur->getArity(); ++i) {
 			if (cur->getChild(i)) {
 				q.push(cur->getChild(i));
 			}
@@ -499,7 +499,7 @@ bool RobotRepresentation::addPartsToMap(
 	part->setId(newUniqueId);
 	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(part);
 
-	for (int i = 0; i < part->getArity(); i++) {
+	for (unsigned int i = 0; i < part->getArity(); i++) {
 
 		if (part->getChild(i)) {
 			this->addPartsToMap(part->getChild(i));
@@ -512,7 +512,7 @@ bool RobotRepresentation::addPartsToMap(
 }
 
 bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
-		const std::string& subtreeDestPartId, int slotId) {
+		const std::string& subtreeDestPartId, unsigned int slotId) {
 
 	// find src part and dest part by id
 	boost::shared_ptr<PartRepresentation> src =
@@ -534,9 +534,61 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 
 }
 
+bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
+		const std::string& subtreeRoot2) {
+
+	// Get roots of the subtrees
+	boost::shared_ptr<PartRepresentation> root1 =
+			idToPart_[subtreeRoot1].lock();
+	boost::shared_ptr<PartRepresentation> root2 =
+			idToPart_[subtreeRoot2].lock();
+
+	// Check none of them is the root node
+	if (root1->getId().compare(bodyTree_->getId()) == 0
+			|| root2->getId().compare(bodyTree_->getId()) == 0) {
+		return false;
+	}
+
+	// Get parents and slots of each subtree
+	PartRepresentation* parentRoot1 = root1->getParent();
+	PartRepresentation* parentRoot2 = root2->getParent();
+
+	// Get the slots to which this nodes are connected
+	unsigned int slotParentRoot1 = 0;
+
+	for (unsigned int i = 0; i < parentRoot1->getArity(); ++i) {
+		if (parentRoot1->getChild(i) != NULL) {
+			if (parentRoot1->getChild(i)->getId().compare(parentRoot1->getId())
+					== 0) {
+				slotParentRoot1 = i;
+				break;
+			}
+		}
+	}
+
+	unsigned int slotParentRoot2 = 0;
+	for (unsigned int i = 0; i < parentRoot2->getArity(); ++i) {
+		if (parentRoot2->getChild(i) != NULL) {
+			if (parentRoot2->getChild(i)->getId().compare(parentRoot2->getId())
+					== 0) {
+				slotParentRoot2 = i;
+				break;
+			}
+		}
+	}
+
+	// Swap the subtrees
+	parentRoot2->setChild(slotParentRoot2, root1);
+	parentRoot1->setChild(slotParentRoot1, root2);
+
+	return true;
+
+}
+
 bool RobotRepresentation::insertPart(const std::string& parentPartId,
-		int parentPartSlot, boost::shared_ptr<PartRepresentation> newPart,
-		int newPartSlot) {
+		unsigned int parentPartSlot,
+		boost::shared_ptr<PartRepresentation> newPart,
+		unsigned int newPartSlot) {
 
 	// Set new ID for the inserted node
 	std::string newUniqueId = this->generateUniqueIdFromSomeId();
@@ -581,13 +633,13 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 		return false;
 	}
 
-	int nFreeSlots = parent->getFreeSlots().size();
+	unsigned int nFreeSlots = parent->getFreeSlots().size();
 	if (nFreeSlots < nodeToRemove->numDescendants()) {
 		return false;
 	}
 
-	int indx = 0;
-	for (int i = 0; i < parent->getArity(); i++) {
+	unsigned int indx = 0;
+	for (unsigned int i = 0; i < parent->getArity(); i++) {
 
 		if (parent->getChild(i) == NULL) {
 

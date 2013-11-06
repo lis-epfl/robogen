@@ -101,12 +101,12 @@ public:
 	/**
 	 * @return arity = number of child slots of part
 	 */
-	int getArity();
+	unsigned int getArity();
 
 	/**
 	 * @return amount of children, recursively: Total amount of dependent parts
 	 */
-	int numDescendants();
+	unsigned int numDescendants();
 
 	/**
 	 * @param n slot of the child part to get

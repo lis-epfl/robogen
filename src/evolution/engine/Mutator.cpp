@@ -266,7 +266,7 @@ bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 
 bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 
-	// Get a random root of the tree to duplicate (TODO: excluding the root node)
+	// Get a random root of the tree to duplicate
 	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
@@ -316,8 +316,7 @@ bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 	boost::shared_ptr<PartRepresentation> rootPart2 =
 			idPartMap.at(rootPartId2).lock();
 
-	// TODO Implement return robot->swapSubtrees(rootNodePart1, rootPart2);
-	return true;
+	return robot->swapSubTrees(rootPart1->getId(), rootPart2->getId());
 
 }
 
