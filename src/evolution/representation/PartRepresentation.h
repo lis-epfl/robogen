@@ -163,7 +163,7 @@ public:
 	/**
 	 * @return the positions of the free slots
 	 */
-	std::vector<unsigned int> getFreeChildSlots();
+	std::vector<unsigned int> getFreeSlots();
 
 	/**
 	 * @return the ids of all ancestors of this part

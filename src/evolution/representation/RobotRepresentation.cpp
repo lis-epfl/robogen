@@ -2,6 +2,7 @@
  * @(#) RobotRepresentation.cpp   1.0   Aug 28, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Andrea Maesani (andrea.maesani@epfl.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2013-2014 Titus Cieslewski
@@ -212,6 +213,7 @@ RobotRepresentation &RobotRepresentation::operator=(
 }
 
 bool RobotRepresentation::init(std::string robotTextFile) {
+
 	// open file
 	std::ifstream file;
 	file.open(robotTextFile.c_str());
@@ -457,17 +459,17 @@ std::string RobotRepresentation::generateUniqueIdFromSomeId() {
 
 }
 
-bool RobotRepresentation::insertSubTreeRecursivelyToMap(
-		boost::shared_ptr<PartRepresentation> node) {
+bool RobotRepresentation::addPartsToMap(
+		boost::shared_ptr<PartRepresentation> part) {
 
 	std::string newUniqueId = this->generateUniqueIdFromSomeId();
-	node->setId(newUniqueId);
-	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(node);
+	part->setId(newUniqueId);
+	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(part);
 
-	for (int i = 1; i <= node->getArity(); i++) {
+	for (int i = 1; i <= part->getArity(); i++) {
 
-		if (node->getChild(i)) {
-			this->insertSubTreeRecursivelyToMap(node->getChild(i));
+		if (part->getChild(i)) {
+			this->addPartsToMap(part->getChild(i));
 		}
 
 	}
@@ -476,52 +478,52 @@ bool RobotRepresentation::insertSubTreeRecursivelyToMap(
 
 }
 
-bool RobotRepresentation::duplicateSubTree(const std::string& srcId,
-		const std::string& dstId, int slotId) {
+bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
+		const std::string& subtreeDestPartId, int slotId) {
 
 	// find src part and dest part by id
-	boost::shared_ptr<PartRepresentation> src = idToPart_[srcId].lock();
-	boost::shared_ptr<PartRepresentation> dst = idToPart_[dstId].lock();
+	boost::shared_ptr<PartRepresentation> src = idToPart_[subtreeRootPartId].lock();
+	boost::shared_ptr<PartRepresentation> dst = idToPart_[subtreeDestPartId].lock();
 
 	boost::shared_ptr<PartRepresentation> clone = src->cloneSubtree();
 	dst->setChild(slotId, clone);
 
-	this->insertSubTreeRecursivelyToMap(clone);
+	this->addPartsToMap(clone);
 
 	return true;
 
 }
 
-bool RobotRepresentation::insertNode(const std::string& parent, int parentSlot,
-		boost::shared_ptr<PartRepresentation> newNode, int newNodeSlot) {
+bool RobotRepresentation::insertPart(const std::string& parentPartId, int parentPartSlot,
+		boost::shared_ptr<PartRepresentation> newPart, int newPartSlot) {
 
 	// Set new ID for the inserted node
 	std::string newUniqueId = this->generateUniqueIdFromSomeId();
-	newNode->setId(newUniqueId);
+	newPart->setId(newUniqueId);
 
 	// find dst part by id
-	boost::shared_ptr<PartRepresentation> parentPart = idToPart_[parent].lock();
+	boost::shared_ptr<PartRepresentation> parentPart = idToPart_[parentPartId].lock();
 	boost::shared_ptr<PartRepresentation> childPart = parentPart->getChild(
-			parentSlot);
+			parentPartSlot);
 
 	// Check the arity of the new part
-	if (parentPart->getChild(parentSlot) != NULL && newNode->getArity() < 1) {
+	if (parentPart->getChild(parentPartSlot) != NULL && newPart->getArity() < 1) {
 		return false;
 	}
 
-	parentPart->setChild(parentSlot, newNode);
-	newNode->setChild(newNodeSlot, childPart);
+	parentPart->setChild(parentPartSlot, newPart);
+	newPart->setChild(newPartSlot, childPart);
 
 	// Add to the map
-	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(newNode);
+	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(newPart);
 
 	return true;
 
 }
 
-bool RobotRepresentation::removeNode(const std::string&id) {
+bool RobotRepresentation::removePart(const std::string& partId) {
 
-	boost::shared_ptr<PartRepresentation> nodeToRemove = idToPart_[id].lock();
+	boost::shared_ptr<PartRepresentation> nodeToRemove = idToPart_[partId].lock();
 
 	// Get parent of node to be removed
 	PartRepresentation* parent = nodeToRemove->getParent();
@@ -530,7 +532,7 @@ bool RobotRepresentation::removeNode(const std::string&id) {
 		return false;
 	}
 
-	int nFreeSlots = parent->getFreeChildSlots().size();
+	int nFreeSlots = parent->getFreeSlots().size();
 	if (nFreeSlots < nodeToRemove->numDescendants()) {
 		return false;
 	}
