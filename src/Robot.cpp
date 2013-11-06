@@ -89,7 +89,7 @@ Robot::Robot(){
 }
 
 bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
-		robogenMessage::Robot& robotSpec){
+		const robogenMessage::Robot& robotSpec){
 
 	robotMessage_ = &robotSpec;
 
@@ -550,7 +550,7 @@ int Robot::getId() const {
 
 
 
-robogenMessage::Robot& Robot::getMessage(){
+const robogenMessage::Robot& Robot::getMessage(){
 	return *robotMessage_;
 }
 

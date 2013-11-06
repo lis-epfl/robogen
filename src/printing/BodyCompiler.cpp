@@ -83,8 +83,22 @@ void BodyCompiler::compile(Robot &robot,
 
 	traversed[bodyParts[robot.getRoot()]]= true;
 
-	//const robogenMessage::Body &body = robot.getMessage().body();
-	//std::map<std::string, const robogenMessage::BodyPart*> idToBodyPart;
+	const robogenMessage::Body &body = robot.getMessage().body();
+	std::map<std::string, const robogenMessage::BodyPart*> idToBodyPart;
+/*
+	for(int i=0; i<body.neuron_size(); i++){
+
+
+		const robogenMessage::Neuron& neuron = brain.neuron(i);
+
+		if (neuron.layer().compare("output") == 0) {
+			//TODO: save to map the bodypartIDs
+
+			idToNeuron[neuron.id()] = &neuron;
+
+		}
+
+	} */
 
 	while( !todo.empty() ){
 		std::pair<boost::shared_ptr<Connection>, int> current = todo.top();

@@ -80,7 +80,7 @@ public:
 	 * @param robotSpec
 	 */
 	bool init(dWorldID odeWorld, dSpaceID odeSpace,
-			robogenMessage::Robot& robotSpec);
+			const robogenMessage::Robot& robotSpec);
 
 	/**
 	 * Destructor
@@ -138,7 +138,7 @@ public:
 	/**
 	 * @return message that generated the robot
 	 */
-	robogenMessage::Robot& getMessage();
+	const robogenMessage::Robot& getMessage();
 
 	const std::vector<boost::shared_ptr<Connection> >& getBodyConnections()
 			const;
@@ -245,7 +245,7 @@ private:
 	 * Contains the robot message
 	 */
 
-	robogenMessage::Robot* robotMessage_;
+	const robogenMessage::Robot* robotMessage_;
 };
 
 }
