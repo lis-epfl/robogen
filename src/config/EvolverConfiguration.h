@@ -174,6 +174,8 @@ typedef struct EvolverConfiguration {
 
 	double bodyOperatorProbability[NUM_BODY_OPERATORS];
 
+	unsigned int maxBodyMutationAttemps;
+
 	unsigned int minNumInitialParts;
 	unsigned int maxNumInitialParts;
 

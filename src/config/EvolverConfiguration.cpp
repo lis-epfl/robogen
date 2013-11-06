@@ -86,9 +86,12 @@ bool EvolverConfiguration::init(std::string confFileName) {
 				&brainSigma), "Sigma of brain parameter mutation")
 		("brainBounds", boost::program_options::value<std::string>()
 				->required(), "Bounds of brain weights. Format: min:max")
-		("numInitialParts", boost::program_options::value<std::string>()
-						->required(), "Number of initial body parts (not "\
+		("numInitialParts", boost::program_options::value<std::string>(),
+						"Number of initial body parts (not "\
 						"including core component). Format: min:max")
+		("maxBodyMutationAttemps",
+				boost::program_options::value<unsigned int>(
+				&maxBodyMutationAttemps),"Max number of body mutation attempts")
 		("pBrainCrossover",
 				boost::program_options::value<double>(
 				&pBrainCrossover), "Probability of crossover among brains")

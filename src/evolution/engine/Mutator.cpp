@@ -39,12 +39,24 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 				0., conf->brainSigma), weightCrossover_(conf->pBrainCrossover), brainMin_(
 				conf->minBrainWeight), brainMax_(conf->maxBrainWeight) {
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
-		subtreeRemovalDist_ = boost::random::bernoulli_distribution<double>(conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_REMOVAL]);
-		subtreeDuplicationDist_ = boost::random::bernoulli_distribution<double>(conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_DUPLICATION]);
-		subtreeSwapDist_ = boost::random::bernoulli_distribution<double>(conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_SWAPPING]);
-		nodeInsertDist_ = boost::random::bernoulli_distribution<double>(conf->bodyOperatorProbability[EvolverConfiguration::NODE_INSERTION]);
-		nodeRemovalDist_ = boost::random::bernoulli_distribution<double>(conf->bodyOperatorProbability[EvolverConfiguration::NODE_REMOVAL]);
-		paramMutateDist_ = boost::random::bernoulli_distribution<double>(conf->bodyOperatorProbability[EvolverConfiguration::PARAMETER_MODIFICATION]);
+		subtreeRemovalDist_ =
+				boost::random::bernoulli_distribution<double>(
+						conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_REMOVAL]);
+		subtreeDuplicationDist_ =
+				boost::random::bernoulli_distribution<double>(
+						conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_DUPLICATION]);
+		subtreeSwapDist_ =
+				boost::random::bernoulli_distribution<double>(
+						conf->bodyOperatorProbability[EvolverConfiguration::SUBTREE_SWAPPING]);
+		nodeInsertDist_ =
+				boost::random::bernoulli_distribution<double>(
+						conf->bodyOperatorProbability[EvolverConfiguration::NODE_INSERTION]);
+		nodeRemovalDist_ =
+				boost::random::bernoulli_distribution<double>(
+						conf->bodyOperatorProbability[EvolverConfiguration::NODE_REMOVAL]);
+		paramMutateDist_ =
+				boost::random::bernoulli_distribution<double>(
+						conf->bodyOperatorProbability[EvolverConfiguration::PARAMETER_MODIFICATION]);
 	}
 
 }
@@ -73,13 +85,23 @@ boost::shared_ptr<RobotRepresentation> Mutator::mutate(
 }
 
 bool Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation> robot) {
+
+
 	boost::random::uniform_int_distribution<> dist(conf_->minNumInitialParts,
 			conf_->minNumInitialParts);
 	unsigned int numPartsToAdd = dist(rng_);
-	for(unsigned int i=0; i<numPartsToAdd; i++) {
-		this->insertNode(robot);
+
+	bool success = false;
+	for (unsigned int attempt = 0; (!success) && (attempt < conf_->maxBodyMutationAttemps); ++attempt) {
+		for (unsigned int i = 0; i < numPartsToAdd; i++) {
+			this->insertNode(robot);
+		}
+		int errorCode;
+		std::vector<std::pair<std::string, std::string> > affectedBodyParts;
+		success = BodyVerifier::verify(*robot.get(), errorCode, affectedBodyParts);
 	}
-	return true;
+
+	return success;
 }
 
 bool Mutator::mutate(boost::shared_ptr<RobotRepresentation>& robot) {
@@ -190,7 +212,7 @@ void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 				mutOpPairs[i].second;
 
 		if (dist(rng_)) {
-			for (int attempt = 0; attempt < MAX_MUTATION_ATTEMPTS; ++attempt) {
+			for (unsigned int attempt = 0; attempt < conf_->maxBodyMutationAttemps; ++attempt) {
 
 				boost::shared_ptr<RobotRepresentation> newBot =
 						boost::shared_ptr<RobotRepresentation>(
