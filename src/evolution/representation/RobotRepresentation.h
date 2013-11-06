@@ -189,7 +189,10 @@ public:
 	 */
 	bool removePart(const std::string& partId);
 
-
+	/**
+	 * @return the id of the root body part
+	 */
+	const std::string& getBodyRootId();
 
 private:
 	/**
@@ -223,7 +226,7 @@ private:
 	 * Indicates whether robot evaluated
 	 */
 	bool evaluated_;
-	// DO NOT FORGET TO COMPLETE COPY CONSTRUCTOR AND ASSIGNMENT OPERATOR!!!
+
 };
 
 

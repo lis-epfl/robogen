@@ -347,8 +347,12 @@ boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain() c
 	return neuralNetwork_;
 }
 
-const RobotRepresentation::IdPartMap &RobotRepresentation::getBody() const {
+const RobotRepresentation::IdPartMap& RobotRepresentation::getBody() const {
 	return idToPart_;
+}
+
+const std::string& RobotRepresentation::getBodyRootId() {
+	return bodyTree_->getId();
 }
 
 void RobotRepresentation::evaluate(TcpSocket *socket,
@@ -485,6 +489,11 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 	boost::shared_ptr<PartRepresentation> src = idToPart_[subtreeRootPartId].lock();
 	boost::shared_ptr<PartRepresentation> dst = idToPart_[subtreeDestPartId].lock();
 
+	// If source is root node, then return
+	if (src->getId().compare(bodyTree_->getId()) == 0) {
+		return false;
+	}
+
 	boost::shared_ptr<PartRepresentation> clone = src->cloneSubtree();
 	dst->setChild(slotId, clone);
 
@@ -524,6 +533,11 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId, int parent
 bool RobotRepresentation::removePart(const std::string& partId) {
 
 	boost::shared_ptr<PartRepresentation> nodeToRemove = idToPart_[partId].lock();
+
+	// If root node, return
+	if (nodeToRemove->getId().compare(bodyTree_->getId()) == 0) {
+		return false;
+	}
 
 	// Get parent of node to be removed
 	PartRepresentation* parent = nodeToRemove->getParent();

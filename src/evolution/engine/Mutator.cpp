@@ -213,8 +213,8 @@ void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation> &robot) {
 
 bool Mutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 
-	// Get a random body node (TODO: excluding the root node)
-	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
+	// Get a random body node
+	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 	RobotRepresentation::IdPartMap::const_iterator subtreeRootPart =
 			idPartMap.begin();
@@ -228,8 +228,8 @@ bool Mutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 
 bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 
-	// Get a random root of the tree to duplicate (TODO: excluding the root node)
-	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
+	// Get a random root of the tree to duplicate
+	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
 	RobotRepresentation::IdPartMap::const_iterator subtreeRootPart =
@@ -267,7 +267,7 @@ bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Get a random root of the tree to duplicate (TODO: excluding the root node)
-	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
+	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
 	RobotRepresentation::IdPartMap::const_iterator rootPartIt1 =
@@ -323,7 +323,7 @@ bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 
 bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
-	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
+	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
 	RobotRepresentation::IdPartMap::const_iterator parent = idPartMap.begin();
@@ -369,8 +369,8 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 bool Mutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
-	// Select node for removal (TODO: Exclude the root)
-	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
+	// Select node for removal
+	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 	RobotRepresentation::IdPartMap::const_iterator partToRemove =
 			idPartMap.begin();
@@ -383,7 +383,7 @@ bool Mutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
 bool Mutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Select node for mutation
-	const RobotRepresentation::IdPartMap idPartMap = robot->getBody();
+	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 	RobotRepresentation::IdPartMap::const_iterator partToMutate =
 			idPartMap.begin();

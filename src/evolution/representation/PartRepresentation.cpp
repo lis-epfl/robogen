@@ -17,11 +17,10 @@ PartRepresentation::PartRepresentation(std::string id, int orientation,
 		int arity, const std::string& type, const std::vector<double>& params,
 		const std::vector<std::string>& motors,
 		const std::vector<std::string>& sensors) :
-		id_(id), orientation_(orientation), arity_(arity), type_(type), params_(
+		id_(id), orientation_(orientation), arity_(arity), type_(type), parent_(NULL), params_(
 				params), motors_(motors), sensors_(sensors) {
 
 	children_.resize(arity_, boost::shared_ptr<PartRepresentation>());
-
 }
 
 PartRepresentation::~PartRepresentation() {
