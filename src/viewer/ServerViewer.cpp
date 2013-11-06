@@ -123,12 +123,12 @@ int main(int argc, char* argv[]) {
 					// Decode solution
 					// ---------------------------------------
 
-					ProtobufPacket<robogenMessage::Robot> packet;
+					ProtobufPacket<robogenMessage::EvaluationRequest> packet;
 
 					// 1) Read packet header
 					std::vector<unsigned char> headerBuffer;
 					socket.read(headerBuffer,
-							ProtobufPacket<robogenMessage::Robot>::HEADER_SIZE);
+							ProtobufPacket<robogenMessage::EvaluationRequest>::HEADER_SIZE);
 					unsigned int packetSize = packet.decodeHeader(headerBuffer);
 
 					// 2) Read packet size
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
 					// ---------------------------------------
 
 					boost::shared_ptr<RobogenConfig> configuration =
-							ConfigurationReader::parseConfigurationFile(
+							ConfigurationReader::parseRobogenMessage(
 									packet.getMessage()->configuration());
 					if (configuration == NULL) {
 						std::cout
@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
 						// ---------------------------------------
 						boost::shared_ptr<Robot> robot(new Robot);
 						if(!robot->init(odeWorld, odeSpace,
-									*packet.getMessage().get())){
+									packet.getMessage()->robot())){
 							std::cout << "Problems decoding the robot. Quit."
 									<< std::endl;
 							return EXIT_FAILURE;
@@ -463,7 +463,7 @@ int main(int argc, char* argv[]) {
 					boost::shared_ptr<robogenMessage::EvaluationResult> evalResultPacket(
 							new robogenMessage::EvaluationResult());
 					evalResultPacket->set_fitness(fitness);
-					evalResultPacket->set_id(packet.getMessage()->id());
+					evalResultPacket->set_id(packet.getMessage()->robot().id());
 					ProtobufPacket<robogenMessage::EvaluationResult> evalResult;
 					evalResult.setMessage(evalResultPacket);
 

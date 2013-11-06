@@ -84,6 +84,7 @@ file (GLOB_RECURSE
      viewer/*.cpp
      Robot.cpp
      Robogen.cpp
+     PartList.cpp
 )
  
 
@@ -107,23 +108,30 @@ set(ROBOGEN_DEPENDENCIES ${ODE_LIBRARIES} ${OPENSCENEGRAPH_LIBRARIES} ${ZLIB_LIB
 
 message(STATUS ${ROBOGEN_DEPENDENCIES})
 
+# Robogen base library
 add_library(robogen ${ROBOGEN_SIMULATOR_SRC} ${PROTO_SRCS} )
 target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
 
-add_executable(robogen-test test.cpp)
-target_link_libraries(robogen-test robogen ${ROBOGEN_DEPENDENCIES})
-
-add_executable(robogen-brain-evolver evolution/BrainEvolver.cpp)
+# Brain-Evolver executable
+add_executable(robogen-brain-evolver BrainEvolver.cpp)
 target_link_libraries(robogen-brain-evolver robogen ${ROBOGEN_DEPENDENCIES})
 
-add_executable(robogen-simulator server.cpp)
-target_link_libraries(robogen-simulator robogen ${ROBOGEN_DEPENDENCIES})
+# Robogen simulator server
+add_executable(robogen-server RobogenServer.cpp)
+target_link_libraries(robogen-server robogen ${ROBOGEN_DEPENDENCIES})
 
+# Robot Viewer (from file)
 add_executable(robogen-file-viewer viewer/FileViewer.cpp)
 target_link_libraries(robogen-file-viewer robogen ${ROBOGEN_DEPENDENCIES})
 
+# Robot Viewer (received on socket)
 add_executable(robogen-server-viewer viewer/ServerViewer.cpp)
 target_link_libraries(robogen-server-viewer robogen ${ROBOGEN_DEPENDENCIES})
 
-add_executable(robogen-server-viewer-test viewer/ServerViewerTest.cpp)
-target_link_libraries(robogen-server-viewer-test robogen ${ROBOGEN_DEPENDENCIES})
+# Tests
+#add_executable(robogen-server-viewer-test viewer/ServerViewerTest.cpp)
+#target_link_libraries(robogen-server-viewer-test robogen ${ROBOGEN_DEPENDENCIES})
+
+#add_executable(robogen-test test.cpp)
+#target_link_libraries(robogen-test robogen ${ROBOGEN_DEPENDENCIES})
+

@@ -34,6 +34,7 @@
 #include <map>
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include "robogen.pb.h"
 
 namespace robogen {
@@ -44,16 +45,25 @@ namespace robogen {
  * methods.
  */
 class PartRepresentation {
+
 public:
+
+	static std::map<class PartRepresentation, std::string> PART_REPRESENTATION_TYPE_MAP;
+
 	/**
 	 * @param id name of the part
 	 * @param orientation orientation of the part when attached to parent part
+	 * @param arity arity of the part
+	 * @param type of the part
+	 * @param params parameters of the part
 	 */
 	PartRepresentation(std::string id, int orientation, int arity,
-			const std::string type);
+			const std::string& type, const std::vector<double>& params,
+			const std::vector<std::string>& motors,
+			const std::vector<std::string>& sensors);
 
 	/**
-	 * copy constructor replacement with deep copy of children
+	 * Clone subtree
 	 * copy constructor is not very useful, as we mostly want to copy derived
 	 * classes from pointers to the base class. Thus, we'll use this trick:
 	 * http://stackoverflow.com/questions/5731217/how-to-copy-create-derived-
@@ -61,19 +71,17 @@ public:
 	 * @return new derived instance of the part
 	 * @todo recursive pattern robust for bigger robots?
 	 */
-	virtual boost::shared_ptr<PartRepresentation> cloneSubtree() = 0;
+	boost::shared_ptr<PartRepresentation> cloneSubtree();
 
+	/**
+	 * Destructor
+	 */
 	virtual ~PartRepresentation();
 
 	/**
-	 * @return vector containing motor identifiers
+	 * @return identifier of part
 	 */
-	virtual std::vector<std::string> getMotors() = 0;
-
-	/**
-	 * @return vector containing sensor identifiers
-	 */
-	virtual std::vector<std::string> getSensors() = 0;
+	void setId(std::string newid);
 
 	/**
 	 * @return identifier of part
@@ -84,6 +92,11 @@ public:
 	 * @return type of the part
 	 */
 	std::string &getType();
+
+	/**
+	 * @return the parameters of the part
+	 */
+	std::vector<double> getParams();
 
 	/**
 	 * @return arity = number of child slots of part
@@ -110,8 +123,8 @@ public:
 	/**
 	 * Factory pattern to create derived classes, i.e. body part representations
 	 */
-	static boost::shared_ptr<PartRepresentation> create(char type, std::string
-			id, int orientation, std::vector<double> params);
+	static boost::shared_ptr<PartRepresentation> create(char type,
+			std::string id, int orientation, std::vector<double> params);
 
 	/**
 	 * Add subtree to given body message.
@@ -125,12 +138,12 @@ public:
 	/**
 	 * @param parent parent to be set
 	 */
-	void setParent(PartRepresentation *parent);
+	void setParent(PartRepresentation* parent);
 
 	/**
 	 * @return parent part
 	 */
-	PartRepresentation *getParent();
+	PartRepresentation* getParent();
 
 	/**
 	 * Set slot id on parent part
@@ -142,30 +155,55 @@ public:
 	 */
 	int getPosition();
 
+	/**
+	 * @return the number of children
+	 */
+	unsigned int getChildrenCount();
+
+	/**
+	 * @return the positions of the free slots
+	 */
+	std::vector<unsigned int> getFreeChildSlots();
+
+	/**
+	 * @return the ids of all ancestors of this part
+	 */
+	std::vector<std::string> getAncestorsIds();
+
+	/**
+	 * @return the ids of all descendants of this part
+	 */
+	std::vector<std::string> getDescendantsIds();
+
+	/**
+	 * @return vector containing motor identifiers
+	 */
+	std::vector<std::string> getMotors();
+
+	/**
+	 * @return vector containing sensor identifiers
+	 */
+	std::vector<std::string> getSensors();
+
 protected:
+
 	/**
 	 * As of now, only derived classes need to call this for cloning, so it's
 	 * protected
 	 */
 	int getOrientation();
 
-	/**
-	 * Map of all parameters, necessary for serialization. Protected, so that
-	 * derived classes can insert parameters. Initialization in constructor
-	 * would have been cleaner, but, with C++, alas, impossible.
-	 */
-	std::map<std::string, double> params_;
-
 private:
+
 	/**
 	 * Identifier string (name) of this part
 	 */
 	std::string id_;
 
 	/**
-	 * Type, as required for protobuf serialization of derived classes
+	 * orientation of the part when attached to parent part
 	 */
-	std::string type_;
+	int orientation_;
 
 	/**
 	 * Arity: Amount of available children slots
@@ -173,9 +211,9 @@ private:
 	const int arity_;
 
 	/**
-	 * orientation of the part when attached to parent part
+	 * Type, as required for protobuf serialization of derived classes
 	 */
-	int orientation_;
+	std::string type_;
 
 	/**
 	 * Children of this part in the body tree
@@ -185,12 +223,27 @@ private:
 	/**
 	 * Parent body part - raw pointer as present (or NULL) by design
 	 */
-	PartRepresentation *parent_;
+	PartRepresentation* parent_;
 
 	/**
 	 * Slot occupied on parent part
 	 */
 	int position_;
+
+	/**
+	 * Parameters of the body part
+	 */
+	std::vector<double> params_;
+
+	/**
+	 * Motors
+	 */
+	std::vector<std::string> motors_;
+
+	/**
+	 * Sensors
+	 */
+	std::vector<std::string> sensors_;
 
 };
 

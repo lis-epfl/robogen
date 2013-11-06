@@ -40,7 +40,7 @@ namespace robogen {
  * The choice is made to use a struct as we want to easily write access to new
  * parameters of the configuration class
  */
-struct EvolverConfiguration {
+typedef struct EvolverConfiguration {
 	/**
 	 * Types of replacement strategies
 	 */
@@ -56,9 +56,26 @@ struct EvolverConfiguration {
 	};
 
 	/**
+	 * Types of body mutation.
+	 * Last entry is used to get the amount of operators
+	 */
+	enum BodyMutationOperators{
+		SUBTREE_REMOVAL, SUBTREE_DUPLICATION, SUBTREE_SWAPPING,
+		NODE_INSERTION, NODE_REMOVAL, PARAMETER_MODIFICATION,
+		ORIENTATION_CHANGE, SENSOR_SWAP, LINK_CHANGE, ACTIVE_PASSIVE,
+		NUM_BODY_OPERATORS
+	};
+
+	static const std::string BodyMutationOperatorsProbabilityCodes[];
+
+
+	/**
 	 * Parses a configuration from a proper configuration file
 	 */
 	bool init(std::string confFileName);
+
+	// GENERAL EVOLUTION PARAMS
+	// ========================================================================
 
 	/**
 	 * File for reference robot
@@ -101,6 +118,14 @@ struct EvolverConfiguration {
 	unsigned int replacement;
 
 	/**
+	 * Sockets to be used to connect to the server
+	 */
+	std::vector<std::pair<std::string, int> > sockets;
+
+	// BRAIN EVOLUTION PARAMS
+	// ========================================================================
+
+	/**
 	 * Probability of mutation for any single brain parameter
 	 */
 	double pBrainMutate;
@@ -127,11 +152,18 @@ struct EvolverConfiguration {
 	 */
 	double pBrainCrossover;
 
+	// BODY EVOLUTION PARAMS
+	// ========================================================================
+
 	/**
-	 * Sockets to be used to connect to the server
+	 * Allowed body part types
+	 * TODO: Read this from configuration file
 	 */
-	std::vector<std::pair<std::string, int> > sockets;
-};
+	std::vector<char> allowedBodyPartTypes;
+
+	double bodyOperatorProbability[NUM_BODY_OPERATORS];
+
+} EvolverConfiguration;
 
 } /* namespace robogen */
 #endif /* EVOLVERCONFIGURATION_H_ */

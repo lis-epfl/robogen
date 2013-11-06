@@ -19,9 +19,9 @@ BodyVerifier::BodyVerifier() {
 BodyVerifier::~BodyVerifier() {
 }
 
-void BodyVerifier::collisionCallback(void *data, dGeomID o1, dGeomID o2){
-	std::vector<std::pair<dBodyID, dBodyID> > *offendingBodies =
-			(std::vector<std::pair<dBodyID, dBodyID> > *) data;
+void BodyVerifier::collisionCallback(void *data, dGeomID o1, dGeomID o2) {
+	std::vector<std::pair<dBodyID, dBodyID> > *offendingBodies = (std::vector<
+			std::pair<dBodyID, dBodyID> > *) data;
 	offendingBodies->clear();
 	const int MAX_CONTACTS = 32; // maximum number of contact points per body
 	// TODO will it work with just 1 point? Probably yes.
@@ -30,7 +30,7 @@ void BodyVerifier::collisionCallback(void *data, dGeomID o1, dGeomID o2){
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
 
-	if (b1 && b2 && dAreConnectedExcluding (b1,b2,dJointTypeContact)) {
+	if (b1 && b2 && dAreConnectedExcluding(b1, b2, dJointTypeContact)) {
 		return;
 	}
 
@@ -43,12 +43,12 @@ void BodyVerifier::collisionCallback(void *data, dGeomID o1, dGeomID o2){
 			sizeof(dContact));
 
 	if (collisionCounts != 0) {
-		offendingBodies->push_back(std::pair<dBodyID, dBodyID>(b1,b2));
+		offendingBodies->push_back(std::pair<dBodyID, dBodyID>(b1, b2));
 	}
 }
 
 bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
-		std::vector<std::pair<std::string,std::string> > &affectedBodyParts){
+		std::vector<std::pair<std::string, std::string> > &affectedBodyParts) {
 
 	bool success = true;
 	errorCode = INTERNAL_ERROR;
@@ -59,7 +59,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	dWorldID odeWorld = dWorldCreate();
 	dWorldSetGravity(odeWorld, 0, 0, 0);
 	dSpaceID odeSpace = dHashSpaceCreate(0);
-	dJointGroupID odeJoints = dJointGroupCreate(0);
+	// TODO: Remove? dJointGroupID odeJoints = dJointGroupCreate(0);
 
 #ifdef VISUAL_DEBUG
 	// Initialize OSG
@@ -74,9 +74,9 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	robogenMessage::Robot robotMessage = robotRep.serialize();
 	// parse robot
 	boost::shared_ptr<Robot> robot(new Robot);
-	if (!robot->init(odeWorld,odeSpace,robotMessage)){
-		std::cout << "Problem when initializing robot in body verifier!" <<
-				std::endl;
+	if (!robot->init(odeWorld, odeSpace, robotMessage)) {
+		std::cout << "Problem when initializing robot in body verifier!"
+				<< std::endl;
 		return false;
 	}
 	std::vector<boost::shared_ptr<Model> > bodyParts = robot->getBodyParts();
@@ -95,10 +95,10 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 
 		if (!renderModel->initRenderModel()) {
 			std::cout
-			<< "Cannot initialize a render model for one of the components. "
-			<< std::endl
-			<< "Please check that the models/ folder is in the same folder of this executable."
-			<< std::endl;
+					<< "Cannot initialize a render model for one of the components. "
+					<< std::endl
+					<< "Please check that the models/ folder is in the same folder of this executable."
+					<< std::endl;
 		}
 		renderModels.push_back(renderModel);
 		root->addChild(renderModels[i]->getRootNode());
@@ -116,30 +116,31 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	// build map from ODE bodies to body part ID's: needed to identify
 	// offending body parts
 	std::map<dBodyID, std::string> dBodyToPartID;
-	for (unsigned int i=0; i<bodyParts.size(); ++i){
+	for (unsigned int i = 0; i < bodyParts.size(); ++i) {
 		std::vector<dBodyID> dBodies = bodyParts[i]->getBodies();
-		for (unsigned int j=0; j<dBodies.size(); ++j){
+		for (unsigned int j = 0; j < dBodies.size(); ++j) {
 			dBodyToPartID[dBodies[j]] = bodyParts[i]->getId();
 		}
 	}
 
 	// perform body part collision test
 	std::vector<std::pair<dBodyID, dBodyID> > offendingBodies;
-	dSpaceCollide(odeSpace, (void *)&offendingBodies, collisionCallback);
-	if (offendingBodies.size()){
+	dSpaceCollide(odeSpace, (void *) &offendingBodies, collisionCallback);
+	if (offendingBodies.size()) {
 		success = false;
 		errorCode = SELF_INTERSECTION;
 	}
-	for (unsigned int i=0; i<offendingBodies.size(); i++){
+	for (unsigned int i = 0; i < offendingBodies.size(); i++) {
 		// TODO unlikely event that body not found in map?
-		affectedBodyParts.push_back(std::pair<std::string, std::string>(
-				dBodyToPartID[offendingBodies[i].first],
-				dBodyToPartID[offendingBodies[i].second]));
+		affectedBodyParts.push_back(
+				std::pair<std::string, std::string>(
+						dBodyToPartID[offendingBodies[i].first],
+						dBodyToPartID[offendingBodies[i].second]));
 	}
 
 #ifdef VISUAL_DEBUG
 	// show robot in viewer
-	while (!keyboardEvent->isQuit() && !viewer.done()){
+	while (!keyboardEvent->isQuit() && !viewer.done()) {
 		viewer.frame();
 	};
 #endif
@@ -152,65 +153,60 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	return success;
 }
 
-
-bool BodyVerifier::fixRobotBody(RobotRepresentation &robot){
+bool BodyVerifier::fixRobotBody(RobotRepresentation &robot) {
 	bool changed = false;
-	while (true){
+	while (true) {
 		// check velidity of body
 		int errorCode;
 		std::vector<std::pair<std::string, std::string> > offenders;
-		if (!BodyVerifier::verify(robot, errorCode, offenders)){
+		if (!BodyVerifier::verify(robot, errorCode, offenders)) {
 			// TODO treat other cases: Arduino constraints, missing core
-			if (errorCode == BodyVerifier::SELF_INTERSECTION){
+			if (errorCode == BodyVerifier::SELF_INTERSECTION) {
 				std::cerr << "Robot body has following intersection pairs:"
 						<< std::endl;
-				for (unsigned int i=0; i<offenders.size(); ++i){
+				for (unsigned int i = 0; i < offenders.size(); ++i) {
 					// get robots IdPartMap: Volatile, so needs update
 					const RobotRepresentation::IdPartMap idPartMap =
 							robot.getBody();
-					std::cerr << offenders[i].first << " with " <<
-							offenders[i].second << std::endl;
+					std::cerr << offenders[i].first << " with "
+							<< offenders[i].second << std::endl;
 
 					// check if offending body part hasn't been removed yet
-					if (idPartMap.find(offenders[i].first) == idPartMap.end() ||
-							idPartMap.find(offenders[i].second) ==
-									idPartMap.end()){
+					if (idPartMap.find(offenders[i].first) == idPartMap.end()
+							|| idPartMap.find(offenders[i].second)
+									== idPartMap.end()) {
 						continue;
 					}
 					// will remove body part with less descendants (i.e. this
 					// covers the case where one part descends from the other)
-					int numDesc[] = {idPartMap.find(offenders[i].first)->
-							second.lock()->numDescendants(),
-							idPartMap.find(offenders[i].second)->
-							second.lock()->numDescendants()
-					};
-					std::cout << offenders[i].first << " has " <<
-							numDesc[0] << " descendants" << std::endl;
-					std::cout << offenders[i].second << " has " <<
-							numDesc[1] << " descendants" << std::endl;
-					if (numDesc[0]>numDesc[1]){
+					int numDesc[] =
+							{
+									idPartMap.find(offenders[i].first)->second.lock()->numDescendants(),
+									idPartMap.find(offenders[i].second)->second.lock()->numDescendants() };
+					std::cout << offenders[i].first << " has " << numDesc[0]
+							<< " descendants" << std::endl;
+					std::cout << offenders[i].second << " has " << numDesc[1]
+							<< " descendants" << std::endl;
+					if (numDesc[0] > numDesc[1]) {
 						robot.trimBodyAt(offenders[i].second);
 						std::cout << "Removing latter" << std::endl;
-					}
-					else{
+					} else {
 						robot.trimBodyAt(offenders[i].first);
 						std::cout << "Removing former" << std::endl;
 					}
 					changed = true;
 				}
 			}
-			if (errorCode == BodyVerifier::INTERNAL_ERROR){
+			if (errorCode == BodyVerifier::INTERNAL_ERROR) {
 				std::cout << "Body verification failed due to internal error!"
 						<< std::endl;
 				return false;
 			}
-		}
-		else{
+		} else {
 			break;
 		}
 	}
 	return changed;
 }
-
 
 } /* namespace robogen */

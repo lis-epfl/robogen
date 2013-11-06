@@ -34,7 +34,8 @@
 
 namespace robogen {
 
-IndividualContainer::IndividualContainer() : evaluated_(false), sorted_(false){
+IndividualContainer::IndividualContainer() :
+		evaluated_(false), sorted_(false) {
 }
 
 IndividualContainer::~IndividualContainer() {
@@ -49,39 +50,43 @@ IndividualContainer::~IndividualContainer() {
  * @param confFile simulator configuration file to be used for evaluations
  */
 void evaluationThread(std::queue<RobotRepresentation*> *indiQueue,
-		boost::mutex *queueMutex, TcpSocket *socket, std::string &confFile){
-	while (true){
+		boost::mutex *queueMutex, TcpSocket *socket,
+		boost::shared_ptr<RobogenConfig> robotConf) {
+	while (true) {
 		boost::mutex::scoped_lock lock(*queueMutex);
-		if (indiQueue->empty()) return;
-		RobotRepresentation *current = indiQueue->front(); indiQueue->pop();
-		std::cout << "." <<	std::flush;
+		if (indiQueue->empty())
+			return;
+		RobotRepresentation *current = indiQueue->front();
+		indiQueue->pop();
+		std::cout << "." << std::flush;
 		lock.unlock();
 
-		current->evaluate(socket, confFile);
+		current->evaluate(socket, robotConf);
 	}
 }
 
-void IndividualContainer::evaluate(std::string confFile,
-		std::vector<TcpSocket*> &sockets){
+void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
+		std::vector<TcpSocket*> &sockets) {
 
 	// 1. Create mutexed queue of Individual pointers
 	std::queue<RobotRepresentation*> indiQueue;
 	boost::mutex queueMutex;
-	for (unsigned int i=0; i<this->size(); i++){
-		if (!this->at(i).isEvaluated()){
+	for (unsigned int i = 0; i < this->size(); i++) {
+		if (!this->at(i).isEvaluated()) {
 			indiQueue.push(&this->at(i));
 		}
 	}
-	std::cout << indiQueue.size() << " individuals queued for evaluation." <<
-			" Progress:" << std::endl;
+	std::cout << indiQueue.size() << " individuals queued for evaluation."
+			<< " Progress:" << std::endl;
 
 	// 2. Prepare thread structure
 	boost::thread_group evaluators;
 
 	// 3. Launch threads
-	for (unsigned int i=0; i<sockets.size(); i++){
-		evaluators.add_thread(new boost::thread(evaluationThread, &indiQueue,
-				&queueMutex,sockets[i],confFile));
+	for (unsigned int i = 0; i < sockets.size(); i++) {
+		evaluators.add_thread(
+				new boost::thread(evaluationThread, &indiQueue, &queueMutex,
+						sockets[i], robotConf));
 	}
 
 	// 4. Join threads. Individuals are now evaluated.
@@ -92,22 +97,22 @@ void IndividualContainer::evaluate(std::string confFile,
 	evaluated_ = true;
 }
 
-void IndividualContainer::sort(){
-	if (sorted_) return;
+void IndividualContainer::sort() {
+	if (sorted_)
+		return;
 	std::sort(this->begin(), this->end(), operator >);
 	sorted_ = true;
 }
 
-IndividualContainer &IndividualContainer::operator += (
-		const IndividualContainer &other){
-	this->insert(this->end(),other.begin(),other.end());
+IndividualContainer &IndividualContainer::operator +=(
+		const IndividualContainer &other) {
+	this->insert(this->end(), other.begin(), other.end());
 	sorted_ = false;
 	return *this;
 }
 
-bool IndividualContainer::areEvaluated() const{
+bool IndividualContainer::areEvaluated() const {
 	return evaluated_;
 }
-
 
 } /* namespace robogen */

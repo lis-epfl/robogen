@@ -30,6 +30,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <string>
+#include "robogen.pb.h"
 
 namespace robogen {
 
@@ -63,6 +64,9 @@ public:
 	 */
 	static boost::shared_ptr<RobogenConfig> parseConfigurationFile(
 			const std::string& fileName);
+
+	static boost::shared_ptr<RobogenConfig> parseRobogenMessage(
+				const robogenMessage::SimulatorConf& simulatorConf);
 
 private:
 

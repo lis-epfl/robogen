@@ -26,19 +26,28 @@
  * @(#) $Id$
  */
 
-#include "evolution/engine/EvolverConfiguration.h"
 #include <iostream>
 #include <sstream>
 #include <boost/program_options.hpp>
 #include <boost/regex.hpp>
+#include "config/EvolverConfiguration.h"
 
 namespace robogen {
+
+const std::string
+EvolverConfiguration::BodyMutationOperatorsProbabilityCodes[] = {
+			"pSubtreeRemove", "pSubtreeDuplicate", "pSubtreeSwap",
+			"pNodeInsert", "pNodeRemove", "pParameterModify",
+			"pOrientationChange", "pSensorSwap", "pLinkChange", "pActivePassive"
+	};
 
 /**
  * Parses options from given conf file.
  * @todo default values
  */
 bool EvolverConfiguration::init(std::string confFileName) {
+	// cleanse operator probabilities before reading in (not specified = 0)
+	memset(bodyOperatorProbability, 0, sizeof(bodyOperatorProbability));
 	// boost-parse options
 	boost::program_options::options_description desc("Allowed options");
 	// DON'T AUTO-INDENT THE FOLLOWING ON ECLIPSE:
@@ -51,10 +60,10 @@ bool EvolverConfiguration::init(std::string confFileName) {
 				->required(), "Path to simulator configuration file")
 		("mu",
 				boost::program_options::value<unsigned int>(&mu)
-				->required(), "Size of population")
+				->required(), "Number of offspring")
 		("lambda",
 				boost::program_options::value<unsigned int>(&lambda)
-				->required(), "Size of offspring")
+				->required(), "Number of population individuals")
 		("numGenerations",
 				boost::program_options::value<unsigned int>(&numGenerations)
 				->required(), "Amount of generations to be evaluated")
@@ -78,7 +87,17 @@ bool EvolverConfiguration::init(std::string confFileName) {
 				boost::program_options::value<double>(
 				&pBrainCrossover), "Probability of crossover among brains")
 		("socket", boost::program_options::value<std::vector<std::string> >()
-				->required(),	"Sockets to be used to connect to the server");
+				->required(),	"Sockets to be used to connect to the server")
+		("addBodyPart",
+				boost::program_options::value<std::vector<char> >(
+				&allowedBodyPartTypes), "Parts to be used in body evolution");
+	// generate body operator probability options from contraptions in header
+	for (unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
+		desc.add_options()(
+			BodyMutationOperatorsProbabilityCodes[i].c_str(),
+			boost::program_options::value<double>(
+			&bodyOperatorProbability[i]),"Probability of given operator");
+	}
 	boost::program_options::variables_map vm;
 	boost::program_options::store(
 			boost::program_options::parse_config_file<char>(
@@ -158,15 +177,15 @@ bool EvolverConfiguration::init(std::string confFileName) {
 
 	// - if replacement is comma, lambda must exceed mu
 	if (replacement == COMMA_REPLACEMENT && lambda < mu){
-		std::cout << "If replacement is comma, lambda must be bigger than mu, but "\
-				"lambda is " << lambda << " and mu is " << mu << std::endl;
+		std::cout << "If replacement is comma, lambda must be bigger than mu,"\
+				"but lambda is " << lambda << " and mu is " << mu << std::endl;
 		return false;
 	}
 
 	// - brain bounds max must > min
 	if (maxBrainWeight < minBrainWeight){
-		std::cout << "Minimum brain bound " << minBrainWeight << " exceeds maximum "
-				<< maxBrainWeight << std::endl;
+		std::cout << "Minimum brain bound " << minBrainWeight << " exceeds "\
+				"maximum " << maxBrainWeight << std::endl;
 		return false;
 	}
 
@@ -177,9 +196,17 @@ bool EvolverConfiguration::init(std::string confFileName) {
 		return false;
 	}
 	if (pBrainCrossover > 1. || pBrainCrossover < 0.){
-		std::cout << "Brain crossover probability parameter " << pBrainCrossover <<
-				" not between 0 and 1!" << std::endl;
+		std::cout << "Brain crossover probability parameter " << pBrainCrossover
+				<< " not between 0 and 1!" << std::endl;
 		return false;
+	}
+	for(unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
+		if (bodyOperatorProbability[i] > 1. || bodyOperatorProbability[i] < 0.){
+			std::cout << BodyMutationOperatorsProbabilityCodes[i] <<
+					bodyOperatorProbability[i]	<< " not between 0 and 1!" <<
+					std::endl;
+			return false;
+		}
 	}
 
 	// - sigma needs to be positive

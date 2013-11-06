@@ -34,20 +34,25 @@
 
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/bernoulli_distribution.hpp>
+
+#include "config/EvolverConfiguration.h"
 #include "evolution/representation/RobotRepresentation.h"
 #include "evolution/engine/BodyVerifier.h"
+
+#define MAX_MUTATION_ATTEMPTS 100 //TODO move this somewhere else
 
 namespace robogen {
 
 class Mutator {
+
 public:
+
 	/**
 	 * Types of mutators
 	 */
-	enum types{
-		BRAIN_MUTATOR,
-		BRAIN_BODY_PARAM_MUTATOR, 	// just putting the idea out there
-		FULL_MUTATOR 				// the holy grail of the robogen developer
+	enum types {
+		BRAIN_MUTATOR, BRAIN_BODY_PARAM_MUTATOR, // just putting the idea out there
+		FULL_MUTATOR // the holy grail of the robogen developer
 	};
 
 	/**
@@ -56,16 +61,16 @@ public:
 	 * @param brainMuteSigma sigma of normal distribution for brain mutation
 	 * @param pBrainCrossover probability for crossover among brains
 	 */
-	Mutator(double pBrainMutate, double brainMuteSigma, double pBrainCrossover,
-			double brainMin, double brainMax, boost::random::mt19937 &rng);
+	Mutator(boost::shared_ptr<EvolverConfiguration> conf,
+			boost::random::mt19937 &rng);
 
 	virtual ~Mutator();
 
 	/**
 	 * Performs mutation and crossover on a pair of robots
 	 */
-	RobotRepresentation mutate(std::pair<RobotRepresentation,
-			RobotRepresentation> parents);
+	RobotRepresentation mutate(
+			std::pair<RobotRepresentation, RobotRepresentation> parents);
 
 	/**
 	 * Mutates a single robot
@@ -84,6 +89,11 @@ public:
 
 private:
 	/**
+	 * Evolver Configuration
+	 */
+	boost::shared_ptr<EvolverConfiguration> conf_;
+
+	/**
 	 * Type of mutator behavior from types enum
 	 */
 	int type_;
@@ -93,14 +103,33 @@ private:
 	 */
 	boost::random::bernoulli_distribution<double> weightMutate_;
 	boost::random::normal_distribution<double> weightDistribution_;
+	boost::random::normal_distribution<double> paramDistribution_;
+
 	boost::random::bernoulli_distribution<double> weightCrossover_;
 	double brainMin_;
 	double brainMax_;
+
+	boost::random::bernoulli_distribution<double> subtreeRemoval_;
+	boost::random::bernoulli_distribution<double> subtreeDuplication_;
+	boost::random::bernoulli_distribution<double> subtreeSwap_;
+	boost::random::bernoulli_distribution<double> nodeInsert_;
+	boost::random::bernoulli_distribution<double> nodeRemoval_;
+	boost::random::bernoulli_distribution<double> paramMutate_;
 
 	/**
 	 * Random number generator
 	 */
 	boost::random::mt19937 &rng_;
+
+	void mutateBody(boost::shared_ptr<RobotRepresentation>& robot);
+	bool removeSubtree(boost::shared_ptr<RobotRepresentation>& robot);
+	bool duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot);
+	bool swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot);
+	bool insertNode(boost::shared_ptr<RobotRepresentation>& robot);
+	bool removeNode(boost::shared_ptr<RobotRepresentation>& robot);
+	bool mutateParams(boost::shared_ptr<RobotRepresentation>& robot);
+
+
 };
 
 } /* namespace robogen */

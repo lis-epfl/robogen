@@ -39,10 +39,12 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <boost/random/mersenne_twister.hpp>
-#include "robogen.pb.h"
+
+#include "config/RobogenConfig.h"
 #include "evolution/representation/PartRepresentation.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
 #include "utils/network/TcpSocket.h"
+#include "robogen.pb.h"
 
 namespace robogen{
 
@@ -56,8 +58,7 @@ public:
 	/**
 	 * Map from an id string to a weak pointer of a part representation
 	 */
-	typedef std::map<std::string, boost::weak_ptr<PartRepresentation> >
-	IdPartMap;
+	typedef std::map<std::string, boost::weak_ptr<PartRepresentation> > IdPartMap;
 
 	/**
 	 * Copy constructor: Deep copy body parts and Neural network
@@ -114,8 +115,10 @@ public:
 
 	/**
 	 * Evaluate individual using given socket and given configuration file.
+	 * @param socket
+	 * @param robotConf
 	 */
-	void evaluate(TcpSocket *socket, std::string &confFile);
+	void evaluate(TcpSocket *socket, boost::shared_ptr<RobogenConfig> robotConf);
 
 	/**
 	 * @return fitness of individual
@@ -137,7 +140,36 @@ public:
 	 * just one body part as TODO popBodyPart() does.
 	 * @return false upon failure
 	 */
-	bool trimBodyAt(std::string id);
+	bool trimBodyAt(const std::string& id);
+
+	/**
+	 * @return a string unique id
+	 */
+	std::string generateUniqueIdFromSomeId();
+
+	/**
+	 * update id of 'node' to make it unique and call recursively all existing childs to do the same
+	 * @param node
+	 */
+	bool insertSubTreeRecursivelyToMap(boost::shared_ptr<PartRepresentation> node);
+
+	/**
+	 * Clone 'srcId' node and insert it slot 'slotId', then recursively update id's in the map
+	 * @param srcId
+	 * @param destId
+	 * @param slotId
+	 */
+	bool duplicateSubTree(const std::string& srcId, const std::string& destId, int slotId);
+
+	/**
+	 * 'node' will replace some node 'prev_subnode' at slot 'slotId1' of 'destId' node
+	 *  then 'prev_subnode' will be inserted at 'slotId2' of 'node'
+	 */
+	bool insertNode(const std::string& parent, int parentSlot,
+			boost::shared_ptr<PartRepresentation> newNode, int newNodeSlot);
+	bool removeNode(const std::string& id_node);
+
+
 
 private:
 	/**
@@ -160,6 +192,12 @@ private:
 	 * Fitness of robot, once evaluated.
 	 */
 	double fitness_;
+
+	/**
+		 * Counter for unique ID.
+    */
+	int maxid_;
+
 
 	/**
 	 * Indicates whether robot evaluated
