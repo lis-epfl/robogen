@@ -123,6 +123,15 @@ std::map<std::string, std::vector<std::string> > initPartTypeMotorsMap() {
 			partTypeMotorsMap[singleMotorParts[i]] = motors;
 		}
 	}
+
+	// need to insert empty vectors for all others
+	for (std::map<char, std::string>::const_iterator  it =
+			PART_TYPE_MAP.begin(); it != PART_TYPE_MAP.end(); ++it) {
+		if(partTypeMotorsMap.count(it->second) == 0) {
+			partTypeMotorsMap[it->second] = std::vector<std::string>(0);
+		}
+	}
+
 	return partTypeMotorsMap;
 }
 std::map<std::string, std::vector<std::string> > initPartTypeSensorsMap() {
@@ -149,6 +158,13 @@ std::map<std::string, std::vector<std::string> > initPartTypeSensorsMap() {
 		sensors.push_back(PART_TYPE_TOUCH_SENSOR + std::string("-left"));
 		sensors.push_back(PART_TYPE_TOUCH_SENSOR + std::string("-right"));
 		partTypeSensorsMap[PART_TYPE_TOUCH_SENSOR] = sensors;
+	}
+	// need to insert empty vectors for all others
+	for (std::map<char, std::string>::const_iterator  it =
+			PART_TYPE_MAP.begin(); it != PART_TYPE_MAP.end(); ++it) {
+		if(partTypeSensorsMap.count(it->second) == 0) {
+			partTypeSensorsMap[it->second] = std::vector<std::string>(0);
+		}
 	}
 
 	return partTypeSensorsMap;
