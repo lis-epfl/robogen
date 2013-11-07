@@ -35,9 +35,7 @@ namespace robogen {
 
 Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::random::mt19937 &rng) :
-		conf_(conf),
-		rng_(rng),
-		weightMutate_(conf->pBrainMutate),
+		conf_(conf), rng_(rng), weightMutate_(conf->pBrainMutate),
 		weightDistribution_(0., conf->brainSigma),
 		weightCrossover_(conf->pBrainCrossover),
 		brainMin_(conf->minBrainWeight),
@@ -45,28 +43,28 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
 		subtreeRemovalDist_ =
 				boost::random::bernoulli_distribution<double>(
-				conf->bodyOperatorProbability
-				[EvolverConfiguration::SUBTREE_REMOVAL]);
+						conf->bodyOperatorProbability
+						[EvolverConfiguration::SUBTREE_REMOVAL]);
 		subtreeDuplicationDist_ =
 				boost::random::bernoulli_distribution<double>(
-				conf->bodyOperatorProbability
-				[EvolverConfiguration::SUBTREE_DUPLICATION]);
+						conf->bodyOperatorProbability
+						[EvolverConfiguration::SUBTREE_DUPLICATION]);
 		subtreeSwapDist_ =
 				boost::random::bernoulli_distribution<double>(
-				conf->bodyOperatorProbability
-				[EvolverConfiguration::SUBTREE_SWAPPING]);
+						conf->bodyOperatorProbability
+						[EvolverConfiguration::SUBTREE_SWAPPING]);
 		nodeInsertDist_ =
 				boost::random::bernoulli_distribution<double>(
-				conf->bodyOperatorProbability
-				[EvolverConfiguration::NODE_INSERTION]);
+						conf->bodyOperatorProbability
+						[EvolverConfiguration::NODE_INSERTION]);
 		nodeRemovalDist_ =
 				boost::random::bernoulli_distribution<double>(
-				conf->bodyOperatorProbability
-				[EvolverConfiguration::NODE_REMOVAL]);
+						conf->bodyOperatorProbability
+						[EvolverConfiguration::NODE_REMOVAL]);
 		paramMutateDist_ =
 				boost::random::bernoulli_distribution<double>(
-				conf->bodyOperatorProbability
-				[EvolverConfiguration::PARAMETER_MODIFICATION]);
+						conf->bodyOperatorProbability
+						[EvolverConfiguration::PARAMETER_MODIFICATION]);
 	}
 
 }
@@ -94,26 +92,33 @@ boost::shared_ptr<RobotRepresentation> Mutator::mutate(
 	return offspring1;
 }
 
-bool Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation> robot) {
+void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation> robot) {
 
 	boost::random::uniform_int_distribution<> dist(conf_->minNumInitialParts,
-			conf_->minNumInitialParts);
+			conf_->maxNumInitialParts);
 	unsigned int numPartsToAdd = dist(rng_);
 
-	bool success = false;
-	for (unsigned int attempt = 0;
-			(!success) && (attempt < conf_->maxBodyMutationAttemps);
-			++attempt) {
-		for (unsigned int i = 0; i < numPartsToAdd; i++) {
-			this->insertNode(robot);
-		}
-		int errorCode;
-		std::vector<std::pair<std::string, std::string> > affectedBodyParts;
-		success = BodyVerifier::verify(*robot.get(), errorCode,
-				affectedBodyParts);
-	}
+	for (unsigned int i = 0; i < numPartsToAdd; i++) {
+		bool success = false;
 
-	return success;
+		for (unsigned int attempt = 0;
+				(attempt < conf_->maxBodyMutationAttemps); ++attempt) {
+
+			boost::shared_ptr<RobotRepresentation> newBot = boost::shared_ptr<
+					RobotRepresentation>(new RobotRepresentation(*robot.get()));
+			success = this->insertNode(newBot);
+			int errorCode;
+
+			std::vector<std::pair<std::string, std::string> > affectedBodyParts;
+			if (success
+					&& BodyVerifier::verify(*newBot.get(), errorCode,
+							affectedBodyParts)) {
+				robot = newBot;
+				robot->setDirty();
+				break;
+			}
+		}
+	}
 }
 
 bool Mutator::mutate(boost::shared_ptr<RobotRepresentation>& robot) {
@@ -367,7 +372,7 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	boost::shared_ptr<PartRepresentation> parentPart = parent->second.lock();
 
 	// Sample a random slot
-	if ( parentPart->getArity() == 0 ) {
+	if (parentPart->getArity() == 0) {
 		return false;
 	}
 	boost::random::uniform_int_distribution<> distSlot(0,
@@ -384,8 +389,7 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	unsigned int curOrientation = orientationDist(rng_);
 
 	// Randomly generate parameters
-	unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP.at(
-			PART_TYPE_MAP.at(type));
+	unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type));
 	std::vector<double> parameters;
 	boost::random::uniform_01<double> paramDist;
 	for (unsigned int i = 0; i < nParams; ++i) {
@@ -398,7 +402,7 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	unsigned int newPartSlot = 0;
 
-	if ( newPart->getArity() > 0 ) {
+	if (newPart->getArity() > 0) {
 		// Generate a random slot in the new node, if it has arity > 0
 		boost::random::uniform_int_distribution<> distNewPartSlot(0,
 				newPart->getArity() - 1);
@@ -406,7 +410,6 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	}
 	// otherwise just keep it at 0... inserting part will fail if arity is 0 and
 	// there were previously parts attached to the parent's chosen slot
-
 
 	return robot->insertPart(parent->first, parentSlot, newPart, newPartSlot);
 
