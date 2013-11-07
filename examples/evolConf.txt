@@ -13,7 +13,7 @@ brainSigma=.7
 brainBounds=-3:3
 pBrainCrossover=.6
 
-numInitialParts=1:1
+numInitialParts=2:2
 addBodyPart=G
 
 socket=127.0.0.1:8001

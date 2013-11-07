@@ -29,7 +29,6 @@
 
 namespace robogen {
 
-
 //first define init functions that will populate these maps
 
 std::map<char, std::string> initPartTypeMap() {
@@ -86,23 +85,21 @@ std::map<std::string, unsigned int> initPartTypeParamCountMap() {
 	return partTypeParamCountMap;
 }
 
-std::map<std::pair<std::string, unsigned int>, std::pair<double, double> >
-		initPartTypeParamRangeMap() {
-	std::map<std::pair<std::string, unsigned int>,
-		std::pair<double, double> > partTypeParamRangeMap;
+std::map<std::pair<std::string, unsigned int>, std::pair<double, double> > initPartTypeParamRangeMap() {
+	std::map<std::pair<std::string, unsigned int>, std::pair<double, double> > partTypeParamRangeMap;
 
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_ACTIVE_WHEEL, 0)] =
-			std::make_pair(0.03,0.08); // radius in m   --- TODO update wiki
+			std::make_pair(0.03, 0.08); // radius in m   --- TODO update wiki
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_ACTIVE_WHEG, 0)] =
-			std::make_pair(0.03,0.08); // radius in m
+			std::make_pair(0.03, 0.08); // radius in m
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_JOINT, 0)] =
-			std::make_pair(0.02,0.04); // length in m
+			std::make_pair(0.02, 0.04); // length in m
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_JOINT, 1)] =
-			std::make_pair(-90.0,90.0); // tilt (alpha) in degrees
+			std::make_pair(-90.0, 90.0); // tilt (alpha) in degrees
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_JOINT, 2)] =
-			std::make_pair(0.0,180.0); // rotation (beta) in degrees
-	partTypeParamRangeMap[std::make_pair(PART_TYPE_PASSIVE_WHEEL,0)] =
-			std::make_pair(0.03,0.08); // radius in m
+			std::make_pair(0.0, 180.0); // rotation (beta) in degrees
+	partTypeParamRangeMap[std::make_pair(PART_TYPE_PASSIVE_WHEEL, 0)] =
+			std::make_pair(0.03, 0.08); // radius in m
 	return partTypeParamRangeMap;
 }
 
@@ -171,17 +168,19 @@ std::map<_OrigValue, _OrigKey> inverseMap(
 }
 
 //initialize the maps
-std::map<char, std::string> PART_TYPE_MAP = initPartTypeMap();
-std::map<std::string, char> INVERSE_PART_TYPE_MAP = inverseMap(PART_TYPE_MAP);
-std::map<std::string, unsigned int> PART_TYPE_ARITY_MAP =
+const std::map<char, std::string> PART_TYPE_MAP = initPartTypeMap();
+const std::map<std::string, char> INVERSE_PART_TYPE_MAP = inverseMap(
+		PART_TYPE_MAP);
+const std::map<std::string, unsigned int> PART_TYPE_ARITY_MAP =
 		initPartTypeArityMap();
-std::map<std::string, unsigned int> PART_TYPE_PARAM_COUNT_MAP =
+const std::map<std::string, unsigned int> PART_TYPE_PARAM_COUNT_MAP =
 		initPartTypeParamCountMap();
-std::map<std::pair<std::string, unsigned int>, std::pair<double, double> >
+const std::map<std::pair<std::string, unsigned int>,
+		std::pair<double, double> >
 		PART_TYPE_PARAM_RANGE_MAP = initPartTypeParamRangeMap();
-std::map<std::string, std::vector<std::string> > PART_TYPE_MOTORS_MAP =
+const std::map<std::string, std::vector<std::string> > PART_TYPE_MOTORS_MAP =
 		initPartTypeMotorsMap();
-std::map<std::string, std::vector<std::string> > PART_TYPE_SENSORS_MAP =
+const std::map<std::string, std::vector<std::string> > PART_TYPE_SENSORS_MAP =
 		initPartTypeSensorsMap();
 
 } /* namespace robogen */

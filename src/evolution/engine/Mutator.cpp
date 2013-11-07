@@ -367,6 +367,9 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	boost::shared_ptr<PartRepresentation> parentPart = parent->second.lock();
 
 	// Sample a random slot
+	if ( parentPart->getArity() == 0 ) {
+		return false;
+	}
 	boost::random::uniform_int_distribution<> distSlot(0,
 			parentPart->getArity() - 1);
 	unsigned int parentSlot = distSlot(rng_);
@@ -381,7 +384,8 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	unsigned int curOrientation = orientationDist(rng_);
 
 	// Randomly generate parameters
-	unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP[PART_TYPE_MAP[type]];
+	unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP.at(
+			PART_TYPE_MAP.at(type));
 	std::vector<double> parameters;
 	boost::random::uniform_01<double> paramDist;
 	for (unsigned int i = 0; i < nParams; ++i) {

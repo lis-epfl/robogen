@@ -110,10 +110,10 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 			rawParams.push_back(param);
 		}
 		if (rawParams.size()
-				!= PART_TYPE_PARAM_COUNT_MAP[PART_TYPE_MAP[type]]) {
+				!= PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type))) {
 			std::cout << "Error reading body part from text file.\n"
-					<< PART_TYPE_MAP[type] << " requires "
-					<< PART_TYPE_PARAM_COUNT_MAP[PART_TYPE_MAP[type]]
+					<< PART_TYPE_MAP.at(type) << " requires "
+					<< PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type))
 					<< " params, but " << rawParams.size()
 					<< " were received\n";
 			throw std::runtime_error("");
@@ -121,12 +121,12 @@ bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
 		}
 		for (unsigned int i = 0; i < rawParams.size(); i++) {
 			std::pair<double, double> ranges =
-					PART_TYPE_PARAM_RANGE_MAP[std::make_pair(
-							PART_TYPE_MAP[type], i)];
+					PART_TYPE_PARAM_RANGE_MAP.at(std::make_pair(
+							PART_TYPE_MAP.at(type), i));
 			double rawParamValue = rawParams[i];
 			if (rawParamValue < ranges.first || rawParamValue > ranges.second) {
 				std::cout << "Error reading body part from text file.\n"
-						<< PART_TYPE_MAP[type] << " requires param " << i
+						<< PART_TYPE_MAP.at(type) << " requires param " << i
 						<< " to be in [" << ranges.first << ", "
 						<< ranges.second << "], but " << rawParamValue
 						<< " was received\n";
@@ -250,16 +250,17 @@ RobotRepresentation &RobotRepresentation::operator=(
 bool RobotRepresentation::init() {
 
 	// Generate a core component
-	std::string coreId = "CoreComponent";
 	boost::shared_ptr<PartRepresentation> corePart = PartRepresentation::create(
-			INVERSE_PART_TYPE_MAP[PART_TYPE_CORE_COMPONENT], coreId, 0,
+			INVERSE_PART_TYPE_MAP.at(PART_TYPE_CORE_COMPONENT),
+			PART_TYPE_CORE_COMPONENT, 0,
 			std::vector<double>());
 	if (!corePart) {
 		std::cout << "Failed to create root node" << std::endl;
 		return false;
 	}
 	bodyTree_ = corePart;
-	idToPart_[coreId] = boost::weak_ptr<PartRepresentation>(corePart);
+	idToPart_[PART_TYPE_CORE_COMPONENT] =
+			boost::weak_ptr<PartRepresentation>(corePart);
 
 	// TODO abstract this to a different function so it doesn't
 	// duplicate what we have below
