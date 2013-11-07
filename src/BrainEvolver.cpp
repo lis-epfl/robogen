@@ -39,23 +39,27 @@ using namespace robogen;
 
 int main(int argc, char *argv[]) {
 
-	// create random number generator
-	boost::random::mt19937 rng;
-	//TODO allow ability to configure seed
-
 	// ---------------------------------------
 	// verify usage and load configuration
 	// ---------------------------------------
-
-	if (argc != 2) {
+	if (argc != 4) {
 		std::cout << "Bad amount of arguments. " << std::endl
 				<< " Usage: robogen-brain-evolver "
-						"<configuration file>" << std::endl;
+						"<seed, INTEGER>, <outputFolderPostFix, STRING>, <configuration file, STRING>" << std::endl;
 		return EXIT_FAILURE;
 	}
+
+	unsigned int seed = atoi(argv[1]);
+	std::string outputFolderPostfix = std::string(argv[2]);
+	std::string confFileName = std::string(argv[3]);
+
+	// Create random number generator
+	boost::random::mt19937 rng;
+	rng.seed(seed);
+
 	boost::shared_ptr<EvolverConfiguration> conf =
 			boost::shared_ptr<EvolverConfiguration>(new EvolverConfiguration());
-	if (!conf->init(std::string(argv[1]))) {
+	if (!conf->init(confFileName)) {
 		std::cout << "Problems parsing the evolution configuration file. Quit."
 				<< std::endl;
 		return EXIT_FAILURE;
@@ -85,7 +89,7 @@ int main(int argc, char *argv[]) {
 	boost::shared_ptr<Mutator> mutator = boost::shared_ptr<Mutator>(
 			new Mutator(conf, rng));
 	boost::shared_ptr<EvolverLog> log(new EvolverLog());
-	if (!log->init(std::string(argv[1]))) {
+	if (!log->init(confFileName, outputFolderPostfix)) {
 		std::cout << "Error creating evolver log. Aborting." << std::endl;
 		return EXIT_FAILURE;
 	}
