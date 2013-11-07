@@ -46,9 +46,10 @@ public:
 	 * with BestAvgStd.txt inside and a copy of the generating configuration
 	 * file.
 	 * @param confFile evolution configuration file
+	 * @param logFolderPostfix postfix of log folder
 	 * @return true if successful
 	 */
-	bool init(std::string confFile);
+	bool init(const std::string& confFile, const std::string& logFolderPostfix);
 
 	virtual ~EvolverLog();
 
