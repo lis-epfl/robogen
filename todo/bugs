@@ -1,0 +1,14 @@
+Bug:
+
+Seeing the simulator die with the following error:
+"Cannot find a body part with id 'myid1001' to be associated with neuron 7
+Cannot decode the brain of the robot. Exiting."
+
+Was using the following body evolution params:
+numInitialParts=2:10
+addBodyPart=ActiveWheg
+addBodyPart=ActiveWheel
+addBodyPart=FixedBrick
+pNodeInsert=1.0
+
+
