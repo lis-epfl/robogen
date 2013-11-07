@@ -56,7 +56,7 @@ std::map<std::string, unsigned int> initPartTypeArityMap() {
 	partTypeArityMap[PART_TYPE_ACTIVE_HINGE] = 1;
 	partTypeArityMap[PART_TYPE_ACTIVE_WHEEL] = 0;
 	partTypeArityMap[PART_TYPE_ACTIVE_WHEG] = 0;
-	partTypeArityMap[PART_TYPE_CORE_COMPONENT] = 5;
+	partTypeArityMap[PART_TYPE_CORE_COMPONENT] = 6;
 	partTypeArityMap[PART_TYPE_FIXED_BRICK] = 5;
 	partTypeArityMap[PART_TYPE_LIGHT_SENSOR] = 0;
 	partTypeArityMap[PART_TYPE_PARAM_JOINT] = 1;
