@@ -193,7 +193,15 @@ public:
 	 */
 	unsigned int getOrientation();
 
+	/**
+	 * @param orientation of part
+	 */
 	void setOrientation(unsigned int orientation);
+
+	/**
+	 * Print recursively the body tree representation
+	 */
+	void toString(std::stringstream& str, int depth);
 
 private:
 
