@@ -177,7 +177,12 @@ void PartRepresentation::addSubtreeToBodyMessage(
 			robogenMessage::BodyConnection *connection =
 					bodyMessage->add_connection();
 			connection->set_src(id_);
-			connection->set_srcslot(i);
+
+			if (this->getType().compare(PART_TYPE_CORE_COMPONENT) == 0) {
+				connection->set_srcslot(i);
+			} else {
+				connection->set_srcslot(i+1);
+			}
 			connection->set_dest(this->getChild(i)->getId());
 			connection->set_destslot(0);
 			this->getChild(i)->addSubtreeToBodyMessage(bodyMessage, false);
@@ -259,6 +264,26 @@ std::vector<std::string> PartRepresentation::getMotors() {
 
 std::vector<std::string> PartRepresentation::getSensors() {
 	return sensors_;
+}
+
+void PartRepresentation::toString(std::stringstream& str, int depth) {
+
+	// Print out current childrens and recursively call on them
+	for (unsigned int i = 0; i < arity_; ++i) {
+
+		for (unsigned int j = 0; j < depth; ++j) {
+			str << "\t";
+		}
+
+		if (this->getChild(i)) {
+			str << " -> [" << this->getChild(i)->getId() << " | " << this->getChild(i)->getType() << "]" << std::endl;
+			this->getChild(i)->toString(str, depth+1);
+		} else {
+			str << " -> NULL" << std::endl;
+		}
+
+	}
+
 }
 
 } /* namespace robogen */

@@ -739,6 +739,16 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 	return true;
 }
 
+std::string RobotRepresentation::toString() {
+
+	std::stringstream str;
+	str << "[" << bodyTree_->getId() << " | " << bodyTree_->getType() << "]" << std::endl;
+	bodyTree_->toString(str, 0);
+
+	return str.str();
+
+}
+
 }
 
 #endif /* usage of fake robot representation */

@@ -206,6 +206,11 @@ public:
 	 */
 	const std::string& getBodyRootId();
 
+	/**
+	 * @return a string representation of the robot
+	 */
+	std::string toString();
+
 private:
 	/**
 	 *
