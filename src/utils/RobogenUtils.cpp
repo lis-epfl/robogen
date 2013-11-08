@@ -113,13 +113,13 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 	if (RobogenUtils::areAxisParallel(aSlotAxis, -rotAxis)) {
 		angle *= -1;
 	}
-	std::cout << "Angle: " << angle * 180 / M_PI << std::endl;
+	//std::cout << "Angle: " << angle * 180 / M_PI << std::endl;
 	osg::Quat slotAlignRotation;
 	slotAlignRotation.makeRotate(angle, aSlotAxis);
 
-	std::cout << "bSlotOrientation: " << bSlotOrientation << std::endl;
-	std::cout << "aSlotOrientation: " << aSlotOrientation << std::endl;
-	std::cout << "slotAlignRotation: " << slotAlignRotation << std::endl;
+	//std::cout << "bSlotOrientation: " << bSlotOrientation << std::endl;
+	//std::cout << "aSlotOrientation: " << aSlotOrientation << std::endl;
+	//std::cout << "slotAlignRotation: " << slotAlignRotation << std::endl;
 
 	// ...and has the correct orientation
 	if (abs(orientation) > 1e-6) {
