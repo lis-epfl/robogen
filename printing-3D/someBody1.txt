@@ -1,0 +1,8 @@
+0 E Core 0
+	5 G RightWheg 0 0.045
+	4 G LeftWheg 0 0.04
+	1 B Brick 0 2 .3 .543782
+
+
+some line
+one more line
