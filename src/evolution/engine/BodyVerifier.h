@@ -32,7 +32,7 @@
 // includes pasted from FileViewer.cpp for the sake of please just work
 
 // Comment the following if you don't want OSG popping up all the time
-#define VISUAL_DEBUG
+//#define VISUAL_DEBUG
 
 namespace robogen {
 

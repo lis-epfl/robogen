@@ -59,7 +59,7 @@ typedef struct EvolverConfiguration {
 	 * Modes of evolution
 	 */
 	enum EvolutionModes {
-		BRAIN_MUTATOR, FULL_MUTATOR
+		BRAIN_EVOLVER, FULL_EVOLVER
 	};
 
 	/**
@@ -169,11 +169,15 @@ typedef struct EvolverConfiguration {
 
 	/**
 	 * Allowed body part types
-	 * TODO: Read this from configuration file
 	 */
 	std::vector<char> allowedBodyPartTypes;
 
 	double bodyOperatorProbability[NUM_BODY_OPERATORS];
+
+	unsigned int maxBodyMutationAttemps;
+
+	unsigned int minNumInitialParts;
+	unsigned int maxNumInitialParts;
 
 
 

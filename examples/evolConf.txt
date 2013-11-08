@@ -1,4 +1,3 @@
-referenceRobotFile=simpleRobot.txt
 simulatorConfFile=conf.txt
 mu=20
 lambda=10
@@ -6,8 +5,18 @@ selection=deterministic-tournament
 replacement=plus
 tournamentSize=5
 numGenerations=3
+
+evolutionMode=full
+
 pBrainMutate=.3
 brainSigma=.7
 brainBounds=-3:3
 pBrainCrossover=.6
+
+numInitialParts=2:10
+addBodyPart=ActiveWheg
+addBodyPart=ActiveWheel
+addBodyPart=FixedBrick
+pNodeInsert=1.0
+
 socket=127.0.0.1:8001

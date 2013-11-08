@@ -93,7 +93,7 @@ void BodyCompiler::compile(Robot &robot, std::ofstream &file) {
 
 	for (int i = 0; i < body.part_size(); i++) {
 		const robogenMessage::BodyPart& bodyPart = body.part(i);
-		partIdToType[bodyPart.id()] = INVERSE_PART_TYPE_MAP[bodyPart.type()];
+		partIdToType[bodyPart.id()] = INVERSE_PART_TYPE_MAP.at(bodyPart.type());
 		partIdToOrientation[bodyPart.id()] = bodyPart.orientation();
 		std::vector<double> params;
 		for (int j = 0; j < bodyPart.evolvableparam_size(); ++j) {
@@ -158,11 +158,7 @@ void BodyCompiler::compile(Robot &robot, std::ofstream &file) {
 
 		const robogenMessage::Neuron& neuron = brain.neuron(i);
 
-		if (neuron.layer().compare("output") == 0) {
-
-			idToNeuron[neuron.id()] = &neuron;
-
-		}
+		idToNeuron[neuron.id()] = &neuron;
 
 	}
 

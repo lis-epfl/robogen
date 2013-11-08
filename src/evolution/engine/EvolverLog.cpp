@@ -44,16 +44,24 @@ namespace robogen {
 EvolverLog::EvolverLog(){
 }
 
-bool EvolverLog::init(std::string confFile) {
+bool EvolverLog::init(const std::string& confFile, const std::string& logFolderPostfix) {
+
 	// create log directory with time stamp
 	std::stringstream logPathSs;
-	logPathSs << LOG_DIRECTORY_PREFIX;
-	boost::posix_time::time_facet *myFacet =
-			new boost::posix_time::time_facet(LOG_DIRECTORY_FACET);
-	logPathSs.imbue(std::locale(std::cout.getloc(), myFacet));
-	logPathSs << boost::posix_time::second_clock::local_time();
-	logPath_ = logPathSs.str();
-	boost::filesystem::path logPath(logPathSs.str());
+	logPathSs << LOG_DIRECTORY_PREFIX << logFolderPostfix;
+
+	std::string prefixPath = logPathSs.str();
+	std::string tempPath = prefixPath;
+	int curIndex = 0;
+	while (boost::filesystem::is_directory(tempPath)) {
+		std::stringstream newPath;
+		newPath << prefixPath << "_" << ++curIndex;
+		tempPath = newPath.str();
+	}
+
+	logPath_ = tempPath;
+	boost::filesystem::path logPath(logPath_);
+
 	try{
 		boost::filesystem::create_directories(logPath);
 	} catch(const boost::filesystem::filesystem_error &err){

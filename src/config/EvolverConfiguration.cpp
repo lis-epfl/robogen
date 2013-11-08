@@ -31,6 +31,7 @@
 #include <boost/program_options.hpp>
 #include <boost/regex.hpp>
 #include "config/EvolverConfiguration.h"
+#include "PartList.h"
 
 namespace robogen {
 
@@ -48,8 +49,12 @@ EvolverConfiguration::BodyMutationOperatorsProbabilityCodes[] = {
 bool EvolverConfiguration::init(std::string confFileName) {
 	// cleanse operator probabilities before reading in (not specified = 0)
 	memset(bodyOperatorProbability, 0, sizeof(bodyOperatorProbability));
+	maxBodyMutationAttemps = 100; //seems like a reasonable default
 	// boost-parse options
 	boost::program_options::options_description desc("Allowed options");
+
+	std::vector<std::string> allowedBodyPartTypeStrings;
+
 	// DON'T AUTO-INDENT THE FOLLOWING ON ECLIPSE:
 	desc.add_options()
 		("referenceRobotFile",
@@ -86,14 +91,20 @@ bool EvolverConfiguration::init(std::string confFileName) {
 				&brainSigma), "Sigma of brain parameter mutation")
 		("brainBounds", boost::program_options::value<std::string>()
 				->required(), "Bounds of brain weights. Format: min:max")
+		("numInitialParts", boost::program_options::value<std::string>(),
+						"Number of initial body parts (not "\
+						"including core component). Format: min:max")
+		("maxBodyMutationAttemps",
+				boost::program_options::value<unsigned int>(
+				&maxBodyMutationAttemps),"Max number of body mutation attempts")
 		("pBrainCrossover",
 				boost::program_options::value<double>(
 				&pBrainCrossover), "Probability of crossover among brains")
 		("socket", boost::program_options::value<std::vector<std::string> >()
 				->required(),	"Sockets to be used to connect to the server")
 		("addBodyPart",
-				boost::program_options::value<std::vector<char> >(
-				&allowedBodyPartTypes), "Parts to be used in body evolution");
+				boost::program_options::value<std::vector<std::string> >(
+				&allowedBodyPartTypeStrings), "Parts to be used in body evolution");
 	// generate body operator probability options from contraptions in header
 	for (unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		desc.add_options()(
@@ -105,7 +116,14 @@ bool EvolverConfiguration::init(std::string confFileName) {
 	boost::program_options::store(
 			boost::program_options::parse_config_file<char>(
 					confFileName.c_str(), desc, true), vm);
-	boost::program_options::notify(vm);
+	try{
+		boost::program_options::notify(vm);
+	}
+	catch (boost::program_options::error& e) {
+		std::cout << "Error while processing options: " << e.what() <<
+				std::endl;
+		return false;
+	}
 
 	// parse selection type
 	if (vm["selection"].as<std::string>() == "deterministic-tournament"){
@@ -135,10 +153,10 @@ bool EvolverConfiguration::init(std::string confFileName) {
 
 	// parse evolution mode
 	if (vm["evolutionMode"].as<std::string>() == "brain"){
-		evolutionMode = BRAIN_MUTATOR;
+		evolutionMode = BRAIN_EVOLVER;
 	}
 	else if (vm["evolutionMode"].as<std::string>() == "full"){
-		evolutionMode = FULL_MUTATOR;
+		evolutionMode = FULL_EVOLVER;
 	}
 	else {
 		std::cout << "Specified evolution mode \"" <<
@@ -162,6 +180,21 @@ bool EvolverConfiguration::init(std::string confFileName) {
 	}
 	minBrainWeight = std::atof(match[1].first);
 	maxBrainWeight = std::atof(match[2].first);
+
+	static const boost::regex initPartsRegex(
+				"^(\\d+):(\\d+)$");
+	if (vm.count("numInitialParts") > 0) {
+		if (!boost::regex_match(vm["numInitialParts"].as<std::string>().c_str(),
+				match, initPartsRegex)){
+			std::cout << "Supplied numInitialParts argument \"" <<
+					vm["numInitialParts"].as<std::string>() <<
+					"\" does not match pattern <min>:<max>" << std::endl;
+			return false;
+		}
+		minNumInitialParts = std::atof(match[1].first);
+		maxNumInitialParts = std::atof(match[2].first);
+	}
+
 
 	// parse sockets. The used regex is not super-restrictive, but we count
 	// on the TcpSocket to find the error... else:
@@ -232,6 +265,40 @@ bool EvolverConfiguration::init(std::string confFileName) {
 		std::cout << "Brain sigma (" << brainSigma << ") must be positive" <<
 				std::endl;
 		return false;
+	}
+
+	if (evolutionMode == FULL_EVOLVER) { // otherwise none of this matters
+		// allows specifying body parts either as string or as char
+		for(unsigned int i = 0; i<allowedBodyPartTypeStrings.size(); i++) {
+			std::string bodyPartType =  allowedBodyPartTypeStrings[i];
+			char type;
+			if (bodyPartType.length() == 1) {
+				type = bodyPartType[0];
+				if( PART_TYPE_MAP.count(type) == 0) {
+					std::cout << "Invalid body part type: " << type
+							<< std::endl;
+					return false;
+				}
+			} else if( INVERSE_PART_TYPE_MAP.count(bodyPartType) == 0) {
+				std::cout << "Invalid body part type: " << bodyPartType
+						<< std::endl;
+				return false;
+			} else {
+				type = INVERSE_PART_TYPE_MAP.at(bodyPartType);
+			}
+
+			// don't want to be able to add more core components
+			if(type != INVERSE_PART_TYPE_MAP.at(PART_TYPE_CORE_COMPONENT)) {
+				allowedBodyPartTypes.push_back(type);
+			}
+		}
+
+		// need at least one body part to be able to add
+		if ( allowedBodyPartTypes.size() == 0) {
+			std::cout << "If evolving bodies then need to define at least " <<
+					"one allowed body part to add." << std::endl;
+			return false;
+		}
 	}
 
 	return true;

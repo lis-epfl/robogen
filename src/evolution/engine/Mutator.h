@@ -40,7 +40,6 @@
 #include "evolution/engine/BodyVerifier.h"
 
 #define MAX_MUTATION_ATTEMPTS 100 //TODO move this somewhere else
-
 namespace robogen {
 
 class Mutator {
@@ -61,9 +60,11 @@ public:
 	/**
 	 * Performs mutation and crossover on a pair of robots
 	 */
-	boost::shared_ptr<RobotRepresentation> mutate(boost::shared_ptr<RobotRepresentation> parent1,
+	boost::shared_ptr<RobotRepresentation> mutate(
+			boost::shared_ptr<RobotRepresentation> parent1,
 			boost::shared_ptr<RobotRepresentation> parent2);
 
+	void growBodyRandomly(boost::shared_ptr<RobotRepresentation> robot);
 
 private:
 
@@ -124,7 +125,6 @@ private:
 	boost::random::bernoulli_distribution<double> nodeInsertDist_;
 	boost::random::bernoulli_distribution<double> nodeRemovalDist_;
 	boost::random::bernoulli_distribution<double> paramMutateDist_;
-
 
 };
 

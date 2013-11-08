@@ -83,7 +83,7 @@ void ArduinoNNCompiler::compile(Robot &robot,
 	}
 
 	for (unsigned int i=0; i<motors.size(); ++i){
-		NeuralNetworkRepresentation::ioPair id = motors[i]->getId();
+		ioPair id = motors[i]->getId();
 		file << "// Branch " << id.first << " " << id.second  << " to " <<
 				arduino::servoOrder[nServo++] << std::endl;
 	}

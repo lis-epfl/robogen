@@ -1,7 +1,7 @@
 0 E Core 0
-	1 F Brick 0
-	4 G LeftWheg 0 0.03
-	5 G RightWheg 0 0.03
+	0 F Brick 0
+	5 G LeftWheg 0 0.03
+	4 G RightWheg 0 0.03
 
 
 LeftWheg 0 1

@@ -39,21 +39,27 @@ using namespace robogen;
 
 int main(int argc, char *argv[]) {
 
-	// create random number generator
-	boost::random::mt19937 rng;
-
 	// ---------------------------------------
 	// verify usage and load configuration
 	// ---------------------------------------
-
-	if (argc != 2) {
+	if (argc != 4) {
 		std::cout << "Bad amount of arguments. " << std::endl
 				<< " Usage: robogen-brain-evolver "
-						"<configuration file>" << std::endl;
+						"<seed, INTEGER>, <outputFolderPostFix, STRING>, <configuration file, STRING>" << std::endl;
 		return EXIT_FAILURE;
 	}
-	boost::shared_ptr<EvolverConfiguration> conf;
-	if (!conf->init(std::string(argv[1]))) {
+
+	unsigned int seed = atoi(argv[1]);
+	std::string outputFolderPostfix = std::string(argv[2]);
+	std::string confFileName = std::string(argv[3]);
+
+	// Create random number generator
+	boost::random::mt19937 rng;
+	rng.seed(seed);
+
+	boost::shared_ptr<EvolverConfiguration> conf =
+			boost::shared_ptr<EvolverConfiguration>(new EvolverConfiguration());
+	if (!conf->init(confFileName)) {
 		std::cout << "Problems parsing the evolution configuration file. Quit."
 				<< std::endl;
 		return EXIT_FAILURE;
@@ -80,9 +86,10 @@ int main(int argc, char *argv[]) {
 				<< std::endl;
 		return EXIT_FAILURE;
 	}
-	Mutator m(conf, rng);
+	boost::shared_ptr<Mutator> mutator = boost::shared_ptr<Mutator>(
+			new Mutator(conf, rng));
 	boost::shared_ptr<EvolverLog> log(new EvolverLog());
-	if (!log->init(std::string(argv[1]))) {
+	if (!log->init(confFileName, outputFolderPostfix)) {
 		std::cout << "Error creating evolver log. Aborting." << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -91,14 +98,33 @@ int main(int argc, char *argv[]) {
 	// parse robot from file & initialize population
 	// ---------------------------------------
 
-	boost::shared_ptr<RobotRepresentation> referenceBot(new RobotRepresentation());
-	if (!referenceBot->init(conf->referenceRobotFile)) {
-		std::cout << "Failed interpreting robot from text file" << std::endl;
+	boost::shared_ptr<RobotRepresentation> referenceBot(
+			new RobotRepresentation());
+	bool growBodies = false;
+	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
+			&& conf->referenceRobotFile.compare("")) {
+		std::cout << "Trying to evolve brain, but no robot file provided."
+				<< std::endl;
 		return EXIT_FAILURE;
+	} else if (conf->referenceRobotFile.compare("") != 0) {
+		if (!referenceBot->init(conf->referenceRobotFile)) {
+			std::cout << "Failed interpreting robot from text file"
+					<< std::endl;
+			return EXIT_FAILURE;
+		}
+	} else { //doing body evolution and don't have a reference robot
+		if (referenceBot->init()) {
+			growBodies = true;
+		} else {
+			std::cout << "Failed creating base robot for body evolution"
+					<< std::endl;
+			return EXIT_FAILURE;
+		}
 	}
 	boost::shared_ptr<Population> population(new Population()), previous;
-	if (!population->init(referenceBot, conf->lambda, rng)) {
-		std::cout << "Error when intializing population!" << std::endl;
+	if (!population->init(referenceBot, conf->mu, rng, mutator,
+			growBodies)) {
+		std::cout << "Error when initializing population!" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -111,7 +137,8 @@ int main(int argc, char *argv[]) {
 		sockets[i] = new TcpSocket;
 #ifndef FAKEROBOTREPRESENTATION_H // do not bother with sockets when using
 		// benchmark
-		if (!sockets[i]->open(conf->sockets[i].first, conf->sockets[i].second)){
+		if (!sockets[i]->open(conf->sockets[i].first,
+				conf->sockets[i].second)) {
 			std::cout << "Could not open connection to simulator" << std::endl;
 			return EXIT_FAILURE;
 		}
@@ -132,14 +159,15 @@ int main(int argc, char *argv[]) {
 		// create children
 		IndividualContainer children;
 		s->initPopulation(population);
-		for (unsigned int i = 0; i < conf->mu; i++) {
+		for (unsigned int i = 0; i < conf->lambda; i++) {
 			std::pair<boost::shared_ptr<RobotRepresentation>,
-							boost::shared_ptr<RobotRepresentation> > selection;
+					boost::shared_ptr<RobotRepresentation> > selection;
 			if (!s->select(selection)) {
 				std::cout << "Selector::select() failed." << std::endl;
 				return EXIT_FAILURE;
 			}
-			children.push_back(m.mutate(selection.first, selection.second));
+			children.push_back(
+					mutator->mutate(selection.first, selection.second));
 		}
 
 		// evaluate children
@@ -152,8 +180,8 @@ int main(int argc, char *argv[]) {
 
 		// replace
 		population.reset(new Population());
-		if (!population->init(children, conf->lambda)) {
-			std::cout << "Error when intializing population!" << std::endl;
+		if (!population->init(children, conf->mu)) {
+			std::cout << "Error when initializing population!" << std::endl;
 			return EXIT_FAILURE;
 		}
 

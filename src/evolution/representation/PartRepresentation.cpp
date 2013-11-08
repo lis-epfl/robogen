@@ -89,7 +89,7 @@ std::string &PartRepresentation::getType() {
 }
 
 boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(unsigned int n) {
-	if (n > arity_ - 1) {
+	if (n  >= arity_ ) {
 		std::cout << "Attempt to access non-existing slot " << n << " of part "
 				<< this->getId() << " with arity " << arity_ << std::endl;
 		return boost::shared_ptr<PartRepresentation>();
@@ -100,7 +100,7 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(unsigned int 
 bool PartRepresentation::setChild(unsigned int n,
 		boost::shared_ptr<PartRepresentation> part) {
 
-	if (n > arity_ - 1) {
+	if (n  >= arity_ ) {
 		std::cout << "Attempt to access non-existing slot " << n << " of part "
 				<< this->getId() << " with arity " << arity_ << std::endl;
 		return false;
@@ -123,20 +123,20 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 		return boost::shared_ptr<PartRepresentation>();
 	}
 
-	std::string partType = PART_TYPE_MAP[type];
-	if (params.size() != PART_TYPE_PARAM_COUNT_MAP[partType]) {
+	std::string partType = PART_TYPE_MAP.at(type);
+	if (params.size() != PART_TYPE_PARAM_COUNT_MAP.at(partType)) {
 		std::cout << "The parameter count (" << params.size()
 				<< ") does not equal the requested parameter count ("
-				<< PART_TYPE_PARAM_COUNT_MAP[partType] << ") for the part: '"
+				<< PART_TYPE_PARAM_COUNT_MAP.at(partType) << ") for the part: '"
 				<< id << "'" << std::endl;
 		return boost::shared_ptr<PartRepresentation>();
 	}
 
 	return boost::shared_ptr<PartRepresentation>(
 			new PartRepresentation(id, orientation,
-					PART_TYPE_ARITY_MAP[partType], partType, params,
-					PART_TYPE_MOTORS_MAP[partType],
-					PART_TYPE_SENSORS_MAP[partType]));
+					PART_TYPE_ARITY_MAP.at(partType), partType, params,
+					PART_TYPE_MOTORS_MAP.at(partType),
+					PART_TYPE_SENSORS_MAP.at(partType)));
 
 }
 
@@ -161,8 +161,10 @@ void PartRepresentation::addSubtreeToBodyMessage(
 				serialization->add_evolvableparam();
 
 		//convert parameters from [0,1] back to valid range
-		std::pair<double, double> ranges = PART_TYPE_PARAM_RANGE_MAP[std::make_pair(this->getType(), i)];
-		double paramValue = (params_[i] * (ranges.second - ranges.first)) + ranges.first;
+		std::pair<double, double> ranges = PART_TYPE_PARAM_RANGE_MAP.at(
+				std::make_pair(this->getType(), i));
+		double paramValue = (params_[i] * (ranges.second - ranges.first)) +
+				ranges.first;
 		param->set_paramvalue(paramValue);
 	}
 
