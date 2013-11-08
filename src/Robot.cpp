@@ -214,8 +214,6 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 			std::cout << "Problem when connecting body parts!" << std::endl;
 			return false;
 		}
-		// TODO dirty, cleaner would be to just use them Model pointers!
-		// would mean no boost graph
 		boost::add_edge(bodyPartsMap_[robotBody.connection(i).src()],
 				bodyPartsMap_[robotBody.connection(i).dest()],
 				BodyEdgeProperty(bodyConnections_.back()), *bodyTree_);
