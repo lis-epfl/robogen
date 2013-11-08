@@ -47,6 +47,7 @@ EvolverConfiguration::BodyMutationOperatorsProbabilityCodes[] = {
  * @todo default values
  */
 bool EvolverConfiguration::init(std::string confFileName) {
+
 	// cleanse operator probabilities before reading in (not specified = 0)
 	memset(bodyOperatorProbability, 0, sizeof(bodyOperatorProbability));
 	maxBodyMutationAttemps = 100; //seems like a reasonable default
@@ -113,10 +114,10 @@ bool EvolverConfiguration::init(std::string confFileName) {
 			&bodyOperatorProbability[i]),"Probability of given operator");
 	}
 	boost::program_options::variables_map vm;
-	boost::program_options::store(
-			boost::program_options::parse_config_file<char>(
-					confFileName.c_str(), desc, true), vm);
 	try{
+		boost::program_options::store(
+					boost::program_options::parse_config_file<char>(
+							confFileName.c_str(), desc, true), vm);
 		boost::program_options::notify(vm);
 	}
 	catch (boost::program_options::error& e) {
