@@ -372,7 +372,7 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	boost::shared_ptr<PartRepresentation> parentPart = parent->second.lock();
 
 	// Sample a random slot
-	if (parentPart->getArity() == 0) {
+	if (parentPart->getNumSlots() <= 1) {
 		return false;
 	}
 	boost::random::uniform_int_distribution<> distSlot(0,

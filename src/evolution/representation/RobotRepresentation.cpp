@@ -68,9 +68,12 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 		boost::shared_ptr<PartRepresentation> cur = q.front();
 		q.pop();
 		idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
-		for (unsigned int i = 0; i < cur->getArity(); ++i) {
-			if (cur->getChild(i)) {
-				q.push(cur->getChild(i));
+		std::vector<boost::weak_ptr<PartRepresentation> > children =
+				cur->getChildren();
+
+		for (unsigned int i = 0; i < children.size(); ++i) {
+			if (children[i].lock() != NULL) {
+				q.push(children[i]->getChild(i));
 			}
 		}
 	}
