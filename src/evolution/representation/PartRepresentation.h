@@ -102,9 +102,15 @@ public:
 	std::vector<double> getParams();
 
 	/**
-	 * @return arity = number of child slots of part
+	 * @return numSlots = number of child slots of part
 	 */
-	unsigned int getArity();
+	unsigned int getNumSlots();
+
+	/**
+	 * @return children = vector of child parts
+	 */
+
+	std::vector<boost::weak_ptr<PartRepresentation> >  getChildren();
 
 	/**
 	 * @return amount of children, recursively: Total amount of dependent parts
@@ -112,16 +118,11 @@ public:
 	unsigned int numDescendants();
 
 	/**
-	 * @param n slot of the child part to get
-	 */
-	boost::shared_ptr<PartRepresentation> getChild(unsigned int n);
-
-	/**
 	 * @param n slot of the child part to be set/replaced
 	 * @param part shared pointer to a part which is to be included at the slot
 	 * @return true if successful
 	 */
-	bool setChild(unsigned int n, boost::shared_ptr<PartRepresentation> part);
+	bool setSlot(unsigned int n, boost::shared_ptr<PartRepresentation> part);
 
 	/**
 	 * Factory pattern to create derived classes, i.e. body part representations
@@ -132,7 +133,7 @@ public:
 	/**
 	 * Add subtree to given body message.
 	 * @param bodyMessage message of the body to be completed with the subtree
-	 * @param amIRoot if set to true, will dsignate itself as root part
+	 * @param amIRoot if set to true, will designate itself as root part
 	 * @todo recursive pattern robust for bigger robots?
 	 */
 	void addSubtreeToBodyMessage(robogenMessage::Body *bodyMessage,
@@ -208,9 +209,9 @@ private:
 	unsigned int orientation_;
 
 	/**
-	 * Arity: Amount of available children slots
+	 * numSlots: Amount of available slots on this part
 	 */
-	unsigned int arity_;
+	unsigned int numSlots_;
 
 	/**
 	 * Type, as required for protobuf serialization of derived classes
@@ -218,14 +219,15 @@ private:
 	std::string type_;
 
 	/**
-	 * Children of this part in the body tree
+	 * The slots available to attach other parts to: parent + children + empty slots
 	 */
-	std::vector<boost::shared_ptr<PartRepresentation> > children_;
+	std::vector<boost::weak_ptr<PartRepresentation> > slots_;
 
 	/**
-	 * Parent body part - raw pointer as present (or NULL) by design
+	 * Parent body part - weak_ptr
+	 * this and the above use weak_ptrs, the strong ptrs will bekept in the robot
 	 */
-	PartRepresentation* parent_;
+	boost::weak_ptr<PartRepresentation> parent_;
 
 	/**
 	 * Slot occupied on parent part

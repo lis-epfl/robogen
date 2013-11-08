@@ -14,13 +14,13 @@
 namespace robogen {
 
 PartRepresentation::PartRepresentation(std::string id, unsigned int orientation,
-		unsigned int arity, const std::string& type, const std::vector<double>& params,
+		unsigned int numSlots, const std::string& type, const std::vector<double>& params,
 		const std::vector<std::string>& motors,
 		const std::vector<std::string>& sensors) :
-		id_(id), orientation_(orientation), arity_(arity), type_(type), parent_(NULL), params_(
+		id_(id), orientation_(orientation), numSlots_(numSlots), type_(type), parent_(NULL), params_(
 				params), motors_(motors), sensors_(sensors) {
 
-	children_.resize(arity_, boost::shared_ptr<PartRepresentation>());
+	slots_.resize(numSlots_, boost::weak_ptr<PartRepresentation>());
 }
 
 PartRepresentation::~PartRepresentation() {
@@ -43,40 +43,46 @@ void PartRepresentation::setOrientation(unsigned int orientation) {
 	orientation_ = orientation;
 }
 
-unsigned int PartRepresentation::getArity() {
-	return arity_;
+unsigned int PartRepresentation::getNumSlots() {
+	return numSlots_;
 }
 
 unsigned int PartRepresentation::numDescendants() {
 
 	int descendants = 0;
-	for (unsigned int i = 0; i < children_.size(); ++i) {
+	for (unsigned int i = 0; i < slots_.size(); ++i) {
 		// child and all its children
-		if (children_[i].get()) {
-			++descendants += children_[i]->numDescendants();
+		if (slots_[i].lock() != NULL && slots_[i] != parent_) {
+			descendants += (1 + slots_[i].lock()->numDescendants());
 		}
 	}
 	return descendants;
 
 }
 
-unsigned int PartRepresentation::getChildrenCount() {
-
-	int count = 0;
-	for (unsigned int i = 0; i < children_.size(); ++i) {
-		if (children_[i].get()) {
-			count++;
+std::vector<boost::weak_ptr<PartRepresentation> > PartRepresentation::
+		getChildren() {
+	std::vector<boost::weak_ptr<PartRepresentation> > children;
+	for (unsigned int i = 0; i < slots_.size(); ++i) {
+		// child and all its children
+		if (slots_[i].lock() != NULL && slots_[i] != parent_) {
+			children.push_back(slots_[i]);
 		}
 	}
-	return count;
+	return children;
+}
+
+unsigned int PartRepresentation::getChildrenCount() {
+
+	return this->getChildren().size();
 
 }
 
 std::vector<unsigned int> PartRepresentation::getFreeSlots() {
 
 	std::vector<unsigned int> freeSlots;
-	for (unsigned int i = 0; i < children_.size(); ++i) {
-		if (!children_[i].get()) {
+	for (unsigned int i = 0; i < slots_.size(); ++i) {
+		if (slots_[i].lock() == NULL) {
 			freeSlots.push_back(i);
 		}
 	}
@@ -88,21 +94,13 @@ std::string &PartRepresentation::getType() {
 	return type_;
 }
 
-boost::shared_ptr<PartRepresentation> PartRepresentation::getChild(unsigned int n) {
-	if (n  >= arity_ ) {
-		std::cout << "Attempt to access non-existing slot " << n << " of part "
-				<< this->getId() << " with arity " << arity_ << std::endl;
-		return boost::shared_ptr<PartRepresentation>();
-	}
-	return children_[n];
-}
-
-bool PartRepresentation::setChild(unsigned int n,
+bool PartRepresentation::setSlot(unsigned int n,
 		boost::shared_ptr<PartRepresentation> part) {
 
-	if (n  >= arity_ ) {
+	if (n  >= numSlots_ ) {
 		std::cout << "Attempt to access non-existing slot " << n << " of part "
-				<< this->getId() << " with arity " << arity_ << std::endl;
+				<< this->getId() << " with " << numSlots_ << " slots"
+				<< std::endl;
 		return false;
 	}
 	// don't try to access part if void
@@ -110,7 +108,7 @@ bool PartRepresentation::setChild(unsigned int n,
 		part->setParent(this);
 		part->setPosition(n);
 	}
-	children_[n] = part;
+	slots_[n] = part;
 	return true;
 
 }
@@ -172,15 +170,17 @@ void PartRepresentation::addSubtreeToBodyMessage(
 	serialization->set_orientation(orientation_);
 
 	// treat children, including connection
-	for (unsigned int i = 0; i < arity_; i++) {
-		if (this->getChild(i)) {
+	std::vector<boost::weak_ptr<PartRepresentation> >children =
+			this->getChildren();
+	for (unsigned int i = 0; i < children.size(); i++) {
+		if (children[i].lock() != NULL) {
 			robogenMessage::BodyConnection *connection =
 					bodyMessage->add_connection();
 			connection->set_src(id_);
 			connection->set_srcslot(i);
-			connection->set_dest(this->getChild(i)->getId());
+			connection->set_dest(children[i].lock()->getId());
 			connection->set_destslot(0);
-			this->getChild(i)->addSubtreeToBodyMessage(bodyMessage, false);
+			children[i].lock()->addSubtreeToBodyMessage(bodyMessage, false);
 		}
 	}
 
@@ -190,8 +190,8 @@ std::vector<std::string> PartRepresentation::getAncestorsIds() {
 
 	std::vector<std::string> ids;
 	if (parent_) {
-		ids.push_back(parent_->getId());
-		std::vector<std::string> tmp = parent_->getAncestorsIds();
+		ids.push_back(parent_.lock()->getId());
+		std::vector<std::string> tmp = parent_.lock()->getAncestorsIds();
 		ids.insert(ids.end(), tmp.begin(), tmp.end());
 	}
 	return ids;
@@ -201,15 +201,18 @@ std::vector<std::string> PartRepresentation::getAncestorsIds() {
 std::vector<std::string> PartRepresentation::getDescendantsIds() {
 
 	std::vector<std::string> ids;
-	for (unsigned int i = 0; i < children_.size(); ++i) {
+	std::vector<boost::weak_ptr<PartRepresentation> > children =
+				this->getChildren();
+	for (unsigned int i = 0; i < children.size(); ++i) {
 		// child and all its children
-		if (children_[i].get()) {
+		if (children[i].lock() != NULL) {
 
 			// Add children ID
-			ids.push_back(children_[i]->getId());
+			ids.push_back(children[i].lock()->getId());
 
 			// Add all the descendants ids
-			std::vector<std::string> tmp = children_[i]->getDescendantsIds();
+			std::vector<std::string> tmp = children[i].lock()
+					->getDescendantsIds();
 			ids.insert(ids.end(), tmp.begin(), tmp.end());
 		}
 	}
@@ -224,9 +227,11 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::cloneSubtree() {
 					this->getArity(), this->getType(), this->getParams(),
 					this->getMotors(), this->getSensors()));
 	// deep copy all children
-	for (unsigned int i = 0; i < this->getArity(); i++) {
-		if (this->getChild(i)) {
-			theClone->setChild(i, this->getChild(i)->cloneSubtree());
+	std::vector<boost::weak_ptr<PartRepresentation> > children =
+			this->getChildren();
+	for (unsigned int i = 0; i < children.size(); i++) {
+		if (children[i].lock() != NULL) {
+			theClone->setChild(i,children[i].lock()->cloneSubtree());
 		}
 	}
 	return theClone;
