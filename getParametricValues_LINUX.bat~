@@ -92,7 +92,8 @@ do
 
 	elif [[ "$PreviousType" == "B" ]]; then
 		#Fill the parameter value needed in python script to be executed in FreeCAD
-		echo "heightJoin = $PreviousRadius" > utils/intermediate.py
+		echo "heightJoin = $PreviousRadius" > utils/intermediate.py  
+		#Fill the parameter value needed in python script to be executed in FreeCAD
 		echo "angle = $PreviousInclAngle" > utils/intermediatebis.py
 		echo Path="\"$CurrentDir/STL_Files/ParametricJoinPartB$parametricbrick.stl"\" >> utils/intermediatebis.py
 		> FreeCAD_Modules/CallJoinB$parametricbrick.py
