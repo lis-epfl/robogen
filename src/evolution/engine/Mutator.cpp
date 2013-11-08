@@ -92,7 +92,7 @@ boost::shared_ptr<RobotRepresentation> Mutator::mutate(
 	return offspring1;
 }
 
-void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation> robot) {
+void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	boost::random::uniform_int_distribution<> dist(conf_->minNumInitialParts,
 			conf_->maxNumInitialParts);
@@ -229,8 +229,13 @@ void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 				mutOpPairs[i].second;
 
 		if (dist(rng_)) {
+
 			for (unsigned int attempt = 0;
 					attempt < conf_->maxBodyMutationAttemps; ++attempt) {
+
+				std::cout << "Robot was mutated using mutation " << i << std::endl;
+							std::cout << "OldBot: " << std::endl;
+							std::cout << robot->toString() << std::endl;
 
 				boost::shared_ptr<RobotRepresentation> newBot =
 						boost::shared_ptr<RobotRepresentation>(
@@ -238,15 +243,23 @@ void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 
 				bool mutationSuccess = (this->*mutOp)(newBot);
 
+
+
+							std::cout << "NewBot: " << std::endl;
+							std::cout << newBot->toString() << std::endl;
+
 				int errorCode;
 				std::vector<std::pair<std::string, std::string> > affectedBodyParts;
 				if (mutationSuccess
 						&& BodyVerifier::verify(*newBot.get(), errorCode,
 								affectedBodyParts)) {
+
 					robot = newBot;
 					robot->setDirty();
 					break;
+
 				}
+
 			}
 		}
 	}

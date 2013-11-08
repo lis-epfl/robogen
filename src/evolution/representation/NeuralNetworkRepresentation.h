@@ -165,6 +165,11 @@ public:
 	 */
 	robogenMessage::Brain serialize();
 
+	/**
+	 * @return a string representation of the neural network
+	 */
+	std::string toString();
+
 private:
 	/**
 	 * Neurons of the neural network. This is the principal representation of

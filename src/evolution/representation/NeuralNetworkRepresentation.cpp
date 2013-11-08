@@ -296,6 +296,7 @@ std::vector<boost::weak_ptr<NeuronRepresentation> > NeuralNetworkRepresentation:
 	// go through neurons, check body part id
 	int ioId = 0;
 	while (neurons_[ioPair(bodyPart, ioId)])
+		// TODO This is probably wrong!!
 		ret.push_back(
 				boost::weak_ptr<NeuronRepresentation>(
 						neurons_[ioPair(bodyPart, ioId)]));
@@ -363,6 +364,7 @@ bool NeuralNetworkRepresentation::getLinearRepresentation(
 
 robogenMessage::Brain NeuralNetworkRepresentation::serialize() {
 	robogenMessage::Brain serialization;
+
 	// neurons
 	for (std::map<std::pair<std::string, int>,
 			boost::shared_ptr<NeuronRepresentation> >::iterator it =
@@ -383,6 +385,34 @@ robogenMessage::Brain NeuralNetworkRepresentation::serialize() {
 		connection->set_weight(it->second);
 	}
 	return serialization;
+
+}
+
+std::string NeuralNetworkRepresentation::toString() {
+
+	std::stringstream str;
+	for (std::map<std::pair<std::string, int>,
+			boost::shared_ptr<NeuronRepresentation> >::iterator it =
+			neurons_.begin(); it != neurons_.end(); ++it) {
+
+		str << "Neuron : " << it->second->getId();
+		if (it->second->isInput()) {
+			str << " <- ";
+		} else {
+			str << " -> ";
+		}
+		str << it->second->getIoPair().first << ", "
+				<< it->second->getIoPair().second << std::endl;
+
+	}
+
+	// connections
+	for (std::map<std::pair<std::string, std::string>, double>::iterator it =
+			weights_.begin(); it != weights_.end(); it++) {
+		str << it->first.first << " --> " << it->first.second << " (" << it->second << ")";
+	}
+
+	return str.str();
 }
 
 } /* namespace robogen */

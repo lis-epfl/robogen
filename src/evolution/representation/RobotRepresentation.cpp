@@ -619,11 +619,11 @@ bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
 	PartRepresentation* parentRoot2 = root2->getParent();
 
 	// Get the slots to which this nodes are connected
-	unsigned int slotParentRoot1 = 0;
+	unsigned int slotParentRoot1 = 1000000;
 
 	for (unsigned int i = 0; i < parentRoot1->getArity(); ++i) {
 		if (parentRoot1->getChild(i) != NULL) {
-			if (parentRoot1->getChild(i)->getId().compare(parentRoot1->getId())
+			if (parentRoot1->getChild(i)->getId().compare(root1->getId())
 					== 0) {
 				slotParentRoot1 = i;
 				break;
@@ -634,7 +634,7 @@ bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
 	unsigned int slotParentRoot2 = 0;
 	for (unsigned int i = 0; i < parentRoot2->getArity(); ++i) {
 		if (parentRoot2->getChild(i) != NULL) {
-			if (parentRoot2->getChild(i)->getId().compare(parentRoot2->getId())
+			if (parentRoot2->getChild(i)->getId().compare(root2->getId())
 					== 0) {
 				slotParentRoot2 = i;
 				break;
@@ -744,7 +744,8 @@ std::string RobotRepresentation::toString() {
 	std::stringstream str;
 	str << "[" << bodyTree_->getId() << " | " << bodyTree_->getType() << "]" << std::endl;
 	bodyTree_->toString(str, 0);
-
+	str << "Network:" << std::endl;
+	str << neuralNetwork_->toString();
 	return str.str();
 
 }
