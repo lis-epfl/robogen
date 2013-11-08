@@ -1,7 +1,9 @@
 robogen-3DPrint
 ===============
 Part of the Robogen Course project, LIS Laboratory, EPFL.
+
 Modified by Deniz Aydin <deniz.aydin@epfl.ch>, Nov 5, 2013.
+
 By Gregoire Heitz <gregoire.heitz@epfl.ch>, April 26th, 2013.
 
 This repository contains software to produce STL files needed to 3D print parametric components like the wheels, whegs, and parametric bricks.
@@ -56,7 +58,9 @@ For Windows : If there is an error in FreeCad (e.g. "Module XYZ cannot be found"
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-If you encounter some issues, I will do my best to help you resolve them. Feel free to ask any question.
-I hope that you will enjoy it.
+If you encounter some issues, we will do our best to help you resolve them. Feel free to ask any question.
+We hope that you will enjoy printing your homegrown robots!
 
-Gregoire Heitz, <gregoire.heitz@epfl.ch>, April 26th 2013.
+Your friendly neighbourhood TA's,
+
+Gregoire Heitz, <gregoire.heitz@epfl.ch>, Deniz Aydin <deniz.aydin@epfl.ch>, Nov 5th 2013. 
