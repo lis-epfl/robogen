@@ -219,8 +219,8 @@ int main(int argc, char* argv[]) {
 						double step = configuration->getTimeStepLength();
 						while (t < configuration->getSimulationTime()) {
 
-							if ((count++) % 100 == 0) {
-								std::cout << "Step!" << count << std::endl;
+							if ((count++) % 500 == 0) {
+								std::cout << "." << std::flush;
 							}
 
 							// Collision detection
