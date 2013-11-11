@@ -241,9 +241,11 @@ void NeuralNetworkRepresentation::generateCloneWeights(
 	typedef std::map<std::string, std::string> MyMap;
 
 	// for every neuron in the cloned tree
-	for (MyMap::iterator it = oldNew.begin(); it != oldNew.end(); ++it) {
-		std::string oldRon = it->first;
-		std::string newRon = it->second;
+	for (MyMap::iterator itNeuron = oldNew.begin(); itNeuron != oldNew.end(); ++itNeuron) {
+
+		std::string oldRon = itNeuron->first;
+		std::string newRon = itNeuron->second;
+
 		// for every weight
 		for (WeightMap::iterator it = weights_.begin(); it != weights_.end();
 				++it) {
@@ -268,6 +270,7 @@ void NeuralNetworkRepresentation::generateCloneWeights(
 					weights_[StringPair(it->first.first, newRon)] = it->second;
 				}
 			}
+
 		}
 	}
 }
