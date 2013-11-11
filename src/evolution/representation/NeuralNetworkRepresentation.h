@@ -57,7 +57,7 @@ public:
 	/**
 	 * Maps from IO identifier pair to a neuron shared pointer
 	 */
-	typedef std::map<ioPair,boost::shared_ptr<NeuronRepresentation>	> NeuronMap;
+	typedef std::map<ioPair, boost::shared_ptr<NeuronRepresentation>	> NeuronMap;
 
 	/**
 	 * Assignment operator: Deep copy neurons!

@@ -529,8 +529,9 @@ bool RobotRepresentation::trimBodyAt(const std::string& id) {
 		if (!it->second.lock()) {
 			idToPart_.erase(it++);
 			std::cout << "Had a part to erase! " << parent << std::endl;
-		} else
+		} else {
 			++it;
+		}
 	}
 	return true;
 
@@ -710,7 +711,7 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 		return false;
 	}
 
-	unsigned int nFreeSlots = parent->getFreeSlots().size();
+	unsigned int nFreeSlots = parent->getFreeSlots().size() + 1;
 	if (nFreeSlots < nodeToRemove->numDescendants()) {
 		return false;
 	}
@@ -718,21 +719,36 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 	// remove neurons and all their connections
 	neuralNetwork_->removeNeurons(partId);
 
+	// Find child part that will be removed
+	for (unsigned int i = 0; i < parent->getArity(); i++) {
+		if (parent->getChild(i) != NULL && parent->getChild(i)->getId().compare(nodeToRemove->getId()) == 0) {
+			parent->setChild(i, boost::shared_ptr<PartRepresentation>());
+			break;
+		}
+	}
+
+
 	unsigned int indx = 0;
 	for (unsigned int i = 0; i < parent->getArity(); i++) {
 
 		if (parent->getChild(i) == NULL) {
 
-			// this never will be infinite cycle given that nFreeSlots were computed correctly
 			while (nodeToRemove->getChild(indx) == NULL) {
 				indx = indx + 1;
+				if (indx > nodeToRemove->getArity()) {
+					return true;
+				}
 			}
 
 			parent->setChild(i, nodeToRemove->getChild(indx));
 
+			// Increment current index
+			indx++;
+
 			if (indx > nodeToRemove->numDescendants()) {
 				break;
 			}
+
 		}
 	}
 
@@ -742,7 +758,8 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 std::string RobotRepresentation::toString() {
 
 	std::stringstream str;
-	str << "[" << bodyTree_->getId() << " | " << bodyTree_->getType() << "]" << std::endl;
+	str << "[" << bodyTree_->getId() << " | " << bodyTree_->getType() << "]"
+			<< std::endl;
 	bodyTree_->toString(str, 0);
 	str << "Network:" << std::endl;
 	str << neuralNetwork_->toString();
