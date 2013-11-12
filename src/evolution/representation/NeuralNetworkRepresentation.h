@@ -126,7 +126,6 @@ public:
 
 	/**
 	 * Once neurons of a subtree have been cloned, properly clone weights.
-	 * TODO TEST TEST TEST
 	 */
 	void generateCloneWeights(std::map<std::string, std::string> &oldNew);
 
@@ -136,7 +135,7 @@ public:
 	void removeNeurons(std::string bodyPartId);
 
 	/**
-	 * Returns all neurons attached to the supplied part todo private?
+	 * Returns all neurons attached to the supplied part
 	 */
 	std::vector<boost::weak_ptr<NeuronRepresentation> >
 	getBodyPartNeurons(std::string bodyPart);

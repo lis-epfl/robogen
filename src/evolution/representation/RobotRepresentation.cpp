@@ -755,6 +755,69 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 	return true;
 }
 
+bool RobotRepresentation::check() {
+
+	// 1. Check that every body part in the body tree is in the idBodyPart map and there are no dangling references
+	std::vector<std::string> bodyPartIdsFromMap;
+	for (std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator it = idToPart_.begin(); it != idToPart_.end(); ++it) {
+		bodyPartIdsFromMap.push_back(it->first);
+	}
+
+	std::vector<std::string> bodyIds = bodyTree_->getDescendantsIds();
+	bodyIds.push_back(bodyTree_->getId());
+
+	std::sort(bodyPartIdsFromMap.begin(), bodyPartIdsFromMap.end());
+	std::sort(bodyIds.begin(), bodyIds.end());
+
+	if (bodyPartIdsFromMap.size() != bodyIds.size()) {
+		return false;
+	}
+	for (unsigned int i = 0; i < bodyPartIdsFromMap.size(); ++i) {
+		if (bodyPartIdsFromMap[i].compare(bodyIds[i]) != 0) {
+			return false;
+		}
+	}
+
+	// 2. Check that each neuron has an associated body part
+	std::map<std::string, int> netInputs;
+	std::map<std::string, int> netOutputs;
+	for (unsigned int i = 0; i < bodyIds.size(); ++i) {
+
+		bool hasNeurons = true;
+		boost::weak_ptr<PartRepresentation> part = idToPart_[bodyIds[i]];
+		if (part.lock()->getSensors().size() >= 0) {
+			netInputs[bodyIds[i]] = part.lock()->getSensors().size();
+		}
+
+		if (part.lock()->getMotors().size() >= 0) {
+			netOutputs[bodyIds[i]] = part.lock()->getMotors().size();
+		}
+
+		if (hasNeurons) {
+
+			std::vector<boost::weak_ptr<NeuronRepresentation> > neurons = neuralNetwork_->getBodyPartNeurons(bodyIds[i]);
+			int totInputs = 0;
+			int totOutputs = 0;
+			for (unsigned int j = 0; j < neurons.size(); ++j) {
+				if (neurons[j].lock()->isInput()) {
+					totInputs++;
+				} else {
+					totOutputs++;
+				}
+			}
+
+			if (totInputs != netInputs[bodyIds[i]] || totOutputs != netOutputs[bodyIds[i]]) {
+				return false;
+			}
+		}
+
+	}
+
+	// TODO Consistency check is not complete, neural representation is only partially checked
+	return true;
+
+}
+
 std::string RobotRepresentation::toString() {
 
 	std::stringstream str;

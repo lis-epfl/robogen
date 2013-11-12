@@ -254,6 +254,10 @@ void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 						&& BodyVerifier::verify(*newBot.get(), errorCode,
 								affectedBodyParts)) {
 
+					if (!newBot->check()) {
+						std::cout << "Consistency check failed in mutation operator " << i << std::endl;
+					}
+
 					robot = newBot;
 					robot->setDirty();
 					break;
