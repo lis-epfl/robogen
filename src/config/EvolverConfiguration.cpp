@@ -270,6 +270,27 @@ bool EvolverConfiguration::init(std::string confFileName) {
 
 	if (evolutionMode == FULL_EVOLVER) { // otherwise none of this matters
 		// allows specifying body parts either as string or as char
+
+		// If only one allowedBodyPartType, and matches "All" than, add all of them
+
+		if (allowedBodyPartTypeStrings.size() == 1) {
+
+			std::string lowerCaseBodyPart = allowedBodyPartTypeStrings[0];
+			std::transform(lowerCaseBodyPart.begin(), lowerCaseBodyPart.end(), lowerCaseBodyPart.begin(), ::tolower);
+
+			if (lowerCaseBodyPart.compare("all") == 0) {
+
+				// Add all body parts
+				allowedBodyPartTypeStrings.clear();
+
+				for(std::map<char, std::string>::const_iterator it = PART_TYPE_MAP.begin(); it != PART_TYPE_MAP.end(); ++it) {
+					allowedBodyPartTypeStrings.push_back(it->second);
+				}
+
+			}
+
+		}
+
 		for(unsigned int i = 0; i<allowedBodyPartTypeStrings.size(); i++) {
 			std::string bodyPartType =  allowedBodyPartTypeStrings[i];
 			char type;

@@ -80,7 +80,7 @@ std::map<std::string, unsigned int> initPartTypeParamCountMap() {
 	partTypeParamCountMap[PART_TYPE_PASSIVE_CARDAN] = 0;
 	partTypeParamCountMap[PART_TYPE_PASSIVE_HINGE] = 0;
 	partTypeParamCountMap[PART_TYPE_PASSIVE_WHEEL] = 1;
-	partTypeParamCountMap[PART_TYPE_ACTIVE_HINGE] = 0;
+	partTypeParamCountMap[PART_TYPE_ROTATOR] = 0;
 	partTypeParamCountMap[PART_TYPE_TOUCH_SENSOR] = 0;
 	return partTypeParamCountMap;
 }
