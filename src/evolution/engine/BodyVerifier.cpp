@@ -12,6 +12,8 @@
 
 namespace robogen {
 
+//std::vector<dGeomID> BodyVerifier::cylinders;
+
 BodyVerifier::BodyVerifier() {
 
 }
@@ -20,9 +22,7 @@ BodyVerifier::~BodyVerifier() {
 }
 
 void BodyVerifier::collisionCallback(void *data, dGeomID o1, dGeomID o2) {
-	std::vector<std::pair<dBodyID, dBodyID> > *offendingBodies = (std::vector<
-			std::pair<dBodyID, dBodyID> > *) data;
-	offendingBodies->clear();
+	CollisionData *collisionData = (CollisionData *) data;
 	const int MAX_CONTACTS = 32; // maximum number of contact points per body
 	// TODO will it work with just 1 point? Probably yes.
 
@@ -39,11 +39,18 @@ void BodyVerifier::collisionCallback(void *data, dGeomID o1, dGeomID o2) {
 		contact[i].surface.mode = 0;
 	}
 
+
+	if (dGeomGetClass(o1) == dCylinderClass &&
+			dGeomGetClass(o2) == dCylinderClass) {
+		collisionData->cylinders.push_back(o1);
+		collisionData->cylinders.push_back(o2);
+	}
 	int collisionCounts = dCollide(o1, o2, MAX_CONTACTS, &contact[0].geom,
-			sizeof(dContact));
+				sizeof(dContact));
 
 	if (collisionCounts != 0) {
-		offendingBodies->push_back(std::pair<dBodyID, dBodyID>(b1, b2));
+		collisionData->offendingBodies.push_back(std::pair<dBodyID,
+				dBodyID>(b1, b2));
 	}
 }
 
@@ -124,18 +131,37 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	}
 
 	// perform body part collision test
-	std::vector<std::pair<dBodyID, dBodyID> > offendingBodies;
-	dSpaceCollide(odeSpace, (void *) &offendingBodies, collisionCallback);
-	if (offendingBodies.size()) {
+	//std::vector<std::pair<dBodyID, dBodyID> > offendingBodies;
+	CollisionData *collisionData = new CollisionData();
+
+	dSpaceCollide(odeSpace, (void *) collisionData, collisionCallback);
+	if (collisionData->offendingBodies.size()) {
 		success = false;
 		errorCode = SELF_INTERSECTION;
+	} else if(collisionData->cylinders.size() > 0) {
+		// hack to make sure we have separation between wheels
+		for(unsigned int i=0; i<collisionData->cylinders.size(); ++i) {
+			dReal radius;
+			dReal length;
+			dGeomCylinderGetParams(collisionData->cylinders[i],
+					&radius, &length);
+			dGeomCylinderSetParams(collisionData->cylinders[i],
+					radius + 0.005, length);
+		}
+		dSpaceCollide(odeSpace, (void *) collisionData, collisionCallback);
+		if ( collisionData->offendingBodies.size() ) {
+			success = false;
+			errorCode = SELF_INTERSECTION;
+		}
+		collisionData->cylinders.clear();
 	}
-	for (unsigned int i = 0; i < offendingBodies.size(); i++) {
+	for (unsigned int i = 0; i < collisionData->offendingBodies.size(); i++) {
 		// TODO unlikely event that body not found in map?
 		affectedBodyParts.push_back(
 				std::pair<std::string, std::string>(
-						dBodyToPartID[offendingBodies[i].first],
-						dBodyToPartID[offendingBodies[i].second]));
+						dBodyToPartID[collisionData->offendingBodies[i].first],
+						dBodyToPartID[collisionData->offendingBodies[i].second
+						              ]));
 	}
 
 #ifdef VISUAL_DEBUG
@@ -146,6 +172,8 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 #endif
 
 	// destruction
+	collisionData->offendingBodies.clear();
+	delete collisionData;
 	robot.reset();
 	dSpaceDestroy(odeSpace);
 	dWorldDestroy(odeWorld);

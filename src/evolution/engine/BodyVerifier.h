@@ -29,6 +29,10 @@
 #include "robogen.pb.h"
 #include "viewer/FileViewerLog.h"
 #include "evolution/representation/RobotRepresentation.h"
+
+#include <ode/ode.h>
+#include <vector>
+
 // includes pasted from FileViewer.cpp for the sake of please just work
 
 // Comment the following if you don't want OSG popping up all the time
@@ -87,6 +91,11 @@ private:
 	BodyVerifier();
 
 	virtual ~BodyVerifier();
+
+	struct CollisionData {
+		std::vector<std::pair<dBodyID, dBodyID> > offendingBodies;
+		std::vector<dGeomID> cylinders;
+	};
 
 
 };
