@@ -146,7 +146,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 			dGeomCylinderGetParams(collisionData->cylinders[i],
 					&radius, &length);
 			dGeomCylinderSetParams(collisionData->cylinders[i],
-					radius + 0.005, length);
+					radius + WHEEL_SEPARATION, length);
 		}
 		dSpaceCollide(odeSpace, (void *) collisionData, collisionCallback);
 		if ( collisionData->offendingBodies.size() ) {

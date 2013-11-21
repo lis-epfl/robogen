@@ -38,6 +38,8 @@
 // Comment the following if you don't want OSG popping up all the time
 //#define VISUAL_DEBUG
 
+#define WHEEL_SEPARATION 0.005
+
 namespace robogen {
 
 /**
