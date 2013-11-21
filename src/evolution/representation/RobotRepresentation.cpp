@@ -711,6 +711,7 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 		return false;
 	}
 
+	// Add one since will be freeing a slot when this node is removed
 	unsigned int nFreeSlots = parent->getFreeSlots().size() + 1;
 	if (nFreeSlots < nodeToRemove->numDescendants()) {
 		return false;
@@ -721,37 +722,40 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 
 	// Find child part that will be removed
 	for (unsigned int i = 0; i < parent->getArity(); i++) {
-		if (parent->getChild(i) != NULL && parent->getChild(i)->getId().compare(nodeToRemove->getId()) == 0) {
+		if (parent->getChild(i) != NULL &&
+				parent->getChild(i)->getId().compare(nodeToRemove->getId())
+				== 0) {
 			parent->setChild(i, boost::shared_ptr<PartRepresentation>());
 			break;
 		}
 	}
+	idToPart_.erase(nodeToRemove->getId());
 
+	if ( nodeToRemove->getArity() > 0 ) {
+		unsigned int indx = 0;
+		for (unsigned int i = 0; i < parent->getArity(); i++) {
 
-	unsigned int indx = 0;
-	for (unsigned int i = 0; i < parent->getArity(); i++) {
+			if (parent->getChild(i) == NULL) {
 
-		if (parent->getChild(i) == NULL) {
-
-			while (nodeToRemove->getChild(indx) == NULL) {
-				indx = indx + 1;
-				if (indx > nodeToRemove->getArity()) {
-					return true;
+				while (nodeToRemove->getChild(indx) == NULL) {
+					indx = indx + 1;
+					if (indx > nodeToRemove->getArity()) {
+						return true;
+					}
 				}
+
+				parent->setChild(i, nodeToRemove->getChild(indx));
+
+				// Increment current index
+				indx++;
+
+				if (indx > nodeToRemove->numDescendants()) {
+					break;
+				}
+
 			}
-
-			parent->setChild(i, nodeToRemove->getChild(indx));
-
-			// Increment current index
-			indx++;
-
-			if (indx > nodeToRemove->numDescendants()) {
-				break;
-			}
-
 		}
 	}
-
 	return true;
 }
 
@@ -769,13 +773,35 @@ bool RobotRepresentation::check() {
 	std::sort(bodyPartIdsFromMap.begin(), bodyPartIdsFromMap.end());
 	std::sort(bodyIds.begin(), bodyIds.end());
 
+	bool idsMatch = true;
 	if (bodyPartIdsFromMap.size() != bodyIds.size()) {
-		return false;
-	}
-	for (unsigned int i = 0; i < bodyPartIdsFromMap.size(); ++i) {
-		if (bodyPartIdsFromMap[i].compare(bodyIds[i]) != 0) {
-			return false;
+		std::cout << "Error: bodyPartIdsFromMap has " <<
+				bodyPartIdsFromMap.size() << " elements, but bodyIds has " <<
+				bodyIds.size() << " elements\n";
+		idsMatch = false;
+	} else {
+		for (unsigned int i = 0; i < bodyPartIdsFromMap.size(); ++i) {
+			if (bodyPartIdsFromMap[i].compare(bodyIds[i]) != 0) {
+				std::cout << "Error: bodyPartIdsFromMap does not match bodyIds at "
+						<< "position " << i << " " << bodyPartIdsFromMap[i] << " "
+						<< bodyIds[i] << "\n";
+				idsMatch = false;
+			}
 		}
+	}
+
+	if (!idsMatch) {
+		std::cout << "bodyPartIdsFromMap:";
+		for (unsigned int i = 0; i < bodyPartIdsFromMap.size(); ++i) {
+			std::cout<< " " << bodyPartIdsFromMap[i] ;
+		}
+		std::cout << "\nbodyIds:";
+		for (unsigned int i = 0; i < bodyIds.size(); ++i) {
+			std::cout<< " " << bodyIds[i] ;
+		}
+		std::cout << "\n";
+
+		return false;
 	}
 
 	// 2. Check that each neuron has an associated body part
