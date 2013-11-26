@@ -811,11 +811,11 @@ bool RobotRepresentation::check() {
 
 		bool hasNeurons = true;
 		boost::weak_ptr<PartRepresentation> part = idToPart_[bodyIds[i]];
-		if (part.lock()->getSensors().size() >= 0) {
+		if (part.lock()->getSensors().size() > 0) {
 			netInputs[bodyIds[i]] = part.lock()->getSensors().size();
 		}
 
-		if (part.lock()->getMotors().size() >= 0) {
+		if (part.lock()->getMotors().size() > 0) {
 			netOutputs[bodyIds[i]] = part.lock()->getMotors().size();
 		}
 

@@ -59,14 +59,14 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 
 	bool success = true;
 	errorCode = INTERNAL_ERROR;
-	// TODO check arduino constraints satisfied before anything else!
 
 	// Initialize ODE
 	dInitODE();
 	dWorldID odeWorld = dWorldCreate();
 	dWorldSetGravity(odeWorld, 0, 0, 0);
 	dSpaceID odeSpace = dHashSpaceCreate(0);
-	// TODO: Remove? dJointGroupID odeJoints = dJointGroupCreate(0);
+	CollisionData *collisionData = new CollisionData();
+
 
 #ifdef VISUAL_DEBUG
 	// Initialize OSG
@@ -84,92 +84,93 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	if (!robot->init(odeWorld, odeSpace, robotMessage)) {
 		std::cout << "Problem when initializing robot in body verifier!"
 				<< std::endl;
-		return false;
-	}
-	std::vector<boost::shared_ptr<Model> > bodyParts = robot->getBodyParts();
-
-#ifdef VISUAL_DEBUG
-	// body part rendering
-	osg::ref_ptr<osg::Group> root = osg::ref_ptr<osg::Group>(new osg::Group);
-	std::vector<boost::shared_ptr<RenderModel> > renderModels;
-	for (unsigned int i = 0; i < bodyParts.size(); ++i) {
-		boost::shared_ptr<RenderModel> renderModel =
-				RobogenUtils::createRenderModel(bodyParts[i]);
-		if (renderModel == NULL) {
-			std::cout << "Cannot create a render model for model " << i
-					<< std::endl;
-		}
-
-		if (!renderModel->initRenderModel()) {
-			std::cout
-					<< "Cannot initialize a render model for one of the components. "
-					<< std::endl
-					<< "Please check that the models/ folder is in the same folder of this executable."
-					<< std::endl;
-		}
-		renderModels.push_back(renderModel);
-		root->addChild(renderModels[i]->getRootNode());
-	}
-	// viewer setup
-	viewer.setSceneData(root.get());
-	viewer.realize();
-	if (!viewer.getCameraManipulator()
-			&& viewer.getCamera()->getAllowEventFocus()) {
-		viewer.setCameraManipulator(new osgGA::TrackballManipulator());
-	}
-	viewer.setReleaseContextAtEndOfFrameHint(false);
-#endif
-
-	// build map from ODE bodies to body part ID's: needed to identify
-	// offending body parts
-	std::map<dBodyID, std::string> dBodyToPartID;
-	for (unsigned int i = 0; i < bodyParts.size(); ++i) {
-		std::vector<dBodyID> dBodies = bodyParts[i]->getBodies();
-		for (unsigned int j = 0; j < dBodies.size(); ++j) {
-			dBodyToPartID[dBodies[j]] = bodyParts[i]->getId();
-		}
-	}
-
-	// perform body part collision test
-	//std::vector<std::pair<dBodyID, dBodyID> > offendingBodies;
-	CollisionData *collisionData = new CollisionData();
-
-	dSpaceCollide(odeSpace, (void *) collisionData, collisionCallback);
-	if (collisionData->offendingBodies.size()) {
 		success = false;
-		errorCode = SELF_INTERSECTION;
-	} else if(collisionData->cylinders.size() > 0) {
-		// hack to make sure we have separation between wheels
-		for(unsigned int i=0; i<collisionData->cylinders.size(); ++i) {
-			dReal radius;
-			dReal length;
-			dGeomCylinderGetParams(collisionData->cylinders[i],
-					&radius, &length);
-			dGeomCylinderSetParams(collisionData->cylinders[i],
-					radius + WHEEL_SEPARATION, length);
+	}
+
+	if (success) {
+
+		std::vector<boost::shared_ptr<Model> > bodyParts = robot->getBodyParts();
+
+	#ifdef VISUAL_DEBUG
+		// body part rendering
+		osg::ref_ptr<osg::Group> root = osg::ref_ptr<osg::Group>(new osg::Group);
+		std::vector<boost::shared_ptr<RenderModel> > renderModels;
+		for (unsigned int i = 0; i < bodyParts.size(); ++i) {
+			boost::shared_ptr<RenderModel> renderModel =
+					RobogenUtils::createRenderModel(bodyParts[i]);
+			if (renderModel == NULL) {
+				std::cout << "Cannot create a render model for model " << i
+						<< std::endl;
+			}
+
+			if (!renderModel->initRenderModel()) {
+				std::cout
+						<< "Cannot initialize a render model for one of the components. "
+						<< std::endl
+						<< "Please check that the models/ folder is in the same folder of this executable."
+						<< std::endl;
+			}
+			renderModels.push_back(renderModel);
+			root->addChild(renderModels[i]->getRootNode());
 		}
+		// viewer setup
+		viewer.setSceneData(root.get());
+		viewer.realize();
+		if (!viewer.getCameraManipulator()
+				&& viewer.getCamera()->getAllowEventFocus()) {
+			viewer.setCameraManipulator(new osgGA::TrackballManipulator());
+		}
+		viewer.setReleaseContextAtEndOfFrameHint(false);
+	#endif
+
+		// build map from ODE bodies to body part ID's: needed to identify
+		// offending body parts
+		std::map<dBodyID, std::string> dBodyToPartID;
+		for (unsigned int i = 0; i < bodyParts.size(); ++i) {
+			std::vector<dBodyID> dBodies = bodyParts[i]->getBodies();
+			for (unsigned int j = 0; j < dBodies.size(); ++j) {
+				dBodyToPartID[dBodies[j]] = bodyParts[i]->getId();
+			}
+		}
+
 		dSpaceCollide(odeSpace, (void *) collisionData, collisionCallback);
-		if ( collisionData->offendingBodies.size() ) {
+		if (collisionData->offendingBodies.size()) {
 			success = false;
 			errorCode = SELF_INTERSECTION;
+		} else if(collisionData->cylinders.size() > 0) {
+			// hack to make sure we have separation between wheels
+			for(unsigned int i=0; i<collisionData->cylinders.size(); ++i) {
+				dReal radius;
+				dReal length;
+				dGeomCylinderGetParams(collisionData->cylinders[i],
+						&radius, &length);
+				dGeomCylinderSetParams(collisionData->cylinders[i],
+						radius + WHEEL_SEPARATION, length);
+			}
+			dSpaceCollide(odeSpace, (void *) collisionData, collisionCallback);
+			if ( collisionData->offendingBodies.size() ) {
+				success = false;
+				errorCode = SELF_INTERSECTION;
+			}
+			collisionData->cylinders.clear();
 		}
-		collisionData->cylinders.clear();
-	}
-	for (unsigned int i = 0; i < collisionData->offendingBodies.size(); i++) {
-		// TODO unlikely event that body not found in map?
-		affectedBodyParts.push_back(
-				std::pair<std::string, std::string>(
-						dBodyToPartID[collisionData->offendingBodies[i].first],
-						dBodyToPartID[collisionData->offendingBodies[i].second
-						              ]));
-	}
+		for (unsigned int i = 0; i < collisionData->offendingBodies.size(); i++) {
+			// TODO unlikely event that body not found in map?
+			affectedBodyParts.push_back(
+					std::pair<std::string, std::string>(
+							dBodyToPartID[collisionData->offendingBodies[i].first],
+							dBodyToPartID[collisionData->offendingBodies[i].second
+										  ]));
+		}
 
-#ifdef VISUAL_DEBUG
-	// show robot in viewer
-	while (!keyboardEvent->isQuit() && !viewer.done()) {
-		viewer.frame();
-	};
-#endif
+	#ifdef VISUAL_DEBUG
+		// show robot in viewer
+		while (!keyboardEvent->isQuit() && !viewer.done()) {
+			viewer.frame();
+		};
+	#endif
+
+	}
 
 	// destruction
 	collisionData->offendingBodies.clear();

@@ -34,12 +34,13 @@
 
 namespace robogen {
 
-ImuSensor::ImuSensor() {
-	std::string labels[] = {"x-acceleration","y-acceleration","z-acceleration",
-			"Pitch","Roll","Yaw"};
+ImuSensor::ImuSensor() :
+		initialized_(false) {
+	std::string labels[] = { "x-acceleration", "y-acceleration",
+			"z-acceleration", "Pitch", "Roll", "Yaw" };
 	for (unsigned int i = 0; i < 6; ++i) {
-		sensors_.push_back(boost::shared_ptr<SimpleSensor>(
-				new SimpleSensor(labels[i])));
+		sensors_.push_back(
+				boost::shared_ptr<SimpleSensor>(new SimpleSensor(labels[i])));
 	}
 }
 
@@ -85,8 +86,9 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	// 2. create unit vectors for IMU reference system
 	// =======================
 	osg::Vec3 imuRef[3];
-	for (int i=0; i<3; i++){
-		imuRef[i] = osg::Vec3((i==0)?1:0, (i==1)?1:0, (i==2)?1:0);
+	for (int i = 0; i < 3; i++) {
+		imuRef[i] = osg::Vec3((i == 0) ? 1 : 0, (i == 1) ? 1 : 0,
+				(i == 2) ? 1 : 0);
 		imuRef[i] = attitude * imuRef[i];
 	}
 
@@ -94,11 +96,10 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	// 3. project accelerations onto IMU reference system
 	// =======================
 	osg::Vec3 accVal;
-	for (int ref=0; ref<3; ref++){
+	for (int ref = 0; ref < 3; ref++) {
 		// imuRef is unit, so simply scalar product
 		accVal[ref] = acceleration_ * imuRef[ref];
 	}
-
 
 	sensors_[0]->update(accVal.x());
 	sensors_[1]->update(accVal.y());
