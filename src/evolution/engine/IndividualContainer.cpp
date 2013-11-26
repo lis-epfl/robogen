@@ -63,7 +63,7 @@ void evaluationThread(
 
 		boost::shared_ptr<RobotRepresentation> current = indiQueue.front();
 		indiQueue.pop();
-		std::cout << "x" << std::flush;
+		std::cout << "." << std::flush;
 		lock.unlock();
 
 		current->evaluate(&socket, robotConf);
