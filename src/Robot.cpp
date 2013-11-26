@@ -85,7 +85,8 @@ private:
 
 };
 
-Robot::Robot(){
+Robot::Robot() : connectionJointGroup_(NULL) {
+
 }
 
 bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
@@ -117,7 +118,9 @@ bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
 }
 
 Robot::~Robot() {
-	dJointGroupDestroy(connectionJointGroup_);
+	if (connectionJointGroup_) {
+		dJointGroupDestroy(connectionJointGroup_);
+	}
 }
 
 const std::vector<boost::shared_ptr<Sensor> >& Robot::getSensors() const {
