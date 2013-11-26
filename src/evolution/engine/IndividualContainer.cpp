@@ -51,22 +51,22 @@ IndividualContainer::~IndividualContainer() {
  */
 void evaluationThread(
 		std::queue<boost::shared_ptr<RobotRepresentation> >& indiQueue,
-		boost::mutex *queueMutex, TcpSocket *socket,
+		boost::mutex& queueMutex, TcpSocket& socket,
 		boost::shared_ptr<RobogenConfig> robotConf) {
 
 	while (true) {
 
-		boost::mutex::scoped_lock lock(*queueMutex);
+		boost::mutex::scoped_lock lock(queueMutex);
 		if (indiQueue.empty()) {
 			return;
 		}
 
 		boost::shared_ptr<RobotRepresentation> current = indiQueue.front();
 		indiQueue.pop();
-		std::cout << "." << std::flush;
+		std::cout << "x" << std::flush;
 		lock.unlock();
 
-		current->evaluate(socket, robotConf);
+		current->evaluate(&socket, robotConf);
 
 	}
 
@@ -92,8 +92,8 @@ void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 	// 3. Launch threads
 	for (unsigned int i = 0; i < sockets.size(); i++) {
 		evaluators.add_thread(
-				new boost::thread(evaluationThread, indiQueue, &queueMutex,
-						sockets[i], robotConf));
+				new boost::thread(evaluationThread, boost::ref(indiQueue), boost::ref(queueMutex),
+						boost::ref(*sockets[i]), robotConf));
 	}
 
 	// 4. Join threads. Individuals are now evaluated.
