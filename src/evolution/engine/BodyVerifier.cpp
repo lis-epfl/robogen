@@ -22,6 +22,7 @@ BodyVerifier::~BodyVerifier() {
 }
 
 void BodyVerifier::collisionCallback(void *data, dGeomID o1, dGeomID o2) {
+
 	CollisionData *collisionData = (CollisionData *) data;
 	const int MAX_CONTACTS = 32; // maximum number of contact points per body
 	// TODO will it work with just 1 point? Probably yes.

@@ -50,8 +50,8 @@ public:
 			std::vector<boost::shared_ptr<Model> >& bodyParts,
 			std::map<std::string, unsigned int>& nodeIdToPos,
 			dJointGroupID connectionJointGroup) :
-				odeWorld_(odeWorld), bodyParts_(bodyParts), nodeIdToPos_(
-						nodeIdToPos), connectionJointGroup_(connectionJointGroup) {
+			odeWorld_(odeWorld), bodyParts_(bodyParts), nodeIdToPos_(
+					nodeIdToPos), connectionJointGroup_(connectionJointGroup) {
 
 	}
 
@@ -67,7 +67,8 @@ public:
 
 		// This is the gist of the bfs visitor
 		RobogenUtils::connect(c->getTo(), c->getToSlot(), c->getFrom(),
-				c->getFromSlot(), c->getTo()->getOrientationToParentSlot()*90.,
+				c->getFromSlot(),
+				c->getTo()->getOrientationToParentSlot() * 90.,
 				connectionJointGroup_, odeWorld_);
 
 		return;
@@ -85,12 +86,13 @@ private:
 
 };
 
-Robot::Robot() : connectionJointGroup_(NULL) {
+Robot::Robot() :
+		connectionJointGroup_(NULL) {
 
 }
 
 bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
-		const robogenMessage::Robot& robotSpec){
+		const robogenMessage::Robot& robotSpec) {
 
 	robotMessage_ = &robotSpec;
 
@@ -103,14 +105,14 @@ bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
 	const robogenMessage::Body& body = robotSpec.body();
 	const robogenMessage::Brain& brain = robotSpec.brain();
 	if (!this->decodeBody(body)) {
-		std::cout << "Cannot decode the body of the robot. Exiting." <<
-				std::endl;
+		std::cout << "Cannot decode the body of the robot. Exiting."
+				<< std::endl;
 		return false;
 	}
 	// decode brain needs to come after decode body, as IO reordering
 	if (!this->decodeBrain(brain)) {
-		std::cout << "Cannot decode the brain of the robot. Exiting." <<
-				std::endl;
+		std::cout << "Cannot decode the brain of the robot. Exiting."
+				<< std::endl;
 		return false;
 	}
 
@@ -137,7 +139,7 @@ const std::vector<boost::shared_ptr<Model> >& Robot::getBodyParts() {
 
 const boost::shared_ptr<NeuralNetwork>& Robot::getBrain() const {
 	return neuralNetwork_;
-}// Decode the body connections
+} // Decode the body connections
 
 boost::shared_ptr<Model> Robot::getCoreComponent() {
 	return coreComponent_;
@@ -158,7 +160,7 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 		if (model == NULL) {
 			std::cerr << "Unrecognized body part: " << bodyPart.id()
-									<< ". Exiting." << std::endl;
+					<< ". Exiting." << std::endl;
 			return false;
 		}
 
@@ -210,10 +212,10 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 	bodyConnections_.reserve(robotBody.connection_size());
 	for (int i = 0; i < robotBody.connection_size(); ++i) {
-		bodyConnections_.push_back(boost::shared_ptr<Connection>(
-				new Connection()));
-		if(!bodyConnections_.back()->init(robotBody.connection(i),
-				bodyPartsMap_, bodyParts_)){
+		bodyConnections_.push_back(
+				boost::shared_ptr<Connection>(new Connection()));
+		if (!bodyConnections_.back()->init(robotBody.connection(i),
+				bodyPartsMap_, bodyParts_)) {
 			std::cout << "Problem when connecting body parts!" << std::endl;
 			return false;
 		}
@@ -232,8 +234,8 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 			&component[0]);
 	if (numComponents != 1) {
 		std::cout
-		<< "The robot body has some disconnected component (ConnComponents: "
-		<< numComponents << ")" << std::endl;
+				<< "The robot body has some disconnected component (ConnComponents: "
+				<< numComponents << ")" << std::endl;
 		return false;
 	}
 	// End of connectivity check
@@ -265,7 +267,7 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	std::vector<unsigned int> brainOutputToIoId;
 
 	float weight[MAX_INPUT_NEURONS * MAX_OUTPUT_NEURONS
-	             + MAX_OUTPUT_NEURONS * MAX_OUTPUT_NEURONS];
+			+ MAX_OUTPUT_NEURONS * MAX_OUTPUT_NEURONS];
 	float bias[MAX_OUTPUT_NEURONS];
 	float gain[MAX_OUTPUT_NEURONS];
 
@@ -295,6 +297,13 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			isNeuronInput.insert(
 					std::pair<std::string, bool>(neuron.id(), true));
 
+			if (nInputs >= MAX_INPUT_NEURONS) {
+				std::cout << "The number of input neurons(" << nInputs
+						<< ") is greater than the maximum allowed one ("
+						<< MAX_INPUT_NEURONS << ")" << std::endl;
+				return false;
+			}
+
 			nInputs++;
 
 		} else if (neuron.layer().compare("output") == 0) {
@@ -317,6 +326,13 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			isNeuronInput.insert(
 					std::pair<std::string, bool>(neuron.id(), false));
 
+			if (nOutputs >= MAX_OUTPUT_NEURONS) {
+				std::cout << "The number of output neurons(" << nOutputs
+						<< ") is greater than the maximum allowed one ("
+						<< MAX_OUTPUT_NEURONS << ")" << std::endl;
+				return false;
+			}
+
 			bias[nOutputs] = neuron.biasweight();
 			gain[nOutputs] = 1;
 
@@ -327,20 +343,6 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			return false;
 		}
 
-	}
-
-	if (nInputs > MAX_INPUT_NEURONS) {
-		std::cout << "The number of input neurons(" << nInputs
-				<< ") is greater than the maximum allowed one ("
-				<< MAX_INPUT_NEURONS << ")" << std::endl;
-		return false;
-	}
-
-	if (nOutputs > MAX_OUTPUT_NEURONS) {
-		std::cout << "The number of output neurons(" << nOutputs
-				<< ") is greater than the maximum allowed one ("
-				<< MAX_OUTPUT_NEURONS << ")" << std::endl;
-		return false;
 	}
 
 	// Reorder robot sensors/actuators according to order in neural network
@@ -401,12 +403,12 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	}
 
 	std::cout << "Contents of unordered sensors:" << std::endl;
-	for (unsigned int i=0; i<sensors_.size(); ++i){
+	for (unsigned int i = 0; i < sensors_.size(); ++i) {
 		std::cout << sensors_[i]->getLabel() << std::endl;
 	}
 	sensors_ = orderedSensors;
 	std::cout << "Contents of ordered sensors:" << std::endl;
-	for (unsigned int i=0; i<sensors_.size(); ++i){
+	for (unsigned int i = 0; i < sensors_.size(); ++i) {
 		std::cout << sensors_[i]->getLabel() << std::endl;
 	}
 	motors_ = orderedMotors;
@@ -433,8 +435,8 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				isNeuronInput.find(connection.dest());
 		if (isDestInputIt == isNeuronInput.end()) {
 			std::cout
-			<< "Cannot find destination neuron in the neural network: "
-			<< connection.dest() << std::endl;
+					<< "Cannot find destination neuron in the neural network: "
+					<< connection.dest() << std::endl;
 			return false;
 		}
 
@@ -452,8 +454,8 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			weight[sourceNeuronPos * nOutputs + destNeuronPos] =
 					connection.weight();
 		} else {
-			weight[nInputs * nOutputs + sourceNeuronPos * nOutputs +
-			       destNeuronPos] = connection.weight();
+			weight[nInputs * nOutputs + sourceNeuronPos * nOutputs
+					+ destNeuronPos] = connection.weight();
 		}
 	}
 	::initNetwork(neuralNetwork_.get(), nInputs, nOutputs, &weight[0], &bias[0],
@@ -463,7 +465,7 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 
 }
 
-void Robot::reconnect(){
+void Robot::reconnect() {
 	// Let's now actually connect the body parts
 	// vis will do the job
 	BodyConnectionVisitor vis(odeWorld_, bodyParts_, bodyPartsMap_,
@@ -473,7 +475,7 @@ void Robot::reconnect(){
 	boost::breadth_first_search(*bodyTree_, rootNode_, boost::visitor(vis));
 }
 
-int Robot::getRoot(){
+int Robot::getRoot() {
 	return rootNode_;
 }
 void Robot::translateRobot(const osg::Vec3& translation) {
@@ -484,7 +486,7 @@ void Robot::translateRobot(const osg::Vec3& translation) {
 
 }
 
-void Robot::rotateRobot(const osg::Quat &rot){
+void Robot::rotateRobot(const osg::Quat &rot) {
 	for (unsigned int i = 0; i < this->bodyParts_.size(); ++i) {
 		// rotate all parts. this will also rotate the root
 		// TODO rotate root only once known
@@ -544,27 +546,22 @@ void Robot::getBB(double& minX, double& maxX, double& minY, double& maxY,
 	}
 }
 
-
 int Robot::getId() const {
 	return id_;
 }
 
-
-
-const robogenMessage::Robot& Robot::getMessage(){
+const robogenMessage::Robot& Robot::getMessage() {
 	return *robotMessage_;
 }
 
-const std::vector<boost::shared_ptr<Connection> >& Robot::getBodyConnections()
-const{
+const std::vector<boost::shared_ptr<Connection> >& Robot::getBodyConnections() const {
 
-return bodyConnections_;
+	return bodyConnections_;
 
 }
 
 void Robot::traverseBody(const std::vector<boost::shared_ptr<Model> >,
-		const std::vector<boost::shared_ptr<Connection> >){
-
+		const std::vector<boost::shared_ptr<Connection> >) {
 
 }
 

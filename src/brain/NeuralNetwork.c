@@ -39,9 +39,9 @@ void initNetwork(NeuralNetwork* network, unsigned int nInputs, unsigned int nOut
 	memcpy(network->weight, weights,
 			sizeof(float) * (nInputs * nOutputs + nOutputs * nOutputs));
 	memcpy(network->bias, bias,
-			sizeof(float) * (nInputs * nOutputs + nOutputs * nOutputs));
+			sizeof(float) * nOutputs);
 	memcpy(network->gain, gain,
-			sizeof(float) * (nInputs * nOutputs + nOutputs * nOutputs));
+			sizeof(float) * nOutputs);
 
 	/* Initialize states */
 	for (i = 0; i < nOutputs * 2; ++i) {
