@@ -127,7 +127,8 @@ public:
 	 * Factory pattern to create derived classes, i.e. body part representations
 	 */
 	static boost::shared_ptr<PartRepresentation> create(char type,
-			std::string id, int orientation, std::vector<double> params);
+			std::string id, unsigned int orientation,
+			std::vector<double> params);
 
 	/**
 	 * Add subtree to given body message.
@@ -201,7 +202,7 @@ public:
 	/**
 	 * Print recursively the body tree representation
 	 */
-	void toString(std::stringstream& str, int depth);
+	void toString(std::stringstream& str, unsigned int depth);
 
 private:
 

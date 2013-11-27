@@ -84,8 +84,9 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
  * Helper function for decoding a part line of a robot text file.
  * @return true if successful read
  */
-bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
-		char &type, std::string &id, int &orientation,
+bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
+		unsigned int &slot,
+		char &type, std::string &id, unsigned int &orientation,
 		std::vector<double> &params) {
 	// match (0 or more tabs)(digit) (type) (id) (orientation) (parameters)
 	static const boost::regex rx(
@@ -300,7 +301,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	// prepare body processing
 	boost::shared_ptr<PartRepresentation> current;
 	std::stack<boost::shared_ptr<PartRepresentation> > parentStack;
-	int slot, orientation, indent;
+	unsigned int slot, orientation, indent;
 	char type;
 	std::string line, id;
 	std::vector<double> params;
@@ -738,8 +739,8 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 			if (parent->getChild(i) == NULL) {
 
 				while (nodeToRemove->getChild(indx) == NULL) {
-					indx = indx + 1;
-					if (indx > nodeToRemove->getArity()) {
+					indx++;
+					if (indx >= nodeToRemove->getArity()) {
 						return true;
 					}
 				}
@@ -749,8 +750,8 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 				// Increment current index
 				indx++;
 
-				if (indx > nodeToRemove->numDescendants()) {
-					break;
+				if (indx >= nodeToRemove->getArity()) {
+					return true;
 				}
 
 			}

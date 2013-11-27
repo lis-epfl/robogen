@@ -208,7 +208,7 @@ bool BodyVerifier::fixRobotBody(RobotRepresentation &robot) {
 					}
 					// will remove body part with less descendants (i.e. this
 					// covers the case where one part descends from the other)
-					int numDesc[] =
+					unsigned int numDesc[] =
 							{
 									idPartMap.find(offenders[i].first)->second.lock()->numDescendants(),
 									idPartMap.find(offenders[i].second)->second.lock()->numDescendants() };
