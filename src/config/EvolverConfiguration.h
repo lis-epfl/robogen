@@ -112,7 +112,7 @@ typedef struct EvolverConfiguration {
 	/**
 	 * Employed selection strategy
 	 */
-	unsigned int selection;
+	int selection;
 
 	/**
 	 * Tournament size for tournaments
@@ -122,7 +122,7 @@ typedef struct EvolverConfiguration {
 	/**
 	 * Employed replacement strategy
 	 */
-	unsigned int replacement;
+	int replacement;
 
 	/**
 	 * Employed replacement strategy
