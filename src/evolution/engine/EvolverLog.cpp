@@ -25,14 +25,15 @@
  *
  * @(#) $Id$
  */
-
-#include "evolution/engine/EvolverLog.h"
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/posix_time_io.hpp>
-#include "evolution/engine/Population.h"
+
 #include "evolution/representation/RobotRepresentation.h"
+#include "evolution/engine/EvolverLog.h"
+#include "evolution/engine/Population.h"
+#include "utils/json2pb/json2pb.h"
 
 namespace robogen {
 
@@ -92,12 +93,14 @@ bool EvolverLog::init(const std::string& confFile, const std::string& logFolderP
 EvolverLog::~EvolverLog() {
 }
 
-bool EvolverLog::logGeneration(int step, Population &population){
+bool EvolverLog::logGeneration(int step, Population &population) {
+
 	if (!population.areEvaluated()){
 		std::cout << "EvolverLog::logGeneration(): Trying to log non-evaluated"\
 				" population!" << std::endl;
 		return false;
 	}
+
 	// log best, avg, stddev
 	double best,average,stdev;
 	population.getStat(best,average,stdev);
@@ -105,20 +108,25 @@ bool EvolverLog::logGeneration(int step, Population &population){
 				stdev << std::endl;
 	bestAvgStd_ << step << " " << best << " " <<
 			average << " "  << stdev << std::endl;
+
 	// save robot file of best robot (don't do with fake robot representation)
-#ifndef FAKEROBOTREPRESENTATION_H
+	#ifndef FAKEROBOTREPRESENTATION_H
+
+	boost::shared_ptr<RobotRepresentation> bestRobot = population.best();
 
 	std::stringstream ss;
-	ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".dat";
-	std::ofstream curRobotFile(ss.str().c_str(),std::ios::out|std::ios::binary|
-				std::ios::trunc);
+	ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".json";
 
-	// TODO generalizing would be idealistic
-	boost::shared_ptr<RobotRepresentation> bestRobot = population.best();
-	bestRobot->serialize().SerializeToOstream(&curRobotFile);
+	// De-comment to save protobuf binary file
+	// ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".dat
+	// bestRobot->serialize().SerializeToOstream(&curRobotFile);
+
+	std::ofstream curRobotFile(ss.str().c_str(),std::ios::out|std::ios::trunc);
+	curRobotFile << pb2json(bestRobot->serialize());
 	curRobotFile.close();
 
-#endif /* FAKEROBOTREPRESENTATION_H */
+	#endif /* FAKEROBOTREPRESENTATION_H */
+
 	return true;
 }
 

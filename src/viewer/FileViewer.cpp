@@ -32,6 +32,7 @@
 #include <boost/filesystem.hpp>
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
+
 #include "config/ConfigurationReader.h"
 #include "config/RobogenConfig.h"
 #include "evolution/representation/RobotRepresentation.h"
@@ -39,16 +40,16 @@
 #include "scenario/ScenarioFactory.h"
 #include "utils/network/ProtobufPacket.h"
 #include "utils/network/TcpSocket.h"
+#include "utils/json2pb/json2pb.h"
 #include "utils/RobogenCollision.h"
 #include "utils/RobogenUtils.h"
 #include "viewer/KeyboardHandler.h"
+#include "viewer/FileViewerLog.h"
 #include "Models.h"
 #include "RenderModels.h"
 #include "Robogen.h"
 #include "Robot.h"
 #include "robogen.pb.h"
-#include "viewer/FileViewerLog.h"
-
 
 
 using namespace robogen;
@@ -67,12 +68,12 @@ bool interrupted;
 int main(int argc, char *argv[]) {
 
 	if (argc < 3) {
-		std::cout
-		<< "Please provide a file containing the robot description as"\
-		" input and the corresponding simulation configuration file. " << std::endl
-		<< "For example: " << std::string(argv[0]) << " robot.dat configuration.conf'"
-		<< std::endl << "You can also select the starting position by "\
-		"appending an integer 1..n to the command" << std::endl;
+		std::cout << "Please provide a file containing the robot description as"
+				" input and the corresponding simulation configuration file. "
+				<< std::endl << "For example: " << std::string(argv[0])
+				<< " robot.dat configuration.conf'" << std::endl
+				<< "You can also select the starting position by "
+						"appending an integer 1..n to the command" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -87,20 +88,20 @@ int main(int argc, char *argv[]) {
 
 	// verify desired start position is specified in configuration
 	unsigned int desiredStart = 0;
-	if (argc >= 4){
+	if (argc >= 4) {
 		std::stringstream ss(argv[3]);
 		ss >> desiredStart;
 		--desiredStart; // -- accounts for parameter being 1..n
-		if (ss.fail()){
-			std::cout << "Specified desired starting position \"" << argv[3] <<
-					"\" is not an integer. Aborting..." << std::endl;
+		if (ss.fail()) {
+			std::cout << "Specified desired starting position \"" << argv[3]
+					<< "\" is not an integer. Aborting..." << std::endl;
 			return EXIT_FAILURE;
 		}
-		if (desiredStart >=
-				configuration->getStartingPos()->getStartPosition().size()){
-			std::cout << "Specified desired starting position " << argv[3] <<
-					" does not index a starting position. Aborting..." <<
-					std::endl;
+		if (desiredStart
+				>= configuration->getStartingPos()->getStartPosition().size()) {
+			std::cout << "Specified desired starting position " << argv[3]
+					<< " does not index a starting position. Aborting..."
+					<< std::endl;
 			return EXIT_FAILURE;
 		}
 	}
@@ -151,8 +152,9 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 	robogenMessage::Robot robotMessage;
 	std::string robotFileString(argv[1]);
-	// case .dat file
-	if (boost::filesystem::path(argv[1]).extension().string() == ".dat"){
+
+	if (boost::filesystem::path(argv[1]).extension().string().compare(".dat") == 0) {
+
 		std::ifstream robotFile(argv[1], std::ios::binary);
 		if (!robotFile.is_open()) {
 			std::cout << "Cannot open " << std::string(argv[1]) << ". Quit."
@@ -171,19 +173,38 @@ int main(int argc, char *argv[]) {
 		robotFile.read((char*) &packetBuffer[0], packetSize);
 		robogenPacket.decodePayload(packetBuffer);
 		robotMessage = *robogenPacket.getMessage().get();
-	}
-	// case .txt file
-	else if(boost::filesystem::path(argv[1]).extension().string() == ".txt"){
+
+	} else if (boost::filesystem::path(argv[1]).extension().string().compare(".txt") == 0) {
+
 		RobotRepresentation robot;
-		if (!robot.init(argv[1])){
+		if (!robot.init(argv[1])) {
 			std::cout << "Failed interpreting robot text file!" << std::endl;
 			return EXIT_FAILURE;
 		}
 		robotMessage = robot.serialize();
-	}
-	else{
-		std::cout << "File extension of provided robot file could not be "\
-				"resolved. Use .dat for robot messages and .txt for "\
+
+	} else if (boost::filesystem::path(argv[1]).extension().string().compare(".json") == 0) {
+
+		std::ifstream robotFile(argv[1]);
+		if (!robotFile.is_open()) {
+			std::cout << "Cannot open " << std::string(argv[1]) << ". Quit."
+					<< std::endl;
+			return EXIT_FAILURE;
+		}
+
+		robotFile.seekg(0, robotFile.end);
+		unsigned int packetSize = robotFile.tellg();
+		robotFile.seekg(0, robotFile.beg);
+
+		std::vector<unsigned char> packetBuffer;
+		packetBuffer.resize(packetSize);
+		robotFile.read((char*) &packetBuffer[0], packetSize);
+
+		json2pb(robotMessage, (char*) &packetBuffer[0], packetSize);
+
+	} else {
+		std::cout << "File extension of provided robot file could not be "
+				"resolved. Use .dat or .json for robot messages and .txt for "
 				"robot text files" << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -202,7 +223,7 @@ int main(int argc, char *argv[]) {
 	// Generate Robot
 	// ---------------------------------------
 	boost::shared_ptr<Robot> robot(new Robot);
-	if(!robot->init(odeWorld, odeSpace, robotMessage)){
+	if (!robot->init(odeWorld, odeSpace, robotMessage)) {
 		std::cout << "Problems decoding the robot. Quit." << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -248,10 +269,10 @@ int main(int argc, char *argv[]) {
 
 		if (!renderModel->initRenderModel()) {
 			std::cout
-			<< "Cannot initialize a render model for one of the components. "
-			<< std::endl
-			<< "Please check that the models/ folder is in the same folder of this executable."
-			<< std::endl;
+					<< "Cannot initialize a render model for one of the components. "
+					<< std::endl
+					<< "Please check that the models/ folder is in the same folder of this executable."
+					<< std::endl;
 		}
 		renderModels.push_back(renderModel);
 		root->addChild(renderModels[i]->getRootNode());
@@ -272,7 +293,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Light render model
-	const std::vector<boost::shared_ptr<LightSource> >& lightSources = scenario->getEnvironment()->getLightSources();
+	const std::vector<boost::shared_ptr<LightSource> >& lightSources =
+			scenario->getEnvironment()->getLightSources();
 	for (unsigned int i = 0; i < lightSources.size(); ++i) {
 		boost::shared_ptr<LightSourceRender> lightSourceRender(
 				new LightSourceRender(lightSources[i], root));
@@ -299,13 +321,12 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 
 	boost::shared_ptr<FileViewerLog> log(new FileViewerLog);
-	if (!log->init(std::string(argv[1]),
-			std::string(argv[2]), configuration->getObstacleFile(),
-			configuration->getStartPosFile(), robot)){
+	if (!log->init(std::string(argv[1]), std::string(argv[2]),
+			configuration->getObstacleFile(), configuration->getStartPosFile(),
+			robot)) {
 		std::cout << "Problem initializing log!" << std::endl;
 		return EXIT_FAILURE;
 	}
-
 
 	// ---------------------------------------
 	// ROBOGEN Simulation
@@ -318,10 +339,10 @@ int main(int argc, char *argv[]) {
 	double t = 0;
 	while (!viewer.done() && !keyboardEvent->isQuit()) {
 
-
 		viewer.frame();
 
-		if (t < configuration->getSimulationTime() && !keyboardEvent->isPaused()) {
+		if (t < configuration->getSimulationTime()
+				&& !keyboardEvent->isPaused()) {
 
 			double step = configuration->getTimeStepLength();
 
@@ -361,7 +382,7 @@ int main(int argc, char *argv[]) {
 						sensors[i])) {
 					networkInput[i] = boost::dynamic_pointer_cast<LightSensor>(
 							sensors[i])->read(env->getLightSources(),
-									env->getAmbientLight());
+							env->getAmbientLight());
 				} else if (boost::dynamic_pointer_cast<SimpleSensor>(
 						sensors[i])) {
 					networkInput[i] = boost::dynamic_pointer_cast<SimpleSensor>(
@@ -398,18 +419,16 @@ int main(int argc, char *argv[]) {
 
 			if (!scenario->afterSimulationStep()) {
 				std::cout
-				<< "Cannot execute scenario after simulation step. Quit."
-				<< std::endl;
+						<< "Cannot execute scenario after simulation step. Quit."
+						<< std::endl;
 				return EXIT_FAILURE;
 			}
 
 			// log trajectory
-			log->logPosition(scenario->getRobot()->
-					getCoreComponent()->getRootPosition());
+			log->logPosition(
+					scenario->getRobot()->getCoreComponent()->getRootPosition());
 
 			t += step;
-
-
 
 		} /* If doing something */
 
