@@ -42,6 +42,8 @@
 #include "Robot.h"
 #include "robogen.pb.h"
 
+#define CAP_ACCELERATION
+
 using namespace robogen;
 
 // ODE World
@@ -139,7 +141,10 @@ int main(int argc, char* argv[]) {
 							<< "-----------------------------------------------"
 							<< std::endl;
 
-					while (scenario->remainingTrials()) {
+					bool accelerationCapExceeded = false;
+
+					while (scenario->remainingTrials() &&
+							(!accelerationCapExceeded)) {
 
 						// ---------------------------------------
 						// Simulator initialization
@@ -217,6 +222,22 @@ int main(int argc, char* argv[]) {
 							return exitRobogen(EXIT_FAILURE);
 						}
 
+
+#ifdef CAP_ACCELERATION
+						// build up vector containing all bodies if we want
+						// to cap the acceleration
+						std::vector<dBodyID> allBodies;
+						for (unsigned int i = 0; i < bodyParts.size(); ++i) {
+							std::vector<dBodyID> partBodies =
+									bodyParts[i]->getBodies();
+							allBodies.insert(allBodies.end(),
+									partBodies.begin(), partBodies.end());
+						}
+
+						//setup vectors for keeping velocities
+						std::vector<std::vector<dReal> > linVels, angVels;
+#endif
+
 						// ---------------------------------------
 						// Main Loop
 						// ---------------------------------------
@@ -238,6 +259,59 @@ int main(int argc, char* argv[]) {
 
 							// Empty contact groups used for collisions handling
 							dJointGroupEmpty(odeContactGroup);
+
+#ifdef CAP_ACCELERATION
+
+							double maxLinAccel = 0;
+							double maxAngAccel = 0;
+
+							for(unsigned int i=0; i<allBodies.size(); i++) {
+								const dReal *angVel, *linVel;
+								dReal previousAngVel[3], previousLinVel[3];
+								angVel = dBodyGetAngularVel(allBodies[i]);
+								linVel = dBodyGetLinearVel(allBodies[i]);
+								if(t > 0) {
+									for(int j=0; j<3; j++) {
+										previousAngVel[j] = angVels[i][j];
+										previousLinVel[j] = linVels[i][j];
+									}
+
+									double angAccel = dCalcPointsDistance3(
+											angVel, previousAngVel);
+									double linAccel = dCalcPointsDistance3(
+											linVel, previousLinVel);
+
+									if(angAccel > maxAngAccel)
+										maxAngAccel = angAccel;
+									if(linAccel > maxLinAccel)
+										maxLinAccel = linAccel;
+
+									std::vector<dReal> tmp(angVel, angVel +
+											sizeof(angVel) / sizeof(dReal));
+									angVels[i] = tmp;
+									std::vector<dReal> tmp2(linVel, linVel +
+											sizeof(linVel) / sizeof(dReal));
+									linVels[i] = tmp2;
+								} else {
+									std::vector<dReal> tmp(angVel, angVel +
+											sizeof(angVel) / sizeof(dReal));
+									angVels.push_back(tmp);
+									std::vector<dReal> tmp2(linVel, linVel +
+											sizeof(linVel) / sizeof(dReal));
+									linVels.push_back(tmp2);
+								}
+							}
+
+							if(maxAngAccel > 10.0 || maxLinAccel > 10.0) {
+								printf("Evaluation canceled: max accel");
+								printf(" exceeded at time %f, will give 0", t);
+								printf(" fitness.\n");
+								accelerationCapExceeded = true;
+								break;
+							}
+
+#endif
+
 
 							float networkInput[MAX_INPUT_NEURONS];
 							float networkOutputs[MAX_OUTPUT_NEURONS];
@@ -345,7 +419,12 @@ int main(int argc, char* argv[]) {
 					// ---------------------------------------
 					// Compute fitness
 					// ---------------------------------------
-					double fitness = scenario->getFitness();
+					double fitness;
+					if (accelerationCapExceeded) {
+						fitness = 0.0;
+					} else {
+						fitness = scenario->getFitness();
+					}
 					std::cout << "Fitness for the current solution: " << fitness
 							<< std::endl << std::endl;
 
