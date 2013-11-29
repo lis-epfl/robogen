@@ -224,18 +224,9 @@ int main(int argc, char* argv[]) {
 
 
 #ifdef CAP_ACCELERATION
-						// build up vector containing all bodies if we want
-						// to cap the acceleration
-						std::vector<dBodyID> allBodies;
-						for (unsigned int i = 0; i < bodyParts.size(); ++i) {
-							std::vector<dBodyID> partBodies =
-									bodyParts[i]->getBodies();
-							allBodies.insert(allBodies.end(),
-									partBodies.begin(), partBodies.end());
-						}
-
 						//setup vectors for keeping velocities
-						std::vector<std::vector<dReal> > linVels, angVels;
+						dReal previousLinVel[3];
+						dReal previousAngVel[3];
 #endif
 
 						// ---------------------------------------
@@ -261,55 +252,34 @@ int main(int argc, char* argv[]) {
 							dJointGroupEmpty(odeContactGroup);
 
 #ifdef CAP_ACCELERATION
+							dBodyID rootBody =
+									robot->getCoreComponent()->getRoot();
+							const dReal *angVel, *linVel;
 
-							double maxLinAccel = 0;
-							double maxAngAccel = 0;
+							angVel = dBodyGetAngularVel(rootBody);
+							linVel = dBodyGetLinearVel(rootBody);
 
-							for(unsigned int i=0; i<allBodies.size(); i++) {
-								const dReal *angVel, *linVel;
-								dReal previousAngVel[3], previousLinVel[3];
-								angVel = dBodyGetAngularVel(allBodies[i]);
-								linVel = dBodyGetLinearVel(allBodies[i]);
-								if(t > 0) {
-									for(int j=0; j<3; j++) {
-										previousAngVel[j] = angVels[i][j];
-										previousLinVel[j] = linVels[i][j];
-									}
+							if(t > 0) {
+								double angAccel = dCalcPointsDistance3(
+										angVel, previousAngVel);
+								double linAccel = dCalcPointsDistance3(
+										linVel, previousLinVel);
 
-									double angAccel = dCalcPointsDistance3(
-											angVel, previousAngVel);
-									double linAccel = dCalcPointsDistance3(
-											linVel, previousLinVel);
-
-									if(angAccel > maxAngAccel)
-										maxAngAccel = angAccel;
-									if(linAccel > maxLinAccel)
-										maxLinAccel = linAccel;
-
-									std::vector<dReal> tmp(angVel, angVel +
-											sizeof(angVel) / sizeof(dReal));
-									angVels[i] = tmp;
-									std::vector<dReal> tmp2(linVel, linVel +
-											sizeof(linVel) / sizeof(dReal));
-									linVels[i] = tmp2;
-								} else {
-									std::vector<dReal> tmp(angVel, angVel +
-											sizeof(angVel) / sizeof(dReal));
-									angVels.push_back(tmp);
-									std::vector<dReal> tmp2(linVel, linVel +
-											sizeof(linVel) / sizeof(dReal));
-									linVels.push_back(tmp2);
+								if(angAccel > 10.0 || linAccel > 10.0) {
+									printf("EVALUATION CANCELED: max accel");
+									printf(" exceeded at time %f,", t);
+									printf("  will give 0 fitness.\n");
+									accelerationCapExceeded = true;
+									break;
 								}
+
 							}
 
-							if(maxAngAccel > 10.0 || maxLinAccel > 10.0) {
-								printf("Evaluation canceled: max accel");
-								printf(" exceeded at time %f, will give 0", t);
-								printf(" fitness.\n");
-								accelerationCapExceeded = true;
-								break;
+							// save current velocities as previous
+							for(unsigned int j=0; j<3; j++) {
+								previousAngVel[j] = angVel[j];
+								previousLinVel[j] = linVel[j];
 							}
-
 #endif
 
 
