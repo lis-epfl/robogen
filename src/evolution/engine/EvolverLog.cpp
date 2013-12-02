@@ -37,7 +37,7 @@
 
 namespace robogen {
 
-#define LOG_DIRECTORY_PREFIX "results/BrainEvolution_"
+#define LOG_DIRECTORY_PREFIX "results/Evolution_"
 #define LOG_DIRECTORY_FACET "%Y%m%d-%H%M%S"
 #define BAS_LOG_FILE "BestAvgStd.txt"
 #define GENERATION_BEST_PREFIX "GenerationBest-"
@@ -72,7 +72,7 @@ bool EvolverLog::init(const std::string& confFile, const std::string& logFolderP
 	}
 
 	// open trajectory log
-	std::string basLogPath = logPathSs.str() + "/" + BAS_LOG_FILE;
+	std::string basLogPath = logPath_ + "/" + BAS_LOG_FILE;
 	bestAvgStd_.open(basLogPath.c_str());
 	if (!bestAvgStd_.is_open()){
 		std::cout << "Can't open Best/Average/STD log file" << std::endl;
