@@ -43,7 +43,7 @@
 #include "robogen.pb.h"
 
 #define CAP_ACCELERATION
-
+#define MIN_FITNESS (-10000.0)
 using namespace robogen;
 
 // ODE World
@@ -391,7 +391,7 @@ int main(int argc, char* argv[]) {
 					// ---------------------------------------
 					double fitness;
 					if (accelerationCapExceeded) {
-						fitness = 0.0;
+						fitness = MIN_FITNESS;
 					} else {
 						fitness = scenario->getFitness();
 					}
