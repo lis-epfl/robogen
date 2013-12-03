@@ -31,6 +31,8 @@
 
 #include <fstream>
 #include "evolution/engine/Population.h"
+#include "config/EvolverConfiguration.h"
+#include "config/RobogenConfig.h"
 
 namespace robogen {
 
@@ -45,11 +47,14 @@ public:
 	 * Initiate evolver log. Creates a directory according to the current time
 	 * with BestAvgStd.txt inside and a copy of the generating configuration
 	 * file.
-	 * @param confFile evolution configuration file
+	 * @param conf evolution configuration pointer
+	 * @param robot configuration pointer
 	 * @param logFolderPostfix postfix of log folder
 	 * @return true if successful
 	 */
-	bool init(const std::string& confFile, const std::string& logFolderPostfix);
+	bool init(boost::shared_ptr<EvolverConfiguration> conf,
+			boost::shared_ptr<RobogenConfig> robotConf,
+			const std::string& logFolderPostfix);
 
 	virtual ~EvolverLog();
 
@@ -71,6 +76,13 @@ private:
 	 * File stream to BestAvgStd.txt
 	 */
 	std::ofstream bestAvgStd_;
+
+	/**
+	 * Helper utility to back up the various configuration files
+	 * @param fileName, name of the file to backup
+	 */
+
+	void copyConfFile(std::string fileName);
 };
 
 } /* namespace robogen */

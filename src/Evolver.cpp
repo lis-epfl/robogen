@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 	boost::shared_ptr<Mutator> mutator = boost::shared_ptr<Mutator>(
 			new Mutator(conf, rng));
 	boost::shared_ptr<EvolverLog> log(new EvolverLog());
-	if (!log->init(confFileName, outputFolderPostfix)) {
+	if (!log->init(conf, robotConf, outputFolderPostfix)) {
 		std::cout << "Error creating evolver log. Aborting." << std::endl;
 		return EXIT_FAILURE;
 	}

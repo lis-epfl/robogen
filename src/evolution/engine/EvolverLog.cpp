@@ -45,7 +45,11 @@ namespace robogen {
 EvolverLog::EvolverLog(){
 }
 
-bool EvolverLog::init(const std::string& confFile, const std::string& logFolderPostfix) {
+
+
+bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
+		boost::shared_ptr<RobogenConfig> robotConf,
+		const std::string& logFolderPostfix) {
 
 	// create log directory with time stamp
 	std::stringstream logPathSs;
@@ -80,13 +84,19 @@ bool EvolverLog::init(const std::string& confFile, const std::string& logFolderP
 	}
 
 	// copy evolution configuration file
-	// not copying simulator config file, as hard to also get obstacles and
-	// startpos - though probably worth it - so TODO (along with robot)
-	boost::filesystem::path confFrom(confFile);
-	std::stringstream ss;
-	ss << logPath_ << "/" << confFrom.filename().string();
-	boost::filesystem::path confTo(ss.str());
-	boost::filesystem::copy_file(confFrom, confTo);
+	copyConfFile(conf->confFileName);
+	// copy simulator configuration file
+	copyConfFile(conf->simulatorConfFile);
+	// copy obstacle configuration file
+	copyConfFile(robotConf->getObstacleFile());
+	// copy start pos configuration file
+	copyConfFile(robotConf->getStartPosFile());
+	// copy robot file if doing just brain evolution
+	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER) {
+		copyConfFile(conf->referenceRobotFile);
+	}
+
+
 	return true;
 }
 
@@ -128,6 +138,15 @@ bool EvolverLog::logGeneration(int step, Population &population) {
 	#endif /* FAKEROBOTREPRESENTATION_H */
 
 	return true;
+}
+
+void EvolverLog::copyConfFile(std::string fileName) {
+	boost::filesystem::path confFrom(fileName);
+	std::stringstream ss;
+	ss << logPath_ << "/" << confFrom.filename().string();
+	boost::filesystem::path confTo(ss.str());
+	boost::filesystem::copy_file(confFrom, confTo);
+
 }
 
 } /* namespace robogen */

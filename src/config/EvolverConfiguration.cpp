@@ -48,6 +48,8 @@ EvolverConfiguration::BodyMutationOperatorsProbabilityCodes[] = {
  */
 bool EvolverConfiguration::init(std::string confFileName) {
 
+	this->confFileName = confFileName;
+
 	// cleanse operator probabilities before reading in (not specified = 0)
 	memset(bodyOperatorProbability, 0, sizeof(bodyOperatorProbability));
 	maxBodyMutationAttemps = 100; //seems like a reasonable default

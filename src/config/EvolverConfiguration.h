@@ -75,6 +75,12 @@ typedef struct EvolverConfiguration {
 
 	static const std::string BodyMutationOperatorsProbabilityCodes[];
 
+	/**
+	 * File name of this configuration
+	 */
+
+
+	std::string confFileName;
 
 	/**
 	 * Parses a configuration from a proper configuration file
