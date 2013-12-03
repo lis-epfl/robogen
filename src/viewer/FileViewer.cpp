@@ -30,8 +30,11 @@
 #include <fstream>
 #include <iostream>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/format.hpp>
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
+#include <osgDB/WriteFile>
 
 #include "config/ConfigurationReader.h"
 #include "config/RobogenConfig.h"
@@ -62,6 +65,49 @@ dJointGroupID odeContactGroup;
 
 bool interrupted;
 
+class SnapImageDrawCallback : public osg::Camera::DrawCallback {
+public:
+
+	SnapImageDrawCallback()
+	{
+		_snapImageOnNextFrame = false;
+	}
+
+	void setFileName(const std::string& filename) { _filename = filename; }
+	const std::string& getFileName() const { return _filename; }
+
+	void setSnapImageOnNextFrame(bool flag) { _snapImageOnNextFrame = flag; }
+	bool getSnapImageOnNextFrame() const { return _snapImageOnNextFrame; }
+
+	virtual void operator () (const osg::Camera& camera) const
+	{
+		if (!_snapImageOnNextFrame) return;
+
+		int x,y,width,height;
+		x = camera.getViewport()->x();
+		y = camera.getViewport()->y();
+		width = camera.getViewport()->width();
+		height = camera.getViewport()->height();
+
+		osg::ref_ptr<osg::Image> image = new osg::Image;
+		image->readPixels(x,y,width,height,GL_RGB,GL_UNSIGNED_BYTE);
+
+		if (osgDB::writeImageFile(*image,_filename))
+		{
+		std::cout << "Saved screen image to `"<<_filename<<"`"<< std::endl;
+		}
+
+		_snapImageOnNextFrame = false;
+	}
+
+protected:
+
+	std::string _filename;
+	mutable bool _snapImageOnNextFrame;
+
+
+};
+
 /**
  * Decodes a robot saved on file and visualize it
  */
@@ -73,7 +119,10 @@ int main(int argc, char *argv[]) {
 				<< std::endl << "For example: " << std::string(argv[0])
 				<< " robot.dat configuration.conf'" << std::endl
 				<< "You can also select the starting position by "
-						"appending an integer 1..n to the command" << std::endl;
+						"appending an integer 1..n to the command" << std::endl
+				<< "To save frames to file (for video rendering), use option "
+				<< "--record N DIR, to save every Nth frame in directory DIR"
+				<< std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -88,8 +137,15 @@ int main(int argc, char *argv[]) {
 
 	// verify desired start position is specified in configuration
 	unsigned int desiredStart = 0;
-	if (argc >= 4) {
+	unsigned int recordFrequency = 0;
+	bool recording = false;
+
+	char *recordDirectoryName;
+
+	int currentArg = 3;
+	if (argc >= 4 && !boost::starts_with(argv[3], "--")) {
 		std::stringstream ss(argv[3]);
+		currentArg++;
 		ss >> desiredStart;
 		--desiredStart; // -- accounts for parameter being 1..n
 		if (ss.fail()) {
@@ -105,6 +161,38 @@ int main(int argc, char *argv[]) {
 			return EXIT_FAILURE;
 		}
 	}
+
+	for (; currentArg<argc; currentArg++) {
+		if (std::string("--record").compare(argv[currentArg]) == 0) {
+			if (argc < (currentArg + 3)) {
+				std::cout << "In order to record frames, must provide frame "
+						<< "frequency and target directory."
+						<< std::endl;
+						return EXIT_FAILURE;
+			}
+			recording = true;
+			currentArg++;
+			std::stringstream ss(argv[currentArg]);
+			ss >> recordFrequency;
+			if (ss.fail()) {
+				std::cout << "Specified record frequency \"" << argv[currentArg]
+						<< "\" is not an integer. Aborting..." << std::endl;
+				return EXIT_FAILURE;
+			}
+			currentArg++;
+
+			recordDirectoryName = argv[currentArg];
+			boost::filesystem::path recordDirectory(recordDirectoryName);
+
+			if (recording && !boost::filesystem::is_directory(recordDirectory) ) {
+				boost::filesystem::create_directories(recordDirectory);
+			}
+
+		}
+	}
+
+
+
 
 	// ---------------------------------------
 	// ODE Initialization
@@ -316,6 +404,12 @@ int main(int argc, char *argv[]) {
 
 	viewer.setReleaseContextAtEndOfFrameHint(false);
 
+	if (recording) {
+		osg::ref_ptr<SnapImageDrawCallback> snapImageDrawCallback = new
+													SnapImageDrawCallback();
+		viewer.getCamera()->setPostDrawCallback (snapImageDrawCallback.get());
+	}
+
 	// ---------------------------------------
 	// Set up log files
 	// ---------------------------------------
@@ -337,6 +431,8 @@ int main(int argc, char *argv[]) {
 
 	int count = 0;
 	double t = 0;
+	unsigned int frameCount = 0;
+
 	while (!viewer.done() && !keyboardEvent->isQuit()) {
 
 		viewer.frame();
@@ -345,6 +441,21 @@ int main(int argc, char *argv[]) {
 				&& !keyboardEvent->isPaused()) {
 
 			double step = configuration->getTimeStepLength();
+			if (recording && count % recordFrequency == 0) {
+				osg::ref_ptr<SnapImageDrawCallback> snapImageDrawCallback =
+						dynamic_cast<SnapImageDrawCallback*>
+						(viewer.getCamera()->getPostDrawCallback());
+
+				if(snapImageDrawCallback.get()) {
+					std::stringstream ss;
+					ss << recordDirectoryName << "/" <<
+							boost::format("%|04|")%frameCount << ".jpg";
+					snapImageDrawCallback->setFileName(ss.str());
+					snapImageDrawCallback->setSnapImageOnNextFrame(true);
+					frameCount++;
+				}
+			}
+
 
 			if ((count++) % 500 == 0) {
 				std::cout << "." << std::flush;
