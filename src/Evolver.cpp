@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
 			new RobotRepresentation());
 	bool growBodies = false;
 	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
-			&& conf->referenceRobotFile.compare("")) {
+			&& conf->referenceRobotFile.compare("") == 0) {
 		std::cout << "Trying to evolve brain, but no robot file provided."
 				<< std::endl;
 		return exitRobogen(EXIT_FAILURE);
