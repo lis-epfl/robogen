@@ -139,6 +139,11 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 	return true;
 }
 
+boost::shared_ptr<StartPosition> Scenario::getCurrentStartPosition() {
+	return robogenConfig_->getStartingPos()->getStartPosition(
+			startPositionId_);
+}
+
 void Scenario::prune(){
 	odeWorld_ = 0;
 	odeSpace_ = 0;
