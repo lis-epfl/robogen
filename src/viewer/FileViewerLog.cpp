@@ -37,39 +37,48 @@ FileViewerLog::FileViewerLog(){
 
 bool FileViewerLog::init(std::string robotFile, std::string confFile,
 		std::string obstacleFile, std::string startPosFile,
-		boost::shared_ptr<Robot> robot) {
+		boost::shared_ptr<Robot> robot, const std::string& logFolderPostfix) {
 	// create log directory with time stamp
 	std::stringstream logPathSs;
-	logPathSs << LOG_DIRECTORY_PREFIX;
-	boost::posix_time::time_facet *myFacet =
-			new boost::posix_time::time_facet(LOG_DIRECTORY_FACET);
-	logPathSs.imbue(std::locale(std::cout.getloc(), myFacet));
-	logPathSs << boost::posix_time::second_clock::local_time();
-	boost::filesystem::path logPath(logPathSs.str());
+	logPathSs << LOG_DIRECTORY_PREFIX << logFolderPostfix;
+
+	std::string prefixPath = logPathSs.str();
+	std::string tempPath = prefixPath;
+	int curIndex = 0;
+	while (boost::filesystem::is_directory(tempPath)) {
+		std::stringstream newPath;
+		newPath << prefixPath << "_" << ++curIndex;
+		tempPath = newPath.str();
+	}
+
+	logPath_ = tempPath;
+	boost::filesystem::path logPath(logPath_);
+
 	try{
 		boost::filesystem::create_directories(logPath);
 	} catch(const boost::filesystem::filesystem_error &err){
-		std::cout << "File viewer log can't create log directory." << std::endl
-				<< err.what() << std::endl;
+		std::cout << err.what() << std::endl << "Evolver log can't create log"\
+				" directory.\n" << std::endl;
 		return false;
 	}
 
+
 	// open trajectory log
-	std::string trajectoryLogPath = logPathSs.str() + "/" + TRAJECTORY_LOG_FILE;
+	std::string trajectoryLogPath = logPath_ + "/" + TRAJECTORY_LOG_FILE;
 	trajectoryLog_.open(trajectoryLogPath.c_str());
 	if (!trajectoryLog_.is_open()){
 		std::cout << "Can't open trajectory log file" << std::endl;
 		return false;
 	}
 	// open sensor log
-	std::string sensorLogPath = logPathSs.str() + "/" + SENSOR_LOG_FILE;
+	std::string sensorLogPath = logPath_ + "/" + SENSOR_LOG_FILE;
 	sensorLog_.open(sensorLogPath.c_str());
 	if (!sensorLog_.is_open()){
 		std::cout << "Can't open sensor log file" << std::endl;
 		return false;
 	}
 	// open motor log
-	std::string motorLogPath = logPathSs.str() + "/" + MOTOR_LOG_FILE;
+	std::string motorLogPath = logPath_ + "/" + MOTOR_LOG_FILE;
 	motorLog_.open(motorLogPath.c_str());
 	if (!motorLog_.is_open()){
 		std::cout << "Can't open motor log file" << std::endl;
@@ -78,7 +87,7 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 
 	// compile neural network representation for Arduino
 	// open motor log
-	std::string arduinoNNPath = logPathSs.str() + "/" + ARDUINO_NN_FILE;
+	std::string arduinoNNPath = logPath_ + "/" + ARDUINO_NN_FILE;
 	std::ofstream arduinoNN;
 	arduinoNN.open(arduinoNNPath.c_str());
 	if (!motorLog_.is_open()){
@@ -89,7 +98,7 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 
 	// compile neural network representation for Body
 	// open motor log
-	std::string bodyPath = logPathSs.str() + "/" + BODY_FILE;
+	std::string bodyPath = logPath_ + "/" + BODY_FILE;
 	std::ofstream body;
 	body.open(bodyPath.c_str());
 	if (!motorLog_.is_open()){
@@ -101,7 +110,7 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 	// copy robot file
 	boost::filesystem::path robotFrom(robotFile);
 	std::stringstream ss;
-	ss << logPathSs.str() << "/" << robotFrom.filename().string();
+	ss << logPath_ << "/" << robotFrom.filename().string();
 	boost::filesystem::path robotTo(ss.str());
 	try{
 		boost::filesystem::copy_file(robotFrom, robotTo);
@@ -113,7 +122,7 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 	// copy configuration file
 	boost::filesystem::path confFrom(confFile);
 	ss.str(""); ss.clear();
-	ss << logPathSs.str() << "/" << confFrom.filename().string();
+	ss << logPath_ << "/" << confFrom.filename().string();
 	boost::filesystem::path confTo(ss.str());
 	try{
 		boost::filesystem::copy_file(confFrom, confTo);
@@ -125,7 +134,7 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 	// copy obstacle file
 	boost::filesystem::path obsFrom(obstacleFile);
 	ss.str(""); ss.clear();
-	ss << logPathSs.str() << "/" << obsFrom.filename().string();
+	ss << logPath_ << "/" << obsFrom.filename().string();
 	boost::filesystem::path obsTo(ss.str());
 	try{
 		boost::filesystem::copy_file(obsFrom, obsTo);
@@ -137,7 +146,7 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 	// copy starting position file
 	boost::filesystem::path staPoFrom(startPosFile);
 	ss.str(""); ss.clear();
-	ss << logPathSs.str() << "/" << staPoFrom.filename().string();
+	ss << logPath_ << "/" << staPoFrom.filename().string();
 	boost::filesystem::path staPoTo(ss.str());
 	try{
 		boost::filesystem::copy_file(staPoFrom, staPoTo);
@@ -153,7 +162,7 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 			it != boost::filesystem::directory_iterator(); ++it){
 		if (boost::filesystem::extension(it->path()) == ".m"){
 			ss.str(""); ss.clear();
-			ss << logPathSs.str() << "/" << it->path().filename().string();
+			ss << logPath_ << "/" << it->path().filename().string();
 			boost::filesystem::path mTo(ss.str());
 			try{
 				boost::filesystem::copy_file(it->path(), mTo);
@@ -166,7 +175,7 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 
 	// write out sensor Labels file
 	// open sensor log
-	std::string sensorLabelPath = logPathSs.str() + "/" + SENSOR_LABEL_FILE;
+	std::string sensorLabelPath = logPath_ + "/" + SENSOR_LABEL_FILE;
 	std::ofstream sensorLabel;
 	sensorLabel.open(sensorLabelPath.c_str());
 	if (!sensorLabel.is_open()){

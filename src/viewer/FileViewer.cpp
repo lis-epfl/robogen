@@ -121,7 +121,11 @@ int main(int argc, char *argv[]) {
 				<< "You can also select the starting position by "
 						"appending an integer 1..n to the command" << std::endl
 				<< "To save frames to file (for video rendering), use option "
-				<< "--record N DIR, to save every Nth frame in directory DIR"
+				<< "--record <N, INTEGER> <DIR, STRING>, "
+				<< "to save every Nth frame in directory DIR"
+				<< std::endl
+				<< "To generate output files: sensor logs and Arduino files, "
+				<< "use option --output <DIR_POSTFIX, STRING>"
 				<< std::endl;
 		return EXIT_FAILURE;
 	}
@@ -139,8 +143,11 @@ int main(int argc, char *argv[]) {
 	unsigned int desiredStart = 0;
 	unsigned int recordFrequency = 0;
 	bool recording = false;
-
 	char *recordDirectoryName;
+
+	bool writeLog = false;
+	char *outputDirectoryName;
+
 
 	int currentArg = 3;
 	if (argc >= 4 && !boost::starts_with(argv[3], "--")) {
@@ -189,6 +196,20 @@ int main(int argc, char *argv[]) {
 			}
 
 		}
+		if (std::string("--output").compare(argv[currentArg]) == 0) {
+			if (argc < (currentArg + 2)) {
+				std::cout << "In order to write output files, must provide "
+										<< "directory postfix."
+										<< std::endl;
+										return EXIT_FAILURE;
+
+			}
+			writeLog = true;
+			currentArg++;
+
+			outputDirectoryName = argv[currentArg];
+		}
+
 	}
 
 
@@ -415,13 +436,17 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 
 	boost::shared_ptr<FileViewerLog> log(new FileViewerLog);
-	if (!log->init(std::string(argv[1]), std::string(argv[2]),
-			configuration->getObstacleFile(), configuration->getStartPosFile(),
-			robot)) {
-		std::cout << "Problem initializing log!" << std::endl;
-		return EXIT_FAILURE;
+	if (writeLog) {
+		if (!log->init(std::string(argv[1]), std::string(argv[2]),
+				configuration->getObstacleFile(),
+				configuration->getStartPosFile(),
+				robot,
+				std::string(outputDirectoryName)
+				)) {
+			std::cout << "Problem initializing log!" << std::endl;
+			return EXIT_FAILURE;
+		}
 	}
-
 	// ---------------------------------------
 	// ROBOGEN Simulation
 	// ---------------------------------------
@@ -501,7 +526,9 @@ int main(int argc, char *argv[]) {
 				}
 			}
 
-			log->logSensors(networkInput, sensors.size());
+			if (writeLog) {
+				log->logSensors(networkInput, sensors.size());
+			}
 
 			::feed(neuralNetwork.get(), &networkInput[0]);
 
@@ -526,7 +553,9 @@ int main(int argc, char *argv[]) {
 				}
 			}
 
-			log->logMotors(networkOutput, motors.size());
+			if(writeLog) {
+				log->logMotors(networkOutput, motors.size());
+			}
 
 			if (!scenario->afterSimulationStep()) {
 				std::cout
@@ -536,9 +565,11 @@ int main(int argc, char *argv[]) {
 			}
 
 			// log trajectory
-			log->logPosition(
-					scenario->getRobot()->getCoreComponent()->getRootPosition());
-
+			if(writeLog) {
+				log->logPosition(
+					scenario->getRobot(
+							)->getCoreComponent()->getRootPosition());
+			}
 			t += step;
 
 		} /* If doing something */
