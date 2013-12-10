@@ -30,6 +30,8 @@
 #include <sstream>
 #include <boost/program_options.hpp>
 #include <boost/regex.hpp>
+#include <boost/filesystem.hpp>
+
 #include "config/EvolverConfiguration.h"
 #include "PartList.h"
 
@@ -46,13 +48,14 @@ EvolverConfiguration::BodyMutationOperatorsProbabilityCodes[] = {
  * Parses options from given conf file.
  * @todo default values
  */
-bool EvolverConfiguration::init(std::string confFileName) {
+bool EvolverConfiguration::init(std::string configFileName) {
 
-	this->confFileName = confFileName;
+	this->confFileName = configFileName;
 
 	// cleanse operator probabilities before reading in (not specified = 0)
 	memset(bodyOperatorProbability, 0, sizeof(bodyOperatorProbability));
 	maxBodyMutationAttemps = 100; //seems like a reasonable default
+	maxBodyParts = 100000; //some unreasonably large value if max not set
 	// boost-parse options
 	boost::program_options::options_description desc("Allowed options");
 
@@ -107,7 +110,11 @@ bool EvolverConfiguration::init(std::string confFileName) {
 				->required(),	"Sockets to be used to connect to the server")
 		("addBodyPart",
 				boost::program_options::value<std::vector<std::string> >(
-				&allowedBodyPartTypeStrings), "Parts to be used in body evolution");
+				&allowedBodyPartTypeStrings),
+				"Parts to be used in body evolution")
+		("maxBodyParts",
+				boost::program_options::value<unsigned int>(&maxBodyParts),
+				"Maximum number of body parts.");
 	// generate body operator probability options from contraptions in header
 	for (unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		desc.add_options()(
@@ -322,6 +329,35 @@ bool EvolverConfiguration::init(std::string confFileName) {
 			std::cout << "If evolving bodies then need to define at least " <<
 					"one allowed body part to add." << std::endl;
 			return false;
+		}
+	}
+
+
+
+	// convert file names to absolute paths, so that will use one relative to
+	// directory where the evolver conf file is
+
+	const boost::filesystem::path confFilePath(this->confFileName);
+
+	if ( referenceRobotFile.compare("") != 0 ) {
+		const boost::filesystem::path referenceRobotFilePath(
+				referenceRobotFile);
+		if (!referenceRobotFilePath.is_absolute()) {
+			const boost::filesystem::path absolutePath =
+					boost::filesystem::absolute(referenceRobotFilePath,
+							confFilePath.parent_path());
+			referenceRobotFile = absolutePath.string();
+		}
+	}
+
+	if ( simulatorConfFile.compare("") != 0 ) {
+		const boost::filesystem::path simulatorConfFilePath(
+				simulatorConfFile);
+		if (!simulatorConfFilePath.is_absolute()) {
+			const boost::filesystem::path absolutePath =
+					boost::filesystem::absolute(simulatorConfFilePath,
+							confFilePath.parent_path());
+			simulatorConfFile = absolutePath.string();
 		}
 	}
 

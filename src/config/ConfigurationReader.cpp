@@ -29,6 +29,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <boost/filesystem.hpp>
 
 #include "config/ConfigurationReader.h"
 #include "config/ObstaclesConfig.h"
@@ -141,8 +142,23 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		return boost::shared_ptr<RobogenConfig>();
 	}
 
+
+	const boost::filesystem::path filePath(fileName);
+
 	std::string obstaclesConfigFile =
 			vm["obstaclesConfigFile"].as<std::string>();
+
+	const boost::filesystem::path obstaclesConfigFilePath(obstaclesConfigFile);
+	if (!obstaclesConfigFilePath.is_absolute()) {
+		const boost::filesystem::path absolutePath =
+				boost::filesystem::absolute(obstaclesConfigFilePath,
+						filePath.parent_path());
+		obstaclesConfigFile = absolutePath.string();
+	}
+
+
+
+
 	boost::shared_ptr<ObstaclesConfig> obstacles = parseObstaclesFile(
 			obstaclesConfigFile);
 	if (obstacles == NULL) {
@@ -158,6 +174,16 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 
 	std::string startPositionFile =
 			vm["startPositionConfigFile"].as<std::string>();
+
+	const boost::filesystem::path startPositionFilePath(startPositionFile);
+	if (!startPositionFilePath.is_absolute()) {
+		const boost::filesystem::path absolutePath =
+				boost::filesystem::absolute(startPositionFilePath,
+						filePath.parent_path());
+		startPositionFile = absolutePath.string();
+	}
+
+
 	boost::shared_ptr<StartPositionConfig> startPositions =
 			parseStartPositionFile(startPositionFile);
 	if (startPositions == NULL) {

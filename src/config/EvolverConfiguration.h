@@ -83,7 +83,7 @@ typedef struct EvolverConfiguration {
 	/**
 	 * Parses a configuration from a proper configuration file
 	 */
-	bool init(std::string confFileName);
+	bool init(std::string configFileName);
 
 	// GENERAL EVOLUTION PARAMS
 	// ========================================================================
@@ -179,6 +179,8 @@ typedef struct EvolverConfiguration {
 	double bodyOperatorProbability[NUM_BODY_OPERATORS];
 
 	unsigned int maxBodyMutationAttemps;
+
+	unsigned int maxBodyParts;
 
 	unsigned int minNumInitialParts;
 	unsigned int maxNumInitialParts;
