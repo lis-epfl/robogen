@@ -78,8 +78,6 @@ typedef struct EvolverConfiguration {
 	/**
 	 * File name of this configuration
 	 */
-
-
 	std::string confFileName;
 
 	/**
