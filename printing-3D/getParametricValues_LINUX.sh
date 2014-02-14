@@ -1,5 +1,6 @@
 #!/bin/bash
 #Author Gregoire Heitz <gregoire.heitz@epfl.ch>
+# modified last on Feb 14 2014 by Deniz Aydin deniz.aydin@epfl.ch
 #Goal : Parse the bodyRepresentation.txt file to get the parametric Part Parameters
 # For the robogen course project, LIS EPFL.
 
