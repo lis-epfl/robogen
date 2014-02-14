@@ -37,6 +37,11 @@
 
 using namespace robogen;
 
+int exitRobogen(int exitCode) {
+	google::protobuf::ShutdownProtobufLibrary();
+	return exitCode;
+}
+
 int main(int argc, char *argv[]) {
 
 	// ---------------------------------------
@@ -46,7 +51,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "Bad amount of arguments. " << std::endl
 				<< " Usage: robogen-brain-evolver "
 						"<seed, INTEGER>, <outputFolderPostFix, STRING>, <configuration file, STRING>" << std::endl;
-		return EXIT_FAILURE;
+		return exitRobogen(EXIT_FAILURE);
 	}
 
 	unsigned int seed = atoi(argv[1]);
@@ -62,7 +67,7 @@ int main(int argc, char *argv[]) {
 	if (!conf->init(confFileName)) {
 		std::cout << "Problems parsing the evolution configuration file. Quit."
 				<< std::endl;
-		return EXIT_FAILURE;
+		return exitRobogen(EXIT_FAILURE);
 	}
 
 	boost::shared_ptr<RobogenConfig> robotConf =
@@ -71,7 +76,7 @@ int main(int argc, char *argv[]) {
 	if (robotConf == NULL) {
 		std::cout << "Problems parsing the robot configuration file. Quit."
 				<< std::endl;
-		return EXIT_FAILURE;
+		return exitRobogen(EXIT_FAILURE);
 	}
 
 	// ---------------------------------------
@@ -84,12 +89,12 @@ int main(int argc, char *argv[]) {
 	} else {
 		std::cout << "Selection type id " << conf->selection << " unknown."
 				<< std::endl;
-		return EXIT_FAILURE;
+		return exitRobogen(EXIT_FAILURE);
 	}
 	boost::shared_ptr<Mutator> mutator = boost::shared_ptr<Mutator>(
 			new Mutator(conf, rng));
 	boost::shared_ptr<EvolverLog> log(new EvolverLog());
-	if (!log->init(confFileName, outputFolderPostfix)) {
+	if (!log->init(conf, robotConf, outputFolderPostfix)) {
 		std::cout << "Error creating evolver log. Aborting." << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -102,15 +107,15 @@ int main(int argc, char *argv[]) {
 			new RobotRepresentation());
 	bool growBodies = false;
 	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
-			&& conf->referenceRobotFile.compare("")) {
+			&& conf->referenceRobotFile.compare("") == 0) {
 		std::cout << "Trying to evolve brain, but no robot file provided."
 				<< std::endl;
-		return EXIT_FAILURE;
+		return exitRobogen(EXIT_FAILURE);
 	} else if (conf->referenceRobotFile.compare("") != 0) {
 		if (!referenceBot->init(conf->referenceRobotFile)) {
 			std::cout << "Failed interpreting robot from text file"
 					<< std::endl;
-			return EXIT_FAILURE;
+			return exitRobogen(EXIT_FAILURE);
 		}
 	} else { //doing body evolution and don't have a reference robot
 		if (referenceBot->init()) {
@@ -118,14 +123,14 @@ int main(int argc, char *argv[]) {
 		} else {
 			std::cout << "Failed creating base robot for body evolution"
 					<< std::endl;
-			return EXIT_FAILURE;
+			return exitRobogen(EXIT_FAILURE);
 		}
 	}
 	boost::shared_ptr<Population> population(new Population()), previous;
 	if (!population->init(referenceBot, conf->mu, rng, mutator,
 			growBodies)) {
 		std::cout << "Error when initializing population!" << std::endl;
-		return EXIT_FAILURE;
+		return exitRobogen(EXIT_FAILURE);
 	}
 
 	// ---------------------------------------
@@ -140,7 +145,7 @@ int main(int argc, char *argv[]) {
 		if (!sockets[i]->open(conf->sockets[i].first,
 				conf->sockets[i].second)) {
 			std::cout << "Could not open connection to simulator" << std::endl;
-			return EXIT_FAILURE;
+			return exitRobogen(EXIT_FAILURE);
 		}
 #endif
 	}
@@ -151,7 +156,7 @@ int main(int argc, char *argv[]) {
 
 	population->evaluate(robotConf, sockets);
 	if (!log->logGeneration(1, *population.get())) {
-		return EXIT_FAILURE;
+		return exitRobogen(EXIT_FAILURE);
 	}
 
 	for (unsigned int generation = 2; generation <= conf->numGenerations;
@@ -164,7 +169,7 @@ int main(int argc, char *argv[]) {
 					boost::shared_ptr<RobotRepresentation> > selection;
 			if (!s->select(selection)) {
 				std::cout << "Selector::select() failed." << std::endl;
-				return EXIT_FAILURE;
+				return exitRobogen(EXIT_FAILURE);
 			}
 			children.push_back(
 					mutator->mutate(selection.first, selection.second));
@@ -182,11 +187,18 @@ int main(int argc, char *argv[]) {
 		population.reset(new Population());
 		if (!population->init(children, conf->mu)) {
 			std::cout << "Error when initializing population!" << std::endl;
-			return EXIT_FAILURE;
+			return exitRobogen(EXIT_FAILURE);
 		}
 
 		if (!log->logGeneration(generation, *population.get())) {
-			return EXIT_FAILURE;
+			return exitRobogen(EXIT_FAILURE);
 		}
 	}
+
+	// Clean up sockets
+	for (unsigned int i = 0; i < conf->sockets.size(); i++) {
+		delete sockets[i];
+	}
+
+	return exitRobogen(EXIT_SUCCESS);
 }

@@ -92,7 +92,7 @@ boost::shared_ptr<RobotRepresentation> Mutator::mutate(
 	return offspring1;
 }
 
-void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation> robot) {
+void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	boost::random::uniform_int_distribution<> dist(conf_->minNumInitialParts,
 			conf_->maxNumInitialParts);
@@ -229,8 +229,13 @@ void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 				mutOpPairs[i].second;
 
 		if (dist(rng_)) {
+
 			for (unsigned int attempt = 0;
 					attempt < conf_->maxBodyMutationAttemps; ++attempt) {
+
+				std::cout << "Robot was mutated using mutation " << i << std::endl;
+							std::cout << "OldBot: " << std::endl;
+							std::cout << robot->toString() << std::endl;
 
 				boost::shared_ptr<RobotRepresentation> newBot =
 						boost::shared_ptr<RobotRepresentation>(
@@ -238,15 +243,27 @@ void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 
 				bool mutationSuccess = (this->*mutOp)(newBot);
 
+
+
+							std::cout << "NewBot: " << std::endl;
+							std::cout << newBot->toString() << std::endl;
+
 				int errorCode;
 				std::vector<std::pair<std::string, std::string> > affectedBodyParts;
 				if (mutationSuccess
 						&& BodyVerifier::verify(*newBot.get(), errorCode,
 								affectedBodyParts)) {
+
+					if (!newBot->check()) {
+						std::cout << "Consistency check failed in mutation operator " << i << std::endl;
+					}
+
 					robot = newBot;
 					robot->setDirty();
 					break;
+
 				}
+
 			}
 		}
 	}
@@ -273,9 +290,19 @@ bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
+	unsigned int totalNodes = idPartMap.size();
+
 	RobotRepresentation::IdPartMap::const_iterator subtreeRootPart =
 			idPartMap.begin();
 	std::advance(subtreeRootPart, dist(rng_));
+
+	boost::shared_ptr<PartRepresentation> srcPart =
+			subtreeRootPart->second.lock();
+
+	unsigned int subTreeSize = 1 + srcPart->numDescendants();
+
+	if ( totalNodes + subTreeSize >  conf_->maxBodyParts )
+		return false;
 
 	// Select another node
 	RobotRepresentation::IdPartMap::const_iterator subtreeDestPart =
@@ -364,6 +391,10 @@ bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
+
+	if ( idPartMap.size() >= conf_->maxBodyParts )
+		return false;
+
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
 	RobotRepresentation::IdPartMap::const_iterator parent = idPartMap.begin();

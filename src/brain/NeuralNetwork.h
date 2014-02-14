@@ -28,8 +28,8 @@
 #ifndef ROBOGEN_NEURAL_NETWORK_H_
 #define ROBOGEN_NEURAL_NETWORK_H_
 
-#define MAX_INPUT_NEURONS 60
-#define MAX_OUTPUT_NEURONS 60
+#define MAX_INPUT_NEURONS 13
+#define MAX_OUTPUT_NEURONS 6
 
 /*
  * No namespace here on purpose ;-)

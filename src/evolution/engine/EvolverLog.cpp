@@ -25,18 +25,19 @@
  *
  * @(#) $Id$
  */
-
-#include "evolution/engine/EvolverLog.h"
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/posix_time_io.hpp>
-#include "evolution/engine/Population.h"
+
 #include "evolution/representation/RobotRepresentation.h"
+#include "evolution/engine/EvolverLog.h"
+#include "evolution/engine/Population.h"
+#include "utils/json2pb/json2pb.h"
 
 namespace robogen {
 
-#define LOG_DIRECTORY_PREFIX "results/BrainEvolution_"
+#define LOG_DIRECTORY_PREFIX "results/Evolution_"
 #define LOG_DIRECTORY_FACET "%Y%m%d-%H%M%S"
 #define BAS_LOG_FILE "BestAvgStd.txt"
 #define GENERATION_BEST_PREFIX "GenerationBest-"
@@ -44,7 +45,11 @@ namespace robogen {
 EvolverLog::EvolverLog(){
 }
 
-bool EvolverLog::init(const std::string& confFile, const std::string& logFolderPostfix) {
+
+
+bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
+		boost::shared_ptr<RobogenConfig> robotConf,
+		const std::string& logFolderPostfix) {
 
 	// create log directory with time stamp
 	std::stringstream logPathSs;
@@ -71,7 +76,7 @@ bool EvolverLog::init(const std::string& confFile, const std::string& logFolderP
 	}
 
 	// open trajectory log
-	std::string basLogPath = logPathSs.str() + "/" + BAS_LOG_FILE;
+	std::string basLogPath = logPath_ + "/" + BAS_LOG_FILE;
 	bestAvgStd_.open(basLogPath.c_str());
 	if (!bestAvgStd_.is_open()){
 		std::cout << "Can't open Best/Average/STD log file" << std::endl;
@@ -79,25 +84,33 @@ bool EvolverLog::init(const std::string& confFile, const std::string& logFolderP
 	}
 
 	// copy evolution configuration file
-	// not copying simulator config file, as hard to also get obstacles and
-	// startpos - though probably worth it - so TODO (along with robot)
-	boost::filesystem::path confFrom(confFile);
-	std::stringstream ss;
-	ss << logPath_ << "/" << confFrom.filename().string();
-	boost::filesystem::path confTo(ss.str());
-	boost::filesystem::copy_file(confFrom, confTo);
+	copyConfFile(conf->confFileName);
+	// copy simulator configuration file
+	copyConfFile(conf->simulatorConfFile);
+	// copy obstacle configuration file
+	copyConfFile(robotConf->getObstacleFile());
+	// copy start pos configuration file
+	copyConfFile(robotConf->getStartPosFile());
+	// copy robot file if doing just brain evolution
+	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER) {
+		copyConfFile(conf->referenceRobotFile);
+	}
+
+
 	return true;
 }
 
 EvolverLog::~EvolverLog() {
 }
 
-bool EvolverLog::logGeneration(int step, Population &population){
+bool EvolverLog::logGeneration(int step, Population &population) {
+
 	if (!population.areEvaluated()){
 		std::cout << "EvolverLog::logGeneration(): Trying to log non-evaluated"\
 				" population!" << std::endl;
 		return false;
 	}
+
 	// log best, avg, stddev
 	double best,average,stdev;
 	population.getStat(best,average,stdev);
@@ -105,21 +118,35 @@ bool EvolverLog::logGeneration(int step, Population &population){
 				stdev << std::endl;
 	bestAvgStd_ << step << " " << best << " " <<
 			average << " "  << stdev << std::endl;
+
 	// save robot file of best robot (don't do with fake robot representation)
-#ifndef FAKEROBOTREPRESENTATION_H
+	#ifndef FAKEROBOTREPRESENTATION_H
+
+	boost::shared_ptr<RobotRepresentation> bestRobot = population.best();
 
 	std::stringstream ss;
-	ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".dat";
-	std::ofstream curRobotFile(ss.str().c_str(),std::ios::out|std::ios::binary|
-				std::ios::trunc);
+	ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".json";
 
-	// TODO generalizing would be idealistic
-	boost::shared_ptr<RobotRepresentation> bestRobot = population.best();
-	bestRobot->serialize().SerializeToOstream(&curRobotFile);
+	// De-comment to save protobuf binary file
+	// ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".dat
+	// bestRobot->serialize().SerializeToOstream(&curRobotFile);
+
+	std::ofstream curRobotFile(ss.str().c_str(),std::ios::out|std::ios::trunc);
+	curRobotFile << pb2json(bestRobot->serialize());
 	curRobotFile.close();
 
-#endif /* FAKEROBOTREPRESENTATION_H */
+	#endif /* FAKEROBOTREPRESENTATION_H */
+
 	return true;
+}
+
+void EvolverLog::copyConfFile(std::string fileName) {
+	boost::filesystem::path confFrom(fileName);
+	std::stringstream ss;
+	ss << logPath_ << "/" << confFrom.filename().string();
+	boost::filesystem::path confTo(ss.str());
+	boost::filesystem::copy_file(confFrom, confTo);
+
 }
 
 } /* namespace robogen */

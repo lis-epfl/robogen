@@ -84,8 +84,9 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
  * Helper function for decoding a part line of a robot text file.
  * @return true if successful read
  */
-bool robotTextFileReadPartLine(std::ifstream &file, int &indent, int &slot,
-		char &type, std::string &id, int &orientation,
+bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
+		unsigned int &slot,
+		char &type, std::string &id, unsigned int &orientation,
 		std::vector<double> &params) {
 	// match (0 or more tabs)(digit) (type) (id) (orientation) (parameters)
 	static const boost::regex rx(
@@ -300,7 +301,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	// prepare body processing
 	boost::shared_ptr<PartRepresentation> current;
 	std::stack<boost::shared_ptr<PartRepresentation> > parentStack;
-	int slot, orientation, indent;
+	unsigned int slot, orientation, indent;
 	char type;
 	std::string line, id;
 	std::vector<double> params;
@@ -529,8 +530,9 @@ bool RobotRepresentation::trimBodyAt(const std::string& id) {
 		if (!it->second.lock()) {
 			idToPart_.erase(it++);
 			std::cout << "Had a part to erase! " << parent << std::endl;
-		} else
+		} else {
 			++it;
+		}
 	}
 	return true;
 
@@ -619,11 +621,11 @@ bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
 	PartRepresentation* parentRoot2 = root2->getParent();
 
 	// Get the slots to which this nodes are connected
-	unsigned int slotParentRoot1 = 0;
+	unsigned int slotParentRoot1 = 1000000;
 
 	for (unsigned int i = 0; i < parentRoot1->getArity(); ++i) {
 		if (parentRoot1->getChild(i) != NULL) {
-			if (parentRoot1->getChild(i)->getId().compare(parentRoot1->getId())
+			if (parentRoot1->getChild(i)->getId().compare(root1->getId())
 					== 0) {
 				slotParentRoot1 = i;
 				break;
@@ -634,7 +636,7 @@ bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
 	unsigned int slotParentRoot2 = 0;
 	for (unsigned int i = 0; i < parentRoot2->getArity(); ++i) {
 		if (parentRoot2->getChild(i) != NULL) {
-			if (parentRoot2->getChild(i)->getId().compare(parentRoot2->getId())
+			if (parentRoot2->getChild(i)->getId().compare(root2->getId())
 					== 0) {
 				slotParentRoot2 = i;
 				break;
@@ -710,7 +712,8 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 		return false;
 	}
 
-	unsigned int nFreeSlots = parent->getFreeSlots().size();
+	// Add one since will be freeing a slot when this node is removed
+	unsigned int nFreeSlots = parent->getFreeSlots().size() + 1;
 	if (nFreeSlots < nodeToRemove->numDescendants()) {
 		return false;
 	}
@@ -718,33 +721,138 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 	// remove neurons and all their connections
 	neuralNetwork_->removeNeurons(partId);
 
-	unsigned int indx = 0;
+	// Find child part that will be removed
 	for (unsigned int i = 0; i < parent->getArity(); i++) {
+		if (parent->getChild(i) != NULL &&
+				parent->getChild(i)->getId().compare(nodeToRemove->getId())
+				== 0) {
+			parent->setChild(i, boost::shared_ptr<PartRepresentation>());
+			break;
+		}
+	}
+	idToPart_.erase(nodeToRemove->getId());
 
-		if (parent->getChild(i) == NULL) {
+	if ( nodeToRemove->getArity() > 0 ) {
+		unsigned int indx = 0;
+		for (unsigned int i = 0; i < parent->getArity(); i++) {
 
-			// this never will be infinite cycle given that nFreeSlots were computed correctly
-			while (nodeToRemove->getChild(indx) == NULL) {
-				indx = indx + 1;
+			if (parent->getChild(i) == NULL) {
+
+				while (nodeToRemove->getChild(indx) == NULL) {
+					indx++;
+					if (indx >= nodeToRemove->getArity()) {
+						return true;
+					}
+				}
+
+				parent->setChild(i, nodeToRemove->getChild(indx));
+
+				// Increment current index
+				indx++;
+
+				if (indx >= nodeToRemove->getArity()) {
+					return true;
+				}
+
 			}
+		}
+	}
+	return true;
+}
 
-			parent->setChild(i, nodeToRemove->getChild(indx));
+bool RobotRepresentation::check() {
 
-			if (indx > nodeToRemove->numDescendants()) {
-				break;
+	// 1. Check that every body part in the body tree is in the idBodyPart map and there are no dangling references
+	std::vector<std::string> bodyPartIdsFromMap;
+	for (std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator it = idToPart_.begin(); it != idToPart_.end(); ++it) {
+		bodyPartIdsFromMap.push_back(it->first);
+	}
+
+	std::vector<std::string> bodyIds = bodyTree_->getDescendantsIds();
+	bodyIds.push_back(bodyTree_->getId());
+
+	std::sort(bodyPartIdsFromMap.begin(), bodyPartIdsFromMap.end());
+	std::sort(bodyIds.begin(), bodyIds.end());
+
+	bool idsMatch = true;
+	if (bodyPartIdsFromMap.size() != bodyIds.size()) {
+		std::cout << "Error: bodyPartIdsFromMap has " <<
+				bodyPartIdsFromMap.size() << " elements, but bodyIds has " <<
+				bodyIds.size() << " elements\n";
+		idsMatch = false;
+	} else {
+		for (unsigned int i = 0; i < bodyPartIdsFromMap.size(); ++i) {
+			if (bodyPartIdsFromMap[i].compare(bodyIds[i]) != 0) {
+				std::cout << "Error: bodyPartIdsFromMap does not match bodyIds at "
+						<< "position " << i << " " << bodyPartIdsFromMap[i] << " "
+						<< bodyIds[i] << "\n";
+				idsMatch = false;
 			}
 		}
 	}
 
+	if (!idsMatch) {
+		std::cout << "bodyPartIdsFromMap:";
+		for (unsigned int i = 0; i < bodyPartIdsFromMap.size(); ++i) {
+			std::cout<< " " << bodyPartIdsFromMap[i] ;
+		}
+		std::cout << "\nbodyIds:";
+		for (unsigned int i = 0; i < bodyIds.size(); ++i) {
+			std::cout<< " " << bodyIds[i] ;
+		}
+		std::cout << "\n";
+
+		return false;
+	}
+
+	// 2. Check that each neuron has an associated body part
+	std::map<std::string, int> netInputs;
+	std::map<std::string, int> netOutputs;
+	for (unsigned int i = 0; i < bodyIds.size(); ++i) {
+
+		bool hasNeurons = true;
+		boost::weak_ptr<PartRepresentation> part = idToPart_[bodyIds[i]];
+		if (part.lock()->getSensors().size() > 0) {
+			netInputs[bodyIds[i]] = part.lock()->getSensors().size();
+		}
+
+		if (part.lock()->getMotors().size() > 0) {
+			netOutputs[bodyIds[i]] = part.lock()->getMotors().size();
+		}
+
+		if (hasNeurons) {
+
+			std::vector<boost::weak_ptr<NeuronRepresentation> > neurons = neuralNetwork_->getBodyPartNeurons(bodyIds[i]);
+			int totInputs = 0;
+			int totOutputs = 0;
+			for (unsigned int j = 0; j < neurons.size(); ++j) {
+				if (neurons[j].lock()->isInput()) {
+					totInputs++;
+				} else {
+					totOutputs++;
+				}
+			}
+
+			if (totInputs != netInputs[bodyIds[i]] || totOutputs != netOutputs[bodyIds[i]]) {
+				return false;
+			}
+		}
+
+	}
+
+	// TODO Consistency check is not complete, neural representation is only partially checked
 	return true;
+
 }
 
 std::string RobotRepresentation::toString() {
 
 	std::stringstream str;
-	str << "[" << bodyTree_->getId() << " | " << bodyTree_->getType() << "]" << std::endl;
+	str << "[" << bodyTree_->getId() << " | " << bodyTree_->getType() << "]"
+			<< std::endl;
 	bodyTree_->toString(str, 0);
-
+	str << "Network:" << std::endl;
+	str << neuralNetwork_->toString();
 	return str.str();
 
 }

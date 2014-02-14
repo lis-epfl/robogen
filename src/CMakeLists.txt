@@ -104,7 +104,7 @@ file (GLOB_RECURSE
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ROBOGEN_SIMULATOR_PROTO})
 
-set(ROBOGEN_DEPENDENCIES ${ODE_LIBRARIES} ${OPENSCENEGRAPH_LIBRARIES} ${ZLIB_LIBRARIES} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${PNG_LIBRARIES})
+set(ROBOGEN_DEPENDENCIES ${ODE_LIBRARIES} ${OPENSCENEGRAPH_LIBRARIES} ${ZLIB_LIBRARIES} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${PNG_LIBRARIES} jansson)
 
 message(STATUS ${ROBOGEN_DEPENDENCIES})
 
@@ -112,9 +112,9 @@ message(STATUS ${ROBOGEN_DEPENDENCIES})
 add_library(robogen ${ROBOGEN_SIMULATOR_SRC} ${PROTO_SRCS} )
 target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
 
-# Brain-Evolver executable
-add_executable(robogen-brain-evolver BrainEvolver.cpp)
-target_link_libraries(robogen-brain-evolver robogen ${ROBOGEN_DEPENDENCIES})
+# Evolver executable
+add_executable(robogen-evolver Evolver.cpp)
+target_link_libraries(robogen-evolver robogen ${ROBOGEN_DEPENDENCIES})
 
 # Robogen simulator server
 add_executable(robogen-server RobogenServer.cpp)

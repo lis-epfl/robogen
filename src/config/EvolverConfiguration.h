@@ -75,11 +75,15 @@ typedef struct EvolverConfiguration {
 
 	static const std::string BodyMutationOperatorsProbabilityCodes[];
 
+	/**
+	 * File name of this configuration
+	 */
+	std::string confFileName;
 
 	/**
 	 * Parses a configuration from a proper configuration file
 	 */
-	bool init(std::string confFileName);
+	bool init(std::string configFileName);
 
 	// GENERAL EVOLUTION PARAMS
 	// ========================================================================
@@ -112,7 +116,7 @@ typedef struct EvolverConfiguration {
 	/**
 	 * Employed selection strategy
 	 */
-	unsigned int selection;
+	int selection;
 
 	/**
 	 * Tournament size for tournaments
@@ -122,7 +126,7 @@ typedef struct EvolverConfiguration {
 	/**
 	 * Employed replacement strategy
 	 */
-	unsigned int replacement;
+	int replacement;
 
 	/**
 	 * Employed replacement strategy
@@ -175,6 +179,8 @@ typedef struct EvolverConfiguration {
 	double bodyOperatorProbability[NUM_BODY_OPERATORS];
 
 	unsigned int maxBodyMutationAttemps;
+
+	unsigned int maxBodyParts;
 
 	unsigned int minNumInitialParts;
 	unsigned int maxNumInitialParts;

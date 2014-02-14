@@ -92,13 +92,15 @@ bool ChasingScenario::endSimulation() {
 
 double ChasingScenario::getFitness() {
 
-	double fitness = 0;
+	double fitness = 1000;//0;
 	for (unsigned int i = 0; i < distances_.size(); ++i) {
-		fitness += distances_[i]/this->getRobogenConfig()->getTimeSteps();
+		double trialFit = -1.0 * distances_[i]/this->getRobogenConfig()->getTimeSteps();
+		if (trialFit < fitness)
+			fitness = trialFit;
 	}
-
+	return fitness;
 	// We transform everything into a maximization problem
-	return -1*(fitness/distances_.size());
+	//return -1*(fitness/distances_.size());
 }
 
 bool ChasingScenario::remainingTrials() {

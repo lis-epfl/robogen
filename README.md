@@ -74,6 +74,7 @@ make available to your compiler includes and library paths to:
 * Google Protobuf (http://code.google.com/p/protobuf/)
 * OpenSceneGraph (http://www.openscenegraph.org/projects/osg/wiki/Downloads) 
 * ODE (http://sourceforge.net/projects/opende/files/) 
+* Jansson 2.4+ (http://www.digip.org/jansson/)
 
 ODE must be compiled in double precision mode (dDOUBLE preprocessor flag)
 
@@ -84,7 +85,7 @@ which has to be built in double precision mode.
 For example, in Ubuntu Linux 12.04 you can type
 
     sudo apt-get install zlib1g zlib1g-dev libpng12-0 libpng12-dev libboost1.48-all-dev libprotobuf-dev \
-    protobuf-compiler libopenscenegraph-dev libopenscenegraph80
+    protobuf-compiler libopenscenegraph-dev libopenscenegraph80 libjansson-dev
 
 to install the required dependencies.
 

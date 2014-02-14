@@ -80,7 +80,7 @@ std::map<std::string, unsigned int> initPartTypeParamCountMap() {
 	partTypeParamCountMap[PART_TYPE_PASSIVE_CARDAN] = 0;
 	partTypeParamCountMap[PART_TYPE_PASSIVE_HINGE] = 0;
 	partTypeParamCountMap[PART_TYPE_PASSIVE_WHEEL] = 1;
-	partTypeParamCountMap[PART_TYPE_ACTIVE_HINGE] = 0;
+	partTypeParamCountMap[PART_TYPE_ROTATOR] = 0;
 	partTypeParamCountMap[PART_TYPE_TOUCH_SENSOR] = 0;
 	return partTypeParamCountMap;
 }
@@ -115,7 +115,7 @@ std::map<std::string, std::vector<std::string> > initPartTypeMotorsMap() {
 	{
 		std::string singleMotorParts[] = { PART_TYPE_ACTIVE_HINGE,
 				PART_TYPE_ACTIVE_WHEEL, PART_TYPE_ACTIVE_WHEG,
-				PART_TYPE_ACTIVE_HINGE };
+				PART_TYPE_ROTATOR };
 		int numSingleMotorParts = 4;
 		for (int i = 0; i < numSingleMotorParts; i++) {
 			std::vector<std::string> motors;

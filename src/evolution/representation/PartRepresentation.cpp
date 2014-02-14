@@ -14,11 +14,12 @@
 namespace robogen {
 
 PartRepresentation::PartRepresentation(std::string id, unsigned int orientation,
-		unsigned int arity, const std::string& type, const std::vector<double>& params,
+		unsigned int arity, const std::string& type,
+		const std::vector<double>& params,
 		const std::vector<std::string>& motors,
 		const std::vector<std::string>& sensors) :
-		id_(id), orientation_(orientation), arity_(arity), type_(type), parent_(NULL), params_(
-				params), motors_(motors), sensors_(sensors) {
+		id_(id), orientation_(orientation), arity_(arity), type_(type),
+		parent_(NULL), params_(params), motors_(motors), sensors_(sensors) {
 
 	children_.resize(arity_, boost::shared_ptr<PartRepresentation>());
 }
@@ -116,7 +117,7 @@ bool PartRepresentation::setChild(unsigned int n,
 }
 
 boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
-		std::string id, int orientation, std::vector<double> params) {
+		std::string id, unsigned int orientation, std::vector<double> params) {
 
 	if (PART_TYPE_MAP.count(type) == 0) {
 		std::cout << "Unknown part type '" << type << "'" << std::endl;
@@ -266,7 +267,7 @@ std::vector<std::string> PartRepresentation::getSensors() {
 	return sensors_;
 }
 
-void PartRepresentation::toString(std::stringstream& str, int depth) {
+void PartRepresentation::toString(std::stringstream& str, unsigned int depth) {
 
 	// Print out current childrens and recursively call on them
 	for (unsigned int i = 0; i < arity_; ++i) {

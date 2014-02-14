@@ -64,7 +64,6 @@ public:
 
 	/**
 	 * Copy constructor: Deep copy body parts and Neural network
-	 * TODO not error-safe
 	 */
 	RobotRepresentation(const RobotRepresentation &r);
 
@@ -75,7 +74,6 @@ public:
 
 	/**
 	 * assignment operator: Deep copy body parts and Neural network
-	 * TODO not error-safe
 	 */
 	RobotRepresentation &operator=(const RobotRepresentation &r);
 
@@ -146,8 +144,7 @@ public:
 	void setDirty();
 
 	/**
-	 * Removes body part and all children at indicated position. Does not pop
-	 * just one body part as TODO popBodyPart() does.
+	 * Removes body part and all children at indicated position.
 	 * @return false upon failure
 	 */
 	bool trimBodyAt(const std::string& id);
@@ -205,6 +202,13 @@ public:
 	 * @return the id of the root body part
 	 */
 	const std::string& getBodyRootId();
+
+	/**
+	 * Check the consistency of this robot
+	 * @return true if the body is consistent with the neural representation, and there are no
+	 * dangling body parts/neurons
+	 */
+	bool check();
 
 	/**
 	 * @return a string representation of the robot

@@ -47,8 +47,8 @@ RacingScenario::~RacingScenario() {
 
 bool RacingScenario::setupSimulation() {
 
-	// Compute robot ending position
-	startPosition_.push_back(this->getRobot()->getCoreComponent()->getRootPosition());
+	// Compute robot start position,
+	startPosition_.push_back(this->getCurrentStartPosition()->getPosition());
 
 	return true;
 
@@ -61,8 +61,18 @@ bool RacingScenario::afterSimulationStep() {
 
 bool RacingScenario::endSimulation() {
 
-	// Compute robot ending position
-	endPosition_.push_back(this->getRobot()->getCoreComponent()->getRootPosition());
+	// Compute robot ending position from its closest part to the origin
+	double minDistance = std::numeric_limits<double>::max();
+	const std::vector<boost::shared_ptr<Model> >& bodyParts = this->getRobot()->getBodyParts();
+	for (unsigned int i = 0; i < bodyParts.size(); ++i) {
+		osg::Vec2 curBodyPos = osg::Vec2(bodyParts[i]->getRootPosition().x(), bodyParts[i]->getRootPosition().y());
+		osg::Vec2 curDistance = startPosition_[startPosition_.size()-1] - curBodyPos;
+		if (curDistance.length() < minDistance) {
+			minDistance = curDistance.length();
+		}
+	}
+
+	distances_.push_back(minDistance);
 	curTrial_++;
 	// Set next starting position
 	this->setStartingPosition(curTrial_);
@@ -73,12 +83,11 @@ bool RacingScenario::endSimulation() {
 double RacingScenario::getFitness() {
 
 	double fitness = 0;
-	for (unsigned int i = 0; i < startPosition_.size(); ++i) {
-		osg::Vec3 temp = endPosition_[i] - startPosition_[i];
-		fitness += temp.length();
+	for (unsigned int i = 0; i < distances_.size(); ++i) {
+		fitness += distances_[i];
 	}
 
-	return fitness/startPosition_.size();
+	return fitness/distances_.size();
 }
 
 bool RacingScenario::remainingTrials() {

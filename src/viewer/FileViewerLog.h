@@ -40,7 +40,8 @@ public:
 	 */
 	bool init(std::string robotFile, std::string confFile,
 			std::string obstacleFile, std::string startPosFile,
-			boost::shared_ptr<Robot> robot);
+			boost::shared_ptr<Robot> robot,
+			const std::string& logFolderPostfix);
 
 	/**
 	 * Closes all open file streams
@@ -66,6 +67,10 @@ private:
 	std::ofstream trajectoryLog_;
 	std::ofstream sensorLog_;
 	std::ofstream motorLog_;
+	/**
+	 * Log directory
+	 */
+	std::string logPath_;
 };
 
 }

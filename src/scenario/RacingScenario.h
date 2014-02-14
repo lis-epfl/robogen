@@ -66,8 +66,8 @@ public:
 
 private:
 
-	std::vector<osg::Vec3> startPosition_;
-	std::vector<osg::Vec3> endPosition_;
+	std::vector<osg::Vec2> startPosition_;
+	std::vector<double> distances_;
 	unsigned int curTrial_;
 
 };

@@ -239,15 +239,18 @@ void NeuralNetworkRepresentation::cloneNeurons(std::string oldPartId,
 void NeuralNetworkRepresentation::generateCloneWeights(
 		std::map<std::string, std::string> &oldNew) {
 	typedef std::map<std::string, std::string> MyMap;
+
 	// for every neuron in the cloned tree
-	for (MyMap::iterator it = oldNew.begin(); it != oldNew.end(); ++it) {
-		std::string oldRon = it->first;
-		std::string newRon = it->second;
+	for (MyMap::iterator itNeuron = oldNew.begin(); itNeuron != oldNew.end(); ++itNeuron) {
+
+		std::string oldRon = itNeuron->first;
+		std::string newRon = itNeuron->second;
+
 		// for every weight
 		for (WeightMap::iterator it = weights_.begin(); it != weights_.end();
 				++it) {
 			// if outgoing
-			if (it->first.first == oldRon) {
+			if (it->first.first.compare(oldRon) == 0) {
 				// if destination neuron was in original subtree
 				if (oldNew.find(it->first.second) != oldNew.end()) {
 					weights_[StringPair(newRon,
@@ -258,7 +261,7 @@ void NeuralNetworkRepresentation::generateCloneWeights(
 				}
 			}
 			// if incoming
-			if (it->first.second == oldRon) {
+			if (it->first.second.compare(oldRon) == 0) {
 				// if destination neuron was in original subtree
 				if (oldNew.find(it->first.first) != oldNew.end()) {
 					weights_[StringPair(oldNew.find(it->first.first)->second,
@@ -267,6 +270,7 @@ void NeuralNetworkRepresentation::generateCloneWeights(
 					weights_[StringPair(it->first.first, newRon)] = it->second;
 				}
 			}
+
 		}
 	}
 }
@@ -274,31 +278,43 @@ void NeuralNetworkRepresentation::generateCloneWeights(
 void NeuralNetworkRepresentation::removeNeurons(std::string bodyPartId) {
 	std::vector<boost::weak_ptr<NeuronRepresentation> > neurons =
 			getBodyPartNeurons(bodyPartId);
+
 	for (unsigned int i = 0; i < neurons.size(); ++i) {
 		// remove all weights of the neuron
 		boost::shared_ptr<NeuronRepresentation> neuron = neurons[i].lock();
 		assert(neuron);
-		for (WeightMap::iterator it = weights_.begin(); it != weights_.end();
-				++it) {
-			if (it->first.first == neuron->getId()
-					|| it->first.second == neuron->getId()) {
-				weights_.erase(it);
-			}
+
+		WeightMap::iterator it = weights_.begin();
+		while (it != weights_.end()) {
+
+		   std::cout << it->first.first << " -> " << it->first.second << std::endl;
+		   if (it->first.first.compare(neuron->getId()) == 0
+					|| it->first.second.compare(neuron->getId()) == 0) {
+			   weights_.erase(it++);
+		   } else {
+		      it++;
+		   }
 		}
+
 		// remove the neuron itself
 		neurons_.erase(neurons_.find(neuron->getIoPair()));
 	}
+
 }
 
 std::vector<boost::weak_ptr<NeuronRepresentation> > NeuralNetworkRepresentation::getBodyPartNeurons(
 		std::string bodyPart) {
+
 	std::vector<boost::weak_ptr<NeuronRepresentation> > ret;
+
 	// go through neurons, check body part id
 	int ioId = 0;
-	while (neurons_[ioPair(bodyPart, ioId)])
+	while (neurons_.find(ioPair(bodyPart, ioId)) != neurons_.end()) {
 		ret.push_back(
 				boost::weak_ptr<NeuronRepresentation>(
 						neurons_[ioPair(bodyPart, ioId)]));
+		ioId++;
+	}
 	return ret;
 }
 
@@ -363,6 +379,7 @@ bool NeuralNetworkRepresentation::getLinearRepresentation(
 
 robogenMessage::Brain NeuralNetworkRepresentation::serialize() {
 	robogenMessage::Brain serialization;
+
 	// neurons
 	for (std::map<std::pair<std::string, int>,
 			boost::shared_ptr<NeuronRepresentation> >::iterator it =
@@ -383,6 +400,34 @@ robogenMessage::Brain NeuralNetworkRepresentation::serialize() {
 		connection->set_weight(it->second);
 	}
 	return serialization;
+
+}
+
+std::string NeuralNetworkRepresentation::toString() {
+
+	std::stringstream str;
+	for (std::map<std::pair<std::string, int>,
+			boost::shared_ptr<NeuronRepresentation> >::iterator it =
+			neurons_.begin(); it != neurons_.end(); ++it) {
+
+		str << "Neuron : " << it->second->getId();
+		if (it->second->isInput()) {
+			str << " <- ";
+		} else {
+			str << " -> ";
+		}
+		str << it->second->getIoPair().first << ", "
+				<< it->second->getIoPair().second << std::endl;
+
+	}
+
+	// connections
+	for (std::map<std::pair<std::string, std::string>, double>::iterator it =
+			weights_.begin(); it != weights_.end(); it++) {
+		str << it->first.first << " --> " << it->first.second << " (" << it->second << ")";
+	}
+
+	return str.str();
 }
 
 } /* namespace robogen */

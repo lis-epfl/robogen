@@ -42,6 +42,8 @@
 #include "Robot.h"
 #include "robogen.pb.h"
 
+#define CAP_ACCELERATION
+#define MIN_FITNESS (-10000.0)
 using namespace robogen;
 
 // ODE World
@@ -52,13 +54,20 @@ dJointGroupID odeContactGroup;
 
 bool interrupted;
 
+int exitRobogen(int exitCode) {
+	google::protobuf::ShutdownProtobufLibrary();
+	return exitCode;
+}
+
 int main(int argc, char* argv[]) {
+
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	interrupted = false;
 
 	if (argc != 2) {
 		std::cerr << "Please, provide server port." << std::endl;
-		return EXIT_FAILURE;
+		return exitRobogen(EXIT_FAILURE);
 	}
 
 	// Parameters: <PORT>
@@ -69,7 +78,7 @@ int main(int argc, char* argv[]) {
 	if (!rc) {
 		std::cerr << "Cannot listen for incoming connections on port " << port
 				<< std::endl;
-		return EXIT_FAILURE;
+		return exitRobogen(EXIT_FAILURE);
 	}
 
 	while (!interrupted) {
@@ -115,7 +124,7 @@ int main(int argc, char* argv[]) {
 						std::cout
 								<< "Problems parsing the configuration file. Quit."
 								<< std::endl;
-						return EXIT_FAILURE;
+						return exitRobogen(EXIT_FAILURE);
 					}
 
 					// ---------------------------------------
@@ -125,14 +134,17 @@ int main(int argc, char* argv[]) {
 					boost::shared_ptr<Scenario> scenario =
 							ScenarioFactory::createScenario(configuration);
 					if (scenario == NULL) {
-						return EXIT_FAILURE;
+						return exitRobogen(EXIT_FAILURE);
 					}
 
 					std::cout
 							<< "-----------------------------------------------"
 							<< std::endl;
 
-					while (scenario->remainingTrials()) {
+					bool accelerationCapExceeded = false;
+
+					while (scenario->remainingTrials() &&
+							(!accelerationCapExceeded)) {
 
 						// ---------------------------------------
 						// Simulator initialization
@@ -163,7 +175,7 @@ int main(int argc, char* argv[]) {
 								packet.getMessage()->robot())) {
 							std::cout << "Problems decoding the robot. Quit."
 									<< std::endl;
-							return EXIT_FAILURE;
+							return exitRobogen(EXIT_FAILURE);
 						}
 
 						std::cout << "Evaluating individual " << robot->getId()
@@ -197,7 +209,7 @@ int main(int argc, char* argv[]) {
 						if (!scenario->init(odeWorld, odeSpace, robot)) {
 							std::cout << "Cannot initialize scenario. Quit."
 									<< std::endl;
-							return EXIT_FAILURE;
+							return exitRobogen(EXIT_FAILURE);
 						}
 
 						// Setup environment
@@ -207,8 +219,15 @@ int main(int argc, char* argv[]) {
 						if (!scenario->setupSimulation()) {
 							std::cout << "Cannot setup scenario. Quit."
 									<< std::endl;
-							return EXIT_FAILURE;
+							return exitRobogen(EXIT_FAILURE);
 						}
+
+
+#ifdef CAP_ACCELERATION
+						//setup vectors for keeping velocities
+						dReal previousLinVel[3];
+						dReal previousAngVel[3];
+#endif
 
 						// ---------------------------------------
 						// Main Loop
@@ -231,6 +250,38 @@ int main(int argc, char* argv[]) {
 
 							// Empty contact groups used for collisions handling
 							dJointGroupEmpty(odeContactGroup);
+
+#ifdef CAP_ACCELERATION
+							dBodyID rootBody =
+									robot->getCoreComponent()->getRoot();
+							const dReal *angVel, *linVel;
+
+							angVel = dBodyGetAngularVel(rootBody);
+							linVel = dBodyGetLinearVel(rootBody);
+
+							if(t > 0) {
+								double angAccel = dCalcPointsDistance3(
+										angVel, previousAngVel);
+								double linAccel = dCalcPointsDistance3(
+										linVel, previousLinVel);
+
+								if(angAccel > 10.0 || linAccel > 10.0) {
+									printf("EVALUATION CANCELED: max accel");
+									printf(" exceeded at time %f,", t);
+									printf("  will give 0 fitness.\n");
+									accelerationCapExceeded = true;
+									break;
+								}
+
+							}
+
+							// save current velocities as previous
+							for(unsigned int j=0; j<3; j++) {
+								previousAngVel[j] = angVel[j];
+								previousLinVel[j] = linVel[j];
+							}
+#endif
+
 
 							float networkInput[MAX_INPUT_NEURONS];
 							float networkOutputs[MAX_OUTPUT_NEURONS];
@@ -299,7 +350,7 @@ int main(int argc, char* argv[]) {
 								std::cout
 										<< "Cannot execute scenario after simulation step. Quit."
 										<< std::endl;
-								return EXIT_FAILURE;
+								return exitRobogen(EXIT_FAILURE);
 							}
 
 							t += step;
@@ -309,7 +360,7 @@ int main(int argc, char* argv[]) {
 						if (!scenario->endSimulation()) {
 							std::cout << "Cannot complete scenario. Quit."
 									<< std::endl;
-							return EXIT_FAILURE;
+							return exitRobogen(EXIT_FAILURE);
 						}
 
 						// ---------------------------------------
@@ -320,6 +371,9 @@ int main(int argc, char* argv[]) {
 						robot.reset();
 						// has shared pointer in scenario, so destroy that too
 						scenario->prune();
+
+						// Destroy the joint group
+						dJointGroupDestroy(odeContactGroup);
 
 						// Destroy ODE space
 						dSpaceDestroy(odeSpace);
@@ -335,7 +389,12 @@ int main(int argc, char* argv[]) {
 					// ---------------------------------------
 					// Compute fitness
 					// ---------------------------------------
-					double fitness = scenario->getFitness();
+					double fitness;
+					if (accelerationCapExceeded) {
+						fitness = MIN_FITNESS;
+					} else {
+						fitness = scenario->getFitness();
+					}
 					std::cout << "Fitness for the current solution: " << fitness
 							<< std::endl << std::endl;
 
@@ -356,7 +415,8 @@ int main(int argc, char* argv[]) {
 
 				} catch (boost::system::system_error& e) {
 					socket.close();
-					return EXIT_FAILURE;
+					google::protobuf::ShutdownProtobufLibrary();
+					return exitRobogen(EXIT_FAILURE);
 				}
 
 			}
@@ -364,10 +424,11 @@ int main(int argc, char* argv[]) {
 		} else {
 			std::cerr << "Cannot connect to client. Exiting." << std::endl;
 			socket.close();
-			return EXIT_FAILURE;
+			google::protobuf::ShutdownProtobufLibrary();
+			return exitRobogen(EXIT_FAILURE);
 		}
 
 	}
 
-	return EXIT_SUCCESS;
+	return exitRobogen(EXIT_SUCCESS);
 }

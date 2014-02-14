@@ -47,7 +47,9 @@ TouchSensor::TouchSensor(dSpaceID odeSpace, dBodyID sensorBody, float mass,
 	dGeomSetBody(sensorGeometry_, sensorBody);
 }
 
-TouchSensor::~TouchSensor() {}
+TouchSensor::~TouchSensor() {
+	dSpaceDestroy(sensorSpace_);
+}
 
 std::string &TouchSensor::getLabel(){
 	return label_;

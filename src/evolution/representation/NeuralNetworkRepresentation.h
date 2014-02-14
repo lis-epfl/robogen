@@ -57,7 +57,7 @@ public:
 	/**
 	 * Maps from IO identifier pair to a neuron shared pointer
 	 */
-	typedef std::map<ioPair,boost::shared_ptr<NeuronRepresentation>	> NeuronMap;
+	typedef std::map<ioPair, boost::shared_ptr<NeuronRepresentation>	> NeuronMap;
 
 	/**
 	 * Assignment operator: Deep copy neurons!
@@ -126,7 +126,6 @@ public:
 
 	/**
 	 * Once neurons of a subtree have been cloned, properly clone weights.
-	 * TODO TEST TEST TEST
 	 */
 	void generateCloneWeights(std::map<std::string, std::string> &oldNew);
 
@@ -136,7 +135,7 @@ public:
 	void removeNeurons(std::string bodyPartId);
 
 	/**
-	 * Returns all neurons attached to the supplied part todo private?
+	 * Returns all neurons attached to the supplied part
 	 */
 	std::vector<boost::weak_ptr<NeuronRepresentation> >
 	getBodyPartNeurons(std::string bodyPart);
@@ -164,6 +163,11 @@ public:
 	 * @return protobuf message of brain
 	 */
 	robogenMessage::Brain serialize();
+
+	/**
+	 * @return a string representation of the neural network
+	 */
+	std::string toString();
 
 private:
 	/**
