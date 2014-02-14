@@ -1,3 +1,3 @@
-heightJoin = 2  
-rotAngle = .543782 
-Path="D:\Robogen\robogen-simulator-build\robogen-print\robogen-3DPrint\..\ParametricJoinPartA1.stl" 
+heightJoin = 0.04
+angle = .543782
+Path="/home/deniz/Robogen/robogen-simulator/printing-3D/STL_Files/ParametricJoinPartA1.stl"

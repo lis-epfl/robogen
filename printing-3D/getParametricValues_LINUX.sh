@@ -29,7 +29,7 @@ PreviousRotAngle=
 echo "sys.path.append("\"$CurrentDir/utils/Mod"\")" > utils/intermediateTer.py
 
 #file name to be parsed.
-FILENAME="someBody1.txt"
+FILENAME="someBody.txt"
 
 # read file, line by line, and get all of the elements.
 
@@ -114,7 +114,7 @@ done < $FILENAME
 
 #show numbers of each Parametric Part, in Readme.txt file. we may add Parameters for each part in the future...
 echo Readme file >> Readme.txt
-echo Here we parse the finalBestInd_GP.txt file to get the values of each parametric part >> Readme.txt
+echo Here we parse the someBody.txt file to get the values of each parametric part >> Readme.txt
 
 #Test whether there are some passivewheel
 if [ "$passivewheel" = "0" ]; then

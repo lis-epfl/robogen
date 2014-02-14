@@ -1,2 +1,2 @@
-inclAngle = .3 
-Path="D:\Robogen\robogen-simulator-build\robogen-print\robogen-3DPrint\..\ParametricJoinPartB1.stl" 
+angle = .3
+Path="/home/deniz/Robogen/robogen-simulator/printing-3D/STL_Files/ParametricJoinPartB1.stl"
