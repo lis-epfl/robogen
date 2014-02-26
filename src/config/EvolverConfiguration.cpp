@@ -57,7 +57,8 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	maxBodyMutationAttemps = 100; //seems like a reasonable default
 	maxBodyParts = 100000; //some unreasonably large value if max not set
 	// boost-parse options
-	boost::program_options::options_description desc("Allowed options");
+	boost::program_options::options_description desc(
+			"Allowed options for Evolution Config File");
 
 	std::vector<std::string> allowedBodyPartTypeStrings;
 
@@ -123,6 +124,13 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			&bodyOperatorProbability[i]),"Probability of given operator");
 	}
 	boost::program_options::variables_map vm;
+
+	if (confFileName == "help") {
+		desc.print(std::cout);
+		return true;
+	}
+
+
 	try{
 		boost::program_options::store(
 					boost::program_options::parse_config_file<char>(

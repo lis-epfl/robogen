@@ -46,7 +46,8 @@ namespace robogen {
 boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		const std::string& fileName) {
 
-	boost::program_options::options_description desc("Allowed options");
+	boost::program_options::options_description desc(
+			"Allowed options for Simulation Config File");
 	desc.add_options()("terrainType",
 			boost::program_options::value<std::string>(),
 			"Terrain type: flat or rough")("terrainHeightField",
@@ -66,6 +67,11 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 			"Number of timesteps")("startPositionConfigFile",
 			boost::program_options::value<std::string>(),
 			"Start Positions Configuration File");
+
+	if (fileName == "help") {
+		desc.print(std::cout);
+		return boost::shared_ptr<RobogenConfig>();
+	}
 
 	boost::program_options::variables_map vm;
 	boost::program_options::store(

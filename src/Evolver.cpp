@@ -47,10 +47,25 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 	// verify usage and load configuration
 	// ---------------------------------------
+	if (argc > 1 && std::string(argv[1]) == "--help") {
+		std::cout << " Usage: robogen-evolver "
+							"<seed, INTEGER>, <outputFolderPostFix, STRING>, "
+							"<configuration file, STRING>" << std::endl;
+		boost::shared_ptr<EvolverConfiguration> conf =
+					boost::shared_ptr<EvolverConfiguration>(
+							new EvolverConfiguration());
+		conf->init("help");
+		std::cout << std::endl;
+		boost::shared_ptr<RobogenConfig> robotConf =
+					ConfigurationReader::parseConfigurationFile("help");
+		return exitRobogen(EXIT_SUCCESS);
+	}
+
 	if (argc != 4) {
 		std::cout << "Bad amount of arguments. " << std::endl
-				<< " Usage: robogen-brain-evolver "
-						"<seed, INTEGER>, <outputFolderPostFix, STRING>, <configuration file, STRING>" << std::endl;
+				<< " Usage: robogen-evolver "
+						"<seed, INTEGER>, <outputFolderPostFix, STRING>, "
+						"<configuration file, STRING>" << std::endl;
 		return exitRobogen(EXIT_FAILURE);
 	}
 
