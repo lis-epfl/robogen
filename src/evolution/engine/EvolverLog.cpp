@@ -37,8 +37,6 @@
 
 namespace robogen {
 
-#define LOG_DIRECTORY_PREFIX "results/Evolution_"
-#define LOG_DIRECTORY_FACET "%Y%m%d-%H%M%S"
 #define BAS_LOG_FILE "BestAvgStd.txt"
 #define GENERATION_BEST_PREFIX "GenerationBest-"
 
@@ -49,18 +47,13 @@ EvolverLog::EvolverLog(){
 
 bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::shared_ptr<RobogenConfig> robotConf,
-		const std::string& logFolderPostfix) {
+		const std::string& logDirectory) {
 
-	// create log directory with time stamp
-	std::stringstream logPathSs;
-	logPathSs << LOG_DIRECTORY_PREFIX << logFolderPostfix;
-
-	std::string prefixPath = logPathSs.str();
-	std::string tempPath = prefixPath;
+	std::string tempPath = logDirectory;
 	int curIndex = 0;
 	while (boost::filesystem::is_directory(tempPath)) {
 		std::stringstream newPath;
-		newPath << prefixPath << "_" << ++curIndex;
+		newPath << logDirectory << "_" << ++curIndex;
 		tempPath = newPath.str();
 	}
 

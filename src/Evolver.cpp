@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 	if (argc > 1 && std::string(argv[1]) == "--help") {
 		std::cout << " Usage: robogen-evolver "
-							"<seed, INTEGER>, <outputFolderPostFix, STRING>, "
+							"<seed, INTEGER>, <output directory, STRING>, "
 							"<configuration file, STRING>" << std::endl;
 		boost::shared_ptr<EvolverConfiguration> conf =
 					boost::shared_ptr<EvolverConfiguration>(
@@ -64,13 +64,13 @@ int main(int argc, char *argv[]) {
 	if (argc != 4) {
 		std::cout << "Bad amount of arguments. " << std::endl
 				<< " Usage: robogen-evolver "
-						"<seed, INTEGER>, <outputFolderPostFix, STRING>, "
+						"<seed, INTEGER>, <output directory, STRING>, "
 						"<configuration file, STRING>" << std::endl;
 		return exitRobogen(EXIT_FAILURE);
 	}
 
 	unsigned int seed = atoi(argv[1]);
-	std::string outputFolderPostfix = std::string(argv[2]);
+	std::string outputDirectory = std::string(argv[2]);
 	std::string confFileName = std::string(argv[3]);
 
 	// Create random number generator
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
 	boost::shared_ptr<Mutator> mutator = boost::shared_ptr<Mutator>(
 			new Mutator(conf, rng));
 	boost::shared_ptr<EvolverLog> log(new EvolverLog());
-	if (!log->init(conf, robotConf, outputFolderPostfix)) {
+	if (!log->init(conf, robotConf, outputDirectory)) {
 		std::cout << "Error creating evolver log. Aborting." << std::endl;
 		return EXIT_FAILURE;
 	}

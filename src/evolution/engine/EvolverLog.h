@@ -49,12 +49,12 @@ public:
 	 * file.
 	 * @param conf evolution configuration pointer
 	 * @param robot configuration pointer
-	 * @param logFolderPostfix postfix of log folder
+	 * @param logDirectory name of directory to write logs to
 	 * @return true if successful
 	 */
 	bool init(boost::shared_ptr<EvolverConfiguration> conf,
 			boost::shared_ptr<RobogenConfig> robotConf,
-			const std::string& logFolderPostfix);
+			const std::string& logDirectory);
 
 	virtual ~EvolverLog();
 
