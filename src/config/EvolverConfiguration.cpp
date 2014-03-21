@@ -72,10 +72,10 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				->required(), "Path to simulator configuration file")
 		("mu",
 				boost::program_options::value<unsigned int>(&mu)
-				->required(), "Number of offspring")
+				->required(), "Number of parents")
 		("lambda",
 				boost::program_options::value<unsigned int>(&lambda)
-				->required(), "Number of population individuals")
+				->required(), "Number of offspring")
 		("numGenerations",
 				boost::program_options::value<unsigned int>(&numGenerations)
 				->required(), "Amount of generations to be evaluated")
