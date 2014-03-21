@@ -2,7 +2,7 @@
 cmake_minimum_required (VERSION 2.8)
 
 # Project Name
-project (RobogenSimulator)
+project (RoboGen)
 
 # Add customized CMAKE modules
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
@@ -69,7 +69,7 @@ endif ()
 
 # Get the list of all the source code
 file (GLOB_RECURSE
-     ROBOGEN_SIMULATOR_SRC
+     ROBOGEN_SRC
      arduino/*.cpp
      brain/*.c
      config/*.cpp
@@ -97,19 +97,19 @@ find_package(OpenSceneGraph REQUIRED osg osgViewer osgDB osgGA osgTerrain)
 include_directories(${CMAKE_SOURCE_DIR} ${ODE_INCLUDE_PATH} ${OPENSCENEGRAPH_INCLUDE_DIRS} ${PNG_INCLUDE_PATH} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${PROTOBUF_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS})
 
 file (GLOB_RECURSE
-     ROBOGEN_SIMULATOR_PROTO
+     ROBOGEN_PROTO
      *.proto
      )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ROBOGEN_SIMULATOR_PROTO})
+PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ROBOGEN_PROTO})
 
 set(ROBOGEN_DEPENDENCIES ${ODE_LIBRARIES} ${OPENSCENEGRAPH_LIBRARIES} ${ZLIB_LIBRARIES} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${PNG_LIBRARIES} jansson)
 
 message(STATUS ${ROBOGEN_DEPENDENCIES})
 
 # Robogen base library
-add_library(robogen ${ROBOGEN_SIMULATOR_SRC} ${PROTO_SRCS} )
+add_library(robogen ${ROBOGEN_SRC} ${PROTO_SRCS} )
 target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
 
 # Evolver executable
