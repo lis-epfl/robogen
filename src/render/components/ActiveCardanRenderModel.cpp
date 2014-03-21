@@ -49,7 +49,7 @@ ActiveCardanRenderModel::~ActiveCardanRenderModel() {
 bool ActiveCardanRenderModel::initRenderModel() {
 
 	bool meshLoadingA = this->partA_->loadMesh(
-			"models/ActiveCardanHinge_Servo_Holder.stl");
+			"../models/ActiveCardanHinge_Servo_Holder.stl");
 
 	if (!meshLoadingA) {
 		std::cerr << "[ActiveCardanRenderModel] Error loading model"
@@ -58,7 +58,7 @@ bool ActiveCardanRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingB = this->partB_->loadMesh(
-			"models/ActiveCardanHinge_Servo_Holder.stl");
+			"../models/ActiveCardanHinge_Servo_Holder.stl");
 
 	if (!meshLoadingB) {
 		std::cerr << "[ActiveCardanRenderModel] Error loading model"
@@ -67,7 +67,7 @@ bool ActiveCardanRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingC = this->patCross_->loadMesh(
-			"models/ActiveCardan_CrossShaft.stl");
+			"../models/ActiveCardan_CrossShaft.stl");
 
 	if (!meshLoadingC) {
 		std::cerr << "[ActiveCardanRenderModel] Error loading model"

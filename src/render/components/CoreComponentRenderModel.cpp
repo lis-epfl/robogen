@@ -46,7 +46,7 @@ CoreComponentRenderModel::~CoreComponentRenderModel() {
 
 bool CoreComponentRenderModel::initRenderModel() {
 
-	bool meshLoading = this->mesh_->loadMesh("models/CoreComponent.stl");
+	bool meshLoading = this->mesh_->loadMesh("../models/CoreComponent.stl");
 
 	if (!meshLoading) {
 		std::cerr << "[CoreComponentRenderModel] Error loading model"

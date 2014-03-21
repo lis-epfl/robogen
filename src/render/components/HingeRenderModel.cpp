@@ -45,14 +45,14 @@ HingeRenderModel::~HingeRenderModel() {
 
 bool HingeRenderModel::initRenderModel() {
 
-	bool meshLoadingA = this->partA_->loadMesh("models/PassiveHinge.stl");
+	bool meshLoadingA = this->partA_->loadMesh("../models/PassiveHinge.stl");
 
 	if (!meshLoadingA) {
 		std::cerr << "[HingeRenderModel] Error loading model" << std::endl;
 		return false;
 	}
 
-	bool meshLoadingB = this->partB_->loadMesh("models/PassiveHinge.stl");
+	bool meshLoadingB = this->partB_->loadMesh("../models/PassiveHinge.stl");
 
 	if (!meshLoadingB) {
 		std::cerr << "[HingeRenderModel] Error loading model" << std::endl;

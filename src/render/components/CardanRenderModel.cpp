@@ -48,7 +48,7 @@ CardanRenderModel::~CardanRenderModel() {
 bool CardanRenderModel::initRenderModel() {
 
 	bool meshLoadingA = this->partA_->loadMesh(
-			"models/PassiveCardan_Frame.stl");
+			"../models/PassiveCardan_Frame.stl");
 
 	if (!meshLoadingA) {
 		std::cerr << "[CardanRenderModel] Error loading model" << std::endl;
@@ -56,7 +56,7 @@ bool CardanRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingB = this->partB_->loadMesh(
-			"models/PassiveCardan_Frame.stl");
+			"../models/PassiveCardan_Frame.stl");
 
 	if (!meshLoadingB) {
 		std::cerr << "[CardanRenderModel] Error loading model" << std::endl;
@@ -64,7 +64,7 @@ bool CardanRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingC = this->patCross_->loadMesh(
-			"models/PassiveCardan_Cross.stl");
+			"../models/PassiveCardan_Cross.stl");
 
 	if (!meshLoadingC) {
 		std::cerr << "[CardanRenderModel] Error loading model" << std::endl;

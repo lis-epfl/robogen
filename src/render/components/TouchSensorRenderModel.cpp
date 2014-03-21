@@ -45,7 +45,7 @@ TouchSensorRenderModel::~TouchSensorRenderModel() {
 
 bool TouchSensorRenderModel::initRenderModel() {
 
-	bool meshLoadingA = this->partA_->loadMesh("models/TouchSensor.stl");
+	bool meshLoadingA = this->partA_->loadMesh("../models/TouchSensor.stl");
 
 	if (!meshLoadingA) {
 		std::cerr << "[TouchSensorRenderModel] Error loading model"

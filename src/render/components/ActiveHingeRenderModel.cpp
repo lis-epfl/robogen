@@ -46,7 +46,7 @@ ActiveHingeRenderModel::~ActiveHingeRenderModel() {
 
 bool ActiveHingeRenderModel::initRenderModel() {
 
-	bool meshLoadingA = this->partA_->loadMesh("models/ActiveHinge_Frame.stl");
+	bool meshLoadingA = this->partA_->loadMesh("../models/ActiveHinge_Frame.stl");
 
 	if (!meshLoadingA) {
 		std::cerr << "[ActiveHingeRenderModel] Error loading model"
@@ -55,7 +55,7 @@ bool ActiveHingeRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingB = this->partB_->loadMesh(
-			"models/ActiveCardanHinge_Servo_Holder.stl");
+			"../models/ActiveCardanHinge_Servo_Holder.stl");
 
 	if (!meshLoadingB) {
 		std::cerr << "[ActiveHingeRenderModel] Error loading model"

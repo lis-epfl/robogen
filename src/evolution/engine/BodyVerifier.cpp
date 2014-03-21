@@ -108,7 +108,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 				std::cout
 						<< "Cannot initialize a render model for one of the components. "
 						<< std::endl
-						<< "Please check that the models/ folder is in the same folder of this executable."
+						<< "Please check that the models/ folder exists in the parent folder of this executable."
 						<< std::endl;
 			}
 			renderModels.push_back(renderModel);
