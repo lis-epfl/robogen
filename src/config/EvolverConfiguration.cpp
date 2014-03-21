@@ -172,6 +172,11 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	// parse evolution mode
 	if (vm["evolutionMode"].as<std::string>() == "brain"){
 		evolutionMode = BRAIN_EVOLVER;
+		if (referenceRobotFile.compare("") == 0) {
+			std::cout << "evolutionMode is \"brain\" but no referenceRobotFile"
+					<< " was provided" << std::endl;
+			return false;
+		}
 	}
 	else if (vm["evolutionMode"].as<std::string>() == "full"){
 		evolutionMode = FULL_EVOLVER;
@@ -288,19 +293,23 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	if (evolutionMode == FULL_EVOLVER) { // otherwise none of this matters
 		// allows specifying body parts either as string or as char
 
-		// If only one allowedBodyPartType, and matches "All" than, add all of them
+		// If only one allowedBodyPartType, and matches "All" then
+		// add all of them
 
 		if (allowedBodyPartTypeStrings.size() == 1) {
 
 			std::string lowerCaseBodyPart = allowedBodyPartTypeStrings[0];
-			std::transform(lowerCaseBodyPart.begin(), lowerCaseBodyPart.end(), lowerCaseBodyPart.begin(), ::tolower);
+			std::transform(lowerCaseBodyPart.begin(), lowerCaseBodyPart.end(),
+					lowerCaseBodyPart.begin(), ::tolower);
 
 			if (lowerCaseBodyPart.compare("all") == 0) {
 
 				// Add all body parts
 				allowedBodyPartTypeStrings.clear();
 
-				for(std::map<char, std::string>::const_iterator it = PART_TYPE_MAP.begin(); it != PART_TYPE_MAP.end(); ++it) {
+				for(std::map<char, std::string>::const_iterator
+						it = PART_TYPE_MAP.begin();
+						it != PART_TYPE_MAP.end(); ++it) {
 					allowedBodyPartTypeStrings.push_back(it->second);
 				}
 
