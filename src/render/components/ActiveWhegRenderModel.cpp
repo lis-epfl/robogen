@@ -47,7 +47,7 @@ ActiveWhegRenderModel::~ActiveWhegRenderModel() {
 bool ActiveWhegRenderModel::initRenderModel() {
 
    bool meshLoadingA = this->partA_->loadMesh(
-         "../models/ActiveRotation_Servo_Holder.stl");
+         "../models/ActiveRotation_Motor_Holder.stl");
 
    if (!meshLoadingA) {
       std::cerr << "[ActiveWhegRenderModel] Error loading model" << std::endl;

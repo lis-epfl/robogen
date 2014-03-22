@@ -47,7 +47,7 @@ ActiveWheelRenderModel::~ActiveWheelRenderModel() {
 bool ActiveWheelRenderModel::initRenderModel() {
 
    bool meshLoadingA = this->partA_->loadMesh(
-         "../models/ActiveRotation_Servo_Holder.stl");
+         "../models/ActiveRotation_Motor_Holder.stl");
 
    if (!meshLoadingA) {
       std::cerr << "[ActiveWheelRenderModel] Error loading model" << std::endl;
