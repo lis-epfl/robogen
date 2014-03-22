@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "Please provide a file containing the robot description as"
 				" input and the corresponding simulation configuration file. "
 				<< std::endl << "For example: " << std::string(argv[0])
-				<< " robot.dat configuration.conf'" << std::endl
+				<< " robot.json configuration.conf'" << std::endl
 				<< "You can also select the starting position by "
 						"appending an integer 1..n to the command" << std::endl
 				<< "To save frames to file (for video rendering), use option "
