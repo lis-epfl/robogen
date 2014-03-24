@@ -47,7 +47,7 @@ PassiveWheelRenderModel::~PassiveWheelRenderModel() {
 bool PassiveWheelRenderModel::initRenderModel() {
 
    bool meshLoadingA = this->partA_->loadMesh(
-         "models/PassiveRotation_Frame.stl");
+         "../models/PassiveRotation_Frame.stl");
 
    if (!meshLoadingA) {
       std::cerr << "[PassiveWheelRenderModel] Error loading model" << std::endl;
@@ -55,7 +55,7 @@ bool PassiveWheelRenderModel::initRenderModel() {
    }
 
    bool meshLoadingB = this->partB_->loadMesh(
-         "models/PassiveRotation_Wheel.stl");
+         "../models/PassiveRotation_Wheel.stl");
 
    if (!meshLoadingB) {
       std::cerr << "[PassiveWheelRenderModel] Error loading model" << std::endl;

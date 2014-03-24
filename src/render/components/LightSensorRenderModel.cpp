@@ -49,10 +49,10 @@ bool LightSensorRenderModel::initRenderModel() {
 
 	if (internalSensor_) {
 		meshLoadingA = this->partA_->loadMesh(
-				"models/LightSensor_Internal.stl");
+				"../models/LightSensor_Internal.stl");
 	} else {
 		meshLoadingA = this->partA_->loadMesh(
-				"models/LightSensor_External.stl");
+				"../models/LightSensor_External.stl");
 	}
 
 	if (!meshLoadingA) {

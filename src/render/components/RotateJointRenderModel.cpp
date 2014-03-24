@@ -47,7 +47,7 @@ RotateJointRenderModel::~RotateJointRenderModel() {
 bool RotateJointRenderModel::initRenderModel() {
 
 	bool meshLoadingA = this->partA_->loadMesh(
-			"models/ActiveRotation_Motor_Holder.stl");
+			"../models/ActiveRotation_Motor_Holder.stl");
 
 	if (!meshLoadingA) {
 		std::cerr << "[RotateJointModel] Error loading model" << std::endl;
@@ -55,7 +55,7 @@ bool RotateJointRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingB = this->partB_->loadMesh(
-			"models/ActiveRotation_Connection.stl");
+			"../models/ActiveRotation_Connection.stl");
 
 	if (!meshLoadingB) {
 		std::cerr << "[RotateJointModel] Error loading model" << std::endl;
