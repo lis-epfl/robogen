@@ -19,5 +19,5 @@ pSubtreeSwap=0.1
 pNodeRemove=0.1
 pParameterModify=0.1
 socket=127.0.0.1:8001
-socket=127.0.0.1:8002
-socket=127.0.0.1:8003
+#socket=127.0.0.1:8002
+#socket=127.0.0.1:8003
