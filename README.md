@@ -1,54 +1,35 @@
-The ROBOGEN simulator
+RoboGen -- Robot generation through artificial evolution
 =================
-Andrea Maesani (andrea.maesani@epfl.ch)
+Joshua Auerbach (joshua.auerbach@epfl.ch)
 
-**Read carefully ALL the document before starting doing anything!**
+**Read carefully this document and the online documentation: http://www.robogen.org/wiki/index.php/Documentation
+before starting doing anything!**
 
 **Please check at the end of the file for some tricks you might try in order**
 **to improve the stability of the simulator**
 
-## Latest updates
-
-* **May 22: Fixed neural network inputs for active cardan**
-* May 13: Fitness is now computed correctly when multiple starting positions
-* May 11: Fixed LightSensor: reported to have weird behavior when mounted in particular orientations
-* May 8: Fixed SEGFAULT notified by Mikaz-fr. Added some verbose text (id of individual being currently evaluated).
-* May 7: Increase maximum velocity of servo motors. Temptative fix for light sensor.
-          Fixed starting positions in chasing scenario. Fixed obstacles not being generated correctly.
-* May 3: Fixed orientation problem in Parametric Brick. Fixed exception on simulator exit.
-* Apri 30: Increased mass of obstacles to avoid strange behavior during collisions. Fixed chasing scenario light rendering.
-* April 17: Improved physical simulation stability by tuning ODE parameters. Fixed ActiveHinge misalignment.
-* April 16: Wheels and whegs can be evolved parametrically (the radius can change during evolution)
-* April 12: The simulator now sends a bias for each evolved neuron in the neural network controller. The simulator 
-  has been changed to initialize correctly the neural network.
-* April 5: The light sensor has now a decent execution time, no more affecting the simulator performance.
-
 ## The simulator
 
 The simulator can be compiled on Linux, Windows and MAC OSX. 
-Unfortunately, this semester the code is still  experimental, therefore we do not have any precompiled distributable to ship you. 
+The code has matured from last year's course but is still  experimental.
 
-Hopefully, thanks to your help, we will produce a stable and robust codebase for the next semester students.
-
-Please, use github as much as possible to report us bugs, issues and ideas for improvement.
+Please, use github as much as possible to report bugs, issues and ideas for improvement.
 Whenever you open a ticket for a bug, make sure your description contains:
 1) Machine on which the error happened, OS version, installed libraries versions (See dependendencies later)
 2) A List of instructions needed to reproduce your bug.
-Also, given the premature state of the project, we will keep into consideration your effort in helping us improving the code
-in the course evaluation!
 
-Thanks to you for your help and sorry for any (many I guess, at the current stage) incovenient :-) 
-
+Given the experimental nature of the code, we will take into consideration any effort in helping us to improve the code in the course evaluation!
 
 ## Contributions
 
 Here, we will keep track of your contributions both for the final evaluation and 
 for maintaining your name associated to the project.
 
+
+Thanks to past students
 * **Mikaz-fr** (Roy Michaël, michael.roy@epfl.ch) contributed instructions to compile the code 
  on MAC OS X and adapted part of the CMAKE code for MAC OS. 
-* **tcies** (Titus Cieslewski, titus.cieslewski@epfl.ch) provided a modification of the simulator (accessible [here](https://github.com/amaesani/robogen-simulator/compare/master...chasingfitnessmod))
- to use different fitness function aggregations in the chasing scenario
+* **tcies** (Titus Cieslewski, titus.cieslewski@epfl.ch) who did a lot of work to improve the code base and documentation
 
 ## Git Repository
 
@@ -56,18 +37,16 @@ To obtain a version of the simulator code, and pull future updates you need to i
 a client for GIT. Please quickly go through the GitHub help to get a grasp of how GIT works 
 (https://help.github.com/articles/set-up-git).
 
-Note that the repository is kept private on purpose for the current semester. 
-DO NOT fork it and make it publicly available. Also, although your are all given push rights,
-before pushing your own modifications to the master repository it would be better to discuss them with us.
+Please request push rights and clear any code modifications with the assistants before pushing!
 Remember **PULL is OK**, **PUSH is dangerous!!** and MUST be discussed with us.
 
 ## Requirements
 
 You need to download and install Cmake (http://www.cmake.org/), which
-will be aiding us in compiling the source code and/or automatically create a project for your favorite IDE.
+will aid you in compiling the source code and/or automatically create a project for your favorite IDE.
 
-Before starting to compile the ROBOGEN simulator you will need to download and 
-make available to your compiler includes and library paths to:
+Before starting to compile RoboGen you will need to download and 
+make available to your compiler includes and library paths to 
 * zLib (http://www.zlib.net/)
 * libpng 1.5 (http://libpng.sourceforge.net/index.html)
 * Boost (http://www.boost.org/)
@@ -92,19 +71,19 @@ to install the required dependencies.
 ### Windows
 
 To assist the compilation of ROBOGEN on Windows, we preship an archive containing all the already compiled 
-dependencies (x86, 32bits, available on https://dl.dropboxusercontent.com/u/13784867/utils3.zip). 
+dependencies (x86, 32bits, available http://www.robogen.org/robogen-dev-Windows.zip). 
 To avoid problems, download and install Visual Studio Express 2010 (http://www.microsoft.com/visualstudio/eng/downloads).
 
 ### MAC OS X
 
-Some help can be found on the [dedicated wiki page](https://github.com/amaesani/robogen-simulator/wiki/Building-robogen-simulator-on-Mac).
+Some help can be found on the [dedicated wiki page](https://github.com/jauerb/robogen/wiki/Building-robogen-simulator-on-Mac).
 
-## Simulator build
+## RoboGen Build
 
 1) Once the required dependencies are satisfied (all code compiled successfully), clone this repository
 to get all the needed source code of the simulator
 
-    git clone https://github.com/amaesani/robogen-simulator.git
+    git clone https://github.com/jauer/robogen.git
     
 2) Modify the paths in src/cmake/CustomPath.cmake pointing them to the correct libraries/include directories.
 Note that you need to modify only those paths pointing to non-standard locations, i.e. if you installed a library under Linux
@@ -113,41 +92,40 @@ under a standard path (e.g. /usr/lib) you do not need to update the correspondin
 On Linux, you'll probably not modify anything on this file, except if you have the ODE library installed in non-default paths. 
 In this case, you will have to modify the lines related to the ODE installation paths in CustomPath.cmake (Look for the Linux section).
 
-On Windows, you need to download and extract the content of the precompiled libraries archive (https://dl.dropboxusercontent.com/u/13784867/utils3.zip) and uncomment the fist line of CustomPath.cmake pointing it to the utils/ folder contained
+On Windows, you need to download and extract the content of the precompiled libraries archive (http://www.robogen.org/robogen-dev-Windows.zip) and uncomment the fist line of CustomPath.cmake pointing it to the utils/ folder contained
 in the archive. Watch out that when you extract the archive you might generate a containing folder named as the archive.
 For example you might end up having a structure like:
 
-     + utils << DO NOT use this path...
-         |-- utils << ...instead CustomPath.cmake should point to this folder
+     + Robogen-dev-Windows << DO NOT use this path...
+         |-- utils_debug << ...instead CustomPath.cmake should point to this folder
          |-- run
      
-3) Create an empty directory somewhere in your filesystem. We will call this directory ROBOGEN_BUILD_DIR. Instead, we will
-refer to the directory that contains the source code (robogen-simulator/src) as the ROBOGEN_SOURCE_DIR.
-Make sure that ROBOGEN_BUILD_DIR is not contained in ROBOGEN_SOURCE_DIR and viceversa.
+3) We will call the location you have cloned this repository to as ROBOGEN_HOME.
+This contains the source code (robogen/src) and a build directory.
 At this point you should have something like this:
 
-      + root directory (a directory in your filesystem)
-         |-- ROBOGEN_BUILD_DIR
-         |-- ROBOGEN_SOURCE_DIR
+      + robogen
+         |-- build
+         |-- src
 
 Then depending on your OS the next steps might change.
-On Linux, MAC OS X and Windows/MinGW, from terminal, enter ROBOGEN_BUILD_DIR and run 
+On Linux, MAC OS X and Windows/MinGW, from a terminal, enter ROBOGEN_HOME/build and run 
 
-    cd ROBOGEN_BUILD_DIR
-    cmake -DCMAKE_BUILD_TYPE=Release ROBOGEN_SOURCE_DIR
+    cd ROBOGEN_HOME/build
+    cmake -DCMAKE_BUILD_TYPE=Release ../src
     make -j4
     
-On Windows + Visual Studio, open CMAKE GUI, enter the ROBOGEN_SOURCE_DIR in "Where to find the source" and ROBOGEN_BUILD_DIR 
+On Windows + Visual Studio, open CMAKE GUI, enter the ROBOGEN_HOME/src in "Where to find the source" and ROBOGEN_HOME/build
 in "Where to build the source". Click on Configure and when done, on Generate to create a solution for Visual Studio.
-The, from Visual Studio open the solution "RobogenSimulator.sln" that can be found in ROBOGEN_BUILD_DIR.
+Then, from Visual Studio open the solution "RoboGen.sln" that can be found in ROBOGEN_HOME/build.
 
 ### Generating projects for your IDE (Eclipse, Visual Studio, etc.)
 
-Using CMAKE you can as well generate projects for different IDEs. 
+Using CMAKE you can also generate projects for different IDEs. 
 For example, to generate a project that can be imported in eclipse
 
-    cd ROBOGEN_BUILD_DIR
-    cmake -DCMAKE_BUILD_TYPE=Debug -G"Eclipse CDT4 - Unix Makefiles" ROBOGEN_SOURCE_DIR
+    cd ROBOGEN_HOME/build
+    cmake -DCMAKE_BUILD_TYPE=Debug -G"Eclipse CDT4 - Unix Makefiles" ../src
 
 Please check the CMAKE manual for the correct command to generate projects for other IDEs.
 
@@ -155,8 +133,10 @@ Please check the CMAKE manual for the correct command to generate projects for o
 
 The most important executables are:
 * robogen-file-viewer, a small utility to visualize the robot structures.
-* robogen-simulator, the main simulator software, to be used as a server software, listen for connections from the ROBOGEN EA,
-  evaluates robots and returns their fitness to the EA
+* robogen-evolver, the main evolutionary algorithm software.  Runs all components of the evolutionary algorithm, sends robots to
+  robogen-server to be evaluated.
+* robogen-server, the main simulator software, to be used as a server software. Listens for connections from robogen-evolver
+  evaluates robots and returns their fitness to the EA.
 
 You can run them, launching them from terminal with the following parameters:
 
@@ -165,43 +145,28 @@ You can run them, launching them from terminal with the following parameters:
 where ROBOT_FILE is the robot structure and configuration file is a file containing the ROBOGEN simulator configuration.
 Once the robogen-file-viewer is open, you can pause/unpause the simulation pressing "P" on your keyboard.
 
-    robogen-simulator PORT
+    robogen-evolver SEED OUTPUT_DIRECTORY EVOLUTION_CONF_FILE
     
-where PORT is the port on which the server will listen for connections.
+where SEED is an integer specifying the seed for the pseudo-random number generator (used for making runs reproduceable),
+OUTPUT_DIRECTORY specifies where OUTPUT should be written and EVOLUTION_CONF_FILE is an evolutionary conf file for defining
+your run.  
+
+    robogen-server PORT
+    
+where PORT is the port on which the server will listen for connections (we recommend 8001).
+
+See http://www.robogen.org/wiki/index.php/Usage_examples for more details.
     
 ### Configuration file
 
-#### Main configuration file
-
-    scenario=racing                      # Can be racing OR chasing
-    timeStep=0.01                        # Timestep [s]
-    nTimeSteps=4000                      # Number of timesteps 
-    terrainType=flat                     # Flat or rugged 
-    terrainLength=1                      # [m]
-    terrainWidth=1                       # [m]
-    terrainHeight=0.5                    # [Optional] Max terrain altitude [m]
-    terrainHeightField=test.gif          # [Optional] a grayscale image
-    obstaclesConfigFile=obstacles.txt    # Obstacles configuration file
-    startPositionConfigFile=startPos.txt # Start position configuration file
-    
-#### Obstacles file
-
-    #List of obstacles positions and size, separated by a tab, an obstacle per line
-    X Y X_SIZE Y_SIZE Z_SIZE
-
-#### Start Position file
-
-    #List of starting positions, separated by a tab.# A starting position per line
-    X Y
+See http://www.robogen.org/wiki/index.php/Evolution_configuration for in depth documentation.
 
 ## Running the Robogen Simulator
 
-Once the simulator compiled succesfully, remember to copy the robogen-simulator/models/ folder into the folder from which you
-will run your executable, otherwise the 3D models for the ROBOGEN robots cannot be loaded.
-Check in the ROBOGEN_SOURCE_DIR/../examples/ folder for sample configuration files and 5 examples robot structure that can be visualized.
+Check in the ROBOGEN_HOME/examples/ folder for sample configuration files and example robots that can be visualized.
 
 On Windows, you need to copy your executables and model folder in the run/ folder contained in the utils.zip archive
-that you downloaded from https://dl.dropboxusercontent.com/u/13784867/utils3.zip
+that you downloaded from http://www.robogen.org/robogen-dev-Windows.zip
 
 ## Scenario descriptions
 
@@ -229,7 +194,7 @@ the simulation time.
 If you have stability problems when simulating your robot you might try to modify the ERP and CFM parameters, 
 described [here](http://ode-wiki.org/wiki/index.php?title=Manual:_All&printable=yes#Joint_error_and_the_Error_Reduction_Parameter_.28ERP.29) to modify the way ODE internally solves constraints and forces.
 
-Mikaz-fr reported some success modifying ERP and CFM (remember to change both of them in FileViewer.cpp and Server.cpp,
+Mikaz-fr reported some success modifying ERP and CFM (remember to change both of them in FileViewer.cpp, RobogenServer.cpp,
 and of course recompile the simulator code) to the following values.
 However, the choice of values is strictly dependent on the structure being simulated, so try to play around with them.
 
