@@ -31,16 +31,16 @@
 
 namespace robogen {
 
-const float ActiveWhegModel::MASS_SLOT = inGrams(4);
-const float ActiveWhegModel::MASS_SERVO = inGrams(9);
+const float ActiveWhegModel::MASS_SLOT = inGrams(2);
+const float ActiveWhegModel::MASS_SERVO = inGrams(7);
 const float ActiveWhegModel::MASS_WHEG = inGrams(3);
 
 const float ActiveWhegModel::SLOT_WIDTH = inMm(34);
 const float ActiveWhegModel::SLOT_THICKNESS = inMm(1.5);
 const float ActiveWhegModel::SERVO_Z_OFFSET = inMm(9); // zCenter shift respect to slot z-center
-const float ActiveWhegModel::SERVO_WIDTH = inMm(14);
-const float ActiveWhegModel::SERVO_LENGTH = inMm(36.8);
-const float ActiveWhegModel::SERVO_HEIGHT = inMm(14);
+const float ActiveWhegModel::SERVO_WIDTH = inMm(10);
+const float ActiveWhegModel::SERVO_LENGTH = inMm(29);
+const float ActiveWhegModel::SERVO_HEIGHT = inMm(28);
 const float ActiveWhegModel::WHEG_BASE_RADIUS = inMm(9);
 const float ActiveWhegModel::WHEG_THICKNESS = inMm(4);
 const float ActiveWhegModel::WHEG_WIDTH = inMm(4);

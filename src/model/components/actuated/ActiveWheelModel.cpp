@@ -30,16 +30,16 @@
 
 namespace robogen {
 
-const float ActiveWheelModel::MASS_SLOT = inGrams(4);
-const float ActiveWheelModel::MASS_SERVO = inGrams(9);
+const float ActiveWheelModel::MASS_SLOT = inGrams(2);
+const float ActiveWheelModel::MASS_SERVO = inGrams(7);
 const float ActiveWheelModel::MASS_WHEEL = inGrams(5);
 
 const float ActiveWheelModel::SLOT_WIDTH = inMm(34);
 const float ActiveWheelModel::SLOT_THICKNESS = inMm(1.5);
-const float ActiveWheelModel::SERVO_Z_OFFSET = inMm(0); // zCenter shift respect to slot z-center
-const float ActiveWheelModel::SERVO_WIDTH = inMm(14);
-const float ActiveWheelModel::SERVO_LENGTH = inMm(36.8);
-const float ActiveWheelModel::SERVO_HEIGHT = inMm(14);
+const float ActiveWheelModel::SERVO_Z_OFFSET = inMm(9); // zCenter shift respect to slot z-center
+const float ActiveWheelModel::SERVO_WIDTH = inMm(10);
+const float ActiveWheelModel::SERVO_LENGTH = inMm(29);
+const float ActiveWheelModel::SERVO_HEIGHT = inMm(28);
 const float ActiveWheelModel::WHEEL_THICKNESS = inMm(3);
 
 ActiveWheelModel::ActiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace,
@@ -72,7 +72,7 @@ bool ActiveWheelModel::initModel() {
          SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
 
    dReal xServo = SLOT_THICKNESS / 2 + separation + SERVO_LENGTH / 2;
-   dReal zServo = 0;//-SLOT_WIDTH / 2 + SERVO_Z_OFFSET + SERVO_HEIGHT / 2;
+   dReal zServo = -SLOT_WIDTH / 2 + SERVO_Z_OFFSET + SERVO_HEIGHT / 2;
    this->createBoxGeom(servo, MASS_SERVO, osg::Vec3(xServo, 0, zServo),
          SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT);
 
