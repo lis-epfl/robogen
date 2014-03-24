@@ -294,7 +294,7 @@ int main(int argc, char *argv[]) {
 
 	} else if (boost::filesystem::path(argv[1]).extension().string().compare(".json") == 0) {
 
-		std::ifstream robotFile(argv[1]);
+		std::ifstream robotFile(argv[1], std::ios::in | std::ios::binary);
 		if (!robotFile.is_open()) {
 			std::cout << "Cannot open " << std::string(argv[1]) << ". Quit."
 					<< std::endl;
