@@ -86,7 +86,7 @@ bool RotateJointModel::initModel() {
 			SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT);
 
 	dReal xJointConnection = xServo + SERVO_LENGTH / 2 + separation
-			+ JOINT_CONNECTION_THICKNESS / 2;
+			- JOINT_CONNECTION_THICKNESS / 2 ;
 	this->createBoxGeom(jointConnection_, MASS_CONNECTION_SLOT,
 			osg::Vec3(xJointConnection, 0, 0), JOINT_CONNECTION_THICKNESS,
 			JOINT_CONNECTION_WIDTH, JOINT_CONNECTION_WIDTH);
