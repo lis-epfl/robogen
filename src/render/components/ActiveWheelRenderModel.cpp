@@ -79,17 +79,16 @@ bool ActiveWheelRenderModel::initRenderModel() {
    partA_->setColor(osg::Vec4(1, 0, 0, 1));
    partB_->setColor(osg::Vec4(0, 1, 0, 1));
 
-   float slotCorrectionZ = inMm(1.5);
+   //float slotCorrectionZ = inMm(1.5);
 
    // SLOT
    osg::ref_ptr<osg::PositionAttitudeTransform> slot = this->partA_->getMesh();
-   slot->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0)));
+   slot->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
    slot->setPosition(
          fromOde(
-               osg::Vec3(
-                     ActiveWheelModel::SLOT_THICKNESS / 2
-                           + ActiveWheelModel::SERVO_LENGTH / 2, 0,
-                     slotCorrectionZ)));
+        		 osg::Vec3(ActiveWheelModel::SERVO_LENGTH / 2 -
+        		             		   ActiveWheelModel::SLOT_THICKNESS , 0,
+        		                      0)));
    //attachAxis(slot);
 
    osg::ref_ptr<osg::PositionAttitudeTransform> patSlot(
@@ -102,7 +101,9 @@ bool ActiveWheelRenderModel::initRenderModel() {
 
    // WHEEL
    osg::ref_ptr<osg::PositionAttitudeTransform> wheel = this->partB_->getMesh();
-   wheel->setAttitude(osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 1, 0)));
+   wheel->setAttitude(osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 0, 1)));
+
+   wheel->setPosition(osg::Vec3(0, 0, -6.25));
 
    osg::ref_ptr<osg::PositionAttitudeTransform> patWheel(
          new osg::PositionAttitudeTransform());

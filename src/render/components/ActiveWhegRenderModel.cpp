@@ -69,17 +69,16 @@ bool ActiveWhegRenderModel::initRenderModel() {
    partA_->setColor(osg::Vec4(1, 0, 0, 1));
    partB_->setColor(osg::Vec4(0, 1, 0, 1));
 
-   float slotCorrectionZ = inMm(1.5);
+   //float slotCorrectionZ = inMm(1.5);
 
    // SLOT
    osg::ref_ptr<osg::PositionAttitudeTransform> slot = this->partA_->getMesh();
-   slot->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0)));
+   slot->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
    slot->setPosition(
          fromOde(
-               osg::Vec3(
-                     ActiveWhegModel::SLOT_THICKNESS / 2
-                           + ActiveWhegModel::SERVO_LENGTH / 2, 0,
-                     slotCorrectionZ)));
+               osg::Vec3(ActiveWhegModel::SERVO_LENGTH / 2 -
+            		   ActiveWhegModel::SLOT_THICKNESS , 0,
+                     0)));
    //attachAxis(slot);
 
    osg::ref_ptr<osg::PositionAttitudeTransform> patSlot(
@@ -92,8 +91,12 @@ bool ActiveWhegRenderModel::initRenderModel() {
 
    // WHEG
    osg::ref_ptr<osg::PositionAttitudeTransform> wheg = this->partB_->getMesh();
-   wheg->setPosition(osg::Vec3(5, 8.5, 0));
-   wheg->setAttitude(osg::Quat(osg::inDegrees(-30.0), osg::Vec3(0, 0, 1)));
+
+
+   wheg->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 0, 1))
+   	   	   	   	   	* osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 1, 0)));
+
+   wheg->setPosition(osg::Vec3(11.5, 0, -8.25));
 
    // We need to rescale the wheel
    static const float BASE_RADIUS = 31;
