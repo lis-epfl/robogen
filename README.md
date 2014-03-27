@@ -1,6 +1,7 @@
 RoboGen -- Robot generation through artificial evolution
 =================
 Joshua Auerbach (joshua.auerbach@epfl.ch)
+
 Laboratory of Intelligent Systems, EPFL
 
 **Read carefully this document and the online documentation: http://www.robogen.org/wiki/index.php/Documentation
@@ -43,8 +44,18 @@ Given the experimental nature of the code, we will take into consideration any e
 
 ## Contributions
 
-Here, we will keep track of your contributions both for the final evaluation and 
+Here, we will keep track of contributions both for the final evaluation and 
 for maintaining your name associated to the project.
+
+LIS members who have made contributions :
+* **amaesani** Andrea Maesani, andrea.maesani@epfl.ch
+* **loshchil** Ilya Loshchilov, ilya.loshchilov@gmail.com
+* **GregoireH** Grégoire Heitz, gregoire.heitz@gmail.com
+* **daydin** Deniz Aydin, deniz.aydin@epfl.ch
+* Przemek Kornatowski, przemyslaw.kornatowski@epfl.ch
+* Ludovic Daler, ludovic.daler@epfl.ch
+* And, LIS alumnus Pradeep Ruben Fernando
+
 
 
 Thanks to past students
