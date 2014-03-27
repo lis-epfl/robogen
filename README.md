@@ -1,12 +1,33 @@
 RoboGen -- Robot generation through artificial evolution
 =================
 Joshua Auerbach (joshua.auerbach@epfl.ch)
+Laboratory of Intelligent Systems, EPFL
 
 **Read carefully this document and the online documentation: http://www.robogen.org/wiki/index.php/Documentation
 before starting doing anything!**
 
 **Please check at the end of the file for some tricks you might try in order**
 **to improve the stability of the simulator**
+
+-------------
+LICENSE
+-------------
+
+The ROBOGEN Framework is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License (GPL)
+as published by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-------------
+
 
 ## The simulator
 
