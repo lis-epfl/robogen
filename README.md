@@ -10,7 +10,7 @@ before starting doing anything!**
 **to improve the stability of the simulator**
 
 -------------
-LICENSE
+License
 -------------
 
 The ROBOGEN Framework is free software: you can redistribute it and/or modify
