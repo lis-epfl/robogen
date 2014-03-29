@@ -115,7 +115,7 @@ Some help can be found on the [dedicated wiki page](https://github.com/jauerb/ro
 1) Once the required dependencies are satisfied (all code compiled successfully), clone this repository
 to get all the needed source code of the simulator
 
-    git clone https://github.com/jauer/robogen.git
+    git clone https://github.com/jauerb/robogen.git
     
 2) Modify the paths in src/cmake/CustomPath.cmake pointing them to the correct libraries/include directories.
 Note that you need to modify only those paths pointing to non-standard locations, i.e. if you installed a library under Linux
