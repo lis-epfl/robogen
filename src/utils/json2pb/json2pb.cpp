@@ -13,6 +13,12 @@
 
 #include "utils/json2pb/json2pb.h"
 
+// The following was introduced in jansson 2.4,
+// define here if using an earlier version
+#ifndef json_boolean
+    #define json_boolean(val) ((val) ? json_true() : json_false())
+#endif
+
 #include <stdexcept>
 
 namespace {
