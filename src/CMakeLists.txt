@@ -57,11 +57,6 @@ elseif(WIN32)
 
 endif()
 
-if (APPLE)
-	# Backward compatibility with older Mac versions
-	add_definitions(-mmacosx-version-min=10.6)
-endif()
-
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
 	include(OptimizeForArchitecture)
