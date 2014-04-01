@@ -40,7 +40,6 @@ if (APPLE)
 	# Protobuf
 	set (PROTOBUF_INCLUDE_DIR "${UTILS_PATH}/include")
 	set (PROTOBUF_LIBRARY "${UTILS_PATH}/lib/libprotobuf.a")
-	set (PROTOBUF_LIBRARY_DEBUG "${UTILS_PATH}/lib/libprotobufd.lib")
 	set (PROTOBUF_PROTOC_EXECUTABLE "${UTILS_PATH}/bin/protoc")
 
 	# BOOST
