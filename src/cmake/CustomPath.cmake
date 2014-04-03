@@ -77,5 +77,9 @@ if (WIN32)
 	# ODE
 	set (ODE_INCLUDE_PATH "${UTILS_PATH}/include")
 	set (ODE_LIBRARIES "${UTILS_PATH}/lib/ode_double.lib")
+	
+	# JANSSON
+	set (JANSSON_INCLUDE_DIRS "${UTILS_PATH}/include")
+	set (JANSSON_LIBRARIES "${UTILS_PATH}/lib/jansson.lib")
 
 endif()
