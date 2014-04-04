@@ -62,9 +62,11 @@ bool ActiveWheelRenderModel::initRenderModel() {
       return false;
    }
 
+   double alpha = 1.0;
    if (isDebugActive()) {
       this->showDebugView();
-      return true;
+      alpha = 0.5;
+      //return true;
    }
 
    // We need to rescale the wheel
@@ -76,8 +78,8 @@ bool ActiveWheelRenderModel::initRenderModel() {
    float scale = radius / BASE_RADIUS;
    partB_->rescaleMesh(scale, scale, 1);
 
-   partA_->setColor(osg::Vec4(1, 0, 0, 1));
-   partB_->setColor(osg::Vec4(0, 1, 0, 1));
+   partA_->setColor(osg::Vec4(1, 0, 0, alpha));
+   partB_->setColor(osg::Vec4(0, 1, 0, alpha));
 
    //float slotCorrectionZ = inMm(1.5);
 
