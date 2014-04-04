@@ -96,8 +96,8 @@ bool ActiveCardanRenderModel::initRenderModel() {
 									+ ActiveCardanModel::CONNNECTION_PART_LENGTH
 											/ 2), 0, 0));
 
-	osg::Quat rotateServoZ(osg::inDegrees(90.0), osg::Vec3(0, 0, 1));
-	partA->setAttitude(rotateServoZ);
+	partA->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 0, 1)) *
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0)));
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patPartA(
 			new osg::PositionAttitudeTransform());
