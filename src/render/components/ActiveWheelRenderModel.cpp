@@ -64,7 +64,7 @@ bool ActiveWheelRenderModel::initRenderModel() {
 
    if (isDebugActive()) {
       this->showDebugView();
-      //return true;
+      return true;
    }
 
    // We need to rescale the wheel
