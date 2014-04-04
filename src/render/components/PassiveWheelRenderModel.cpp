@@ -82,6 +82,10 @@ bool PassiveWheelRenderModel::initRenderModel() {
    // SLOT
    osg::ref_ptr<osg::PositionAttitudeTransform> slot = this->partA_->getMesh();
    slot->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
+   slot->setPosition(
+         fromOde(
+               osg::Vec3(-PassiveWheelModel::SLOT_CONNECTION_THICKNESS,
+            		   0,0)));
 
    osg::ref_ptr<osg::PositionAttitudeTransform> patSlot(
          new osg::PositionAttitudeTransform());
