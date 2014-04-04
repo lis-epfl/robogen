@@ -45,7 +45,8 @@ const float ActiveWhegModel::SERVO_Z_OFFSET = inMm(9); // zCenter shift respect 
 const float ActiveWhegModel::SERVO_WIDTH = inMm(14);
 
 //take off wheg thickness, because in reality overlap
-const float ActiveWhegModel::SERVO_LENGTH = inMm(36.8) - WHEG_THICKNESS;
+const float ActiveWhegModel::SERVO_LENGTH = inMm(36.8) -
+		ActiveWhegModel::WHEG_THICKNESS;
 
 const float ActiveWhegModel::SERVO_HEIGHT = inMm(14);
 

@@ -38,9 +38,18 @@ const float ActiveWheelModel::SLOT_WIDTH = inMm(34);
 const float ActiveWheelModel::SLOT_THICKNESS = inMm(1.5);
 const float ActiveWheelModel::SERVO_Z_OFFSET = inMm(0); // zCenter shift respect to slot z-center
 const float ActiveWheelModel::SERVO_WIDTH = inMm(14);
-const float ActiveWheelModel::SERVO_LENGTH = inMm(36.8);
+//take off wheel thickness, because in reality overlap
+const float ActiveWheelModel::SERVO_LENGTH = inMm(36.8) -
+		ActiveWheelModel::WHEEL_THICKNESS;
 const float ActiveWheelModel::SERVO_HEIGHT = inMm(14);
 const float ActiveWheelModel::WHEEL_THICKNESS = inMm(3);
+
+const float ActiveWheelModel::SEPARATION = inMm(1.0);
+const float ActiveWheelModel::X_SERVO = -ActiveWheelModel::SLOT_THICKNESS +
+		ActiveWheelModel::SEPARATION + ActiveWheelModel::SERVO_LENGTH / 2;
+
+const float ActiveWheelModel::X_WHEEL = ActiveWheelModel::X_SERVO +
+		ActiveWheelModel::SERVO_LENGTH / 2;
 
 ActiveWheelModel::ActiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace,
       std::string id, float radius) :
@@ -66,18 +75,15 @@ bool ActiveWheelModel::initModel() {
    // Set the masses for the various boxes
    dMass mass;
 
-   float separation = inMm(0.1);
 
    this->createBoxGeom(wheelRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
          SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
 
-   dReal xServo = SLOT_THICKNESS / 2 + separation + SERVO_LENGTH / 2;
    dReal zServo = 0;//-SLOT_WIDTH / 2 + SERVO_Z_OFFSET + SERVO_HEIGHT / 2;
-   this->createBoxGeom(servo, MASS_SERVO, osg::Vec3(xServo, 0, zServo),
+   this->createBoxGeom(servo, MASS_SERVO, osg::Vec3(X_SERVO, 0, zServo),
          SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT);
 
-   dReal xWheel = xServo + SERVO_LENGTH / 2;
-   this->createCylinderGeom(wheel, MASS_WHEEL, osg::Vec3(xWheel, 0, 0), 1,
+   this->createCylinderGeom(wheel, MASS_WHEEL, osg::Vec3(X_WHEEL, 0, 0), 1,
          getRadius(), WHEEL_THICKNESS);
 
    // Create joints to hold pieces in position
@@ -89,7 +95,7 @@ bool ActiveWheelModel::initModel() {
    dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
    dJointAttach(joint, servo, wheel);
    dJointSetHingeAxis(joint, 1, 0, 0);
-   dJointSetHingeAnchor(joint, xWheel, 0, 0);
+   dJointSetHingeAnchor(joint, X_WHEEL, 0, 0);
 
    // Create servo
    this->motor_.reset(

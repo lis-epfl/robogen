@@ -51,6 +51,10 @@ public:
    static const float SERVO_HEIGHT;
    static const float WHEEL_THICKNESS;
 
+   static const float SEPARATION;
+   static const float X_SERVO;
+   static const float X_WHEEL;
+
    static const unsigned int SLOT_A = 0;
 
    static const unsigned int B_SLOT_ID = 0;
