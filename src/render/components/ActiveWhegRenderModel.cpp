@@ -47,14 +47,15 @@ ActiveWhegRenderModel::~ActiveWhegRenderModel() {
 bool ActiveWhegRenderModel::initRenderModel() {
 
    bool meshLoadingA = this->partA_->loadMesh(
-         "../models/ActiveRotation_Servo_Holder.stl");
+         "../models/ActiveRotation_Motor_Holder.stl");
 
    if (!meshLoadingA) {
       std::cerr << "[ActiveWhegRenderModel] Error loading model" << std::endl;
       return false;
    }
 
-   bool meshLoadingB = this->partB_->loadMesh("../models/ActiveRotation_Wheg.stl");
+   bool meshLoadingB = this->partB_->loadMesh(
+		 "../models/ActiveRotation_Wheg.stl");
 
    if (!meshLoadingB) {
       std::cerr << "[ActiveWhegRenderModel] Error loading model" << std::endl;
@@ -69,19 +70,18 @@ bool ActiveWhegRenderModel::initRenderModel() {
    partA_->setColor(osg::Vec4(1, 0, 0, 1));
    partB_->setColor(osg::Vec4(0, 1, 0, 1));
 
-   float slotCorrectionZ = inMm(1.5);
+   float slotCorrectionZ = inMm(0); //not needed with new model
 
    // SLOT
    osg::ref_ptr<osg::PositionAttitudeTransform> slot = this->partA_->getMesh();
-   slot->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0)));
+   slot->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
    slot->setPosition(
          fromOde(
-               osg::Vec3(
-                     ActiveWhegModel::SLOT_THICKNESS / 2
-                           + ActiveWhegModel::SERVO_LENGTH / 2, 0,
-                     slotCorrectionZ)));
+               osg::Vec3(ActiveWhegModel::X_SERVO +
+            		   ActiveWhegModel::WHEG_THICKNESS/2
+            		   - ActiveWhegModel::SEPARATION,
+            		   0,slotCorrectionZ)));
    //attachAxis(slot);
-
    osg::ref_ptr<osg::PositionAttitudeTransform> patSlot(
          new osg::PositionAttitudeTransform());
    patSlot->addChild(slot);
@@ -90,13 +90,18 @@ bool ActiveWhegRenderModel::initRenderModel() {
    patSlot->setUpdateCallback(
          new BodyCallback(this->getModel(), ActiveWhegModel::B_SLOT_ID));
 
+
    // WHEG
    osg::ref_ptr<osg::PositionAttitudeTransform> wheg = this->partB_->getMesh();
-   wheg->setPosition(osg::Vec3(5, 8.5, 0));
-   wheg->setAttitude(osg::Quat(osg::inDegrees(-30.0), osg::Vec3(0, 0, 1)));
+
+
+   wheg->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 0, 1))
+   	   	   	   	   	* osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 1, 0)));
+
+   wheg->setPosition(osg::Vec3(11.5, 0, -2.5));
 
    // We need to rescale the wheel
-   static const float BASE_RADIUS = 31;
+   static const float BASE_RADIUS = 38;
    float radius = fromOde(
          boost::dynamic_pointer_cast < ActiveWhegModel
                > (this->getModel())->getRadius());
@@ -126,6 +131,7 @@ void ActiveWhegRenderModel::showDebugView() {
    this->attachBox(ActiveWhegModel::B_SERVO_ID, ActiveWhegModel::SERVO_LENGTH,
          ActiveWhegModel::SERVO_WIDTH, ActiveWhegModel::SERVO_HEIGHT);
 
+
    this->attachBox(ActiveWhegModel::B_WHEG_SPOKE_1,
          ActiveWhegModel::WHEG_THICKNESS, ActiveWhegModel::WHEG_WIDTH,
          boost::dynamic_pointer_cast < ActiveWhegModel
@@ -141,6 +147,7 @@ void ActiveWhegRenderModel::showDebugView() {
          boost::dynamic_pointer_cast < ActiveWhegModel
                > (this->getModel())->getRadius());
 
+
    osg::ref_ptr<osg::Geode> wheel = this->getCylinder(
          fromOde(ActiveWhegModel::WHEG_BASE_RADIUS),
          fromOde(ActiveWhegModel::WHEG_THICKNESS));
@@ -152,6 +159,7 @@ void ActiveWhegRenderModel::showDebugView() {
 
    osg::Quat rotateWheel;
    rotateWheel.makeRotate(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
+
 
    // WHEEL
    osg::ref_ptr<osg::PositionAttitudeTransform> patWheel(

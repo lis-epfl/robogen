@@ -78,9 +78,10 @@ bool ActiveHingeRenderModel::initRenderModel() {
 	frame->setPosition(
 			fromOde(
 					osg::Vec3(
-							ActiveHingeModel::FRAME_LENGTH / 2, 0,
+							ActiveHingeModel::FRAME_LENGTH / 2 -
+							ActiveHingeModel::SLOT_THICKNESS, 0,
 							0)));
-
+	frame->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0)));
 	osg::ref_ptr<osg::PositionAttitudeTransform> patFrame(
 			new osg::PositionAttitudeTransform());
 	patFrame->addChild(frame);
@@ -100,9 +101,8 @@ bool ActiveHingeRenderModel::initRenderModel() {
 							-(ActiveHingeModel::SERVO_LENGTH / 2) - servoMeshCorrection, 0,
 							0)));
 
-	osg::Quat rotateServoZ(osg::inDegrees(90.0), osg::Vec3(0, 0, 1));
-	osg::Quat rotateServoY(osg::inDegrees(-90.0), osg::Vec3(0, 1, 0));
-	servo->setAttitude(rotateServoY * rotateServoZ);
+	servo->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 0, 1)) *
+			osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 1, 0)));
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patServo(
 			new osg::PositionAttitudeTransform());

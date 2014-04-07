@@ -44,6 +44,7 @@ public:
    static const float SLOT_WIDTH;
    static const float SLOT_THICKNESS;
    static const float SLOT_WHEEL_OFFSET;
+   static const float SLOT_CONNECTION_THICKNESS;
    static const float WHEEL_THICKNESS;
 
    static const unsigned int SLOT_A = 0;

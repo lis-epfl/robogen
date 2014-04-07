@@ -30,18 +30,19 @@
 
 namespace robogen {
 
-const float RotateJointModel::MASS_SLOT = inGrams(2);
-const float RotateJointModel::MASS_SERVO = inGrams(7);
-const float RotateJointModel::MASS_CONNECTION_SLOT = inGrams(3);
+const float RotateJointModel::MASS_SLOT = inGrams(4);
+const float RotateJointModel::MASS_SERVO = inGrams(9);
+const float RotateJointModel::MASS_CONNECTION_SLOT = inGrams(2);
 
 const float RotateJointModel::SLOT_WIDTH = inMm(34);
 const float RotateJointModel::SLOT_THICKNESS = inMm(1.5);
-const float RotateJointModel::SERVO_Z_OFFSET = inMm(9); // zCenter shift respect to slot z-center
-const float RotateJointModel::SERVO_WIDTH = inMm(10);
-const float RotateJointModel::SERVO_LENGTH = inMm(29);
-const float RotateJointModel::SERVO_HEIGHT = inMm(28);
+const float RotateJointModel::SERVO_Z_OFFSET = inMm(0); // zCenter shift respect to slot z-center
+const float RotateJointModel::SERVO_WIDTH = inMm(14);
+const float RotateJointModel::SERVO_LENGTH = inMm(36.8);
+const float RotateJointModel::SERVO_HEIGHT = inMm(14);
 const float RotateJointModel::JOINT_CONNECTION_THICKNESS = inMm(7.5);
 const float RotateJointModel::JOINT_CONNECTION_WIDTH = inMm(34);
+
 
 RotateJointModel::RotateJointModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id) :
@@ -85,7 +86,7 @@ bool RotateJointModel::initModel() {
 			SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT);
 
 	dReal xJointConnection = xServo + SERVO_LENGTH / 2 + separation
-			+ JOINT_CONNECTION_THICKNESS / 2;
+			- JOINT_CONNECTION_THICKNESS / 2 ;
 	this->createBoxGeom(jointConnection_, MASS_CONNECTION_SLOT,
 			osg::Vec3(xJointConnection, 0, 0), JOINT_CONNECTION_THICKNESS,
 			JOINT_CONNECTION_WIDTH, JOINT_CONNECTION_WIDTH);

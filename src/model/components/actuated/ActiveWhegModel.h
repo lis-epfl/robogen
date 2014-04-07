@@ -54,6 +54,10 @@ public:
    static const float WHEG_THICKNESS;
    static const float WHEG_WIDTH;
 
+   static const float SEPARATION;
+   static const float X_SERVO;
+   static const float X_WHEG_BASE;
+
    static const unsigned int SLOT_A = 0;
 
    static const unsigned int B_SLOT_ID = 0;

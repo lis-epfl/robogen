@@ -70,7 +70,8 @@ bool ActiveHingeModel::initModel() {
 	this->createBoxGeom(hingeRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
 			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
 
-	dReal xFrame = SLOT_THICKNESS / 2 + separation + FRAME_LENGTH / 2;
+	dReal xFrame = SLOT_THICKNESS / 2 + separation + FRAME_LENGTH / 2 -
+			SLOT_THICKNESS;
 	this->createBoxGeom(frame, MASS_FRAME, osg::Vec3(xFrame, 0, 0),
 			FRAME_LENGTH, SLOT_WIDTH, FRAME_HEIGHT);
 
