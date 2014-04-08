@@ -89,11 +89,11 @@ float Mesh::zLen() {
 }
 
 void Mesh::setColor(osg::Vec4 color) {
-   osg::Geometry* geometry = this->meshNode_->asGeode()->getDrawable(0)->asGeometry();
+   osg::Geometry* geometry = meshNode_->asGroup()->getChild(0)->asGeode()->getDrawable(0)->asGeometry();
    osg::Vec4Array* colors = new osg::Vec4Array;
    colors->push_back(color);
+   colors->setBinding(osg::Array::BIND_OVERALL);
    geometry->setColorArray(colors);
-   geometry->setColorBinding(osg::Geometry::BIND_PER_PRIMITIVE_SET);
 }
 
 }
