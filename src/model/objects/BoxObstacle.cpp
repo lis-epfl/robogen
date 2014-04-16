@@ -31,7 +31,8 @@
 namespace robogen {
 
 BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
-		const osg::Vec3& pos, const osg::Vec3& size, float density) :
+		const osg::Vec3& pos, const osg::Vec3& size, float density,
+		const osg::Vec3& rotationAxis, float rotationAngle) :
 		size_(size) {
 
 	box_ = dBodyCreate(odeWorld);
@@ -49,6 +50,22 @@ BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
 	dGeomSetPosition(g, pos.x(), pos.y(), pos.z());
 	dGeomSetBody(g, box_);
 
+	if (rotationAngle >= RobogenUtils::OSG_EPSILON){
+		osg::Quat rotation;
+		rotation.makeRotate(rotationAngle,rotationAxis);
+		dQuaternion quatOde;
+		quatOde[0] = rotation.w();
+		quatOde[1] = rotation.x();
+		quatOde[2] = rotation.y();
+		quatOde[3] = rotation.z();
+		dBodySetQuaternion(box_, quatOde);
+
+        //dMatrix3 R;
+        //dRFromAxisAndAngle (R,.x(),rotationAxis.y(),
+        //		rotationAxis.z(), );
+        //dBodySetRotation(box_, R);
+	}
+
 	// fix body if desired
 	if (density < RobogenUtils::OSG_EPSILON){
 		dJointID joint = dJointCreateFixed(odeWorld, 0);
@@ -58,7 +75,14 @@ BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
 }
 
 BoxObstacle::~BoxObstacle() {
+}
 
+void BoxObstacle::remove() {
+	dGeomDestroy(dBodyGetFirstGeom(box_));
+	for(int i=0; i< dBodyGetNumJoints(box_); i++) {
+		dJointDestroy(dBodyGetJoint(box_, i));
+	}
+	dBodyDestroy(box_);
 }
 
 const osg::Vec3 BoxObstacle::getPosition() {
@@ -68,11 +92,25 @@ const osg::Vec3 BoxObstacle::getPosition() {
 
 const osg::Quat BoxObstacle::getAttitude() {
 	const dReal* boxQuat = dBodyGetQuaternion(box_);
-	return (osg::Quat(boxQuat[1], boxQuat[2], boxQuat[3], boxQuat[0]));
+	return osg::Quat(boxQuat[1], boxQuat[2], boxQuat[3], boxQuat[0]);
 }
 
 const osg::Vec3 BoxObstacle::getSize() {
 	return size_;
+}
+
+void BoxObstacle::getAABB(double& minX, double& maxX, double& minY,
+		double& maxY, double& minZ, double& maxZ) {
+
+	dGeomID g = dBodyGetFirstGeom(box_);
+	dReal aabb[6];
+	dGeomGetAABB(g, aabb);
+	minX = aabb[0];
+	maxX = aabb[1];
+	minY = aabb[2];
+	maxY = aabb[3];
+	minZ = aabb[4];
+	maxZ = aabb[5];
 }
 
 }

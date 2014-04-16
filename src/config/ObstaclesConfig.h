@@ -28,7 +28,6 @@
 #ifndef ROBOGEN_OBSTACLES_CONFIG_H_
 #define ROBOGEN_OBSTACLES_CONFIG_H_
 
-#include <osg/Vec2>
 #include <osg/Vec3>
 #include <vector>
 #include "robogen.pb.h"
@@ -45,10 +44,13 @@ public:
 	/**
 	 * Initializes obstacles configuration
 	 */
-	ObstaclesConfig(const std::vector<osg::Vec2>& coordinates,
-			const std::vector<osg::Vec3>& size,
-			const std::vector<float> &density) :
-			coordinates_(coordinates), size_(size), density_(density) {
+	ObstaclesConfig(const std::vector<osg::Vec3>& coordinates,
+			const std::vector<osg::Vec3>& sizes,
+			const std::vector<float> &densities,
+			const std::vector<osg::Vec3>& rotationAxes,
+			const std::vector<float> &rotationAngles) :
+			coordinates_(coordinates), sizes_(sizes), densities_(densities),
+			rotationAxes_(rotationAxes), rotationAngles_(rotationAngles) {
 
 	}
 
@@ -62,22 +64,36 @@ public:
 	/**
 	 * @return the coordinates of the obstacles
 	 */
-	const std::vector<osg::Vec2>& getCoordinates() const {
+	const std::vector<osg::Vec3>& getCoordinates() const {
 		return coordinates_;
 	}
 
 	/**
 	 * @return the size of the obstacles
 	 */
-	const std::vector<osg::Vec3>& getSize() const {
-		return size_;
+	const std::vector<osg::Vec3>& getSizes() const {
+		return sizes_;
 	}
 
 	/**
 	 * @return the obstacle densities
 	 */
-	const std::vector<float>& getDensity() const{
-		return density_;
+	const std::vector<float>& getDensities() const{
+		return densities_;
+	}
+
+	/**
+	 * @return the obstacle densities
+	 */
+	const std::vector<osg::Vec3>& getRotationAxes() const{
+		return rotationAxes_;
+	}
+
+	/**
+	 * @return the obstacle densities
+	 */
+	const std::vector<float>& getRotationAngles() const{
+		return rotationAngles_;
 	}
 
 	/**
@@ -86,12 +102,17 @@ public:
 	void serialize(robogenMessage::SimulatorConf &message){
 		for (unsigned int i=0; i<coordinates_.size(); ++i){
 			robogenMessage::Obstacle *curr = message.add_obstacles();
-			curr->set_density(density_[i]);
+			curr->set_density(densities_[i]);
 			curr->set_x(coordinates_[i].x());
 			curr->set_y(coordinates_[i].y());
-			curr->set_xsize(size_[i].x());
-			curr->set_ysize(size_[i].y());
-			curr->set_zsize(size_[i].z());
+			curr->set_z(coordinates_[i].z());
+			curr->set_xsize(sizes_[i].x());
+			curr->set_ysize(sizes_[i].y());
+			curr->set_zsize(sizes_[i].z());
+			curr->set_xrotation(rotationAxes_[i].x());
+			curr->set_yrotation(rotationAxes_[i].y());
+			curr->set_zrotation(rotationAxes_[i].z());
+			curr->set_rotationangle(rotationAngles_[i]);
 		}
 	}
 
@@ -100,17 +121,27 @@ private:
 	/**
 	 * Obstacles coordinates
 	 */
-	std::vector<osg::Vec2> coordinates_;
+	std::vector<osg::Vec3> coordinates_;
 
 	/**
-	 * Obstacles size
+	 * Obstacle sizes
 	 */
-	std::vector<osg::Vec3> size_;
+	std::vector<osg::Vec3> sizes_;
 
 	/**
-	 * Obstacle density. If 0, obstacle is fixed
+	 * Obstacle densities. If 0, obstacle is fixed
 	 */
-	std::vector<float> density_;
+	std::vector<float> densities_;
+
+	/**
+	 * Obstacle rotationAxes
+	 */
+	std::vector<osg::Vec3> rotationAxes_;
+
+	/**
+	 * Obstacle rotationAngles
+	 */
+	std::vector<float> rotationAngles_;
 };
 
 }

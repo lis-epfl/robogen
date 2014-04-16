@@ -52,10 +52,15 @@ message Robot {
 message Obstacle {
   required float x = 1;
   required float y = 2;
+  required float z = 3;
   required float xSize = 4;
   required float ySize = 5;
   required float zSize = 6;
   required float density = 7;
+  required float xRotation = 8;
+  required float yRotation = 9;
+  required float zRotation = 10;
+  required float rotationAngle = 11;
 }
 
 message StartPosition {

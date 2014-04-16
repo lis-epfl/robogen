@@ -51,7 +51,13 @@ public:
 	 * Initializes a box obstacle
 	 */
 	BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace, const osg::Vec3& pos,
-			const osg::Vec3& size, float density);
+			const osg::Vec3& size, float density,
+			const osg::Vec3& rotationAxis, float rotationAngle);
+
+	/**
+	 * Remove from world
+	 */
+	void remove();
 
 	/**
 	 * Destructor
@@ -68,6 +74,12 @@ public:
 	 * @return the box size
 	 */
 	const osg::Vec3 getSize();
+
+	/**
+	 * @return the box size
+	 */
+	void getAABB(double& minX, double& maxX, double& minY,
+			double& maxY, double& minZ, double& maxZ);
 
 private:
 

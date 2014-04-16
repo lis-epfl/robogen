@@ -102,15 +102,28 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 			robogenConfig_->getObstaclesConfig();
 
 	// Instance the boxes above the maximum terrain height
-	const std::vector<osg::Vec2>& c = obstacles->getCoordinates();
-	const std::vector<osg::Vec3>& s = obstacles->getSize();
-	const std::vector<float>& d = obstacles->getDensity();
-	for (unsigned int i = 0; i < c.size(); ++i) {
+	const std::vector<osg::Vec3>& c = obstacles->getCoordinates();
+	const std::vector<osg::Vec3>& s = obstacles->getSizes();
+	const std::vector<float>& d = obstacles->getDensities();
+	const std::vector<osg::Vec3>& rotationAxis = obstacles->getRotationAxes();
+	const std::vector<float>& rotationAngles = obstacles->getRotationAngles();
 
+	for (unsigned int i = 0; i < c.size(); ++i) {
+		boost::shared_ptr<BoxObstacle> obstacle(
+									new BoxObstacle(odeWorld_, odeSpace_, c[i],
+											s[i], d[i], rotationAxis[i],
+											rotationAngles[i]));
+		double oMinX, oMaxX, oMinY, oMaxY, oMinZ, oMaxZ;
+		obstacle->getAABB(oMinX, oMaxX, oMinY, oMaxY, oMinZ, oMaxZ);
+
+		/*
 		float oMinX = c[i].x() - s[i].x() / 2;
 		float oMaxX = c[i].x() + s[i].x() / 2;
 		float oMinY = c[i].y() - s[i].y() / 2;
 		float oMaxY = c[i].y() + s[i].y() / 2;
+		float oMinZ = c[i].z() - s[i].z() / 2;
+		float oMaxZ = c[i].z() + s[i].z() / 2;
+		 */
 
 		// Do not insert the obstacle if it is in the robot range
 		bool inRangeX = false;
@@ -125,13 +138,17 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 			inRangeY = true;
 		}
 
+		bool inRangeZ = false;
+		if ((oMinZ <= minZ && oMaxZ >= maxZ) || (oMinZ >= minZ && oMinZ <= maxZ)
+				|| (oMaxZ >= minZ && oMaxZ <= maxZ)) {
+			inRangeZ = true;
+		}
+
 		// Do not insert obstacles in the robot range
-		if (!(inRangeX && inRangeY)) {
-			osg::Vec3 position(c[i].x(), c[i].y(), s[i].z()/2);
-			obstacles_.push_back(
-					boost::shared_ptr<BoxObstacle>(
-							new BoxObstacle(odeWorld_, odeSpace_, position,
-									s[i], d[i])));
+		if (!(inRangeX && inRangeY && inRangeZ)) {
+			obstacles_.push_back(obstacle);
+		} else {
+			obstacle->remove();
 		}
 
 	}
