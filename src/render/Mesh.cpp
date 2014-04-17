@@ -52,7 +52,8 @@ bool Mesh::loadMesh(const std::string& mesh) {
 
 	meshPat_ = new osg::PositionAttitudeTransform();
 
-	osg::PositionAttitudeTransform* shiftToCenterPat = new osg::PositionAttitudeTransform();
+	osg::PositionAttitudeTransform* shiftToCenterPat =
+			new osg::PositionAttitudeTransform();
 	shiftToCenterPat->setPosition(-bb.center());
 	shiftToCenterPat->addChild(meshNode_);
 
@@ -61,29 +62,29 @@ bool Mesh::loadMesh(const std::string& mesh) {
 	xLen_ = bb.xMax() - bb.xMin();
 	yLen_ = bb.yMax() - bb.yMin();
 	zLen_ = bb.zMax() - bb.zMin();
-	
-	#if OSG_VERSION_GREATER_OR_EQUAL(3, 2, 0)
+
+#if OSG_VERSION_GREATER_OR_EQUAL(3, 2, 0)
 	osgUtil::SmoothingVisitor sv;
 	sv.setCreaseAngle(0);
 	meshNode_->accept(sv);
-	#endif
-	
+#endif
+
 	return true;
 
 }
 
 void Mesh::rescaleMesh(float scaleX, float scaleY, float scaleZ) {
-   osg::PositionAttitudeTransform* rescalePat = new osg::PositionAttitudeTransform();
-   rescalePat->setScale(osg::Vec3(scaleX, scaleY, scaleZ));
-   rescalePat->addChild(meshPat_);
-   meshPat_ = rescalePat;
+	osg::PositionAttitudeTransform* rescalePat =
+			new osg::PositionAttitudeTransform();
+	rescalePat->setScale(osg::Vec3(scaleX, scaleY, scaleZ));
+	rescalePat->addChild(meshPat_);
+	meshPat_ = rescalePat;
 }
 
 osg::ref_ptr<osg::PositionAttitudeTransform> Mesh::getMesh() {
 	// The mesh is returned with its pat
 	return meshPat_;
 }
-
 
 float Mesh::xLen() {
 	return xLen_;
@@ -96,14 +97,16 @@ float Mesh::zLen() {
 }
 
 void Mesh::setColor(osg::Vec4 color) {
-   #if OSG_VERSION_GREATER_OR_EQUAL(3, 2, 0)
-	osg::Geometry* geometry = meshNode_->asGroup()->getChild(0)->asGeode()->getDrawable(0)->asGeometry();
+#if OSG_VERSION_GREATER_OR_EQUAL(3, 2, 0)
+	osg::Geometry* geometry =
+	 meshNode_->asGroup()->getChild(0)->asGeode()->getDrawable(0)->asGeometry();
 	osg::Vec4Array* colors = new osg::Vec4Array;
 	colors->push_back(color);
 	colors->setBinding(osg::Array::BIND_OVERALL);
 	geometry->setColorArray(colors);
 #else
-	osg::Geometry* geometry = this->meshNode_->asGeode()->getDrawable(0)->asGeometry();
+	osg::Geometry* geometry =
+			this->meshNode_->asGeode()->getDrawable(0)->asGeometry();
 	osg::Vec4Array* colors = new osg::Vec4Array;
 	colors->push_back(color);
 	geometry->setColorArray(colors);
