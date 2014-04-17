@@ -90,7 +90,7 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 		std::vector<double> &params) {
 	// match (0 or more tabs)(digit) (type) (id) (orientation) (parameters)
 	static const boost::regex rx(
-			"^(\\t*)(\\d) ([A-Z]) ([^\\s]+) (\\d)([ \\d\\.-]*)$");
+			"^(\\t*)(\\d) ([A-Z]|(?:[A-Z][a-z]*)+) ([^\\s]+) (\\d)([ \\d\\.-]*)$");
 	boost::cmatch match;
 	std::string line;
 	std::getline(file, line);
@@ -99,7 +99,21 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 		// match[4]:id, match[5]:orientation, match[6]:parameters
 		indent = match[1].length();
 		slot = std::atoi(match[2].first);
-		type = match[3].first[0];
+
+		if (match[3].str().length() == 1) {
+			type = match[3].first[0];
+			if( PART_TYPE_MAP.count(type) == 0) {
+				std::cout << "Invalid body part type: " << type
+						<< std::endl;
+				throw std::runtime_error("");
+			}
+		} else if( INVERSE_PART_TYPE_MAP.count(match[3].str()) == 0) {
+			std::cout << "Invalid body part type: " << match[3].str()
+					<< std::endl;
+			throw std::runtime_error("");
+		} else {
+			type = INVERSE_PART_TYPE_MAP.at(match[3].str());
+		}
 		id = std::string(match[4]);
 		orientation = std::atoi(match[5].first);
 		double param;
@@ -146,7 +160,8 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 		if (!boost::regex_match(line.c_str(), spacex)) {
 			std::cout << "Error reading body part from text file. Received:\n"
 					<< line << "\nbut expected format:\n"
-					<< "<0 or more tabs><slot index digit> <part type character> "
+					<< "<0 or more tabs><slot index digit> "
+					<< "<part type character OR CamelCase string> "
 							"<part id string> <orientation digit> <evt. parameters>"
 					<< std::endl;
 			throw std::runtime_error(""); //sorry Andrea
