@@ -110,6 +110,8 @@ protected:
 
 #ifdef __APPLE__
 namespace timeNS {
+	//for simulation VS. rendering performance optimization
+	
 	//Compute the number of micro seconds between now and the time stored in oldt
 	long elapsedMS(struct timeval oldt){
 		struct timeval now;
@@ -478,6 +480,8 @@ int main(int argc, char *argv[]) {
 	unsigned int frameCount = 0;
 	
 	#ifdef __APPLE__
+	//for simulation VS. rendering performance optimization
+	
 	//Variable declaration and initialisation
 	struct timeval lastFrame,lastStep;
 	gettimeofday(&lastFrame,NULL);
@@ -487,6 +491,8 @@ int main(int argc, char *argv[]) {
 	while (!viewer.done() && !keyboardEvent->isQuit()) {
 
 		#ifdef __APPLE__
+		//for simulation VS. rendering performance optimization
+		
 		//if the last frame was rendered less than 0.03 s ago, we don't render a new frame
 		if (timeNS::elapsedMS(lastFrame)>30000) {//one frame every 0.03s (33fps max)
 			viewer.frame();
@@ -502,6 +508,8 @@ int main(int argc, char *argv[]) {
 			double step = configuration->getTimeStepLength();
 			
 			#ifdef __APPLE__
+			//for simulation VS. rendering performance optimization
+			
 			//we dont want to be faster than the real simulation time
 			//If the last step made the simulation go quicker than real time, we wait for real time
 			long remainingT = 1000000*step-timeNS::elapsedMS(lastStep);
