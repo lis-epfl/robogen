@@ -28,6 +28,9 @@
 #include "render/Mesh.h"
 #include <osgDB/ReadFile>
 #include <osg/Version>
+#if OSG_VERSION_GREATER_OR_EQUAL(3, 2, 0)
+	#include <osgUtil/SmoothingVisitor>
+#endif
 
 namespace robogen {
 
