@@ -474,6 +474,12 @@ int main(int argc, char *argv[]) {
 	int count = 0;
 	double t = 0;
 	unsigned int frameCount = 0;
+	
+	#ifdef __APPLE__
+	struct timeval lastFrame,lastStep;
+	gettimeofday(&lastFrame,NULL);
+	gettimeofday(&lastStep, NULL);
+	#endif
 
 	while (!viewer.done() && !keyboardEvent->isQuit()) {
 
