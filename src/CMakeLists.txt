@@ -89,7 +89,7 @@ find_package(Boost COMPONENTS chrono date_time graph system program_options rege
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(PNG REQUIRED)
-find_package(OpenSceneGraph REQUIRED osg osgViewer osgDB osgGA osgTerrain)
+find_package(OpenSceneGraph REQUIRED osg osgViewer osgDB osgGA osgTerrain osgUtil)
 find_package(Jansson REQUIRED)
 
 include_directories(${CMAKE_SOURCE_DIR} ${ODE_INCLUDE_PATH} ${OPENSCENEGRAPH_INCLUDE_DIRS} ${PNG_INCLUDE_PATH} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${PROTOBUF_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS} ${JANSSON_INCLUDE_DIRS})
