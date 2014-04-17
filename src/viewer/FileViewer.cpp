@@ -108,6 +108,22 @@ protected:
 
 };
 
+#ifdef __APPLE__
+namespace timeNS {
+	long elapsedMS(struct timeval oldt){
+		struct timeval now;
+		gettimeofday(&now, NULL);
+		return (now.tv_usec-oldt.tv_usec)+1000000*(now.tv_sec-oldt.tv_sec);
+	}
+	void microsleep(long nbrMicro){
+		struct timespec tim, tim2;
+		tim.tv_sec = nbrMicro/1000000L;
+		tim.tv_nsec = (nbrMicro%1000000L)*1000L;
+		nanosleep(&tim , &tim2);
+	}
+}
+#endif
+
 /**
  * Decodes a robot saved on file and visualize it
  */
@@ -461,12 +477,29 @@ int main(int argc, char *argv[]) {
 
 	while (!viewer.done() && !keyboardEvent->isQuit()) {
 
+		#ifdef __APPLE__
+		if (timeNS::elapsedMS(lastFrame)>30000) {//one frame every 0.03s (33fps max)
+			viewer.frame();
+			gettimeofday(&lastFrame, NULL);
+		}
+		#else
 		viewer.frame();
+		#endif
 
 		if (t < configuration->getSimulationTime()
 				&& !keyboardEvent->isPaused()) {
 
 			double step = configuration->getTimeStepLength();
+			
+			#ifdef __APPLE__
+			//we dont want to be faster than the real simulation time
+			long remainingT = 1000000*step-timeNS::elapsedMS(lastStep);
+			if (remainingT>0) {
+				timeNS::microsleep(remainingT);
+			}
+			gettimeofday(&lastStep, NULL);
+			#endif
+			
 			if (recording && count % recordFrequency == 0) {
 				osg::ref_ptr<SnapImageDrawCallback> snapImageDrawCallback =
 						dynamic_cast<SnapImageDrawCallback*>
@@ -574,6 +607,12 @@ int main(int argc, char *argv[]) {
 			t += step;
 
 		} /* If doing something */
+		#ifdef __APPLE__
+		else{
+			//If nothing happens, we sleep 0.1s
+			timeNS::microsleep(100000);
+		}
+		#endif
 
 	} /* while (!viewer.done() && !keyboardEvent->isQuit()) */
 
