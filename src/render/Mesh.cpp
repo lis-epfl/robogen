@@ -61,7 +61,13 @@ bool Mesh::loadMesh(const std::string& mesh) {
 	xLen_ = bb.xMax() - bb.xMin();
 	yLen_ = bb.yMax() - bb.yMin();
 	zLen_ = bb.zMax() - bb.zMin();
-
+	
+	#if OSG_VERSION_GREATER_OR_EQUAL(3, 2, 0)
+	osgUtil::SmoothingVisitor sv;
+	sv.setCreaseAngle(0);
+	meshNode_->accept(sv);
+	#endif
+	
 	return true;
 
 }
