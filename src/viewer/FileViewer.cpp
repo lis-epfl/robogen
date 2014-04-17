@@ -619,7 +619,7 @@ int main(int argc, char *argv[]) {
 
 		} /* If doing something */
 		#ifdef __APPLE__
-		else{
+		else{/* If simulation paused or finished */
 			//If nothing happens, we sleep 0.1s
 			timeNS::microsleep(100000);
 		}
