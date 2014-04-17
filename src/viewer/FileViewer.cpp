@@ -54,7 +54,6 @@
 #include "Robot.h"
 #include "robogen.pb.h"
 
-
 using namespace robogen;
 
 // ODE World
@@ -107,6 +106,19 @@ protected:
 
 
 };
+namespace timeNS {
+	long elapsedMS(struct timeval oldt){
+		struct timeval now;
+		gettimeofday(&now, NULL);
+		return (now.tv_usec-oldt.tv_usec)+1000000*(now.tv_sec-oldt.tv_sec);
+	}
+	void microsleep(long nbrMicro){
+		struct timespec tim, tim2;
+		tim.tv_sec = nbrMicro/1000000L;
+		tim.tv_nsec = (nbrMicro%1000000L)*1000L;
+		nanosleep(&tim , &tim2);
+	}
+}
 
 /**
  * Decodes a robot saved on file and visualize it
@@ -458,94 +470,110 @@ int main(int argc, char *argv[]) {
 	int count = 0;
 	double t = 0;
 	unsigned int frameCount = 0;
-
+	
+	struct timeval lastFrame,lastStep;
+	gettimeofday(&lastFrame,NULL);
+	gettimeofday(&lastStep, NULL);
+	
 	while (!viewer.done() && !keyboardEvent->isQuit()) {
-
-		viewer.frame();
-
+		
+		if (timeNS::elapsedMS(lastFrame)>30000) {//one frame every 0.03s (33fps max)
+			viewer.frame();
+			gettimeofday(&lastFrame, NULL);
+		}
+			
+		
 		if (t < configuration->getSimulationTime()
 				&& !keyboardEvent->isPaused()) {
-
 			double step = configuration->getTimeStepLength();
+			
+			//we dont want to be faster than the real simulation time
+			long remainingT = 1000000*step-timeNS::elapsedMS(lastStep);
+			if (remainingT>0) {
+				timeNS::microsleep(remainingT);
+			}
+			gettimeofday(&lastStep, NULL);
+			
+			
 			if (recording && count % recordFrequency == 0) {
 				osg::ref_ptr<SnapImageDrawCallback> snapImageDrawCallback =
-						dynamic_cast<SnapImageDrawCallback*>
-						(viewer.getCamera()->getPostDrawCallback());
-
+				dynamic_cast<SnapImageDrawCallback*>
+				(viewer.getCamera()->getPostDrawCallback());
+				
 				if(snapImageDrawCallback.get()) {
 					std::stringstream ss;
 					ss << recordDirectoryName << "/" <<
-							boost::format("%|04|")%frameCount << ".jpg";
+					boost::format("%|04|")%frameCount << ".jpg";
 					snapImageDrawCallback->setFileName(ss.str());
 					snapImageDrawCallback->setSnapImageOnNextFrame(true);
 					frameCount++;
 				}
 			}
-
-
+			
+			
 			if ((count++) % 500 == 0) {
 				std::cout << "." << std::flush;
 			}
-
+			
 			// Collision detection
 			dSpaceCollide(odeSpace, 0, odeCollisionCallback);
-
+			
 			// Step the world by one timestep
 			dWorldStep(odeWorld, step);
-
+			
 			// Empty contact groups used for collisions handling
 			dJointGroupEmpty(odeContactGroup);
-
+			
 			float networkInput[MAX_INPUT_NEURONS];
 			float networkOutput[MAX_OUTPUT_NEURONS];
-
+			
 			// Elapsed time since last call
 			env->setTimeElapsed(step);
-
+			
 			// Feed neural network
 			for (unsigned int i = 0; i < bodyParts.size(); ++i) {
 				if (boost::dynamic_pointer_cast<PerceptiveComponent>(
-						bodyParts[i])) {
+																	 bodyParts[i])) {
 					boost::dynamic_pointer_cast<PerceptiveComponent>(
-							bodyParts[i])->updateSensors(env);
+																	 bodyParts[i])->updateSensors(env);
 				}
 			}
-
+			
 			for (unsigned int i = 0; i < sensors.size(); ++i) {
 				if (boost::dynamic_pointer_cast<TouchSensor>(sensors[i])) {
 					networkInput[i] = boost::dynamic_pointer_cast<TouchSensor>(
-							sensors[i])->read();
+																			   sensors[i])->read();
 				} else if (boost::dynamic_pointer_cast<LightSensor>(
-						sensors[i])) {
+																	sensors[i])) {
 					networkInput[i] = boost::dynamic_pointer_cast<LightSensor>(
-							sensors[i])->read(env->getLightSources(),
-							env->getAmbientLight());
+																			   sensors[i])->read(env->getLightSources(),
+																								 env->getAmbientLight());
 				} else if (boost::dynamic_pointer_cast<SimpleSensor>(
-						sensors[i])) {
+																	 sensors[i])) {
 					networkInput[i] = boost::dynamic_pointer_cast<SimpleSensor>(
-							sensors[i])->read();
+																				sensors[i])->read();
 				}
 			}
-
+			
 			if (writeLog) {
 				log->logSensors(networkInput, sensors.size());
 			}
-
+			
 			::feed(neuralNetwork.get(), &networkInput[0]);
-
+			
 			// Step the neural network
 			::step(neuralNetwork.get());
-
+			
 			// Fetch the neural network ouputs
 			::fetch(neuralNetwork.get(), &networkOutput[0]);
-
+			
 			// Send control to motors
 			for (unsigned int i = 0; i < motors.size(); ++i) {
 				if (boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
-
+					
 					boost::shared_ptr<ServoMotor> motor =
-							boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
-
+					boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
+					
 					if (motor->isVelocityDriven()) {
 						motor->setVelocity(networkOutput[i]);
 					} else {
@@ -553,27 +581,32 @@ int main(int argc, char *argv[]) {
 					}
 				}
 			}
-
+			
 			if(writeLog) {
 				log->logMotors(networkOutput, motors.size());
 			}
-
+			
 			if (!scenario->afterSimulationStep()) {
 				std::cout
-						<< "Cannot execute scenario after simulation step. Quit."
-						<< std::endl;
+				<< "Cannot execute scenario after simulation step. Quit."
+				<< std::endl;
 				return EXIT_FAILURE;
 			}
-
+			
 			// log trajectory
 			if(writeLog) {
 				log->logPosition(
-					scenario->getRobot(
-							)->getCoreComponent()->getRootPosition());
+								 scenario->getRobot(
+								 )->getCoreComponent()->getRootPosition());
 			}
 			t += step;
 
 		} /* If doing something */
+		else{
+			//If nothing happens, we sleep 0.1s
+			timeNS::microsleep(100000);
+		}
+
 
 	} /* while (!viewer.done() && !keyboardEvent->isQuit()) */
 
