@@ -510,7 +510,7 @@ int main(int argc, char *argv[]) {
 							bodyParts[i])->updateSensors(env);
 				}
 			}
-			std::cout << "sensors: ";
+
 			for (unsigned int i = 0; i < sensors.size(); ++i) {
 				if (boost::dynamic_pointer_cast<TouchSensor>(sensors[i])) {
 					networkInput[i] = boost::dynamic_pointer_cast<TouchSensor>(
@@ -525,9 +525,7 @@ int main(int argc, char *argv[]) {
 					networkInput[i] = boost::dynamic_pointer_cast<SimpleSensor>(
 							sensors[i])->read();
 				}
-				std::cout << networkInput[i] << " ";
 			}
-			std::cout << std::endl;
 
 			if (writeLog) {
 				log->logSensors(networkInput, sensors.size());
@@ -553,10 +551,8 @@ int main(int argc, char *argv[]) {
 					} else {
 						motor->setPosition(networkOutput[i]);
 					}
-					std::cout << networkOutput[i] << " ";
 				}
 			}
-			std::cout << std::endl;
 
 			if(writeLog) {
 				log->logMotors(networkOutput, motors.size());
