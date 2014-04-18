@@ -108,25 +108,31 @@ protected:
 
 };
 
-#ifdef __APPLE__
 namespace timeNS {
 	//for simulation VS. rendering performance optimization
 	
-	//Compute the number of micro seconds between now and the time stored in oldt
-	long elapsedMS(struct timeval oldt){
-		struct timeval now;
-		gettimeofday(&now, NULL);
-		return (now.tv_usec-oldt.tv_usec)+1000000*(now.tv_sec-oldt.tv_sec);
+	//Time type
+	typedef boost::posix_time::ptime time_t;
+	
+	//Set var at now
+	void setNow(time_t *var){
+		*var= boost::posix_time::microsec_clock::local_time();
 	}
+	
+	//Compute the number of micro seconds between now and the time stored in oldt
+	long elapsedMS(time_t oldt){
+		time_t now;
+		setNow(&now);
+		boost::posix_time::time_duration msdiff = now - oldt;
+		return msdiff.total_microseconds();
+	}
+	
 	//Sleep for nbrMicro microseconds
 	void microsleep(long nbrMicro){
-		struct timespec tim, tim2;
-		tim.tv_sec = nbrMicro/1000000L;
-		tim.tv_nsec = (nbrMicro%1000000L)*1000L;
-		nanosleep(&tim , &tim2);
+		boost::this_thread::sleep(boost::posix_time::microsec(nbrMicro));
 	}
 }
-#endif
+
 
 /**
  * Decodes a robot saved on file and visualize it
@@ -479,35 +485,30 @@ int main(int argc, char *argv[]) {
 	double t = 0;
 	unsigned int frameCount = 0;
 	
-	#ifdef __APPLE__
 	//for simulation VS. rendering performance optimization
 	
 	//Variable declaration and initialisation
-	struct timeval lastFrame,lastStep;
-	gettimeofday(&lastFrame,NULL);
-	gettimeofday(&lastStep, NULL);
-	#endif
+	timeNS::time_t lastFrame,lastStep;
+	timeNS::setNow(&lastFrame);
+	timeNS::setNow(&lastStep);
 
 	while (!viewer.done() && !keyboardEvent->isQuit()) {
 
-		#ifdef __APPLE__
+		
 		//for simulation VS. rendering performance optimization
 		
 		//if the last frame was rendered less than 0.03 s ago, we don't render a new frame
 		if (timeNS::elapsedMS(lastFrame)>30000) {//one frame every 0.03s (33fps max)
 			viewer.frame();
-			gettimeofday(&lastFrame, NULL);
+			timeNS::setNow(&lastFrame);
 		}
-		#else
-		viewer.frame();
-		#endif
 
 		if (t < configuration->getSimulationTime()
 				&& !keyboardEvent->isPaused()) {
 
 			double step = configuration->getTimeStepLength();
 			
-			#ifdef __APPLE__
+			
 			//for simulation VS. rendering performance optimization
 			
 			//we dont want to be faster than the real simulation time
@@ -516,8 +517,8 @@ int main(int argc, char *argv[]) {
 			if (remainingT>0) {
 				timeNS::microsleep(remainingT);
 			}
-			gettimeofday(&lastStep, NULL);
-			#endif
+			timeNS::setNow(&lastStep);
+			
 			
 			if (recording && count % recordFrequency == 0) {
 				osg::ref_ptr<SnapImageDrawCallback> snapImageDrawCallback =
@@ -626,12 +627,12 @@ int main(int argc, char *argv[]) {
 			t += step;
 
 		} /* If doing something */
-		#ifdef __APPLE__
+		
 		else{/* If simulation paused or finished */
 			//If nothing happens, we sleep 0.1s
 			timeNS::microsleep(100000);
 		}
-		#endif
+		
 
 	} /* while (!viewer.done() && !keyboardEvent->isQuit()) */
 
