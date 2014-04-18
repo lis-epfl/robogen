@@ -144,6 +144,7 @@ std::map<std::string, std::vector<std::string> > initPartTypeSensorsMap() {
 		sensors.push_back("Pitch");
 		sensors.push_back("Roll");
 		sensors.push_back("Yaw");
+		sensors.push_back("oscillator");
 		partTypeSensorsMap[PART_TYPE_CORE_COMPONENT] = sensors;
 	}
 

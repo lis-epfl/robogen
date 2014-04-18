@@ -37,11 +37,12 @@ namespace robogen {
 ImuSensor::ImuSensor() :
 		initialized_(false) {
 	std::string labels[] = { "x-acceleration", "y-acceleration",
-			"z-acceleration", "Pitch", "Roll", "Yaw" };
-	for (unsigned int i = 0; i < 6; ++i) {
+			"z-acceleration", "Pitch", "Roll", "Yaw", "oscillator" };
+	for (unsigned int i = 0; i < 7; ++i) {
 		sensors_.push_back(
 				boost::shared_ptr<SimpleSensor>(new SimpleSensor(labels[i])));
 	}
+	counter_ = 0;
 }
 
 ImuSensor::~ImuSensor() {
@@ -107,6 +108,9 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	sensors_[3]->update(rotVelocity_.x());
 	sensors_[4]->update(rotVelocity_.y());
 	sensors_[5]->update(rotVelocity_.z());
+	sensors_[6]->update(sin(counter_/50.0));
+
+	counter_++;
 
 }
 
