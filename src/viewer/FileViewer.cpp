@@ -32,6 +32,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/format.hpp>
+#include <boost/thread.hpp>
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
 #include <osgDB/WriteFile>
