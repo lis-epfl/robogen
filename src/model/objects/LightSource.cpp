@@ -47,6 +47,11 @@ const osg::Vec3 LightSource::getPosition() {
 	return position_;
 }
 
+void LightSource::setPosition(const osg::Vec3& position) {
+	this->position_ = position;
+	dGeomSetPosition(lightSource_, position.x(), position.y(), position.z());
+}
+
 const osg::Quat LightSource::getAttitude() {
 	return osg::Quat();
 }

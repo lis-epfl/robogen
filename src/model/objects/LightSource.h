@@ -66,6 +66,11 @@ public:
 	virtual const osg::Quat getAttitude();
 
 	/**
+	 * Sets the position of the light source
+	 */
+	void setPosition(const osg::Vec3& position);
+
+	/**
 	 * @return intensity
 	 */
 	float getIntensity();
