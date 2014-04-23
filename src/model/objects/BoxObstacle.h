@@ -89,6 +89,11 @@ private:
 	dBodyID box_;
 
 	/**
+	 * The box
+	 */
+	dGeomID boxGeom_;
+
+	/**
 	 * The box size
 	 */
 	osg::Vec3 size_;

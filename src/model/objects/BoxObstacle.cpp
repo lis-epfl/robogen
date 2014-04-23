@@ -35,20 +35,22 @@ BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
 		const osg::Vec3& rotationAxis, float rotationAngle) :
 		size_(size) {
 
-	box_ = dBodyCreate(odeWorld);
-	dMass massOde;
-	if (density < RobogenUtils::OSG_EPSILON){
-		// mass must be something - so even fix obstacles are given arbit. mass
-		dMassSetBox(&massOde, 1., size.x(), size.y(), size.z());
-	}
-	else{
+
+	if (density >= RobogenUtils::OSG_EPSILON){
+		// if not fixed, create body
+		box_ = dBodyCreate(odeWorld);
+		dMass massOde;
 		dMassSetBox(&massOde, density, size.x(), size.y(), size.z());
+		dBodySetMass(box_, &massOde);
+	} else{
+		// otherwise make body 0
+		box_ = 0;
+
 	}
-	dBodySetMass(box_, &massOde);
-	dxGeom* g = dCreateBox(odeSpace, size.x(), size.y(), size.z());
-	dBodySetPosition(box_, pos.x(), pos.y(), pos.z());
-	dGeomSetPosition(g, pos.x(), pos.y(), pos.z());
-	dGeomSetBody(g, box_);
+	boxGeom_ = dCreateBox(odeSpace, size.x(), size.y(), size.z());
+
+	dGeomSetPosition(boxGeom_, pos.x(), pos.y(), pos.z());
+	dGeomSetBody(boxGeom_, box_);
 
 	if (rotationAngle >= RobogenUtils::OSG_EPSILON){
 		osg::Quat rotation;
@@ -58,19 +60,7 @@ BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
 		quatOde[1] = rotation.x();
 		quatOde[2] = rotation.y();
 		quatOde[3] = rotation.z();
-		dBodySetQuaternion(box_, quatOde);
-
-        //dMatrix3 R;
-        //dRFromAxisAndAngle (R,.x(),rotationAxis.y(),
-        //		rotationAxis.z(), );
-        //dBodySetRotation(box_, R);
-	}
-
-	// fix body if desired
-	if (density < RobogenUtils::OSG_EPSILON){
-		dJointID joint = dJointCreateFixed(odeWorld, 0);
-		dJointAttach(joint, box_, 0);
-		dJointSetFixed(joint);
+		dGeomSetQuaternion(boxGeom_, quatOde);
 	}
 }
 
@@ -78,20 +68,23 @@ BoxObstacle::~BoxObstacle() {
 }
 
 void BoxObstacle::remove() {
-	dGeomDestroy(dBodyGetFirstGeom(box_));
-	for(int i=0; i< dBodyGetNumJoints(box_); i++) {
-		dJointDestroy(dBodyGetJoint(box_, i));
+	dGeomDestroy(boxGeom_);
+	if (box_ != 0) {
+		for(int i=0; i< dBodyGetNumJoints(box_); i++) {
+			dJointDestroy(dBodyGetJoint(box_, i));
+		}
+		dBodyDestroy(box_);
 	}
-	dBodyDestroy(box_);
 }
 
 const osg::Vec3 BoxObstacle::getPosition() {
-	const dReal* pos = dBodyGetPosition(box_);
+	const dReal* pos = dGeomGetPosition(boxGeom_);
 	return osg::Vec3(pos[0], pos[1], pos[2]);
 }
 
 const osg::Quat BoxObstacle::getAttitude() {
-	const dReal* boxQuat = dBodyGetQuaternion(box_);
+	dQuaternion boxQuat;
+	dGeomGetQuaternion(boxGeom_, boxQuat);
 	return osg::Quat(boxQuat[1], boxQuat[2], boxQuat[3], boxQuat[0]);
 }
 
@@ -102,9 +95,8 @@ const osg::Vec3 BoxObstacle::getSize() {
 void BoxObstacle::getAABB(double& minX, double& maxX, double& minY,
 		double& maxY, double& minZ, double& maxZ) {
 
-	dGeomID g = dBodyGetFirstGeom(box_);
 	dReal aabb[6];
-	dGeomGetAABB(g, aabb);
+	dGeomGetAABB(boxGeom_, aabb);
 	minX = aabb[0];
 	maxX = aabb[1];
 	minY = aabb[2];
