@@ -28,8 +28,10 @@
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
 
 #include "config/ConfigurationReader.h"
 #include "config/ObstaclesConfig.h"
@@ -241,6 +243,18 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 
 }
 
+const std::string getMatchNFloatPattern(int n) {
+	std::stringstream paternSS;
+	paternSS << "^";
+	for ( unsigned i=0; i<n; i++) {
+		paternSS << "(-?\\d*[\\d\\.]\\d*)";
+		if ( i < (n-1) )
+			paternSS << "\\s+";
+	}
+	paternSS << "$";
+	return paternSS.str();
+}
+
 boost::shared_ptr<ObstaclesConfig> ConfigurationReader::parseObstaclesFile(
 		const std::string& fileName) {
 
@@ -251,54 +265,81 @@ boost::shared_ptr<ObstaclesConfig> ConfigurationReader::parseObstaclesFile(
 		return boost::shared_ptr<ObstaclesConfig>();
 	}
 
-	std::vector<osg::Vec2> coordinate;
-	std::vector<osg::Vec3> size;
+	// old = on ground, no rotation:
+	// x y xLength yLength zLength density
+	static const boost::regex oldObstacleRegex(getMatchNFloatPattern(6));
+	// same as above but can be above ground:
+	// x y z xLength yLength zLength density
+	static const boost::regex noRotationObstacleRegex(
+			getMatchNFloatPattern(7));
+	// full (w/ axis+angle rotation)
+	// x y z xLength yLength zLength density xRot yRot zRot rotAngle
+	static const boost::regex fullObstacleRegex(
+				getMatchNFloatPattern(11));
+
+	std::vector<osg::Vec3> coordinates;
+	std::vector<osg::Vec3> sizes;
 	std::vector<float> densities;
-	float x;
-	while (obstaclesFile >> x) {
+	std::vector<osg::Vec3> rotationAxes;
+	std::vector<float> rotationAngles;
 
-		float y;
-		if (!(obstaclesFile >> y)) {
-			std::cout << "Malformed obstacles file: '" << fileName << "'"
-					<< std::endl;
-			return boost::shared_ptr<ObstaclesConfig>();
+	std::string line;
+	int lineNum = 0;
+	while (std::getline(obstaclesFile, line)) {
+		lineNum++;
+		boost::cmatch match;
+		float x, y, z, xSize, ySize, zSize, density, xRotation, yRotation,
+				zRotation, rotationAngle;
+		if(boost::regex_match(line.c_str(), match,
+						fullObstacleRegex)){
+			x = std::atof(match[1].str().c_str());
+			y = std::atof(match[2].str().c_str());
+			z = std::atof(match[3].str().c_str());
+			xSize = std::atof(match[4].str().c_str());
+			ySize = std::atof(match[5].str().c_str());
+			zSize = std::atof(match[6].str().c_str());
+			density = std::atof(match[7].str().c_str());
+			xRotation = std::atof(match[8].str().c_str());
+			yRotation = std::atof(match[9].str().c_str());
+			zRotation = std::atof(match[10].str().c_str());
+			rotationAngle = std::atof(match[11].str().c_str());
+		} else {
+			xRotation = yRotation = zRotation = rotationAngle = 0.0;
+			if (boost::regex_match(line.c_str(), match, oldObstacleRegex)){
+				x = std::atof(match[1].str().c_str());
+				y = std::atof(match[2].str().c_str());
+				xSize = std::atof(match[3].str().c_str());
+				ySize = std::atof(match[4].str().c_str());
+				zSize = std::atof(match[5].str().c_str());
+				density = std::atof(match[6].str().c_str());
+
+				z = zSize/2;
+			} else if(boost::regex_match(line.c_str(), match,
+					noRotationObstacleRegex)){
+				x = std::atof(match[1].str().c_str());
+				y = std::atof(match[2].str().c_str());
+				z = std::atof(match[3].str().c_str());
+				xSize = std::atof(match[4].str().c_str());
+				ySize = std::atof(match[5].str().c_str());
+				zSize = std::atof(match[6].str().c_str());
+				density = std::atof(match[7].str().c_str());
+			} else {
+				std::cout << "Error parsing line " << lineNum <<
+						" of obstacles file: '" << fileName << "'"
+						<< std::endl;
+				return boost::shared_ptr<ObstaclesConfig>();
+			}
 		}
-
-		float xSize;
-		if (!(obstaclesFile >> xSize)) {
-			std::cout << "Malformed obstacles file: '" << fileName << "'"
-					<< std::endl;
-			return boost::shared_ptr<ObstaclesConfig>();
-		}
-
-		float ySize;
-		if (!(obstaclesFile >> ySize)) {
-			std::cout << "Malformed obstacles file: '" << fileName << "'"
-					<< std::endl;
-			return boost::shared_ptr<ObstaclesConfig>();
-		}
-
-		float zSize;
-		if (!(obstaclesFile >> zSize)) {
-			std::cout << "Malformed obstacles file: '" << fileName << "'"
-					<< std::endl;
-			return boost::shared_ptr<ObstaclesConfig>();
-		}
-
-		float density;
-		if (!(obstaclesFile >> density)) {
-			std::cout << "Malformed obstacles file: '" << fileName << "'"
-					<< std::endl;
-			return boost::shared_ptr<ObstaclesConfig>();
-		}
-
-		coordinate.push_back(osg::Vec2(x, y));
-		size.push_back(osg::Vec3(xSize, ySize, zSize));
+		coordinates.push_back(osg::Vec3(x, y, z));
+		sizes.push_back(osg::Vec3(xSize, ySize, zSize));
 		densities.push_back(density);
+		rotationAxes.push_back(osg::Vec3(xRotation, yRotation, zRotation));
+		rotationAngles.push_back(rotationAngle);
 	}
 
 	return boost::shared_ptr<ObstaclesConfig>(
-			new ObstaclesConfig(coordinate, size, densities));
+			new ObstaclesConfig(coordinates, sizes, densities,
+					rotationAxes, rotationAngles));
 }
 
 boost::shared_ptr<StartPositionConfig> ConfigurationReader::parseStartPositionFile(
@@ -340,20 +381,26 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 		const robogenMessage::SimulatorConf& simulatorConf) {
 
 	// Decode obstacles
-	std::vector<osg::Vec2> obstaclesCoord;
+	std::vector<osg::Vec3> obstaclesCoord;
 	std::vector<osg::Vec3> obstaclesSize;
 	std::vector<float> obstaclesDensity;
+	std::vector<osg::Vec3> obstaclesRotationAxis;
+	std::vector<float> obstaclesRotationAngle;
 	for (int i = 0; i < simulatorConf.obstacles_size(); ++i) {
 
 		const robogenMessage::Obstacle& o = simulatorConf.obstacles(i);
-		obstaclesCoord.push_back(osg::Vec2(o.x(), o.y()));
+		obstaclesCoord.push_back(osg::Vec3(o.x(), o.y(), o.z()));
 		obstaclesSize.push_back(osg::Vec3(o.xsize(), o.ysize(), o.zsize()));
 		obstaclesDensity.push_back(o.density());
+		obstaclesRotationAxis.push_back(osg::Vec3(o.xrotation(),
+				o.yrotation(), o.zrotation()));
+		obstaclesRotationAngle.push_back(o.rotationangle());
 
 	}
 	boost::shared_ptr<ObstaclesConfig> obstacles(
 			new ObstaclesConfig(obstaclesCoord, obstaclesSize,
-					obstaclesDensity));
+					obstaclesDensity, obstaclesRotationAxis,
+					obstaclesRotationAngle));
 
 	// Decode start positions
 	std::vector<boost::shared_ptr<StartPosition> > startPositions;

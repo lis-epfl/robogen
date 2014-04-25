@@ -43,6 +43,7 @@
 #include "robogen.pb.h"
 
 #define CAP_ACCELERATION
+#define MAX_ACCELERATION (10.0)
 #define MIN_FITNESS (-10000.0)
 using namespace robogen;
 
@@ -265,7 +266,7 @@ int main(int argc, char* argv[]) {
 								double linAccel = dCalcPointsDistance3(
 										linVel, previousLinVel);
 
-								if(angAccel > 20.0 || linAccel > 20.0) {
+								if(angAccel > MAX_ACCELERATION || linAccel > MAX_ACCELERATION) {
 									printf("EVALUATION CANCELED: max accel");
 									printf(" exceeded at time %f,", t);
 									printf("  will give 0 fitness.\n");

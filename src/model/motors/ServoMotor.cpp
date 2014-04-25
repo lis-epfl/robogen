@@ -31,7 +31,7 @@
 
 namespace robogen {
 
-const float ServoMotor::DEFAULT_GAIN = 0.5;
+const float ServoMotor::DEFAULT_GAIN = 5.0;//0.5;
 
 // Expressed in Newton-millimeters from kg-cm = ((kg-cm)*g)*10
 const float ServoMotor::DEFAULT_MAX_FORCE = 25 * 9.81 * 1000;
