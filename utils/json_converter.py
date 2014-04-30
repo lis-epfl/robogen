@@ -15,10 +15,6 @@ def get_part(id_, body) :
 def fix_param(val) :
     return round(val * 10000)/10000.0
 
-def scale_weight(val, min_, max_) :
-    return val
-    #return (val - min_)/(max_ - min_)  
-
 
 def write_part(output, part, body, indentation_level=0) :
     for i in range(indentation_level) :
@@ -69,7 +65,7 @@ for connection in robot["brain"]["connection"] :
     output.write(" ")
     output.write(connection["dest"].split("-")[1])
     output.write(" ")
-    output.write(str(scale_weight(connection["weight"], -3, 3)))
+    output.write(str(connection["weight"]))
     output.write("\n")
 output.write("\n")
 for neuron in robot["brain"]["neuron"] :
