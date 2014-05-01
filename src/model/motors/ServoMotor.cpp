@@ -37,8 +37,10 @@ const float ServoMotor::DEFAULT_GAIN = 5.0;//0.5;
 const float ServoMotor::DEFAULT_MAX_FORCE = 25 * 9.81 * 1000;
 const float ServoMotor::MIN_POS_RAD = -(M_PI / 2) * 6 / 9;
 const float ServoMotor::MAX_POS_RAD = (M_PI / 2) * 6 / 9;
-const float ServoMotor::MIN_VELOCITY = -3;
-const float ServoMotor::MAX_VELOCITY = 3;
+
+// 100 rpm converted to rad/s
+const float ServoMotor::MIN_VELOCITY = -(100.0/60.0) * 2 * M_PI;
+const float ServoMotor::MAX_VELOCITY = (100.0/60.0) * 2 * M_PI;
 
 ServoMotor::ServoMotor(dJointID joint, float maxForce, float gain,
 		ioPair id) : Motor(id),
