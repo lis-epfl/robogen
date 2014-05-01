@@ -24,7 +24,13 @@ def write_part(output, part, body, indentation_level=0) :
     else :
         for connection in body["connection"] :
             if connection["dest"] == part["id"] :
-                output.write(str(connection["srcSlot"]))
+                # need to fix slot numbering
+                # see lines 182-186 in PartRepresentation
+                if get_part(connection["src"], 
+                            body)["type"] == "CoreComponent": 
+                    output.write(str(connection["srcSlot"]))
+                else :
+                    output.write(str(connection["srcSlot"] - 1))
     output.write(" ")
     output.write(part["type"])
     output.write(" ")
