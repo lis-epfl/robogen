@@ -102,7 +102,7 @@ void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
 		bool success = false;
 
 		for (unsigned int attempt = 0;
-				(attempt < conf_->maxBodyMutationAttemps); ++attempt) {
+				(attempt < conf_->maxBodyMutationAttempts); ++attempt) {
 
 			boost::shared_ptr<RobotRepresentation> newBot = boost::shared_ptr<
 					RobotRepresentation>(new RobotRepresentation(*robot.get()));
@@ -231,7 +231,7 @@ void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 		if (dist(rng_)) {
 
 			for (unsigned int attempt = 0;
-					attempt < conf_->maxBodyMutationAttemps; ++attempt) {
+					attempt < conf_->maxBodyMutationAttempts; ++attempt) {
 
 				std::cout << "Robot was mutated using mutation " << i << std::endl;
 							std::cout << "OldBot: " << std::endl;

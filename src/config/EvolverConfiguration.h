@@ -176,14 +176,35 @@ typedef struct EvolverConfiguration {
 	 */
 	std::vector<char> allowedBodyPartTypes;
 
+	/**
+	 * Probabilities for the various body operators
+	 */
 	double bodyOperatorProbability[NUM_BODY_OPERATORS];
 
-	unsigned int maxBodyMutationAttemps;
 
+	/**
+	 * Max body mutation attempts per reproduction events:
+	 * 	Mutator will give up trying to mutate the body tree after
+	 * 	this many failed attempts
+	 */
+	unsigned int maxBodyMutationAttempts;
+
+	/**
+	 * Maximum number of allowed body parts
+	 */
 	unsigned int maxBodyParts;
 
+	/**
+	 * Minimum number of body parts in individuals in the initial population
+	 */
 	unsigned int minNumInitialParts;
+
+	/**
+	 * Maximum number of body parts in individuals in the initial population
+	 */
 	unsigned int maxNumInitialParts;
+
+
 
 
 
