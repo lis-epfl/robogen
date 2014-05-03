@@ -48,9 +48,13 @@ BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
 
 	}
 	boxGeom_ = dCreateBox(odeSpace, size.x(), size.y(), size.z());
-
-	dGeomSetPosition(boxGeom_, pos.x(), pos.y(), pos.z());
 	dGeomSetBody(boxGeom_, box_);
+	dGeomSetPosition(boxGeom_, pos.x(), pos.y(), pos.z());
+	// for some reason body/geom position do not get tied together as they
+	// should, so we set the body position as well, and use it when getting
+	// the position on non-stationary bodies
+	if (box_ != 0)
+		dBodySetPosition(box_, pos.x(), pos.y(), pos.z());
 
 	if (rotationAngle >= RobogenUtils::OSG_EPSILON){
 		osg::Quat rotation;
@@ -61,6 +65,7 @@ BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
 		quatOde[2] = rotation.y();
 		quatOde[3] = rotation.z();
 		dGeomSetQuaternion(boxGeom_, quatOde);
+
 	}
 }
 
@@ -78,6 +83,10 @@ void BoxObstacle::remove() {
 }
 
 const osg::Vec3 BoxObstacle::getPosition() {
+	if (box_!= 0) {
+		const dReal* pos = dBodyGetPosition(box_);
+		return osg::Vec3(pos[0], pos[1], pos[2]);
+	}
 	const dReal* pos = dGeomGetPosition(boxGeom_);
 	return osg::Vec3(pos[0], pos[1], pos[2]);
 }
@@ -86,6 +95,7 @@ const osg::Quat BoxObstacle::getAttitude() {
 	dQuaternion boxQuat;
 	dGeomGetQuaternion(boxGeom_, boxQuat);
 	return osg::Quat(boxQuat[1], boxQuat[2], boxQuat[3], boxQuat[0]);
+
 }
 
 const osg::Vec3 BoxObstacle::getSize() {
