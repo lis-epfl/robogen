@@ -1,7 +1,7 @@
-0 E Core 0
-	5 G RightWheg 0 0.045
-	4 G LeftWheg 0 0.04
-	1 B Brick 0 2 .3 .543782
+0 CoreComponent Core 0
+	5 ActiveWheg RightWheg 0 0.045
+	4 ActiveWheg LeftWheg 0 0.04
+	1 ParametricJoint Brick 0 2 .3 .543782
 
 
 
