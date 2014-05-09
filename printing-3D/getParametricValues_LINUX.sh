@@ -30,7 +30,7 @@ PreviousRotAngle=
 echo "sys.path.append("\"$CurrentDir/utils/Mod"\")" > utils/intermediateTer.py
 
 #file name to be parsed.
-FILENAME="someBody.txt"
+FILENAME="my_robot.txt"
 
 # read file, line by line, and get all of the elements.
 
@@ -93,8 +93,8 @@ do
 
 	elif [[ "$PreviousType" == "ParametricJoint" ]]; then
 		#Fill the parameter value needed in python script to be executed in FreeCAD
-		echo "heightJoin = $PreviousRadius" > utils/intermediate.py
-		echo "angle = $PreviousInclAngle" > utils/intermediatebis.py
+		echo "heightJoin = $PreviousLength" > utils/intermediate.py
+		echo "inclAngle = $PreviousInclAngle" > utils/intermediatebis.py
 		echo Path="\"$CurrentDir/STL_Files/ParametricJoinPartB$parametricbrick.stl"\" >> utils/intermediatebis.py
 		> FreeCAD_Modules/CallJoinB$parametricbrick.py
 		#concatenate CallWhegPART1.py+utils/intermediate.py+CallWhegPART2.py in one file : the CallParametricJointPartA python script which will be executed by FreeCAD to generate Paramteric Parts
