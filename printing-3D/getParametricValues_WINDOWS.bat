@@ -73,19 +73,19 @@ set VAR6=%6
 set VAR7=%7
 
 ::Counter number of passivewheels, activewheels, activewhegs and parametricbricks
-if "%VAR2%"=="W" (
+if "%VAR2%"=="PassiveWheel" (
 	set /a passivewheel=%passivewheel%+1
 	set PreviousType=%VAR2:~0,1%
 	set PreviousRadius=%VAR5%
-) else if "%VAR2%"=="J" (
+) else if "%VAR2%"=="ActiveWheel" (
 	set /a activewheel=%activewheel%+1
 	set PreviousType=%VAR2:~0,1%
 	set PreviousRadius=%VAR5%
-) else if "%VAR2%"=="G" (
+) else if "%VAR2%"=="ActiveWheg" (
 	set /a activewheg=%activewheg%+1
 	set PreviousType=%VAR2:~0,1%
 	set PreviousRadius=%VAR5%
-) else if "%VAR2%"=="B" (
+) else if "%VAR2%"=="ParametricJoint" (
 	set /a parametricbrick=%parametricbrick%+1
 	set PreviousType=%VAR2:~0,1%
 	set PreviousLength=%VAR5%
@@ -95,21 +95,21 @@ if "%VAR2%"=="W" (
 
 ::Produce the scripts for each Parametric Part
 
-if "%PreviousType%"=="W" (
+if "%PreviousType%"=="PassiveWheel" (
 	::Fill the parameter value needed in python script to be executed in FreeCAD
 	copy /y nul "FreeCAD_Modules\CallPassiveWheel%passivewheel%.py"
 	echo radiusExtern = %PreviousRadius% > utils\intermediate.py
 	echo Path="%CurrentDir%\..\PassiveWheel%passivewheel%.stl" >> utils\intermediate.py
 	copy utils\Header.py+utils\intermediateTer.py+utils\CallWheelPart1.py+utils\intermediate.py+utils\CallWheelPart2.py FreeCAD_Modules\CallPassiveWheel%passivewheel%.py
 
-) else if "%PreviousType%"=="J" (
+) else if "%PreviousType%"=="ActiveWheel" (
 	::Fill the parameter value needed in python script to be executed in FreeCAD
 	copy /y nul "FreeCAD_Modules\CallActiveWheel%activewheel%.py"
 	echo radiusExtern = %PreviousRadius% > utils\intermediate.py
 	echo Path="%CurrentDir%\..\ActiveWheel%activewheel%.stl" >> utils\intermediate.py
 	copy utils\Header.py+utils\intermediateTer.py+utils\CallWheelPart1.py+utils\intermediate.py+utils\CallWheelPart2.py FreeCAD_Modules\CallActiveWheel%activewheel%.py
 
-) else if "%PreviousType%"=="G" (
+) else if "%PreviousType%"=="ActiveWheg" (
 	::Fill the parameter value needed in python script to be executed in FreeCAD
 	copy /y nul "FreeCAD_Modules\CallWheg%activewheg%.py"
 	::concatenate CallWhegPART1.py+utils\intermediate.py+CallWhegPART2.py in one file : the CallWheg python script which will be executed by FreeCAD to generate Paramteric Parts
@@ -117,7 +117,7 @@ if "%PreviousType%"=="W" (
 	echo Path="%CurrentDir%\..\ActiveWheg%activewheg%.stl" >> utils\intermediate.py
 	copy utils\Header.py+utils\intermediateTer.py+utils\CallWhegPart1.py+utils\intermediate.py+utils\CallWhegPart2.py FreeCAD_Modules\CallWheg%activewheg%.py
 
-) else if "%PreviousType%"=="B" (
+) else if "%PreviousType%"=="ParametricJoint" (
 	::Fill the parameter value needed in python script to be executed in FreeCAD
 	echo heightJoin = %PreviousLength% > utils\intermediate.py 
 	::Fill the parameter value needed in python script to be executed in FreeCAD
