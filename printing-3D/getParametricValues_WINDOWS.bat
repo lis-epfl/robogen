@@ -127,7 +127,7 @@ if "%PreviousType%"=="PassiveWheel" (
 	::concatenate CallWhegPART1.py+utils\intermediate.py+CallWhegPART2.py in one file : the CallParametricJointPartA python script which will be executed by FreeCAD to generate Paramteric Parts
 	copy utils\Header.py+utils\intermediateTer.py+utils\CallJoinBPart1.py+utils\intermediatebis.py+utils\CallJoinBPart2.py FreeCAD_Modules\CallJoinB%parametricbrick%.py
 	::Fill the parameter value needed in python script to be executed in FreeCAD
-	echo rotAngle = %PreviousRotAngle% >> utils\intermediate.py
+	echo angle = %PreviousRotAngle% >> utils\intermediate.py
 	echo Path="%CurrentDir%\..\ParametricJoinPartA%parametricbrick%.stl" >> utils\intermediate.py
 	copy /y nul "FreeCAD_Modules\CallJoinA%parametricbrick%.py"
 	::concatenate CallWhegPART1.py+utils\intermediate.py+CallWhegPART2.py in one file : the CallParametricJointPartB python script which will be executed by FreeCAD to generate Paramteric Parts
