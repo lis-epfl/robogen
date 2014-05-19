@@ -62,6 +62,14 @@ enum inputType{
 };
 
 /**
+ * Integer codes for motor type
+ */
+enum motorType{
+	POSITION_CONTROL,
+	VELOCITY_CONTROL
+};
+
+/**
  * String to be written at the head of the Arduino Neural Network file
  */
 std::string headTemplate(""\

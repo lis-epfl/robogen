@@ -36,6 +36,7 @@
 #include "model/ActuatedComponent.h"
 #include "model/PerceptiveComponent.h"
 #include "model/motors/Motor.h"
+#include "model/motors/ServoMotor.h"
 #include "model/sensors/Sensor.h"
 #include "model/sensors/LightSensor.h"
 #include "model/sensors/TouchSensor.h"
@@ -92,9 +93,27 @@ void ArduinoNNCompiler::compile(Robot &robot,
 	file << "#define NB_TOUCH_SENSORS " << nTouch << std::endl;
 	file << "#define NB_SERVOS_MOTORS " << nServo << std::endl;
 	file << std::endl;
+
 	file << "int input[] = {";
 	for (unsigned int i=0; i<input.size(); ++i) file << (i?", ":"") << input[i];
 	file << "};" << std::endl;
+
+	file << "int motor[] = {";
+	for (unsigned int i = 0; i < motors.size(); ++i) {
+		file << (i?", ":"");
+		if (boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
+
+			boost::shared_ptr<ServoMotor> motor =
+					boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
+			file << (motor->isVelocityDriven() ?  arduino::VELOCITY_CONTROL :
+							arduino::POSITION_CONTROL);
+		} else {
+			std::cout << "Error: unsupported motor!!";
+			exit(EXIT_FAILURE);
+		}
+	}
+	file << "};" << std::endl;
+
 	// process weights
 	std::vector<double> weights;
 	boost::shared_ptr<NeuralNetwork> brain = robot.getBrain();
