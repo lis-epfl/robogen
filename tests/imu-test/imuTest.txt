@@ -1,3 +1,13 @@
+0 F bottom 0
+	1 F link 0
+		4 B elong1 0 0.03 0 0
+			0 E core 0
+
+
+
+
+
+
 Fitness: 99 
 Robot-Body
 NodesCount: 17
