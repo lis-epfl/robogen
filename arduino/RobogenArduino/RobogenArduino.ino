@@ -217,7 +217,7 @@ void loop() {
     if(motor[i] == 0) //servoMotors => set poisition 
     {
       servoPosition = networkOutputs[i]; //goes from 0 degrees to 180 degrees 
-      myservo[i].write(servoSpeed);Serial.print(servoSpeed); Serial.print("\t");
+      myservo[i].write(servoPosition);Serial.print(servoPosition); Serial.print("\t");
     }
     else if(motor[i] == 1)  // full rotation motors => set speed
     {
