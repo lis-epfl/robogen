@@ -58,6 +58,11 @@ int nbLightSensors, nbTouchSensors;
 // AD0 low = 0x68 (default for InvenSense evaluation board)
 // AD0 high = 0x69
 MPU6050 accelgyro;
+float accelX, accelY, accelZ;
+float xAccelOffset = 0.0;
+float yAccelOffset = 0.0; 
+float zAccelOffset = 2500;
+float accelScaleFactor = (9.81/16500.0);
 
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
@@ -76,8 +81,9 @@ Servo myservo0,myservo1,myservo2,myservo3,myservo4,myservo5;
 /* Servopin allocation*/
 int outputTab[6]={9,10,5,6,11,13};
 Servo myservo[6]={myservo0,myservo1,myservo2,myservo3,myservo4,myservo5};
+int initMotorValue = 0;
 
-float servoSpeed, lightInput;
+float servoPosition, servoSpeed, lightInput;
 int threshold = 400;
 
 void setup() {
@@ -97,15 +103,7 @@ void setup() {
   gain = EAGain;
   initNetwork(&network, nInputs, nOutputs, weights, bias, gain);
   
-  // initialize device
-  Serial.println("Initializing I2C devices...");
-  accelgyro.initialize();
-  
-  // verify connection
-  Serial.println("Testing device connections...");
-  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-  
-  /* initialize acceleromoter and gyroscope */
+ /* initialize acceleromoter and gyroscope */
   Serial.println("Initializing I2C devices...");
   accelgyro.initialize();
   
@@ -113,6 +111,14 @@ void setup() {
   Serial.println("Testing device connections...");
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   
+  /*accelgyro.setXAccelOffset(0);
+  accelgyro.setYAccelOffset(0);
+  accelgyro.setZAccelOffset(2500);
+  
+  xAccelOffset = accelgyro.getXAccelOffset();
+  yAccelOffset = accelgyro.getYAccelOffset();
+  zAccelOffset = accelgyro.getZAccelOffset();
+  */
   /* Feed inputTab according to the mapping of light sensors and touch sensors
    * We need to separate them because light sensors use analog inputs and touch sensors digital inputs
    */
@@ -149,9 +155,13 @@ void setup() {
       pinMode(inputTab[i][0], INPUT);
   }
   
-  /* Assigns servos motors port*/
+  /* Assigns servos motors port and set initial command to activate full rotation motors */
   for(int i=0;i<nOutputs;i++)
+  {
     myservo[i].attach(outputTab[i]);
+    if(motor[i] == 1)
+      myservo[i].write(initMotorValue);
+  } 
    
 }
 
@@ -175,16 +185,22 @@ void loop() {
       networkInput[i] = digitalRead(inputTab[i][0]);
     else if(inputTab[i][1]==2)//Type is accelerometer and gyroscope
     {
-      //we zero the IMU input here as the simulation and reality does not match yet
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-      networkInput[i] = 0; i++; //ax; i++;
-      networkInput[i] = 0; i++; //ay; i++;
-      networkInput[i] = 0; i++; //az; i++;
-      networkInput[i] = 0; i++; //gx; i++;
-      networkInput[i] = 0; i++; //gy; i++;
-      networkInput[i] = 0; //gz;
+      //normalize accel values from 16500 to 9.81 (1g)
+      accelX = (float)(ax+xAccelOffset)*accelScaleFactor;Serial.print(xAccelOffset); Serial.print("\t");
+      accelY = (float)(ay+yAccelOffset)*accelScaleFactor;Serial.print(yAccelOffset); Serial.print("\t");
+      accelZ = (float)(az+zAccelOffset)*accelScaleFactor;Serial.print(zAccelOffset); Serial.print("\t");
+      //fill in neuralNetwork
+      networkInput[i] = accelX; i++; Serial.print(accelX); Serial.print("\t"); //0; i++; //
+      networkInput[i] = accelY; i++; Serial.print(accelY); Serial.print("\t");//0; i++; //
+      networkInput[i] = accelZ; i++; Serial.print(accelZ); Serial.print("\t");//0; i++; //
+      //we add some noise to the gyros input here as the simulation and reality does not match yet
+      networkInput[i] = 1.38778e-20; i++; //gx; i++; Serial.print(gx); Serial.print("\t"); 
+      networkInput[i] = 1.38778e-20; i++; //gy; i++; Serial.print(gy); Serial.print("\t"); 
+      networkInput[i] = 1.38778e-20; //gz; Serial.print(gz); Serial.print("\n"); 
     }
   }
+  Serial.print("\n");
   
   /* Feed neural network with sensors values as input of the neural network*/
   feed(&network, &networkInput[0]);
@@ -198,8 +214,21 @@ void loop() {
   /* set Servos Motors according to the Fetch of the neural network outputs above*/
   for(int i=0;i<nOutputs;i++)
   {
-    servoSpeed = networkOutputs[i]/3 +60;
-    myservo[i].write(servoSpeed);Serial.print(servoSpeed); Serial.print("\t");
+    if(motor[i] == 0) //servoMotors => set poisition 
+    {
+      servoPosition = networkOutputs[i]; //goes from 0 degrees to 180 degrees 
+      myservo[i].write(servoSpeed);Serial.print(servoSpeed); Serial.print("\t");
+    }
+    else if(motor[i] == 1)  // full rotation motors => set speed
+    {
+      if( networkOutputs[i] >= 90)//one rotation direction only => discard other rotation direction
+        servoSpeed = networkOutputs[i] - 30; //we  
+      else
+        servoSpeed = 0;
+        
+      myservo[i].write(servoSpeed);Serial.print(servoSpeed); Serial.print("\t");
+    }
+    
   }
   Serial.print("\n");
   
