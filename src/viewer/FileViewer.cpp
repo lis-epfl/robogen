@@ -32,6 +32,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/format.hpp>
+#include <boost/thread.hpp>
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
 #include <osgDB/WriteFile>
@@ -107,6 +108,32 @@ protected:
 
 
 };
+
+namespace timeNS {
+	//for simulation VS. rendering performance optimization
+	
+	//Time type
+	typedef boost::posix_time::ptime time_t;
+	
+	//Set var at now
+	void setNow(time_t *var){
+		*var= boost::posix_time::microsec_clock::local_time();
+	}
+	
+	//Compute the number of micro seconds between now and the time stored in oldt
+	long elapsedMS(time_t oldt){
+		time_t now;
+		setNow(&now);
+		boost::posix_time::time_duration msdiff = now - oldt;
+		return msdiff.total_microseconds();
+	}
+	
+	//Sleep for nbrMicro microseconds
+	void microsleep(long nbrMicro){
+		boost::this_thread::sleep(boost::posix_time::microsec(nbrMicro));
+	}
+}
+
 
 /**
  * Decodes a robot saved on file and visualize it
@@ -458,15 +485,42 @@ int main(int argc, char *argv[]) {
 	int count = 0;
 	double t = 0;
 	unsigned int frameCount = 0;
+	
+	//for simulation VS. rendering performance optimization
+	
+	//Variable declaration and initialisation
+	timeNS::time_t lastFrame,lastStep;
+	timeNS::setNow(&lastFrame);
+	timeNS::setNow(&lastStep);
 
 	while (!viewer.done() && !keyboardEvent->isQuit()) {
 
-		viewer.frame();
+		
+		//for simulation VS. rendering performance optimization
+		
+		//if the last frame was rendered less than 0.03 s ago, we don't render a new frame
+		if (timeNS::elapsedMS(lastFrame)>30000) {//one frame every 0.03s (33fps max)
+			viewer.frame();
+			timeNS::setNow(&lastFrame);
+		}
 
 		if (t < configuration->getSimulationTime()
 				&& !keyboardEvent->isPaused()) {
 
 			double step = configuration->getTimeStepLength();
+			
+			
+			//for simulation VS. rendering performance optimization
+			
+			//we dont want to be faster than the real simulation time
+			//If the last step made the simulation go quicker than real time, we wait for real time
+			long remainingT = 1000000*step-timeNS::elapsedMS(lastStep);
+			if (remainingT>0) {
+				timeNS::microsleep(remainingT);
+			}
+			timeNS::setNow(&lastStep);
+			
+			
 			if (recording && count % recordFrequency == 0) {
 				osg::ref_ptr<SnapImageDrawCallback> snapImageDrawCallback =
 						dynamic_cast<SnapImageDrawCallback*>
@@ -574,6 +628,12 @@ int main(int argc, char *argv[]) {
 			t += step;
 
 		} /* If doing something */
+		
+		else{/* If simulation paused or finished */
+			//If nothing happens, we sleep 0.1s
+			timeNS::microsleep(100000);
+		}
+		
 
 	} /* while (!viewer.done() && !keyboardEvent->isQuit()) */
 
