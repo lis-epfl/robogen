@@ -67,8 +67,8 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	osg::Vec3 dPos = position - position_;
 	position_ = position;
 	// velocity & acceleration
-	osg::Vec3 velocity = dPos * timeElapsed;
-	acceleration_ = (velocity - velocity_) * timeElapsed;
+	osg::Vec3 velocity = dPos / timeElapsed;
+	acceleration_ = (velocity - velocity_) / timeElapsed;
 	// add g to acceleration: Positive, as same effect as if accelerating up
 	acceleration_ += osg::Vec3(0, 0, 9.81);
 	velocity_ = velocity;
@@ -80,7 +80,7 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	attitude_ = attitude;
 	dAttitude.getRotate(angle, rotaxis);
 	rotaxis.normalize(); // should be the case, but let's be safe
-	rotVelocity_ = rotaxis * angle * timeElapsed;
+	rotVelocity_ = rotaxis * angle / timeElapsed;
 
 	// =======================
 	// 2. create unit vectors for IMU reference system
