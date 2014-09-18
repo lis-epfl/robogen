@@ -4,5 +4,5 @@ nTimeSteps=4000
 terrainType=flat
 terrainLength=2
 terrainWidth=2
-obstaclesConfigFile=obstacles.txt
+obstaclesConfigFile=no-obstacles.txt
 startPositionConfigFile=startPos.txt
