@@ -33,6 +33,7 @@
 #include <vector>
 #include <utility>
 #include <stdexcept>
+#include "evolution/neat/Parameters.h"
 
 namespace robogen {
 
@@ -205,6 +206,7 @@ typedef struct EvolverConfiguration {
 	unsigned int maxNumInitialParts;
 
 
+	NEAT::Parameters neatParams;
 
 
 
