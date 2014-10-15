@@ -3,11 +3,15 @@ import Part, FreeCAD, math, FreeCADGui
 from FreeCAD import Base
 from PartDesign.Scripts import RadialCopy as rcopy
 
-def makeWheel(	externRadius = 70):
+def makeWheel(	externRadius = 70, test = 0):
 	
-	radiusCenterHole = 3
+	radiusCenterHole = 1.5
 	radiusCenterBody = 9
-	heightCenterBody = 6
+	heightCenterBody = 4
+
+	radiusMountingPart = 4	
+	lengthMountingPart = radiusCenterBody
+	heightMountingPart = 5
 
 	thicknessTire = 5
 	widthTire = 4
@@ -16,8 +20,8 @@ def makeWheel(	externRadius = 70):
 	lengthSpoke = widthSpoke/9
 	heightSpoke = widthTire
 	
-	radiusScrew = 1
-	heightScrew = heightCenterBody
+	radiusScrew = 1.5
+	heightScrew = radiusCenterBody
 
 	lengthTeeth = 4
 	widthTeeth = lengthTeeth
@@ -26,11 +30,35 @@ def makeWheel(	externRadius = 70):
 	#build the structure
 	Wheel = Part.makeCylinder(radiusCenterBody,heightCenterBody)
 	Wheel.rotate(Base.Vector(0,0,0),Base.Vector(0,0,1),30) #needed for fillet below, otherwise the edge29 of one spoke was too close to the edge of the cylinder...
-	
+
+	MountingPart = Part.makeCylinder(radiusMountingPart,heightMountingPart)
+	MountingPart.translate(Base.Vector(0,0,heightCenterBody))
+	MountingPart2 = Part.makeBox(radiusCenterBody,radiusMountingPart*2,heightMountingPart)
+	MountingPart2.translate(Base.Vector(0,-radiusMountingPart,heightCenterBody))
+	MountingPart2.rotate(Base.Vector(0,0,0),Base.Vector(0,0,1),30)	
+
+	MountingPart = MountingPart.fuse(MountingPart2)
+	Wheel = Wheel.fuse(MountingPart)
+
 	#cut the axis hole
-	WheelAxis = Part.makeCylinder(radiusCenterHole,heightCenterBody)
+	WheelAxis = Part.makeCylinder(radiusCenterHole,heightCenterBody+heightMountingPart)
 	Wheel = Wheel.cut(WheelAxis)
 
+	# add one hole for the screw
+	screw = Part.makeCylinder(radiusScrew,heightScrew)
+	screw.rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),90)	
+	screw.rotate(Base.Vector(0,0,0),Base.Vector(0,0,1),30)
+	screw.translate(Base.Vector(0,0,heightCenterBody+heightMountingPart/2))
+	Wheel = Wheel.cut(screw)
+
+	# For chamfer you need to know edges	
+	edge1 = Wheel.Edges[1]
+	edge5 = Wheel.Edges[5]
+	edge25 = Wheel.Edges[25]
+	edge27 = Wheel.Edges[27]
+	edge8 = Wheel.Edges[test]
+	Wheel=Wheel.makeFillet(1,[edge1,edge5,edge8,edge25,edge27])
+	
 	# add one spoke
 	Spoke = Part.makeBox(lengthSpoke,widthSpoke,heightSpoke)
 	Spoke.translate(Base.Vector(-lengthSpoke/2,radiusCenterBody-heightSpoke/2,0))	
@@ -41,16 +69,6 @@ def makeWheel(	externRadius = 70):
 	Spoke = rcopy.makeCopy(Spoke,radius,angle)
 	Wheel = Wheel.fuse(Spoke)
 	
-	# add one hole for the screw
-	screw = Part.makeCylinder(radiusScrew,heightScrew)
-	screw.translate(Base.Vector(0,3*radiusCenterBody/4,0))
-	
-	# duplicate each 30 degrees
-	radius = 0
-	angle = 30
-	screw = rcopy.makeCopy(screw,radius,angle)
-	Wheel = Wheel.cut(screw)
-	
 	#add the Tire of the wheel
 	Tire = Part.makeCylinder(externRadius,widthTire)
 	
@@ -60,24 +78,26 @@ def makeWheel(	externRadius = 70):
 
 	Wheel = Wheel.fuse(Tire)
 	
-	# For chamfer you need to know edges	
-	edge56=Wheel.Edges[56]
-	edge58=Wheel.Edges[58]
-	edge59=Wheel.Edges[59]
-	edge61=Wheel.Edges[61]
-	edge63=Wheel.Edges[63]
-	edge64=Wheel.Edges[64]
-	edge66=Wheel.Edges[66]
-	edge80=Wheel.Edges[80]
-	edge84=Wheel.Edges[84]
-	edge87=Wheel.Edges[87]
-	edge91=Wheel.Edges[91]
-	edge93=Wheel.Edges[93]
-	edge96=Wheel.Edges[96]
-
-	Wheel=Wheel.makeFillet(1,[edge63])
-	Wheel=Wheel.makeFillet(7,[edge56,edge58,edge59,edge61,edge64,edge66])
-	Wheel=Wheel.makeFillet(7,[edge80,edge84,edge87,edge91,edge93,edge96])
+	# For chamfer you need to know edges		
+#	edgeTest=Wheel.Edges[test]
+#	edge19=Wheel.Edges[19]
+#	edge21=Wheel.Edges[21]
+#	edge25=Wheel.Edges[25]
+#	edge30=Wheel.Edges[30]
+#	edge33=Wheel.Edges[33]
+#	edge50=Wheel.Edges[50]
+#	edge57=Wheel.Edges[57]
+#	edge75=Wheel.Edges[75]
+#	edge80=Wheel.Edges[80]
+#	edge81=Wheel.Edges[81]
+#	edge85=Wheel.Edges[85]
+#	edge86=Wheel.Edges[86]
+#	edge89=Wheel.Edges[89]
+#	edge90=Wheel.Edges[90]
+#
+#	Wheel=Wheel.makeFillet(1,[edge19,edge21,edge25,edge30,edge50])
+#	Wheel=Wheel.makeFillet(5,[edge57,edge75,edge80,edge81,edge85,edge86,edge89,edge90])
+	#Wheel=Wheel.makeFillet(7,[edge80,edge84,edge87,edge91,edge93,edge96])
 	
 	# add teeth
 	Teeth = Part.makeBox(lengthTeeth,widthTeeth,heightTeeth)
@@ -90,5 +110,8 @@ def makeWheel(	externRadius = 70):
 	Teeth = rcopy.makeCopy(Teeth,radius,angle)
 	
 	Wheel = Wheel.cut(Teeth)
+
+	#add new joints
 	
+
 	return Wheel

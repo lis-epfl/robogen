@@ -30,7 +30,7 @@ PreviousRotAngle=
 echo "sys.path.append("\"$CurrentDir/utils/Mod"\")" > utils/intermediateTer.py
 
 #file name to be parsed.
-FILENAME="someBody.txt"
+FILENAME="my_robot.txt"
 
 # read file, line by line, and get all of the elements.
 
@@ -39,21 +39,21 @@ do
       #Counter number of passivewheels (W), activewhegs (G) and parametricbricks aka parametric bar joints (B), and activewheels(J)
 	if [[ "$f1" == "" ]]; then
 		break	
-	elif [[ "$f2" == "W" ]]; then
+	elif [[ "$f2" == "PassiveWheel" ]]; then
 		let "passivewheel+=1"
 		PreviousType="$f2"
 		PreviousRadius="$f5"
-	elif [[ "$f2" == "G" ]]; then
+	elif [[ "$f2" == "ActiveWheg" ]]; then
 		let "activewheg+=1"
 		PreviousType="$f2"
 		PreviousRadius="$f5"
-	elif [[ "$f2" == "B" ]]; then
+	elif [[ "$f2" == "ParametricJoint" ]]; then
 		let "parametricbrick+=1"
 		PreviousType="$f2"
 		PreviousLength="$f5"
 		PreviousInclAngle="$f6"
 		PreviousRotAngle="$f7"
-	elif [[ "$f2" == "J" ]]; then
+	elif [[ "$f2" == "ActiveWheel" ]]; then
 		let "activewheel+=1"
 		PreviousType="$f2"
 		PreviousRadius="$f5"
@@ -67,7 +67,7 @@ do
 
 	#Produce the scripts for each Parametric Part
 	
-	if [[ "$PreviousType" == "W" ]]; then
+	if [[ "$PreviousType" == "PassiveWheel" ]]; then
 		#Fill the parameter value needed in python script to be executed in FreeCAD
 		echo "radiusExtern = $PreviousRadius" > utils/intermediate.py
 		echo Path="\"$CurrentDir/STL_Files/PassiveWheel$passivewheel.stl"\" >> utils/intermediate.py
@@ -75,7 +75,7 @@ do
 		#concatenate CallWheelPART1.py+utils/intermediate.py+CallWheelPART2.py in one file : the CallWheel python script which will be executed by FreeCAD to generate Paramteric Parts
 		cat utils/Header.py utils/intermediateTer.py utils/CallWheelPart1.py utils/intermediate.py utils/CallWheelPart2.py > FreeCAD_Modules/CallWheel$passivewheel.py
 
-	elif [[ "$PreviousType" == "J" ]]; then
+	elif [[ "$PreviousType" == "ActiveWheel" ]]; then
 		#Fill the parameter value needed in python script to be executed in FreeCAD
 		echo "radiusExtern = $PreviousRadius" > utils/intermediate.py
 		echo Path="\"$CurrentDir/STL_Files/ActiveWheel$activewheel.stl"\" >> utils/intermediate.py
@@ -83,7 +83,7 @@ do
 		#concatenate CallWheelPART1.py+utils/intermediate.py+CallWheelPART2.py in one file : the CallWheel python script which will be executed by FreeCAD to generate Paramteric Parts
 		cat utils/Header.py utils/intermediateTer.py utils/CallWheelPart1.py utils/intermediate.py utils/CallWheelPart2.py > FreeCAD_Modules/CallWheel$activewheel.py
 
-	elif [[ "$PreviousType" == "G" ]]; then
+	elif [[ "$PreviousType" == "ActiveWheg" ]]; then
 		#Fill the parameter value needed in python script to be executed in FreeCAD
 		echo "radiusExtern = $PreviousRadius" > utils/intermediate.py
 		echo Path="\"$CurrentDir/STL_Files/ActiveWheg$activewheg.stl"\" >> utils/intermediate.py
@@ -91,10 +91,10 @@ do
 		#concatenate CallWhegPART1.py+utils/intermediate.py+CallWhegPART2.py in one file : the CallWheg python script which will be executed by FreeCAD to generate Paramteric Parts
 		cat utils/Header.py utils/intermediateTer.py utils/CallWhegPart1.py utils/intermediate.py utils/CallWhegPart2.py > FreeCAD_Modules/CallWheg$activewheg.py
 
-	elif [[ "$PreviousType" == "B" ]]; then
+	elif [[ "$PreviousType" == "ParametricJoint" ]]; then
 		#Fill the parameter value needed in python script to be executed in FreeCAD
-		echo "heightJoin = $PreviousRadius" > utils/intermediate.py
-		echo "angle = $PreviousInclAngle" > utils/intermediatebis.py
+		echo "heightJoin = $PreviousLength" > utils/intermediate.py
+		echo "inclAngle = $PreviousInclAngle" > utils/intermediatebis.py
 		echo Path="\"$CurrentDir/STL_Files/ParametricJoinPartB$parametricbrick.stl"\" >> utils/intermediatebis.py
 		> FreeCAD_Modules/CallJoinB$parametricbrick.py
 		#concatenate CallWhegPART1.py+utils/intermediate.py+CallWhegPART2.py in one file : the CallParametricJointPartA python script which will be executed by FreeCAD to generate Paramteric Parts

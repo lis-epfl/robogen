@@ -42,7 +42,8 @@ class ServoMotor : public Motor {
 public:
 
 	static const float DEFAULT_GAIN;
-	static const float DEFAULT_MAX_FORCE;
+	static const float DEFAULT_MAX_FORCE_ROTATIONAL;
+	static const float DEFAULT_MAX_FORCE_SERVO;
 	static const float MIN_POS_RAD;
 	static const float MAX_POS_RAD;
 	static const float MIN_VELOCITY;

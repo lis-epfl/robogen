@@ -54,7 +54,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 	// cleanse operator probabilities before reading in (not specified = 0)
 	memset(bodyOperatorProbability, 0, sizeof(bodyOperatorProbability));
-	maxBodyMutationAttemps = 100; //seems like a reasonable default
+	maxBodyMutationAttempts = 100; //seems like a reasonable default
 	maxBodyParts = 100000; //some unreasonably large value if max not set
 	// boost-parse options
 	boost::program_options::options_description desc(
@@ -101,9 +101,10 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		("numInitialParts", boost::program_options::value<std::string>(),
 						"Number of initial body parts (not "\
 						"including core component). Format: min:max")
-		("maxBodyMutationAttemps",
+		("maxBodyMutationAttempts",
 				boost::program_options::value<unsigned int>(
-				&maxBodyMutationAttemps),"Max number of body mutation attempts")
+				&maxBodyMutationAttempts),
+				"Max number of body mutation attempts")
 		("pBrainCrossover",
 				boost::program_options::value<double>(
 				&pBrainCrossover), "Probability of crossover among brains")

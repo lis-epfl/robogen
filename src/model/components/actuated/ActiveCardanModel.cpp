@@ -166,11 +166,11 @@ bool ActiveCardanModel::initModel() {
 
 	// Create motors
 	motor1_.reset(
-			new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE,
+			new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE_SERVO,
 					ServoMotor::DEFAULT_GAIN,
 					ioPair(this->getId(),0)));
 	motor2_.reset(
-			new ServoMotor(joint2, ServoMotor::DEFAULT_MAX_FORCE,
+			new ServoMotor(joint2, ServoMotor::DEFAULT_MAX_FORCE_SERVO,
 					ServoMotor::DEFAULT_GAIN,
 					ioPair(this->getId(),1)));
 

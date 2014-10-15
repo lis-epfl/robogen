@@ -33,20 +33,17 @@
 
 #define NB_ACC_GYRO_SENSORS 6
 
-// Branch HeadT-left to ROLL
-// Branch HeadT-right to PITCH
-// Branch LeftEye to A0
-// Branch RightEye to A1
-// Branch LeftWheel 0 to D9
-// Branch RightWheel 0 to D10
+// Branch myid1000 0 to D9
+// Branch myid1003 0 to D10
 
-#define NB_LIGHTSENSORS 2
-#define NB_TOUCH_SENSORS 2
+#define NB_LIGHTSENSORS 0
+#define NB_TOUCH_SENSORS 0
 #define NB_SERVOS_MOTORS 2
 
-int input[] = {2, 2, 2, 2, 2, 2, 1, 1, 0, 0};
-float EAWeight[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0};
-float EABiasWeight[] = {1, 0};
+int input[] = {2, 2, 2, 2, 2, 2};
+int motor[] = {0,1};
+float EAWeight[] = {0.573019, 0.594191, -0.863813, 2.41171, 0.200004, -1.26473, 3, 1.15443, 0.4496, 1.73862, -0.1793, 2.35559, 1.48391, 0.191214, -0.0134674, 1.1152};
+float EABiasWeight[] = {-1.11666, -1.25401};
 float EAGain[] = {1, 1};
 
 
