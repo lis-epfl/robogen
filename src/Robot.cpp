@@ -254,6 +254,7 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 
 	unsigned int nInputs = 0;
 	unsigned int nOutputs = 0;
+	unsigned int nHidden = 0;
 
 	std::map<std::string, bool> isNeuronInput;
 
@@ -266,11 +267,10 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	std::vector<unsigned int> brainOutputToBodyPart;
 	std::vector<unsigned int> brainOutputToIoId;
 
-	float weight[MAX_INPUT_NEURONS * MAX_OUTPUT_NEURONS
-			+ MAX_OUTPUT_NEURONS * MAX_OUTPUT_NEURONS];
-	float bias[MAX_OUTPUT_NEURONS];
-	float gain[MAX_OUTPUT_NEURONS];
+	float weight[(MAX_INPUT_NEURONS + MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)
+	             * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 
+	float params[MAX_PARAMS * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 	// Fill it with zeros
 	memset(weight, 0, sizeof(weight));
 
@@ -333,10 +333,24 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				return false;
 			}
 
-			bias[nOutputs] = neuron.bias();
-			gain[nOutputs] = 1;
-
+			if (neuron.type().compare("sigmoid") == 0) {
+				params[nOutputs * MAX_PARAMS] = neuron.bias();
+				params[nOutputs * MAX_PARAMS + 1] = neuron.gain();
+			} else {
+				//TODO add in this stuff for other neurons
+				std::cout << "only sigmoid neurons supported currently" << std::endl;
+				return false;
+			}
 			nOutputs++;
+
+		} else if (neuron.layer().compare("hidden") == 0) {
+
+			// Retrieve the body part id from the neuron part id
+			//  -- even hidden neurons should be associated with a body part!
+			// TODO
+
+			std::cout << "Hidden layer not supported yet! " << i << std::endl;
+			return false;
 
 		} else {
 			std::cout << "Unsupported layer for neuron " << i << std::endl;
@@ -458,8 +472,8 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 					+ destNeuronPos] = connection.weight();
 		}
 	}
-	::initNetwork(neuralNetwork_.get(), nInputs, nOutputs, &weight[0], &bias[0],
-			&gain[0]);
+	::initNetwork(neuralNetwork_.get(), nInputs, nOutputs, nHidden,
+			&weight[0], &params[0]);
 
 	return true;
 

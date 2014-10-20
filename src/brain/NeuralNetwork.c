@@ -30,18 +30,18 @@
 
 #include "brain/NeuralNetwork.h"
 
-void initNetwork(NeuralNetwork* network, unsigned int nInputs, unsigned int nOutputs,
-		const float *weights, const float* bias, const float* gain) {
+void initNetwork(NeuralNetwork* network, unsigned int nInputs,
+		unsigned int nOutputs, unsigned int nHidden,
+		const float *weights, const float* params) {
 
 	unsigned int i = 0;
 
 	/* Copy weights, bias and gains */
 	memcpy(network->weight, weights,
-			sizeof(float) * (nInputs * nOutputs + nOutputs * nOutputs));
-	memcpy(network->bias, bias,
-			sizeof(float) * nOutputs);
-	memcpy(network->gain, gain,
-			sizeof(float) * nOutputs);
+			sizeof(float) * ((nInputs + nOutputs + nHidden) *
+					(nOutputs + nHidden)));
+	memcpy(network->params, params,
+			sizeof(float) * (nOutputs + nHidden) * MAX_PARAMS);
 
 	/* Initialize states */
 	for (i = 0; i < nOutputs * 2; ++i) {
@@ -55,6 +55,7 @@ void initNetwork(NeuralNetwork* network, unsigned int nInputs, unsigned int nOut
 
 	network->nInputs = nInputs;
 	network->nOutputs = nOutputs;
+	network->nHidden = nHidden;
 
 	network->curStateStart = 0;
 
@@ -100,9 +101,9 @@ void step(NeuralNetwork* network) {
 		}
 
 		/* Save next state */
-		curNeuronActivation -= network->bias[i];
+		curNeuronActivation -= network->params[MAX_PARAMS*i];
 		network->state[nextState + i] = 1.0
-				/ (1.0 + exp(-network->gain[i] * curNeuronActivation));
+				/ (1.0 + exp(-network->params[MAX_PARAMS*i+1] * curNeuronActivation));
 	}
 
 	network->curStateStart = nextState;

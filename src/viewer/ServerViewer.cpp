@@ -61,6 +61,9 @@ bool interrupted;
 void printNeuralNetwork(const NeuralNetwork* n) {
 	std::cout << "nInputs: " << n->nInputs << std::endl;
 	std::cout << "nOutputs: " << n->nOutputs << std::endl;
+	std::cout << "nHidden: " << n->nHidden << std::endl;
+
+	// TODO make work with hidden neurons!!
 
 	std::cout << "Input->Output connections" << std::endl;
 	for (unsigned int i = 0; i < n->nInputs; ++i) {
@@ -80,7 +83,8 @@ void printNeuralNetwork(const NeuralNetwork* n) {
 
 	std::cout << "Bias, gains" << std::endl;
 	for (unsigned int i = 0; i < n->nOutputs; ++i) {
-		std::cout << n->bias[i] << " " << n->gain[i] << std::endl;
+		// TODO other params!!
+		std::cout << n->params[MAX_PARAMS*i] << " " << n->params[MAX_PARAMS*i+1] << std::endl;
 	}
 }
 
