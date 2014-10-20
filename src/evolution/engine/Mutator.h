@@ -87,7 +87,8 @@ private:
 	/**
 	 * Mutation operators
 	 */
-	void mutateBody(boost::shared_ptr<RobotRepresentation>& robot);
+	bool mutateBrain(boost::shared_ptr<RobotRepresentation>& robot);
+	bool mutateBody(boost::shared_ptr<RobotRepresentation>& robot);
 	bool removeSubtree(boost::shared_ptr<RobotRepresentation>& robot);
 	bool duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot);
 	bool swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot);

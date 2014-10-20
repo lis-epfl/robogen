@@ -40,6 +40,7 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 		weightCrossover_(conf->pBrainCrossover),
 		brainMin_(conf->minBrainWeight),
 		brainMax_(conf->maxBrainWeight) {
+
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
 		subtreeRemovalDist_ =
 				boost::random::bernoulli_distribution<double>(
@@ -128,44 +129,49 @@ bool Mutator::mutate(boost::shared_ptr<RobotRepresentation>& robot) {
 	// mutate brain TODO conf bits?
 	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
 			|| conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
-		std::vector<double*> weights;
-		std::vector<double*> biases;
-		robot->getBrainGenome(weights, biases);
-
-		// mutate weights
-		for (unsigned int i = 0; i < weights.size(); ++i) {
-			if (weightMutate_(rng_)) {
-				mutated = true;
-				*weights[i] += weightDistribution_(rng_);
-			}
-			// normalize
-			if (*weights[i] > brainMax_)
-				*weights[i] = brainMax_;
-			if (*weights[i] < brainMin_)
-				*weights[i] = brainMin_;
-		}
-		// mutate biases
-		for (unsigned int i = 0; i < biases.size(); ++i) {
-			if (weightMutate_(rng_)) {
-				mutated = true;
-				*biases[i] += weightDistribution_(rng_);
-			}
-			// normalize
-			if (*biases[i] > brainMax_)
-				*biases[i] = brainMax_;
-			if (*biases[i] < brainMin_)
-				*biases[i] = brainMin_;
-		}
-		if (mutated) {
-			robot->setDirty();
-		}
+		mutated = (mutated || this->mutateBrain(robot));
 	}
 
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
-		this->mutateBody(robot);
+		mutated = (mutated || this->mutateBody(robot));
 	}
 
 	return mutated;
+}
+
+bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
+	bool mutated = false;
+	std::vector<double*> weights;
+	std::vector<double*> biases;
+	robot->getBrainGenome(weights, biases);
+
+	// mutate weights
+	for (unsigned int i = 0; i < weights.size(); ++i) {
+		if (weightMutate_(rng_)) {
+			mutated = true;
+			*weights[i] += weightDistribution_(rng_);
+		}
+		// normalize
+		if (*weights[i] > brainMax_)
+			*weights[i] = brainMax_;
+		if (*weights[i] < brainMin_)
+			*weights[i] = brainMin_;
+	}
+	// mutate biases
+	for (unsigned int i = 0; i < biases.size(); ++i) {
+		if (weightMutate_(rng_)) {
+			mutated = true;
+			*biases[i] += weightDistribution_(rng_);
+		}
+		// normalize
+		if (*biases[i] > brainMax_)
+			*biases[i] = brainMax_;
+		if (*biases[i] < brainMin_)
+			*biases[i] = brainMin_;
+	}
+	if (mutated) {
+		robot->setDirty();
+	}
 }
 
 bool Mutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
@@ -211,8 +217,8 @@ typedef bool (Mutator::*MutationOperator)(
 typedef std::pair<MutationOperator,
 		boost::random::bernoulli_distribution<double> > MutOpPair;
 
-void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
-
+bool Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
+	bool mutated = false;
 	MutOpPair mutOpPairs[] = { std::make_pair(&Mutator::removeSubtree,
 			subtreeRemovalDist_), std::make_pair(&Mutator::duplicateSubtree,
 			subtreeDuplicationDist_), std::make_pair(&Mutator::swapSubtrees,
@@ -260,6 +266,7 @@ void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 
 					robot = newBot;
 					robot->setDirty();
+					mutated = true;
 					break;
 
 				}
@@ -267,6 +274,7 @@ void Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 			}
 		}
 	}
+	return mutated;
 }
 
 bool Mutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
