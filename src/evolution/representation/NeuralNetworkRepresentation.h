@@ -50,14 +50,14 @@ public:
 
 	/**
 	 * Map from (source neuron id, dest neuron id) to weight value.
-	 * TODO use these typedefs
 	 */
 	typedef std::map<StringPair, double> WeightMap;
 
 	/**
 	 * Maps from IO identifier pair to a neuron shared pointer
 	 */
-	typedef std::map<ioPair, boost::shared_ptr<NeuronRepresentation>	> NeuronMap;
+	typedef std::map<ioPair,
+			boost::shared_ptr<NeuronRepresentation> > NeuronMap;
 
 	/**
 	 * Assignment operator: Deep copy neurons!
@@ -116,7 +116,7 @@ public:
 	/**
 	 * Inserts a Neuron
 	 */
-	std::string insertNeuron(ioPair identification, bool isOutput);
+	std::string insertNeuron(ioPair identification, unsigned int layer);
 
 	/**
 	 * Clones all neurons from a part. Saves the mapping for subsequent referral

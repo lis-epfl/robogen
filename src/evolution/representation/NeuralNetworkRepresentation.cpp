@@ -40,9 +40,8 @@ NeuralNetworkRepresentation &NeuralNetworkRepresentation::operator =(
 		const NeuralNetworkRepresentation &original) {
 	// deep copy neurons
 	neurons_.clear();
-	for (std::map<std::pair<std::string, int>,
-			boost::shared_ptr<NeuronRepresentation> >::const_iterator it =
-			original.neurons_.begin(); it != original.neurons_.end(); ++it) {
+	for (NeuronMap::const_iterator it = original.neurons_.begin();
+			it != original.neurons_.end(); ++it) {
 		neurons_[it->first] = boost::shared_ptr<NeuronRepresentation>(
 				new NeuronRepresentation(*(it->second.get())));
 	}
@@ -55,9 +54,8 @@ NeuralNetworkRepresentation::NeuralNetworkRepresentation(
 		const NeuralNetworkRepresentation &original) {
 	// deep copy neurons
 	neurons_.clear();
-	for (std::map<std::pair<std::string, int>,
-			boost::shared_ptr<NeuronRepresentation> >::const_iterator it =
-			original.neurons_.begin(); it != original.neurons_.end(); ++it) {
+	for (NeuronMap::const_iterator it = original.neurons_.begin();
+			it != original.neurons_.end(); ++it) {
 		neurons_[it->first] = boost::shared_ptr<NeuronRepresentation>(
 				new NeuronRepresentation(*(it->second.get())));
 	}
@@ -72,14 +70,14 @@ NeuralNetworkRepresentation::NeuralNetworkRepresentation(
 	for (std::map<std::string, int>::iterator it = sensorParts.begin();
 			it != sensorParts.end(); it++) {
 		for (int i = 0; i < it->second; i++) {
-			insertNeuron(ioPair(it->first, i), false);
+			insertNeuron(ioPair(it->first, i), NeuronRepresentation::INPUT);
 		}
 	}
 	// generate neurons from motor body parts
 	for (std::map<std::string, int>::iterator it = motorParts.begin();
 			it != motorParts.end(); it++) {
 		for (int i = 0; i < it->second; i++) {
-			insertNeuron(ioPair(it->first, i), true);
+			insertNeuron(ioPair(it->first, i), NeuronRepresentation::OUTPUT);
 		}
 	}
 }
@@ -97,13 +95,11 @@ void NeuralNetworkRepresentation::initializeRandomly(
 	boost::random::uniform_real_distribution<double> biasDistrib(-1., 1.);
 
 	// for each neuron
-	for (std::map<std::pair<std::string, int>,
-			boost::shared_ptr<NeuronRepresentation> >::iterator it =
-			neurons_.begin(); it != neurons_.end(); it++) {
+	for (NeuronMap::iterator it = neurons_.begin(); it != neurons_.end();
+			it++) {
 		// generate random weight to other neuron if valid
-		for (std::map<std::pair<std::string, int>,
-				boost::shared_ptr<NeuronRepresentation> >::iterator jt =
-				neurons_.begin(); jt != neurons_.end(); jt++) {
+		for (NeuronMap::iterator jt = neurons_.begin(); jt != neurons_.end();
+				jt++) {
 			// can't create connection to an input neuron
 			if (!jt->second->isInput()) {
 				weights_[std::pair<std::string, std::string>(
@@ -120,12 +116,10 @@ void NeuralNetworkRepresentation::initializeRandomly(
 
 bool NeuralNetworkRepresentation::setWeight(std::string from, int fromIoId,
 		std::string to, int toIoId, double value) {
-	std::map<std::pair<std::string, int>,
-			boost::shared_ptr<NeuronRepresentation> >::iterator fi =
-			neurons_.find(std::pair<std::string, int>(from, fromIoId));
-	std::map<std::pair<std::string, int>,
-			boost::shared_ptr<NeuronRepresentation> >::iterator ti =
-			neurons_.find(std::pair<std::string, int>(to, toIoId));
+	NeuronMap::iterator fi =
+			neurons_.find(ioPair(from, fromIoId));
+	NeuronMap::iterator ti =
+			neurons_.find(ioPair(to, toIoId));
 	if (fi == neurons_.end()) {
 		std::cout << "Specified weight input io id pair " << from << " "
 				<< fromIoId
@@ -161,9 +155,7 @@ bool NeuralNetworkRepresentation::setWeight(std::string from, int fromIoId,
 
 bool NeuralNetworkRepresentation::setBias(std::string bodyPart, int ioId,
 		double value) {
-	std::map<std::pair<std::string, int>,
-			boost::shared_ptr<NeuronRepresentation> >::iterator it =
-			neurons_.find(std::pair<std::string, int>(bodyPart, ioId));
+	NeuronMap::iterator it = neurons_.find(ioPair(bodyPart, ioId));
 	if (it == neurons_.end()) {
 		std::cout << "Specified weight output io id pair " << bodyPart << " "
 				<< ioId << " is not in the body cache of the neural network."
@@ -202,17 +194,18 @@ void NeuralNetworkRepresentation::getGenome(std::vector<double*> &weights,
 }
 
 std::string NeuralNetworkRepresentation::insertNeuron(ioPair identification,
-		bool isOutput) {
+		unsigned int layer) {
 	boost::shared_ptr<NeuronRepresentation> neuron = boost::shared_ptr<
 			NeuronRepresentation>(
-			new NeuronRepresentation(identification, isOutput, 0.));
+			new NeuronRepresentation(identification, layer,
+					SigmoidNeuronParams(0.)));
 	// insert into map
 	neurons_[identification] = neuron;
 	// generate weights
 	for (NeuronMap::iterator it = neurons_.begin(); it != neurons_.end();
 			++it) {
 		// generate incoming
-		if (isOutput) {
+		if (!neuron->isInput()) {
 			weights_[StringPair(it->second->getId(), neuron->getId())] = 0.;
 		}
 		// generate outgoing (no need to worry about double declaration of the
@@ -232,7 +225,7 @@ void NeuralNetworkRepresentation::cloneNeurons(std::string oldPartId,
 		boost::shared_ptr<NeuronRepresentation> neuron = neurons[i].lock();
 		oldNew[neuron->getId()] = insertNeuron(
 				ioPair(newPartId, neuron->getIoPair().second),
-				!neuron->isInput());
+				neuron->getLayer());
 	}
 }
 
@@ -381,9 +374,8 @@ robogenMessage::Brain NeuralNetworkRepresentation::serialize() {
 	robogenMessage::Brain serialization;
 
 	// neurons
-	for (std::map<std::pair<std::string, int>,
-			boost::shared_ptr<NeuronRepresentation> >::iterator it =
-			neurons_.begin(); it != neurons_.end(); ++it) {
+	for (NeuronMap::iterator it = neurons_.begin(); it != neurons_.end();
+			++it) {
 		robogenMessage::Neuron *neuron = serialization.add_neuron();
 		*neuron = it->second->serialize();
 	}
@@ -406,9 +398,8 @@ robogenMessage::Brain NeuralNetworkRepresentation::serialize() {
 std::string NeuralNetworkRepresentation::toString() {
 
 	std::stringstream str;
-	for (std::map<std::pair<std::string, int>,
-			boost::shared_ptr<NeuronRepresentation> >::iterator it =
-			neurons_.begin(); it != neurons_.end(); ++it) {
+	for (NeuronMap::iterator it = neurons_.begin(); it != neurons_.end();
+			++it) {
 
 		str << "Neuron : " << it->second->getId();
 		if (it->second->isInput()) {

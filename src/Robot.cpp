@@ -333,7 +333,7 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				return false;
 			}
 
-			bias[nOutputs] = neuron.biasweight();
+			bias[nOutputs] = neuron.bias();
 			gain[nOutputs] = 1;
 
 			nOutputs++;

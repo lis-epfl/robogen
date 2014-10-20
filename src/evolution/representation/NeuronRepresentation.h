@@ -40,8 +40,44 @@ namespace robogen {
  */
 typedef std::pair<std::string,int> ioPair;
 
+struct SigmoidNeuronParams{
+	inline SigmoidNeuronParams(double bias): bias_(bias) {}
+	double bias_;
+};
+
+struct CTRNNSigmoidNeuronParams{
+	inline CTRNNSigmoidNeuronParams(double bias, double tau):
+			bias_(bias), tau_(tau) {}
+	double bias_, tau_;
+};
+
+struct OscillatorNeuronParams{
+	inline OscillatorNeuronParams(double frequency, double phaseOffset):
+			frequency_(frequency), phaseOffset_(phaseOffset) {}
+	double frequency_;
+	double phaseOffset_;
+};
+
+// TODO implement SUPG
+
 class NeuronRepresentation {
 public:
+
+	enum neuronLayer{
+		INPUT,
+		OUTPUT,
+		HIDDEN
+	};
+
+	enum neuronType{
+		SIGMOID,
+		CTRNN_SIGMOID,
+		OSCILLATOR,
+		SUPG
+	};
+
+
+
 	/**
 	 * Creates a new neuron representation. A neuron is associated with a layer,
 	 * and can be associated with a body part and the id of the corresponding
@@ -49,7 +85,14 @@ public:
 	 * neuron needs to be associated to the latter, but in the future, hidden
 	 * layers could be implemented by omitting the specification of the latter.
 	 */
-	NeuronRepresentation(ioPair identification,	bool isOutput, double bias);
+	NeuronRepresentation(ioPair identification,	unsigned int layer,
+			const SigmoidNeuronParams &sigmoidParams);
+
+	NeuronRepresentation(ioPair identification,	unsigned int layer,
+				const CTRNNSigmoidNeuronParams &ctrnnParams);
+
+	NeuronRepresentation(ioPair identification,	unsigned int layer,
+			const OscillatorNeuronParams &oscillatorParams);
 
 	virtual ~NeuronRepresentation();
 
@@ -62,6 +105,16 @@ public:
 	 * @return true if the neuron is in the input layer
 	 */
 	bool isInput();
+
+	/**
+	 * @return layer code of neuron
+	 */
+	unsigned int getLayer();
+
+	/**
+	 * @return type code of neuron
+	 */
+	unsigned int getType();
 
 	/**
 	 * @param value the bias value to be set
@@ -92,15 +145,27 @@ private:
 	std::string id_;
 
 	/**
-	 * Layer identification. If true, Neuron is in Output layer, i.e.
-	 * corresponds to a motor
+	 * Type identification. See enum neuronLayer
 	 */
-	bool isOutput_;
+	unsigned int type_;
+
+	/**
+	 * Layer identification. See enum neuronLayer
+	 */
+	unsigned int layer_;
 
 	/**
 	 * Bias of the given Neuron
 	 */
 	double bias_;
+
+	double tau_;
+
+	double phaseOffset_;
+
+	double frequency_;
+
+	double gain_;
 };
 
 } /* namespace robogen */

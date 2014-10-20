@@ -679,12 +679,14 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId,
 	// create Neurons in NeuralNetwork
 	std::vector<std::string> sensors = newPart->getSensors();
 	for (unsigned int i = 0; i < sensors.size(); ++i) {
-		neuralNetwork_->insertNeuron(ioPair(newPart->getId(), i), false);
+		neuralNetwork_->insertNeuron(ioPair(newPart->getId(), i),
+				NeuronRepresentation::INPUT);
 	}
 	std::vector<std::string> motors = newPart->getMotors();
 	for (unsigned int i = 0; i < motors.size(); ++i) {
 		neuralNetwork_->insertNeuron(
-				ioPair(newPart->getId(), sensors.size() + i), true);
+				ioPair(newPart->getId(), sensors.size() + i),
+				NeuronRepresentation::OUTPUT);
 	}
 
 	// find dst part by id

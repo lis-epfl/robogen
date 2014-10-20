@@ -153,13 +153,13 @@ typedef struct EvolverConfiguration {
 
 	/**
 	 * Lower bound for brain weights and biases
-	 * @todo treat weights and biases separately
+	 * TODO treat weights and biases separately
 	 */
 	double minBrainWeight;
 
 	/**
 	 * Upper bound for brain weights and biases
-	 * @todo treat weights and biases separately
+	 * TODO treat weights and biases separately
 	 */
 	double maxBrainWeight;
 
