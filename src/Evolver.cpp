@@ -142,8 +142,8 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	boost::shared_ptr<Population> population(new Population()), previous;
-	if (!population->init(referenceBot, conf->mu, rng, mutator,
-			growBodies)) {
+	if (!population->init(referenceBot, conf->mu, mutator, growBodies,
+			(!conf->useBrainSeed))) {
 		std::cout << "Error when initializing population!" << std::endl;
 		return exitRobogen(EXIT_FAILURE);
 	}
