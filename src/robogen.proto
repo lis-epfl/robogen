@@ -39,7 +39,7 @@ message Neuron {
   optional int32 ioId = 6;
   optional float tau = 7;
   optional float phaseOffset = 8;
-  optional float frequency = 9;  
+  optional float period = 9;  
   optional float gain = 10; 
 }
 

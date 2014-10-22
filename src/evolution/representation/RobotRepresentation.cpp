@@ -36,6 +36,7 @@
 #include <stack>
 #include <queue>
 #include <boost/regex.hpp>
+#include <boost/algorithm/string.hpp>
 #include "evolution/representation/PartRepresentation.h"
 #include "utils/network/ProtobufPacket.h"
 #include "PartList.h"
@@ -207,30 +208,62 @@ bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
 }
 
 /**
- * Helper function for decoding a weight line of a robot text file.
+ * Helper function for decoding a brain param line of a robot text file.
  * @return true if successful read
  */
-bool robotTextFileReadBiasLine(std::ifstream &file, std::string &node,
-		int &ioId, double &value) {
-	// TODO with this regex, not sure if bias value is read
-	static const boost::regex rx("^([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)$");
+bool robotTextFileReadParamsLine(std::ifstream &file, std::string &node,
+		int &ioId,  unsigned int &type, std::vector<double> &params) {
+
+	static const boost::regex generalRx("^([^\\s]+) (\\d+) ([^\\s]+)((?: -?\\d*\\.?\\d*)+)$");
+
+	static const boost::regex biasRx("^([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)$");
 	boost::cmatch match;
 	std::string line;
 	std::getline(file, line);
-	if (boost::regex_match(line.c_str(), match, rx)) {
+	if (boost::regex_match(line.c_str(), match, generalRx)) {
+		node.assign(match[1]);
+		ioId = std::atoi(match[2].first);
+		std::string typeString = match[3];
+		boost::to_lower(typeString);
+		if(typeString == "simple")
+			type = NeuronRepresentation::SIMPLE;
+		else if(typeString== "sigmoid" || typeString == "logistic")
+			type = NeuronRepresentation::SIGMOID;
+		else if(typeString == "ctrnn_sigmoid")
+			type = NeuronRepresentation::CTRNN_SIGMOID;
+		else if(typeString == "oscillator")
+			type = NeuronRepresentation::OSCILLATOR;
+		else {
+			std::cout << "Invalid neuron type: " << typeString << std::endl;
+			return false;
+		}
+		std::string paramsString = match[4];
+		boost::trim(paramsString);
+		std::vector<std::string> strs;
+		boost::split(strs, paramsString, boost::is_any_of(" "));
+		for (unsigned int i=0; i<strs.size(); i++) {
+			params.push_back(std::atof(strs[i].c_str()));
+		}
+		return true;
+	} else if (boost::regex_match(line.c_str(), match, biasRx)) {
+		for (unsigned int i=0; i < match.size(); i++) {
+			std::cout << i << " " << match[i] << std::endl;
+		}
 		// match[0]:whole string, match[1]:node, match[2]:ioId, match[3]:value
 		node.assign(match[1]);
 		ioId = std::atoi(match[2].first);
-		value = std::atof(match[3].first);
+		type = NeuronRepresentation::SIGMOID;
+		params.push_back(std::atof(match[3].first));
 		return true;
 	} else {
 		// additional info if poor formatting, i.e. line not empty
 		static const boost::regex spacex("^\\s*$");
 		if (!boost::regex_match(line.c_str(), spacex)) {
-			std::cout << "Error reading brain bias from text file. Received:\n"
-					<< line << "\nbut expected format:\n"
-					<< "<part id string> <part io id> "
-							"<bias>" << std::endl;
+			std::cout << "Error reading brain params from text file. Received:\n"
+					<< line << "\nbut expected either format:\n"
+					<< "<part id string> <part io id> <bias>\nor\n"
+					<< "<part id string> <part io id> <neuron type> <param> <param> ..."
+					<< std::endl;
 		}
 		return false;
 	}
@@ -406,11 +439,14 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	}
 
 	// biases
-	while (robotTextFileReadBiasLine(file, to, toIoId, value)) {
-		if (!neuralNetwork_->setBias(to, toIoId, value)) {
-			std::cout << "Failed to set bias" << std::endl;
+	params.clear();
+	unsigned int neuronType;
+	while (robotTextFileReadParamsLine(file, to, toIoId, neuronType, params)) {
+		if (!neuralNetwork_->setParams(to, toIoId, neuronType, params)) {
+			std::cout << "Failed to set neuron params" << std::endl;
 			return false;
 		}
+		params.clear();
 	}
 	file.close();
 
@@ -429,13 +465,11 @@ robogenMessage::Robot RobotRepresentation::serialize() const {
 	return message;
 }
 
-void RobotRepresentation::randomizeBrain(boost::random::mt19937 &rng) {
-	neuralNetwork_->initializeRandomly(rng);
-}
 
 void RobotRepresentation::getBrainGenome(std::vector<double*> &weights,
-		std::vector<double*> &biases) {
-	neuralNetwork_->getGenome(weights, biases);
+		std::vector<unsigned int> &types,
+		std::vector<double*> &params) {
+	neuralNetwork_->getGenome(weights, types, params);
 }
 
 boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain() const {
@@ -680,13 +714,13 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId,
 	std::vector<std::string> sensors = newPart->getSensors();
 	for (unsigned int i = 0; i < sensors.size(); ++i) {
 		neuralNetwork_->insertNeuron(ioPair(newPart->getId(), i),
-				NeuronRepresentation::INPUT);
+				NeuronRepresentation::INPUT, NeuronRepresentation::SIMPLE);
 	}
 	std::vector<std::string> motors = newPart->getMotors();
 	for (unsigned int i = 0; i < motors.size(); ++i) {
 		neuralNetwork_->insertNeuron(
 				ioPair(newPart->getId(), sensors.size() + i),
-				NeuronRepresentation::OUTPUT);
+				NeuronRepresentation::OUTPUT, NeuronRepresentation::SIGMOID);
 	}
 
 	// find dst part by id

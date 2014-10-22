@@ -56,13 +56,13 @@ public:
 	 * constant, but randomly initializing the brain.
 	 * @param robot Reference robot body
 	 * @param popSize chosen size for population
-	 * @param rng boost random number generator for diverse purposes
 	 * @param mutator Mutator for possibly growing bodies randomly
 	 * @param growBodies bool whether we should grow bodies or not
+	 * @param randomizeBrains bool whether we should randomize brains or not
 	 */
 	bool init(boost::shared_ptr<RobotRepresentation> robot, int popSize,
-			boost::random::mt19937 &rng, boost::shared_ptr<Mutator> mutator,
-			bool growBodies);
+			boost::shared_ptr<Mutator> mutator, bool growBodies,
+			bool randomizeBrains);
 
 	/**
 	 * Creates a population from the popSize best individuals of origin.

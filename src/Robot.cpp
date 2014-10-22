@@ -267,10 +267,16 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	std::vector<unsigned int> brainOutputToBodyPart;
 	std::vector<unsigned int> brainOutputToIoId;
 
+	std::map<std::string, unsigned int> hiddenNeuronIds;
+	std::vector<unsigned int> brainHiddenToBodyPart;
+	std::vector<unsigned int> brainHiddenToIoId;
+
 	float weight[(MAX_INPUT_NEURONS + MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)
 	             * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 
 	float params[MAX_PARAMS * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
+	unsigned int types[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
+
 	// Fill it with zeros
 	memset(weight, 0, sizeof(weight));
 
@@ -336,28 +342,69 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			if (neuron.type().compare("sigmoid") == 0) {
 				params[nOutputs * MAX_PARAMS] = neuron.bias();
 				params[nOutputs * MAX_PARAMS + 1] = neuron.gain();
+				types[nOutputs] = SIGMOID;
+			} else if (neuron.type().compare("oscillator") == 0) {
+				params[nOutputs * MAX_PARAMS] = neuron.period();
+				params[nOutputs * MAX_PARAMS + 1] = neuron.phaseoffset();
+				params[nOutputs * MAX_PARAMS + 2] = neuron.gain();
+				types[nOutputs] = OSCILLATOR;
 			} else {
 				//TODO add in this stuff for other neurons
-				std::cout << "only sigmoid neurons supported currently" << std::endl;
+				std::cout << "only sigmoid and oscillator neurons supported currently" << std::endl;
 				return false;
 			}
 			nOutputs++;
 
 		} else if (neuron.layer().compare("hidden") == 0) {
-
 			// Retrieve the body part id from the neuron part id
 			//  -- even hidden neurons should be associated with a body part!
-			// TODO
+			const std::map<std::string, unsigned int>::iterator bodyPartId =
+					bodyPartsMap_.find(neuron.bodypartid());
 
-			std::cout << "Hidden layer not supported yet! " << i << std::endl;
-			return false;
+			if (bodyPartId == bodyPartsMap_.end()) {
+				std::cout << "Cannot find a body part with id '"
+						<< neuron.bodypartid()
+						<< "' to be associated with neuron " << i << std::endl;
+				return false;
+			}
+			//brainHiddenToBodyPart.push_back(bodyPartId->second);
+			brainHiddenToIoId.push_back(neuron.ioid());
+			hiddenNeuronIds.insert(
+					std::pair<std::string, unsigned int>(neuron.id(),
+							nOutputs));
+			isNeuronInput.insert(
+					std::pair<std::string, bool>(neuron.id(), false));
 
+			if (nHidden >= MAX_HIDDEN_NEURONS) {
+				std::cout << "The number of hidden neurons(" << nHidden
+						<< ") is greater than the maximum allowed one ("
+						<< MAX_HIDDEN_NEURONS << ")" << std::endl;
+				return false;
+			}
+
+			if (neuron.type().compare("sigmoid") == 0) {
+				params[(nHidden + MAX_OUTPUT_NEURONS) * MAX_PARAMS] = neuron.bias();
+				params[(nHidden + MAX_OUTPUT_NEURONS) * MAX_PARAMS + 1] = neuron.gain();
+				types[(nHidden + MAX_OUTPUT_NEURONS)] = SIGMOID;
+			} else if (neuron.type().compare("oscillator") == 0) {
+				params[(nHidden + MAX_OUTPUT_NEURONS) * MAX_PARAMS] = neuron.period();
+				params[(nHidden + MAX_OUTPUT_NEURONS) * MAX_PARAMS + 1] = neuron.phaseoffset();
+				params[(nHidden + MAX_OUTPUT_NEURONS) * MAX_PARAMS + 2] = neuron.gain();
+				types[(nHidden + MAX_OUTPUT_NEURONS)] = OSCILLATOR;
+			} else {
+				//TODO add in this stuff for other neurons
+				std::cout << "only sigmoid and oscillator neurons supported currently" << std::endl;
+				return false;
+			}
+			nHidden++;
 		} else {
 			std::cout << "Unsupported layer for neuron " << i << std::endl;
 			return false;
 		}
 
 	}
+
+	unsigned int nNonInputs = nOutputs + nHidden;
 
 	// Reorder robot sensors/actuators according to order in neural network
 	// input array, for faster access
@@ -399,6 +446,8 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			return false;
 		}
 		orderedMotors[i] = curMotors[pos];
+
+		// TODO need to reorder params and types????
 
 	}
 
@@ -458,22 +507,44 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 		if (isSourceInputIt->second == true) {
 			sourceNeuronPos = inputNeuronIds[connection.src()];
 		} else {
-			sourceNeuronPos = outputNeuronIds[connection.src()];
+			// can be either output or hidden
+			if( outputNeuronIds.count(connection.src()))
+				sourceNeuronPos = outputNeuronIds[connection.src()];
+			else if( hiddenNeuronIds.count(connection.src())) {
+				sourceNeuronPos = hiddenNeuronIds[connection.src()] + nOutputs;
+			} else {
+				std::cout << "Problem with source neuron "
+						<< connection.src() << std::endl;
+				return false;
+			}
 		}
 
 		// Cannot be an input neuron
-		int destNeuronPos = outputNeuronIds[connection.dest()];
+		int destNeuronPos;
+		if( outputNeuronIds.count(connection.dest()))
+			destNeuronPos = outputNeuronIds[connection.dest()];
+		else if( hiddenNeuronIds.count(connection.dest())) {
+			destNeuronPos = hiddenNeuronIds[connection.dest()] + nOutputs;
+		} else {
+			std::cout << "Problem with dest neuron "
+					<< connection.dest() << std::endl;
+			return false;
+		}
 
 		if (isSourceInputIt->second == true) {
-			weight[sourceNeuronPos * nOutputs + destNeuronPos] =
+			weight[sourceNeuronPos * nNonInputs + destNeuronPos] =
 					connection.weight();
 		} else {
-			weight[nInputs * nOutputs + sourceNeuronPos * nOutputs
+			// put in after all connections from inputs
+			weight[nInputs * nNonInputs + sourceNeuronPos * nNonInputs
 					+ destNeuronPos] = connection.weight();
 		}
+		std::cout<<"connection, src: " << connection.src() << ", dest: " <<
+				connection.dest() << " " << connection.weight() << " " <<
+				sourceNeuronPos << " " << destNeuronPos << std::endl;
 	}
 	::initNetwork(neuralNetwork_.get(), nInputs, nOutputs, nHidden,
-			&weight[0], &params[0]);
+			&weight[0], &params[0], &types[0]);
 
 	return true;
 

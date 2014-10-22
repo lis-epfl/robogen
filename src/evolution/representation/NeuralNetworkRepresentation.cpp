@@ -70,48 +70,21 @@ NeuralNetworkRepresentation::NeuralNetworkRepresentation(
 	for (std::map<std::string, int>::iterator it = sensorParts.begin();
 			it != sensorParts.end(); it++) {
 		for (int i = 0; i < it->second; i++) {
-			insertNeuron(ioPair(it->first, i), NeuronRepresentation::INPUT);
+			insertNeuron(ioPair(it->first, i), NeuronRepresentation::INPUT,
+					NeuronRepresentation::SIMPLE);
 		}
 	}
 	// generate neurons from motor body parts
 	for (std::map<std::string, int>::iterator it = motorParts.begin();
 			it != motorParts.end(); it++) {
 		for (int i = 0; i < it->second; i++) {
-			insertNeuron(ioPair(it->first, i), NeuronRepresentation::OUTPUT);
+			insertNeuron(ioPair(it->first, i), NeuronRepresentation::OUTPUT,
+					NeuronRepresentation::SIGMOID);
 		}
 	}
 }
 
 NeuralNetworkRepresentation::~NeuralNetworkRepresentation() {
-}
-
-void NeuralNetworkRepresentation::initializeRandomly(
-		boost::random::mt19937 &rng) {
-	// clear all existing weights and biases
-	weights_.clear();
-	// create random number generator
-	boost::random::uniform_real_distribution<double> weightDistrib(0., 1.);
-	// motivation: should be able to take any value if inputs 0, too
-	boost::random::uniform_real_distribution<double> biasDistrib(-1., 1.);
-
-	// for each neuron
-	for (NeuronMap::iterator it = neurons_.begin(); it != neurons_.end();
-			it++) {
-		// generate random weight to other neuron if valid
-		for (NeuronMap::iterator jt = neurons_.begin(); jt != neurons_.end();
-				jt++) {
-			// can't create connection to an input neuron
-			if (!jt->second->isInput()) {
-				weights_[std::pair<std::string, std::string>(
-						it->second->getId(), jt->second->getId())] =
-						weightDistrib(rng);
-			}
-		}
-		// generate bias, if not input neuron
-		if (!it->second->isInput()) {
-			it->second->setBias(biasDistrib(rng));
-		}
-	}
 }
 
 bool NeuralNetworkRepresentation::setWeight(std::string from, int fromIoId,
@@ -153,8 +126,8 @@ bool NeuralNetworkRepresentation::setWeight(std::string from, int fromIoId,
 	return true;
 }
 
-bool NeuralNetworkRepresentation::setBias(std::string bodyPart, int ioId,
-		double value) {
+bool NeuralNetworkRepresentation::setParams(std::string bodyPart, int ioId,
+		unsigned int type, std::vector<double> params) {
 	NeuronMap::iterator it = neurons_.find(ioPair(bodyPart, ioId));
 	if (it == neurons_.end()) {
 		std::cout << "Specified weight output io id pair " << bodyPart << " "
@@ -168,38 +141,88 @@ bool NeuralNetworkRepresentation::setBias(std::string bodyPart, int ioId,
 		return false;
 	}
 	if (it->second->isInput()) {
-		std::cout << "Attempted to assign bias to input layer neuron "
-				<< bodyPart << " " << ioId;
+		std::cout << "Attempted to assign params to input layer neuron "
+				<< bodyPart << " " << ioId << std::endl;
 		return false;
 	}
-	it->second->setBias(value);
+	if(type == NeuronRepresentation::SIMPLE) {
+		// should not really be used, but will leave as an option
+		if(params.size() != 1) {
+			std::cout << "Invalid number of params for simple neuron type.";
+			std::cout << " Received "<< params.size() << ", but expected 1.";
+			std::cout << std::endl;
+			return false;
+		}
+	} else if(type == NeuronRepresentation::SIGMOID) {
+		if(params.size() != 1) {
+			std::cout << "Invalid number of params for sigmoid neuron type.";
+			std::cout << " Received "<< params.size() << ", but expected 1.";
+			std::cout << std::endl;
+			return false;
+		}
+	} else if(type == NeuronRepresentation::CTRNN_SIGMOID) {
+		if(params.size() != 2) {
+			std::cout << "Invalid number of params for CTRNN sigmoid neuron type.";
+			std::cout << " Received "<< params.size() << ", but expected 2.";
+			std::cout << std::endl;
+			return false;
+		}
+	} else if(type == NeuronRepresentation::OSCILLATOR) {
+		if (params.size() != 3) {
+			std::cout << "Invalid number of params for oscillator neuron type.";
+			std::cout << " Received "<< params.size() << ", but expected 3.";
+			std::cout << std::endl;
+			return false;
+		}
+		std::cout << "neuron " << bodyPart << " " << ioId <<
+				" set to be oscillator.  Will remove incoming connections" <<
+				std::endl;
+		removeIncomingConnections(it->second);
+
+	} else {
+		std::cout << "Invalid neuron type "	<< type << std::endl;
+		return false;
+	}
+	it->second->setParams(type, params);
 	return true;
 }
 
 void NeuralNetworkRepresentation::getGenome(std::vector<double*> &weights,
-		std::vector<double*> &biases) {
+		std::vector<unsigned int> &types,
+		std::vector<double*> &params) {
 	// clean up
 	weights.clear();
-	biases.clear();
+	params.clear();
+	types.clear();
 	// provide weights
 	for (WeightMap::iterator it = weights_.begin(); it != weights_.end();
 			++it) {
 		weights.push_back(&it->second);
 	}
-	// provide biases
+	// provide biases, only include those for applicable neurons
 	for (NeuronMap::iterator it = neurons_.begin(); it != neurons_.end();
 			++it) {
-		biases.push_back(it->second->getBiasPointer());
+		if (!it->second->isInput()) {
+			std::vector<double*> neuronParams;
+			it->second->getParamsPointers(neuronParams);
+			params.insert(params.end(), neuronParams.begin(),
+					neuronParams.end());
+			types.push_back(it->second->getType());
+		}
 	}
 }
 
 std::string NeuralNetworkRepresentation::insertNeuron(ioPair identification,
-		unsigned int layer) {
+		unsigned int layer, unsigned int type) {
 	boost::shared_ptr<NeuronRepresentation> neuron = boost::shared_ptr<
 			NeuronRepresentation>(
-			new NeuronRepresentation(identification, layer,
-					SigmoidNeuronParams(0.)));
+			new NeuronRepresentation(identification, layer, type));
 	// insert into map
+	if (neurons_.count(identification)) {
+		std::cout << "ATTENTION: attempting to insert a neuron with id " <<
+				identification.first << "-" << identification.second <<
+				", which already exists" << std::endl;
+	}
 	neurons_[identification] = neuron;
 	// generate weights
 	for (NeuronMap::iterator it = neurons_.begin(); it != neurons_.end();
@@ -225,7 +248,7 @@ void NeuralNetworkRepresentation::cloneNeurons(std::string oldPartId,
 		boost::shared_ptr<NeuronRepresentation> neuron = neurons[i].lock();
 		oldNew[neuron->getId()] = insertNeuron(
 				ioPair(newPartId, neuron->getIoPair().second),
-				neuron->getLayer());
+				neuron->getLayer(), neuron->getType());
 	}
 }
 
@@ -268,35 +291,51 @@ void NeuralNetworkRepresentation::generateCloneWeights(
 	}
 }
 
+void NeuralNetworkRepresentation::removeIncomingConnections(
+		boost::shared_ptr<NeuronRepresentation> neuron) {
+	// remove all incoming weights of the neuron
+	WeightMap::iterator it = weights_.begin();
+	while (it != weights_.end()) {
+	   if (it->first.second.compare(neuron->getId()) == 0) {
+		   std::cout << it->first.first << " -> " << it->first.second << std::endl;
+		   weights_.erase(it++);
+	   } else {
+		  it++;
+	   }
+	}
+}
+void NeuralNetworkRepresentation::removeOutgoingConnections(
+		boost::shared_ptr<NeuronRepresentation> neuron) {
+	// remove all outgoing weights of the neuron
+	WeightMap::iterator it = weights_.begin();
+	while (it != weights_.end()) {
+	   if (it->first.first.compare(neuron->getId()) == 0) {
+		   std::cout << it->first.first << " -> " << it->first.second << std::endl;
+		   weights_.erase(it++);
+	   } else {
+		  it++;
+	   }
+	}
+}
+
+
 void NeuralNetworkRepresentation::removeNeurons(std::string bodyPartId) {
 	std::vector<boost::weak_ptr<NeuronRepresentation> > neurons =
 			getBodyPartNeurons(bodyPartId);
 
 	for (unsigned int i = 0; i < neurons.size(); ++i) {
-		// remove all weights of the neuron
 		boost::shared_ptr<NeuronRepresentation> neuron = neurons[i].lock();
 		assert(neuron);
-
-		WeightMap::iterator it = weights_.begin();
-		while (it != weights_.end()) {
-
-		   std::cout << it->first.first << " -> " << it->first.second << std::endl;
-		   if (it->first.first.compare(neuron->getId()) == 0
-					|| it->first.second.compare(neuron->getId()) == 0) {
-			   weights_.erase(it++);
-		   } else {
-		      it++;
-		   }
-		}
-
+		removeIncomingConnections(neuron);
+		removeOutgoingConnections(neuron);
 		// remove the neuron itself
 		neurons_.erase(neurons_.find(neuron->getIoPair()));
 	}
 
 }
 
-std::vector<boost::weak_ptr<NeuronRepresentation> > NeuralNetworkRepresentation::getBodyPartNeurons(
-		std::string bodyPart) {
+std::vector<boost::weak_ptr<NeuronRepresentation> >
+		NeuralNetworkRepresentation::getBodyPartNeurons(std::string bodyPart) {
 
 	std::vector<boost::weak_ptr<NeuronRepresentation> > ret;
 
@@ -311,6 +350,7 @@ std::vector<boost::weak_ptr<NeuronRepresentation> > NeuralNetworkRepresentation:
 	return ret;
 }
 
+/*
 bool NeuralNetworkRepresentation::getLinearRepresentation(
 		std::vector<ioPair> &inputs, std::vector<ioPair> &outputs,
 		std::vector<double> &weights, std::vector<double> &biases) {
@@ -369,7 +409,7 @@ bool NeuralNetworkRepresentation::getLinearRepresentation(
 	}
 	return true;
 }
-
+*/
 robogenMessage::Brain NeuralNetworkRepresentation::serialize() {
 	robogenMessage::Brain serialization;
 

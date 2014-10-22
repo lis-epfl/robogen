@@ -98,17 +98,14 @@ public:
 	robogenMessage::Robot serialize() const;
 
 	/**
-	 * Initializes the brain to be completely random.
-	 */
-	void randomizeBrain(boost::random::mt19937 &rng);
-
-	/**
 	 * Provides weight and bias handles for a mutator.
 	 * @param weights reference to a vector to be filled with weight pointers
-	 * @param biases reference to a vector to be filled with bias pointers
+	 * @param types reference to a vector to be filled with types of neurons
+	 * @param params reference to a vector to be filled with params pointers
 	 */
 	void getBrainGenome(std::vector<double*> &weights,
-			std::vector<double*> &biases);
+			std::vector<unsigned int> &types,
+			std::vector<double*> &params);
 
 	/**
 	 * @return a shared pointer to the robots brain

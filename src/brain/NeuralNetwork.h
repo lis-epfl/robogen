@@ -37,13 +37,25 @@
 #define MAX_HIDDEN_NEURONS 20
 
 /*
- * max is either (bias, tau, gain) or (phase offset, frequency, gain)
+ * max is either (bias, tau, gain) or (phase offset, period, gain)
  */
 #define MAX_PARAMS 3
 
 /*
  * No namespace here on purpose ;-)
  */
+
+/*
+ * Copied from NeuronRepresentation.h
+ */
+enum neuronType{
+		SIMPLE, /* corresponds to inputs */
+		SIGMOID,
+		CTRNN_SIGMOID,
+		OSCILLATOR,
+		SUPG
+};
+
 
 typedef struct {
 
@@ -90,9 +102,15 @@ typedef struct {
 	int curStateStart;
 
 	/**
-	 * Onje input state for each input neuron
+	 * One input state for each input neuron
 	 */
 	float input[MAX_INPUT_NEURONS];
+
+
+	/**
+	 * Type of each non-input neuron
+	 */
+	unsigned int types[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 
 	/**
 	 * The number of inputs
@@ -109,6 +127,16 @@ typedef struct {
 	 */
 	unsigned int nHidden;
 
+	/**
+	 * The number of non-inputs (i.e. nOutputs + nHidden)
+	 */
+	unsigned int nNonInputs;
+
+	/**
+	 * Internal counter (used for oscillators)
+	 */
+	unsigned int counter;
+
 } NeuralNetwork;
 
 /**
@@ -124,7 +152,8 @@ typedef struct {
  */
 void initNetwork(NeuralNetwork* network, unsigned int nInputs,
 		unsigned int nOutputs, unsigned int nHidden,
-		const float *weights, const float* params);
+		const float *weights, const float* params,
+		const unsigned int *types);
 
 /**
  * Feed the neural network with input values

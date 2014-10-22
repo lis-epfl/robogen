@@ -65,6 +65,7 @@ public:
 			boost::shared_ptr<RobotRepresentation> parent2);
 
 	void growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot);
+	void randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot);
 
 private:
 
@@ -109,13 +110,11 @@ private:
 	/**
 	 * Diverse distributions to be used for mutation
 	 */
-	boost::random::bernoulli_distribution<double> weightMutate_;
-	boost::random::normal_distribution<double> weightDistribution_;
-	boost::random::normal_distribution<double> paramDistribution_;
+	boost::random::bernoulli_distribution<double> brainMutate_;
+	boost::random::normal_distribution<double> normalDistribution_;
+
 
 	boost::random::bernoulli_distribution<double> weightCrossover_;
-	double brainMin_;
-	double brainMax_;
 
 	/**
 	 * Probability distribution for calling mutation operators

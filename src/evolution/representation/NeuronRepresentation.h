@@ -40,25 +40,7 @@ namespace robogen {
  */
 typedef std::pair<std::string,int> ioPair;
 
-struct SigmoidNeuronParams{
-	inline SigmoidNeuronParams(double bias): bias_(bias) {}
-	double bias_;
-};
 
-struct CTRNNSigmoidNeuronParams{
-	inline CTRNNSigmoidNeuronParams(double bias, double tau):
-			bias_(bias), tau_(tau) {}
-	double bias_, tau_;
-};
-
-struct OscillatorNeuronParams{
-	inline OscillatorNeuronParams(double frequency, double phaseOffset):
-			frequency_(frequency), phaseOffset_(phaseOffset) {}
-	double frequency_;
-	double phaseOffset_;
-};
-
-// TODO implement SUPG
 
 class NeuronRepresentation {
 public:
@@ -70,13 +52,12 @@ public:
 	};
 
 	enum neuronType{
+		SIMPLE, //corresponds to inputs
 		SIGMOID,
 		CTRNN_SIGMOID,
 		OSCILLATOR,
 		SUPG
 	};
-
-
 
 	/**
 	 * Creates a new neuron representation. A neuron is associated with a layer,
@@ -85,14 +66,13 @@ public:
 	 * neuron needs to be associated to the latter, but in the future, hidden
 	 * layers could be implemented by omitting the specification of the latter.
 	 */
-	NeuronRepresentation(ioPair identification,	unsigned int layer,
-			const SigmoidNeuronParams &sigmoidParams);
+	NeuronRepresentation(ioPair identification,	unsigned int layer);
 
 	NeuronRepresentation(ioPair identification,	unsigned int layer,
-				const CTRNNSigmoidNeuronParams &ctrnnParams);
+			unsigned int type); // useful for copying neurons
 
 	NeuronRepresentation(ioPair identification,	unsigned int layer,
-			const OscillatorNeuronParams &oscillatorParams);
+			unsigned int type, const std::vector<double> params);
 
 	virtual ~NeuronRepresentation();
 
@@ -100,6 +80,12 @@ public:
 	 * @return id of the Neuron
 	 */
 	std::string &getId();
+
+	/**
+	 * @param params the params to be set
+	 */
+	void setParams(unsigned int type, const std::vector<double> params);
+
 
 	/**
 	 * @return true if the neuron is in the input layer
@@ -117,14 +103,9 @@ public:
 	unsigned int getType();
 
 	/**
-	 * @param value the bias value to be set
+	 * @param params reference to a vector to be filled with params pointers
 	 */
-	void setBias(double value);
-
-	/**
-	 * @return pointer to bias, handle for mutator
-	 */
-	double *getBiasPointer();
+	void getParamsPointers(std::vector<double*> &params);
 
 	ioPair getIoPair();
 
@@ -134,6 +115,13 @@ public:
 	robogenMessage::Neuron serialize();
 
 private:
+	/**
+	 * Code common to all constructors
+	 */
+	void init(ioPair identification, unsigned int layer, unsigned int type);
+
+
+
 	/**
 	 * Identification (body part id, IO ID) of neuron
 	 */
@@ -163,7 +151,7 @@ private:
 
 	double phaseOffset_;
 
-	double frequency_;
+	double period_;
 
 	double gain_;
 };
