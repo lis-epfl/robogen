@@ -119,7 +119,6 @@ void step(NeuralNetwork* network) {
 			network->state[nextState + i] = 1.0
 				/ (1.0 + exp(-network->params[MAX_PARAMS*i+1] *
 						curNeuronActivation));
-			network->state[nextState + i] = 0;
 		} else if (network->types[i] == SIMPLE) {
 			/* linear, params are bias, gain */
 
