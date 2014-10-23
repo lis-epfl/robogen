@@ -339,8 +339,7 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				return false;
 			}
 
-			if (neuron.type().compare("sigmoid") == 0 ||
-					neuron.type().compare("") == 0) {
+			if (neuron.type().compare("sigmoid") == 0) {
 				params[nOutputs * MAX_PARAMS] = neuron.bias();
 				params[nOutputs * MAX_PARAMS + 1] = neuron.gain();
 				types[nOutputs] = SIGMOID;
