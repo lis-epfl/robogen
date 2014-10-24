@@ -93,11 +93,6 @@ private:
 	 */
 	bool initialized_;
 
-	/**
-	 * Internal var for oscillator
-	 */
-	int counter_;
-
 	std::vector<boost::shared_ptr<SimpleSensor> > sensors_;
 
 };
