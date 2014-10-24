@@ -268,14 +268,18 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	std::vector<unsigned int> brainOutputToIoId;
 
 	std::map<std::string, unsigned int> hiddenNeuronIds;
-	std::vector<unsigned int> brainHiddenToBodyPart;
-	std::vector<unsigned int> brainHiddenToIoId;
+	//std::vector<unsigned int> brainHiddenToBodyPart;
+	//std::vector<unsigned int> brainHiddenToIoId;
 
 	float weight[(MAX_INPUT_NEURONS + MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)
 	             * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 
 	float params[MAX_PARAMS * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 	unsigned int types[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
+
+	//temporary arrays for storing params of hidden neurons
+	float hidden_params[MAX_PARAMS * MAX_HIDDEN_NEURONS];
+	unsigned int hidden_types[MAX_HIDDEN_NEURONS];
 
 	// Fill it with zeros
 	memset(weight, 0, sizeof(weight));
@@ -368,10 +372,8 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				return false;
 			}
 			//brainHiddenToBodyPart.push_back(bodyPartId->second);
-			brainHiddenToIoId.push_back(neuron.ioid());
-			hiddenNeuronIds.insert(
-					std::pair<std::string, unsigned int>(neuron.id(),
-							nOutputs));
+			//brainHiddenToIoId.push_back(neuron.ioid());
+			hiddenNeuronIds.insert(ioPair(neuron.id(),nOutputs));
 			isNeuronInput.insert(
 					std::pair<std::string, bool>(neuron.id(), false));
 
@@ -383,14 +385,14 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			}
 
 			if (neuron.type().compare("sigmoid") == 0) {
-				params[(nHidden + MAX_OUTPUT_NEURONS) * MAX_PARAMS] = neuron.bias();
-				params[(nHidden + MAX_OUTPUT_NEURONS) * MAX_PARAMS + 1] = neuron.gain();
-				types[(nHidden + MAX_OUTPUT_NEURONS)] = SIGMOID;
+				hidden_params[nHidden * MAX_PARAMS] = neuron.bias();
+				hidden_params[nHidden * MAX_PARAMS + 1] = neuron.gain();
+				hidden_types[nHidden] = SIGMOID;
 			} else if (neuron.type().compare("oscillator") == 0) {
-				params[(nHidden + MAX_OUTPUT_NEURONS) * MAX_PARAMS] = neuron.period();
-				params[(nHidden + MAX_OUTPUT_NEURONS) * MAX_PARAMS + 1] = neuron.phaseoffset();
-				params[(nHidden + MAX_OUTPUT_NEURONS) * MAX_PARAMS + 2] = neuron.gain();
-				types[(nHidden + MAX_OUTPUT_NEURONS)] = OSCILLATOR;
+				hidden_params[nHidden * MAX_PARAMS] = neuron.period();
+				hidden_params[nHidden * MAX_PARAMS + 1] = neuron.phaseoffset();
+				hidden_params[nHidden * MAX_PARAMS + 2] = neuron.gain();
+				hidden_types[nHidden] = OSCILLATOR;
 			} else {
 				//TODO add in this stuff for other neurons
 				std::cout << "only sigmoid and oscillator neurons supported currently" << std::endl;
@@ -402,6 +404,14 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			return false;
 		}
 
+	}
+
+	// now stick all hidden_params and types in after motor neurons
+	for (unsigned int i=0; i<nHidden; i++) {
+		types[nOutputs + i] = hidden_types[i];
+		for (unsigned int j=0; j<MAX_PARAMS; j++) {
+			params[(nOutputs + i)*MAX_PARAMS + j] = hidden_params[i*MAX_PARAMS + j];
+		}
 	}
 
 	unsigned int nNonInputs = nOutputs + nHidden;

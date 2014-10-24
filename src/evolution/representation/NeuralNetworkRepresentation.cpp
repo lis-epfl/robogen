@@ -228,7 +228,8 @@ std::string NeuralNetworkRepresentation::insertNeuron(ioPair identification,
 	for (NeuronMap::iterator it = neurons_.begin(); it != neurons_.end();
 			++it) {
 		// generate incoming
-		if (!neuron->isInput()) {
+		if (!neuron->isInput() &&
+				(neuron->getType() != NeuronRepresentation::OSCILLATOR)) {
 			weights_[StringPair(it->second->getId(), neuron->getId())] = 0.;
 		}
 		// generate outgoing (no need to worry about double declaration of the

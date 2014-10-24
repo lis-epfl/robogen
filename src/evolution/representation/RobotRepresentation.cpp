@@ -178,7 +178,7 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
  */
 bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
 		int &fromIoId, std::string &to, int &toIoId, double &value) {
-	// TODO with this regex, not sure if weight value is read
+
 	static const boost::regex rx(
 			"^([^\\s]+) (\\d+) ([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)$");
 	boost::cmatch match;
@@ -202,6 +202,56 @@ bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
 					<< "<source part id string> <source part io id> "
 							"<destination part id string> <destination part io id> "
 							"<weight>" << std::endl;
+			throw std::runtime_error("");
+		}
+		return false;
+	}
+}
+
+/**
+ * Helper function to translate type string to code
+ */
+void parseTypeString(std::string typeString, unsigned int &type) {
+	boost::to_lower(typeString);
+	if(typeString == "simple")
+		type = NeuronRepresentation::SIMPLE;
+	else if(typeString== "sigmoid" || typeString == "logistic")
+		type = NeuronRepresentation::SIGMOID;
+	else if(typeString == "ctrnn_sigmoid")
+		type = NeuronRepresentation::CTRNN_SIGMOID;
+	else if(typeString == "oscillator")
+		type = NeuronRepresentation::OSCILLATOR;
+	else {
+		std::cout << "Invalid neuron type: " << typeString << std::endl;
+		throw std::runtime_error("");
+	}
+}
+
+/**
+ * Helper function for decoding an add-neuron line of a robot text file.
+ * @return true if successful read
+ */
+bool robotTextFileReadAddNeuronLine(std::ifstream &file, std::string &partId,
+		unsigned int &type) {
+
+	static const boost::regex rx("^([^\\s]+) ([^\\s]+)$");
+	boost::cmatch match;
+	std::string line;
+	std::getline(file, line);
+	if (boost::regex_match(line.c_str(), match, rx)) {
+		// match[0]:whole string, match[1]:partId match[2]:type string
+		partId.assign(match[1]);
+		std::string typeString = match[2];
+		parseTypeString(typeString, type);
+		return true;
+	} else {
+		// additional info if poor formatting, i.e. line not empty
+		static const boost::regex spacex("^\\s*$");
+		if (!boost::regex_match(line.c_str(), spacex)) {
+			std::cout << "Error reading hidden neuron descriptor from text file. Received:\n"
+					<< line << "\nbut expected format:\n"
+					<< "<part id string> <type string>" << std::endl;
+			throw std::runtime_error("");
 		}
 		return false;
 	}
@@ -224,19 +274,7 @@ bool robotTextFileReadParamsLine(std::ifstream &file, std::string &node,
 		node.assign(match[1]);
 		ioId = std::atoi(match[2].first);
 		std::string typeString = match[3];
-		boost::to_lower(typeString);
-		if(typeString == "simple")
-			type = NeuronRepresentation::SIMPLE;
-		else if(typeString== "sigmoid" || typeString == "logistic")
-			type = NeuronRepresentation::SIGMOID;
-		else if(typeString == "ctrnn_sigmoid")
-			type = NeuronRepresentation::CTRNN_SIGMOID;
-		else if(typeString == "oscillator")
-			type = NeuronRepresentation::OSCILLATOR;
-		else {
-			std::cout << "Invalid neuron type: " << typeString << std::endl;
-			return false;
-		}
+		parseTypeString(typeString, type);
 		std::string paramsString = match[4];
 		boost::trim(paramsString);
 		std::vector<std::string> strs;
@@ -264,6 +302,7 @@ bool robotTextFileReadParamsLine(std::ifstream &file, std::string &node,
 					<< "<part id string> <part io id> <bias>\nor\n"
 					<< "<part id string> <part io id> <neuron type> <param> <param> ..."
 					<< std::endl;
+			throw std::runtime_error("");
 		}
 		return false;
 	}
@@ -355,10 +394,15 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	std::vector<double> params;
 
 	// process root node
-	if (!robotTextFileReadPartLine(file, indent, slot, type, id, orientation,
-			params) || indent) {
-		std::cout << "Robot text file contains no or"
-				" poorly formatted root node" << std::endl;
+	try {
+		if (!robotTextFileReadPartLine(file, indent, slot, type, id, orientation,
+				params) || indent) {
+			std::cout << "Robot text file contains no or"
+					" poorly formatted root node" << std::endl;
+			return false;
+		}
+	} catch (std::runtime_error &e) {
+		std::cout << "Error parsing robot body\n";
 		return false;
 	}
 	current = PartRepresentation::create(type, id, orientation, params);
@@ -405,7 +449,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 			idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
 		}
 	} catch (std::runtime_error &e) {
-		std::cout << "Error parsing body file\n";
+		std::cout << "Error parsing robot body\n";
 		return false;
 	}
 	// process brain
@@ -429,24 +473,38 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	}
 
 	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
-
-	// weights
-	while (robotTextFileReadWeightLine(file, from, fromIoId, to, toIoId, value)) {
-		if (!neuralNetwork_->setWeight(from, fromIoId, to, toIoId, value)) {
-			std::cout << "Failed to set weight" << std::endl;
-			return false;
-		}
-	}
-
-	// biases
-	params.clear();
 	unsigned int neuronType;
-	while (robotTextFileReadParamsLine(file, to, toIoId, neuronType, params)) {
-		if (!neuralNetwork_->setParams(to, toIoId, neuronType, params)) {
-			std::cout << "Failed to set neuron params" << std::endl;
-			return false;
+	// add new neurons
+	try {
+		while (robotTextFileReadAddNeuronLine(file, id, neuronType)) {
+			std::string neuronId = neuralNetwork_->insertNeuron(ioPair(id,
+					neuralNetwork_->getBodyPartNeurons(id).size()),
+					NeuronRepresentation::HIDDEN, neuronType);
+			std::cout << "added hidden neuron "  << neuronId << " with type "
+					<< neuronType << std::endl;
 		}
+
+		// weights
+		while (robotTextFileReadWeightLine(file, from, fromIoId, to, toIoId, value)) {
+			if (!neuralNetwork_->setWeight(from, fromIoId, to, toIoId, value)) {
+				std::cout << "Failed to set weight" << std::endl;
+				return false;
+			}
+		}
+
+		// params
 		params.clear();
+
+		while (robotTextFileReadParamsLine(file, to, toIoId, neuronType, params)) {
+			if (!neuralNetwork_->setParams(to, toIoId, neuronType, params)) {
+				std::cout << "Failed to set neuron params" << std::endl;
+				return false;
+			}
+			params.clear();
+		}
+	} catch (std::runtime_error &e) {
+		std::cout << "Error parsing robot brain\n";
+		return false;
 	}
 	file.close();
 
