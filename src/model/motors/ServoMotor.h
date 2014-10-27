@@ -93,6 +93,10 @@ public:
 	 */
 	bool isVelocityDriven();
 
+	/**
+	 * @return the number of times motor has flipped directions
+	 */
+	unsigned int getNumDirectionFlips();
 
 private:
 
@@ -116,6 +120,17 @@ private:
 	 */
 	bool isVelocityDriven_;
 
+	/**
+	 * Count times motor switches direction, to be used for preventing burnout
+	 */
+	unsigned int numDirectionFlips_;
+
+
+	/**
+	 * Keep track of previous change of positions,
+	 * to be used for preventing burnout
+	 */
+	float previousDt_;
 };
 
 }

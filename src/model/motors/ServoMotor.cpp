@@ -46,15 +46,17 @@ const float ServoMotor::MAX_VELOCITY = (100.0/60.0) * 2 * M_PI;
 
 ServoMotor::ServoMotor(dJointID joint, float maxForce, float gain,
 		ioPair id) : Motor(id),
-		joint_(joint), maxForce_(maxForce), gain_(gain), isVelocityDriven_(
-				false){
+		joint_(joint), maxForce_(maxForce), gain_(gain),
+		isVelocityDriven_(false),
+		numDirectionFlips_(0), previousDt_(0.) {
 	dJointSetHingeParam(joint_, dParamFMax, maxForce_);
 }
 
 ServoMotor::ServoMotor(dJointID joint, float maxForce,
 		ioPair id) : Motor(id),
-		joint_(joint), maxForce_(maxForce), gain_(0), isVelocityDriven_(
-				true) {
+		joint_(joint), maxForce_(maxForce), gain_(0),
+		isVelocityDriven_(true),
+		numDirectionFlips_(0), previousDt_(0.) {
 	dJointSetHingeParam(joint_, dParamFMax, maxForce_);
 }
 
@@ -87,6 +89,14 @@ void ServoMotor::setPosition(float position) {
 	} else {
 		dJointSetHingeParam(joint_, dParamVel, 0);
 	}
+
+	if (error > 0.0 && previousDt_ < 0.0)
+		numDirectionFlips_++;
+	else if (error < 0.0 && previousDt_ > 0.0)
+		numDirectionFlips_++;
+	previousDt_ = error;
+
+
 }
 
 void ServoMotor::setVelocity(float velocity) {
@@ -104,10 +114,20 @@ void ServoMotor::setVelocity(float velocity) {
 	} else {
 		dJointSetHingeParam(joint_, dParamVel, velocity);
 	}
+
+	if (velocity > 0.0 && previousDt_ < 0.0)
+		numDirectionFlips_++;
+	else if (velocity < 0.0 && previousDt_ > 0.0)
+		numDirectionFlips_++;
+	previousDt_ = velocity;
 }
 
 bool ServoMotor::isVelocityDriven() {
 	return isVelocityDriven_;
+}
+
+unsigned int ServoMotor::getNumDirectionFlips() {
+	return numDirectionFlips_;
 }
 
 }

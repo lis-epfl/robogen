@@ -68,6 +68,7 @@ private:
 
 	std::vector<osg::Vec2> startPosition_;
 	std::vector<double> distances_;
+	std::vector<unsigned int> directionFlips_;
 	unsigned int curTrial_;
 
 };
