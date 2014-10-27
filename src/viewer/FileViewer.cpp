@@ -549,9 +549,9 @@ int main(int argc, char *argv[]) {
 							boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
 
 					if (motor->isVelocityDriven()) {
-						motor->setVelocity(networkOutput[i]);
+						motor->setVelocity(networkOutput[i], step);
 					} else {
-						motor->setPosition(networkOutput[i]);
+						motor->setPosition(networkOutput[i], step);
 					}
 				}
 			}

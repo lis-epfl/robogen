@@ -409,9 +409,10 @@ int main(int argc, char* argv[]) {
 
 										if (motor->isVelocityDriven()) {
 											motor->setVelocity(
-													networkOutputs[i]);
+													networkOutputs[i], step);
 										} else {
-											motor->setPosition(networkOutputs[i]);
+											motor->setPosition(
+													networkOutputs[i], step);
 										}
 									}
 								}
