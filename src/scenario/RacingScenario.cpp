@@ -71,19 +71,8 @@ bool RacingScenario::endSimulation() {
 			minDistance = curDistance.length();
 		}
 	}
-	const std::vector<boost::shared_ptr<Motor> >& motors = this->getRobot()->getMotors();
-	unsigned int maxDirectionFlips = 0;
-	for (unsigned int i = 0; i < motors.size(); ++i) {
-		if (boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
-			boost::shared_ptr<ServoMotor> motor =
-					boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
-			if(motor->getNumDirectionFlips() > maxDirectionFlips)
-				maxDirectionFlips = motor->getNumDirectionFlips();
-		}
-	}
 
 	distances_.push_back(minDistance);
-	directionFlips_.push_back(maxDirectionFlips);
 	curTrial_++;
 	// Set next starting position
 	this->setStartingPosition(curTrial_);
@@ -96,16 +85,7 @@ double RacingScenario::getFitness() {
 	double fitness = 0;
 	for (unsigned int i = 0; i < distances_.size(); ++i) {
 		fitness += distances_[i];
-		// penalty for motor jitter
-		float directionFlipRate = ((float) directionFlips_[i]) /
-				this->getRobogenConfig()->getSimulationTime();
-		// TODO make this configurable
-		if (directionFlipRate > 10.0) {
-			fitness -= (0.02 * directionFlipRate);
-		}
 	}
-
-
 
 	return fitness/distances_.size();
 }
