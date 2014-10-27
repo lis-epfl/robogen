@@ -96,8 +96,11 @@ void ServoMotor::testBurnout(float velocity, float step) {
 
 void ServoMotor::setPosition(float position, float step) {
 
-	if (isBurntOut_)
+	if (isBurntOut_) {
+		dJointSetHingeParam(joint_, dParamVel, 0);
 		return;
+	}
+
 
 	if (position > 1) {
 		position = 1;
@@ -129,8 +132,11 @@ void ServoMotor::setPosition(float position, float step) {
 
 void ServoMotor::setVelocity(float velocity, float step) {
 
-	if (isBurntOut_)
+	if (isBurntOut_) {
+		dJointSetHingeParam(joint_, dParamVel, 0);
 		return;
+	}
+
 
 	if (velocity > 1) {
 		velocity = 1;
