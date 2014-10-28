@@ -342,11 +342,11 @@ int main(int argc, char* argv[]) {
 														ServoMotor>(motors[i]);
 
 										if (motor->isVelocityDriven()) {
-											motor->setVelocity(networkOutputs[i],
-													step);
+											motor->setVelocity(networkOutputs[i], step *
+													configuration->getActuationPeriod());
 										} else {
-											motor->setPosition(networkOutputs[i],
-													step);
+											motor->setPosition(networkOutputs[i], step *
+													configuration->getActuationPeriod());
 										}
 									}
 								}
