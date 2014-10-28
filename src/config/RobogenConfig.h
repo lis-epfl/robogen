@@ -52,17 +52,20 @@ public:
 	 * Initializes a robogen config object from configuration parameters
 	 */
 	RobogenConfig(SimulationScenario scenario, unsigned int timeSteps,
-			float timeStepLength, boost::shared_ptr<TerrainConfig> terrain,
+			float timeStepLength, int actuationPeriod,
+			boost::shared_ptr<TerrainConfig> terrain,
 			boost::shared_ptr<ObstaclesConfig> obstacles,
 			std::string obstacleFile,
 			boost::shared_ptr<StartPositionConfig> startPositions,
 			std::string startPosFile, float lightSourceHeight) :
-			scenario_(scenario), timeSteps_(timeSteps), timeStepLength_(
-					timeStepLength), terrain_(terrain), obstacles_(obstacles),
-					obstacleFile_(obstacleFile),
-					startPositions_(startPositions),
-					startPosFile_(startPosFile),
-					lightSourceHeight_(lightSourceHeight) {
+				scenario_(scenario), timeSteps_(timeSteps),
+				timeStepLength_(timeStepLength),
+				actuationPeriod_(actuationPeriod),
+				terrain_(terrain), obstacles_(obstacles),
+				obstacleFile_(obstacleFile),
+				startPositions_(startPositions),
+				startPosFile_(startPosFile),
+				lightSourceHeight_(lightSourceHeight) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -120,6 +123,13 @@ public:
 	 */
 	float getTimeStepLength() const {
 		return timeStepLength_;
+	}
+
+	/**
+	 * @return the actuation frequency
+	 */
+	int getActuationPeriod() const {
+		return actuationPeriod_;
 	}
 
 	/**
@@ -188,6 +198,11 @@ private:
 	float timeStepLength_;
 
 	/**
+	 * Actuation period (in number of time steps)
+	 */
+	int actuationPeriod_;
+
+	/**
 	 * Terrain configuration
 	 */
 	boost::shared_ptr<TerrainConfig> terrain_;
@@ -221,6 +236,7 @@ private:
 	 * Simulation time
 	 */
 	float simulationTime_;
+
 
 };
 

@@ -132,11 +132,6 @@ typedef struct {
 	 */
 	unsigned int nNonInputs;
 
-	/**
-	 * Internal counter (used for oscillators)
-	 */
-	unsigned int counter;
-
 } NeuralNetwork;
 
 /**
@@ -165,8 +160,10 @@ void feed(NeuralNetwork* network, const float *input);
 /**
  * Step the neural network of 1 timestep
  * @param network the neural network
+ * @param time, amount of time elapsed since brain turned on
+ * 				(needed for oscillators)
  */
-void step(NeuralNetwork* network);
+void step(NeuralNetwork* network, float time);
 
 /**
  * Read the output of the neural network

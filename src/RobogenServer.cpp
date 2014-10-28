@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
 							// Elapsed time since last call
 							env->setTimeElapsed(step);
 
-							// Feed neural network
+							// Update Sensors
 							for (unsigned int i = 0; i < bodyParts.size();
 									++i) {
 								if (boost::dynamic_pointer_cast<
@@ -301,50 +301,53 @@ int main(int argc, char* argv[]) {
 								}
 							}
 
-							for (unsigned int i = 0; i < sensors.size(); ++i) {
+							if(((count - 1) % configuration->getActuationPeriod()) == 0) {
+								// Feed neural network
+								for (unsigned int i = 0; i < sensors.size(); ++i) {
 
-								if (boost::dynamic_pointer_cast<TouchSensor>(
-										sensors[i])) {
-									networkInput[i] =
-											boost::dynamic_pointer_cast<
-													TouchSensor>(sensors[i])->read();
-								} else if (boost::dynamic_pointer_cast<
-										LightSensor>(sensors[i])) {
-									networkInput[i] =
-											boost::dynamic_pointer_cast<
-													LightSensor>(sensors[i])->read(
-													env->getLightSources(),
-													env->getAmbientLight());
-								} else if (boost::dynamic_pointer_cast<
-										SimpleSensor>(sensors[i])) {
-									networkInput[i] =
-											boost::dynamic_pointer_cast<
-													SimpleSensor>(sensors[i])->read();
+									if (boost::dynamic_pointer_cast<TouchSensor>(
+											sensors[i])) {
+										networkInput[i] =
+												boost::dynamic_pointer_cast<
+														TouchSensor>(sensors[i])->read();
+									} else if (boost::dynamic_pointer_cast<
+											LightSensor>(sensors[i])) {
+										networkInput[i] =
+												boost::dynamic_pointer_cast<
+														LightSensor>(sensors[i])->read(
+														env->getLightSources(),
+														env->getAmbientLight());
+									} else if (boost::dynamic_pointer_cast<
+											SimpleSensor>(sensors[i])) {
+										networkInput[i] =
+												boost::dynamic_pointer_cast<
+														SimpleSensor>(sensors[i])->read();
+									}
 								}
-							}
-							::feed(neuralNetwork.get(), &networkInput[0]);
+								::feed(neuralNetwork.get(), &networkInput[0]);
 
-							// Step the neural network
-							::step(neuralNetwork.get());
+								// Step the neural network
+								::step(neuralNetwork.get(), t);
 
-							// Fetch the neural network ouputs
-							::fetch(neuralNetwork.get(), &networkOutputs[0]);
+								// Fetch the neural network ouputs
+								::fetch(neuralNetwork.get(), &networkOutputs[0]);
 
-							// Send control to motors
-							for (unsigned int i = 0; i < motors.size(); ++i) {
-								if (boost::dynamic_pointer_cast<ServoMotor>(
-										motors[i])) {
+								// Send control to motors
+								for (unsigned int i = 0; i < motors.size(); ++i) {
+									if (boost::dynamic_pointer_cast<ServoMotor>(
+											motors[i])) {
 
-									boost::shared_ptr<ServoMotor> motor =
-											boost::dynamic_pointer_cast<
-													ServoMotor>(motors[i]);
+										boost::shared_ptr<ServoMotor> motor =
+												boost::dynamic_pointer_cast<
+														ServoMotor>(motors[i]);
 
-									if (motor->isVelocityDriven()) {
-										motor->setVelocity(networkOutputs[i],
-												step);
-									} else {
-										motor->setPosition(networkOutputs[i],
-												step);
+										if (motor->isVelocityDriven()) {
+											motor->setVelocity(networkOutputs[i],
+													step);
+										} else {
+											motor->setPosition(networkOutputs[i],
+													step);
+										}
 									}
 								}
 							}

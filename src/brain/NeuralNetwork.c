@@ -68,8 +68,6 @@ void initNetwork(NeuralNetwork* network, unsigned int nInputs,
 
 	network->curStateStart = 0;
 
-	network->counter = 0;
-
 }
 
 void feed(NeuralNetwork* network, const float *input) {
@@ -81,7 +79,7 @@ void feed(NeuralNetwork* network, const float *input) {
 
 }
 
-void step(NeuralNetwork* network) {
+void step(NeuralNetwork* network, float time) {
 
 	unsigned int nextState;
 	unsigned int i = 0;
@@ -135,7 +133,7 @@ void step(NeuralNetwork* network) {
 			float phaseOffset = network->params[MAX_PARAMS*i + 1];
 			float gain = network->params[MAX_PARAMS*i + 2];
 			network->state[nextState + i] = ((sin( (2.0*PI/period) *
-				 (network->counter - period * phaseOffset))) + 1.0) / 2.0;
+				 (time - period * phaseOffset))) + 1.0) / 2.0;
 
 			/* set output to be in [0.5 - gain/2, 0.5 + gain/2] */
 			network->state[nextState + i] = (0.5 - (gain/2.0) +
@@ -145,7 +143,6 @@ void step(NeuralNetwork* network) {
 	}
 
 	network->curStateStart = nextState;
-	network->counter++;
 
 }
 

@@ -83,6 +83,7 @@ message SimulatorConf {
   required float timeStep = 6;
   required int32 nTimeSteps = 7;
   repeated StartPosition startPositions = 8;
+  required int32 actuationPeriod = 9;
 }
 
 message EvaluationRequest {
