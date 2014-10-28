@@ -1,5 +1,6 @@
 scenario=racing
 timeStep=0.002
+actuationFrequency=50
 nTimeSteps=4000
 terrainType=flat
 terrainLength=2
