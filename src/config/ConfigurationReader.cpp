@@ -255,8 +255,6 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 			return boost::shared_ptr<RobogenConfig>();
 		}
 		actuationPeriod = actuationFrequencyTmp / timeStepTmp;
-		std::cout << "Will actuate every " << actuationPeriod
-							<< "physics cycles" << std::endl;
 	}
 
 	return boost::shared_ptr<RobogenConfig>(

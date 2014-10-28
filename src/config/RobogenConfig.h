@@ -175,6 +175,7 @@ public:
 		ret.set_terrainlength(terrain_->getLength());
 		ret.set_terrainwidth(terrain_->getWidth());
 		ret.set_timestep(timeStepLength_);
+		ret.set_actuationperiod(actuationPeriod_);
 		obstacles_->serialize(ret);
 		startPositions_->serialize(ret);
 		return ret;
