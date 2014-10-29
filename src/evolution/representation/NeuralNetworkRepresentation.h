@@ -50,14 +50,14 @@ public:
 
 	/**
 	 * Map from (source neuron id, dest neuron id) to weight value.
-	 * TODO use these typedefs
 	 */
 	typedef std::map<StringPair, double> WeightMap;
 
 	/**
 	 * Maps from IO identifier pair to a neuron shared pointer
 	 */
-	typedef std::map<ioPair, boost::shared_ptr<NeuronRepresentation>	> NeuronMap;
+	typedef std::map<ioPair,
+			boost::shared_ptr<NeuronRepresentation> > NeuronMap;
 
 	/**
 	 * Assignment operator: Deep copy neurons!
@@ -86,13 +86,6 @@ public:
 	virtual ~NeuralNetworkRepresentation();
 
 	/**
-	 * Using the current motor and sensor cache sets, creates all weights and
-	 * biases and assigns random values to them.
-	 * @param rng reference to boost random number generator
-	 */
-	void initializeRandomly(boost::random::mt19937 &rng);
-
-	/**
 	 * Sets the weight from sensor or motor "from" to motor "to" to value after
 	 * verifying validness of connection
 	 */
@@ -100,23 +93,27 @@ public:
 			int toIoId, double value);
 
 	/**
-	 * Sets the bias of specified neuron after verifying that this is not an
+	 * Sets the params of specified neuron after verifying that this is not an
 	 * input layer neuron.
 	 */
-	bool setBias(std::string bodyPart, int ioId, double value);
+	bool setParams(std::string bodyPart, int ioId, unsigned int type,
+			std::vector<double> params);
 
 	/**
 	 * Provides weight and bias handles for a mutator.
 	 * @param weights reference to a vector to be filled with weight pointers
-	 * @param biases reference to a vector to be filled with bias pointers
+	 * @param types reference to a vector to be filled with neuron types
+	 * @param params reference to a vector to be filled with params pointers
 	 * @todo specify bounds here, c.f. mutator
 	 */
-	void getGenome(std::vector<double*> &weights, std::vector<double*> &biases);
+	void getGenome(std::vector<double*> &weights,
+			std::vector<unsigned int> &types, std::vector<double*> &params);
 
 	/**
 	 * Inserts a Neuron
 	 */
-	std::string insertNeuron(ioPair identification, bool isOutput);
+	std::string insertNeuron(ioPair identification, unsigned int layer,
+			unsigned int type);
 
 	/**
 	 * Clones all neurons from a part. Saves the mapping for subsequent referral
@@ -138,7 +135,7 @@ public:
 	 * Returns all neurons attached to the supplied part
 	 */
 	std::vector<boost::weak_ptr<NeuronRepresentation> >
-	getBodyPartNeurons(std::string bodyPart);
+		getBodyPartNeurons(std::string bodyPart);
 
 	/**
 	 * This is a conversion to a linear representation, which is currently
@@ -154,10 +151,10 @@ public:
 	 * @warning this code depends on the layer architecture of the ANN
 	 * @todo this property is currently not used. Remove?
 	 */
-	bool getLinearRepresentation(std::vector<ioPair> &inputs,
+	/*bool getLinearRepresentation(std::vector<ioPair> &inputs,
 			std::vector<ioPair> &outputs, std::vector<double> &weights,
 			std::vector<double> &biases);
-
+	 */
 	/**
 	 * Serialize brain into message that can be appended to the robot message
 	 * @return protobuf message of brain
@@ -182,6 +179,9 @@ private:
 	 * Connections of the neural network. Use the ids of neurons as keys.
 	 */
 	WeightMap weights_;
+
+	void removeIncomingConnections(boost::shared_ptr<NeuronRepresentation> neuron);
+	void removeOutgoingConnections(boost::shared_ptr<NeuronRepresentation> neuron);
 
 	// DONT FORGET TO COMPLETE ASSIGNMENT OPERATOR WHEN ADDING NEW PROPERTIES!!!
 };

@@ -44,9 +44,35 @@ EvolverConfiguration::BodyMutationOperatorsProbabilityCodes[] = {
 			"pOrientationChange", "pSensorSwap", "pLinkChange", "pActivePassive"
 	};
 
+// helper function to parse bounds options
+
+bool parseBounds(std::string value, double &min, double &max) {
+	boost::cmatch match;
+	static const boost::regex boundsRegex(
+					"^(-?\\d*[\\d\\.]\\d*):(-?\\d*[\\d\\.]\\d*)$");
+	// match[0]:whole string, match[1]:min, match[2]:max
+	if (!boost::regex_match(value.c_str(), match, boundsRegex)){
+		std::cout << "Supplied bounds argument \"" <<
+				value <<
+				"\" does not match pattern <min>:<max>" << std::endl;
+		return false;
+	}
+	min = std::atof(match[1].first);
+	max = std::atof(match[2].first);
+	if (min > max) {
+		std::cout << "supplied min " << min << " is greater than supplied max "
+				<< max << std::endl;
+		return false;
+	}
+
+	return true;
+}
+
+
+
+
 /**
  * Parses options from given conf file.
- * @todo default values
  */
 bool EvolverConfiguration::init(std::string configFileName) {
 
@@ -61,6 +87,15 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			"Allowed options for Evolution Config File");
 
 	std::vector<std::string> allowedBodyPartTypeStrings;
+
+	//defaults - TODO add more
+	useBrainSeed = false;
+
+	minBrainPhaseOffset = -1;
+	maxBrainPhaseOffset = 1;
+
+	minBrainAmplitude = 0;
+	maxBrainAmplitude = 1;
 
 	// DON'T AUTO-INDENT THE FOLLOWING ON ECLIPSE:
 	desc.add_options()
@@ -91,16 +126,43 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		("evolutionMode",
 				boost::program_options::value<std::string>()->required(),
 				"Mode of evolution: brain or full")
+		("useBrainSeed",
+				boost::program_options::value<bool>(&useBrainSeed),
+				"Mode of evolution: brain or full")
 		("pBrainMutate", boost::program_options::value<double>
 				(&pBrainMutate),"Probability of mutation for any single brain "\
 				"parameter")
-		("brainSigma", boost::program_options::value<double>(
-				&brainSigma), "Sigma of brain parameter mutation")
-		("brainBounds", boost::program_options::value<std::string>()
-				->required(), "Bounds of brain weights. Format: min:max")
+		("brainSigma", boost::program_options::value<std::string>(),
+				"Sigma of all brain parameter mutations")
+		("brainBounds", boost::program_options::value<std::string>(),
+				"Bounds of brain weights and biases. Format: min:max")
+		("weightSigma", boost::program_options::value<std::string>(),
+				"Sigma of brain weight mutation")
+		("weightBounds", boost::program_options::value<std::string>(),
+				"Bounds of brain weights. Format: min:max")
+		("biasSigma", boost::program_options::value<std::string>(),
+				"Sigma of brain bias mutation")
+		("biasBounds", boost::program_options::value<std::string>(),
+				"Bounds of brain biases. Format: min:max")
+		("tauSigma", boost::program_options::value<double>(&brainTauSigma),
+				"Sigma of brain tau mutation")
+		("tauBounds", boost::program_options::value<std::string>(),
+				"Bounds of brain taus. Format: min:max")
+		("periodSigma", boost::program_options::value<double>(&brainPeriodSigma),
+				"Sigma of brain period mutation (defined in terms of second)")
+		("periodBounds", boost::program_options::value<std::string>(),
+				"Bounds of brain period (defined in terms of second). Format: min:max")
+		("phaseOffsetSigma", boost::program_options::value<double>(&brainPhaseOffsetSigma),
+				"Sigma of brain phase offset mutation (defined in terms of # periods).")
+		("phaseOffsetBounds", boost::program_options::value<std::string>(),
+				"Bounds of brain phase offset (defined in terms of # periods). Format: min:max")
+		("amplitudeSigma", boost::program_options::value<double>(&brainAmplitudeSigma),
+				"Sigma of brain amplitude mutation (relative to [0,1]).")
+		("amplitudeBounds", boost::program_options::value<std::string>(),
+				"Bounds of brain amplitude (must be a sub-interval of [0,1]). Format: min:max")
 		("numInitialParts", boost::program_options::value<std::string>(),
-						"Number of initial body parts (not "\
-						"including core component). Format: min:max")
+				"Number of initial body parts (not "\
+				"including core component). Format: min:max")
 		("maxBodyMutationAttempts",
 				boost::program_options::value<unsigned int>(
 				&maxBodyMutationAttempts),
@@ -116,7 +178,9 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				"Parts to be used in body evolution")
 		("maxBodyParts",
 				boost::program_options::value<unsigned int>(&maxBodyParts),
-				"Maximum number of body parts.");
+				"Maximum number of body parts.")
+		("bodyParamSigma", boost::program_options::value<double>(&bodyParamSigma),
+				"Sigma of body param mutation (all params in [0,1])");
 	// generate body operator probability options from contraptions in header
 	for (unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		desc.add_options()(
@@ -189,22 +253,69 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		return false;
 	}
 
-
 	// parse brain bounds.
-	static const boost::regex boundsRegex(
-			"^(-?\\d*[\\d\\.]\\d*):(-?\\d*[\\d\\.]\\d*)$");
-	boost::cmatch match;
-	// match[0]:whole string, match[1]:min, match[2]:max
-	if (!boost::regex_match(vm["brainBounds"].as<std::string>().c_str(),
-			match, boundsRegex)){
-		std::cout << "Supplied bounds argument \"" <<
-				vm["brainBounds"].as<std::string>() <<
-				"\" does not match pattern <min>:<max>" << std::endl;
+	if(vm.count("brainBounds") > 0){
+		if(!parseBounds(vm["brainBounds"].as<std::string>(), minBrainWeight,
+				maxBrainWeight))
+			return false;
+		minBrainBias = minBrainWeight;
+		maxBrainBias = maxBrainWeight;
+	} else if(vm.count("weightBounds") > 0 && vm.count("biasBounds") > 0) {
+		if(!parseBounds(vm["weightBounds"].as<std::string>(), minBrainWeight,
+				maxBrainWeight))
+			return false;
+		if(!parseBounds(vm["biasBounds"].as<std::string>(), minBrainBias,
+				maxBrainBias))
+			return false;
+	} else {
+		std::cout << "Must supply either brainBounds or (weightBounds and " <<
+				"biasBounds) (and bounds for other brain params)" << std::endl;
 		return false;
 	}
-	minBrainWeight = std::atof(match[1].first);
-	maxBrainWeight = std::atof(match[2].first);
+	if(vm.count("brainSigma") > 0){
+		brainWeightSigma = atof(vm["brainSigma"].as<std::string>().c_str());
+		brainBiasSigma = brainWeightSigma;
+	} else if(vm.count("weightSigma") > 0 && vm.count("biasSigma") > 0) {
+		brainWeightSigma = atof(vm["weightSigma"].as<std::string>().c_str());
+		brainBiasSigma = atof(vm["biasSigma"].as<std::string>().c_str());
+	} else {
+		std::cout << "Must supply either brainSigma or (weightSigma and biasSigma)"
+				<< " ( and sigmas for other brain params)" << std::endl;
+	}
 
+	if(vm.count("tauBounds") > 0) {
+		if(!parseBounds(vm["tauBounds"].as<std::string>(), minBrainTau,
+				maxBrainTau))
+			return false;
+	}
+
+	if(vm.count("periodBounds") > 0) {
+		if(!parseBounds(vm["periodBounds"].as<std::string>(), minBrainPeriod,
+				maxBrainPeriod))
+			return false;
+	}
+
+	if(vm.count("phaseOffsetBounds") > 0) {
+		if(!parseBounds(vm["phaseOffsetBounds"].as<std::string>(),
+				minBrainPhaseOffset, maxBrainPhaseOffset))
+			return false;
+	}
+
+	if(vm.count("amplitudeBounds") > 0) {
+		if(!parseBounds(vm["amplitudeBounds"].as<std::string>(),
+				minBrainAmplitude, maxBrainAmplitude))
+			return false;
+		if (minBrainAmplitude < 0) {
+			std::cout << "Amplitude cannot be less than 0" << std::endl;
+			return false;
+		}
+		if (maxBrainAmplitude > 1) {
+			std::cout << "Amplitude cannot be greater than 1" << std::endl;
+			return false;
+		}
+	}
+
+	boost::cmatch match;
 	static const boost::regex initPartsRegex(
 				"^(\\d+):(\\d+)$");
 	if (vm.count("numInitialParts") > 0) {
@@ -285,8 +396,14 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	}
 
 	// - sigma needs to be positive
-	if (brainSigma < 0.){
-		std::cout << "Brain sigma (" << brainSigma << ") must be positive" <<
+	if (brainWeightSigma < 0.){
+		std::cout << "Weight sigma (" << brainWeightSigma << ") must be positive" <<
+				std::endl;
+		return false;
+	}
+
+	if (brainBiasSigma < 0.){
+		std::cout << "Bias sigma (" << brainBiasSigma << ") must be positive" <<
 				std::endl;
 		return false;
 	}

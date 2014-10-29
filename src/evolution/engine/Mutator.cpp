@@ -28,6 +28,7 @@
  */
 
 #include <boost/random/uniform_int_distribution.hpp>
+#include <boost/random/uniform_01.hpp>
 #include "evolution/engine/Mutator.h"
 #include "PartList.h"
 
@@ -35,11 +36,8 @@ namespace robogen {
 
 Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::random::mt19937 &rng) :
-		conf_(conf), rng_(rng), weightMutate_(conf->pBrainMutate),
-		weightDistribution_(0., conf->brainSigma),
-		weightCrossover_(conf->pBrainCrossover),
-		brainMin_(conf->minBrainWeight),
-		brainMax_(conf->maxBrainWeight) {
+		conf_(conf), rng_(rng), brainMutate_(conf->pBrainMutate),
+		weightCrossover_(conf->pBrainCrossover) {
 
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
 		subtreeRemovalDist_ =
@@ -122,6 +120,52 @@ void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
 	}
 }
 
+void Mutator::randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot) {
+
+	// randomize weights and biases randomly in valid range
+	boost::random::uniform_01<double> distrib;
+
+	std::vector<double*> weights;
+	std::vector<double*> params;
+	std::vector<unsigned int> types;
+	robot->getBrainGenome(weights, types, params);
+
+	// set weights
+	for (unsigned int i = 0; i < weights.size(); ++i) {
+		*weights[i] = distrib(rng_) * (conf_->maxBrainWeight -
+				conf_->minBrainWeight) + conf_->minBrainWeight;
+	}
+	// set params (biases, etc)
+	unsigned int paramCounter = 0;
+	for (unsigned int i = 0; i < types.size(); ++i) {
+		if(types[i] == NeuronRepresentation::SIGMOID) {
+			*params[paramCounter] = distrib(rng_) * (conf_->maxBrainBias -
+					conf_->minBrainBias) + conf_->minBrainBias;
+			paramCounter+=1;
+		} else if(types[i] == NeuronRepresentation::CTRNN_SIGMOID) {
+			*params[paramCounter] = distrib(rng_) * (conf_->maxBrainBias -
+					conf_->minBrainBias) + conf_->minBrainBias;
+			*params[paramCounter + 1] = distrib(rng_) * (conf_->maxBrainTau -
+					conf_->minBrainTau) + conf_->minBrainTau;
+			paramCounter += 2;
+		} else if(types[i] == NeuronRepresentation::OSCILLATOR) {
+			*params[paramCounter] = distrib(rng_) * (conf_->maxBrainPeriod -
+					conf_->minBrainPeriod) + conf_->minBrainPeriod;
+			*params[paramCounter + 1] = distrib(rng_) * (conf_->maxBrainPhaseOffset -
+					conf_->minBrainPhaseOffset) + conf_->minBrainPhaseOffset;
+			*params[paramCounter + 2] = distrib(rng_) * (conf_->maxBrainAmplitude -
+					conf_->minBrainAmplitude) + conf_->minBrainAmplitude;
+			paramCounter += 3;
+		} else {
+			std::cout << "INVALID TYPE ENCOUNTERED " << types[i] << std::endl;
+		}
+
+	}
+	robot->setDirty();
+
+
+}
+
 bool Mutator::mutate(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	bool mutated = false;
@@ -139,39 +183,95 @@ bool Mutator::mutate(boost::shared_ptr<RobotRepresentation>& robot) {
 	return mutated;
 }
 
+//helper function for mutations
+
+double clip(double value, double min, double max) {
+	if ( value < min )
+		return min;
+	if (value > max )
+		return max;
+	return value;
+}
+
 bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 	bool mutated = false;
 	std::vector<double*> weights;
-	std::vector<double*> biases;
-	robot->getBrainGenome(weights, biases);
+	std::vector<double*> params;
+	std::vector<unsigned int> types;
+	robot->getBrainGenome(weights, types, params);
 
 	// mutate weights
 	for (unsigned int i = 0; i < weights.size(); ++i) {
-		if (weightMutate_(rng_)) {
+		if (brainMutate_(rng_)) {
 			mutated = true;
-			*weights[i] += weightDistribution_(rng_);
+			*weights[i] += (normalDistribution_(rng_) *
+					conf_->brainWeightSigma);
+			*weights[i] = clip(*weights[i], conf_->minBrainWeight,
+					conf_->maxBrainWeight);
+
 		}
-		// normalize
-		if (*weights[i] > brainMax_)
-			*weights[i] = brainMax_;
-		if (*weights[i] < brainMin_)
-			*weights[i] = brainMin_;
 	}
-	// mutate biases
-	for (unsigned int i = 0; i < biases.size(); ++i) {
-		if (weightMutate_(rng_)) {
-			mutated = true;
-			*biases[i] += weightDistribution_(rng_);
+	// mutate params (biases, etc)
+	unsigned int paramCounter = 0;
+	for (unsigned int i = 0; i < types.size(); ++i) {
+		if(types[i] == NeuronRepresentation::SIGMOID) {
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter] += (normalDistribution_(rng_) *
+						conf_->brainBiasSigma);
+				*params[paramCounter] = clip(*params[paramCounter],
+						conf_->minBrainBias, conf_->maxBrainBias);
+			}
+			paramCounter+=1;
+		} else if(types[i] == NeuronRepresentation::CTRNN_SIGMOID) {
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter] += (normalDistribution_(rng_) *
+						conf_->brainBiasSigma);
+				*params[paramCounter] = clip(*params[paramCounter],
+						conf_->minBrainBias, conf_->maxBrainBias);
+			}
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter+1] += (normalDistribution_(rng_) *
+						conf_->brainTauSigma);
+				*params[paramCounter+1] = clip(*params[paramCounter],
+						conf_->minBrainTau, conf_->maxBrainTau);
+			}
+			paramCounter += 2;
+		} else if(types[i] == NeuronRepresentation::OSCILLATOR) {
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter] += (normalDistribution_(rng_) *
+						conf_->brainPeriodSigma);
+				*params[paramCounter] = clip(*params[paramCounter],
+						conf_->minBrainPeriod, conf_->maxBrainPeriod);
+			}
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter+1] += (normalDistribution_(rng_) *
+						conf_->brainPhaseOffsetSigma);
+				*params[paramCounter+1] = clip(*params[paramCounter],
+						conf_->minBrainPhaseOffset, conf_->maxBrainPhaseOffset);
+			}
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter+2] += (normalDistribution_(rng_) *
+						conf_->brainAmplitudeSigma);
+				*params[paramCounter+2] = clip(*params[paramCounter],
+						conf_->minBrainAmplitude, conf_->maxBrainAmplitude);
+			}
+			paramCounter += 3;
+		} else {
+			std::cout << "INVALID TYPE ENCOUNTERED " << types[i] << std::endl;
 		}
-		// normalize
-		if (*biases[i] > brainMax_)
-			*biases[i] = brainMax_;
-		if (*biases[i] < brainMin_)
-			*biases[i] = brainMin_;
+
 	}
+
 	if (mutated) {
 		robot->setDirty();
 	}
+	return mutated;
 }
 
 bool Mutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
@@ -183,13 +283,14 @@ bool Mutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
 
 	// 1. get genomes
 	std::vector<double*> weights[2];
-	std::vector<double*> biases[2];
-	a->getBrainGenome(weights[0], biases[0]);
-	b->getBrainGenome(weights[1], biases[1]);
+	std::vector<double*> params[2];
+	std::vector<unsigned int> types[2];
+	a->getBrainGenome(weights[0], types[0], params[0]);
+	b->getBrainGenome(weights[1], types[1], params[1]);
 
 	// 2. select crossover point
-	unsigned int maxpoint = weights[0].size() + biases[0].size() - 1;
-	if (maxpoint != weights[1].size() + biases[1].size() - 1) {
+	unsigned int maxpoint = weights[0].size() + params[0].size() - 1;
+	if (maxpoint != weights[1].size() + params[1].size() - 1) {
 		//TODO error handling, TODO what if sum same, but not parts?
 		std::cout << "Genomes not of same size!" << std::endl;
 	}
@@ -202,7 +303,7 @@ bool Mutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
 			std::swap(*weights[0][i], *weights[1][i]);
 		} else {
 			int j = i - weights[0].size();
-			std::swap(*biases[0][j], *biases[1][j]);
+			std::swap(*params[0][j], *params[1][j]);
 		}
 	}
 
@@ -486,12 +587,9 @@ bool Mutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
 		unsigned int newOrientation = orientationDist(rng_);
 		partToMutate->second.lock()->setOrientation(newOrientation);
 	} else {
-		params[paramToMutate] += paramDistribution_(rng_);
-		if (params[paramToMutate] < 0) {
-			params[paramToMutate] = 0;
-		} else if (params[paramToMutate] > 1) {
-			params[paramToMutate] = 1;
-		}
+		params[paramToMutate] += (normalDistribution_(rng_) *
+									conf_->bodyParamSigma);
+		params[paramToMutate] = clip(params[paramToMutate], 0., 1.);
 	}
 
 	return true;

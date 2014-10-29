@@ -135,6 +135,12 @@ typedef struct EvolverConfiguration {
 	unsigned int evolutionMode;
 
 	/**
+	 *  Flag to continue evolving from provided brain instead of re-initialing
+	 *  params randomly
+	 */
+	bool useBrainSeed;
+
+	/**
 	 * Sockets to be used to connect to the server
 	 */
 	std::vector<std::pair<std::string, int> > sockets;
@@ -148,21 +154,58 @@ typedef struct EvolverConfiguration {
 	double pBrainMutate;
 
 	/**
-	 * Sigma of brain parameter mutation
+	 * Sigma of brain weight mutation
 	 */
-	double brainSigma;
+	double brainWeightSigma;
 
 	/**
-	 * Lower bound for brain weights and biases
-	 * @todo treat weights and biases separately
+	 * Sigma of brain bias mutation
+	 */
+	double brainBiasSigma;
+
+	/**
+	 * Lower bound for brain weights
 	 */
 	double minBrainWeight;
 
 	/**
-	 * Upper bound for brain weights and biases
-	 * @todo treat weights and biases separately
+	 * Upper bound for brain weights
 	 */
 	double maxBrainWeight;
+
+	/**
+	 * Lower bound for biases
+	 */
+	double minBrainBias;
+
+	/**
+	 * Upper bound for biases
+	 */
+	double maxBrainBias;
+
+	/**
+	 * PARAMS FOR OTHER BRAIN PARAMETERS  --
+	 * 	required if using relevant neuron types  TODO -- validate these
+	 */
+
+	double brainTauSigma;
+	double brainPeriodSigma;
+	double brainPhaseOffsetSigma;
+	double brainAmplitudeSigma;
+
+	double minBrainTau;
+	double maxBrainTau;
+	double minBrainPeriod;
+	double maxBrainPeriod;
+
+	// defaults to -1, 1
+	double minBrainPhaseOffset;
+	double maxBrainPhaseOffset;
+
+	// defaults to 0, 1
+	double minBrainAmplitude;
+	double maxBrainAmplitude;
+
 
 	/**
 	 * Probability of crossover among brains
@@ -204,6 +247,11 @@ typedef struct EvolverConfiguration {
 	 * Maximum number of body parts in individuals in the initial population
 	 */
 	unsigned int maxNumInitialParts;
+
+	/**
+	 * Std dev of body param mutations
+	 */
+	double bodyParamSigma;
 
 
 	NEAT::Parameters neatParams;

@@ -184,7 +184,8 @@ void BodyCompiler::compile(Robot &robot, std::ofstream &file) {
 		if (neuron.layer().compare("output") == 0) {
 
 			file << neuron.bodypartid() << " " << neuron.ioid() << " "
-					<< neuron.biasweight() << std::endl;
+					<< neuron.bias() << std::endl;
+			// TODO handle other neuron types!!
 
 		}
 

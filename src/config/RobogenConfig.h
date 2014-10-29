@@ -52,17 +52,20 @@ public:
 	 * Initializes a robogen config object from configuration parameters
 	 */
 	RobogenConfig(SimulationScenario scenario, unsigned int timeSteps,
-			float timeStepLength, boost::shared_ptr<TerrainConfig> terrain,
+			float timeStepLength, int actuationPeriod,
+			boost::shared_ptr<TerrainConfig> terrain,
 			boost::shared_ptr<ObstaclesConfig> obstacles,
 			std::string obstacleFile,
 			boost::shared_ptr<StartPositionConfig> startPositions,
 			std::string startPosFile, float lightSourceHeight) :
-			scenario_(scenario), timeSteps_(timeSteps), timeStepLength_(
-					timeStepLength), terrain_(terrain), obstacles_(obstacles),
-					obstacleFile_(obstacleFile),
-					startPositions_(startPositions),
-					startPosFile_(startPosFile),
-					lightSourceHeight_(lightSourceHeight) {
+				scenario_(scenario), timeSteps_(timeSteps),
+				timeStepLength_(timeStepLength),
+				actuationPeriod_(actuationPeriod),
+				terrain_(terrain), obstacles_(obstacles),
+				obstacleFile_(obstacleFile),
+				startPositions_(startPositions),
+				startPosFile_(startPosFile),
+				lightSourceHeight_(lightSourceHeight) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -123,6 +126,13 @@ public:
 	}
 
 	/**
+	 * @return the actuation frequency
+	 */
+	int getActuationPeriod() const {
+		return actuationPeriod_;
+	}
+
+	/**
 	 * @return the robot starting positions
 	 */
 	boost::shared_ptr<StartPositionConfig> getStartingPos() {
@@ -165,6 +175,7 @@ public:
 		ret.set_terrainlength(terrain_->getLength());
 		ret.set_terrainwidth(terrain_->getWidth());
 		ret.set_timestep(timeStepLength_);
+		ret.set_actuationperiod(actuationPeriod_);
 		obstacles_->serialize(ret);
 		startPositions_->serialize(ret);
 		return ret;
@@ -186,6 +197,11 @@ private:
 	 * Time step duration
 	 */
 	float timeStepLength_;
+
+	/**
+	 * Actuation period (in number of time steps)
+	 */
+	int actuationPeriod_;
 
 	/**
 	 * Terrain configuration
@@ -221,6 +237,7 @@ private:
 	 * Simulation time
 	 */
 	float simulationTime_;
+
 
 };
 

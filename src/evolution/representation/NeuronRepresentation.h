@@ -40,8 +40,25 @@ namespace robogen {
  */
 typedef std::pair<std::string,int> ioPair;
 
+
+
 class NeuronRepresentation {
 public:
+
+	enum neuronLayer{
+		INPUT,
+		OUTPUT,
+		HIDDEN
+	};
+
+	enum neuronType{
+		SIMPLE, //corresponds to inputs
+		SIGMOID,
+		CTRNN_SIGMOID,
+		OSCILLATOR,
+		SUPG
+	};
+
 	/**
 	 * Creates a new neuron representation. A neuron is associated with a layer,
 	 * and can be associated with a body part and the id of the corresponding
@@ -49,7 +66,13 @@ public:
 	 * neuron needs to be associated to the latter, but in the future, hidden
 	 * layers could be implemented by omitting the specification of the latter.
 	 */
-	NeuronRepresentation(ioPair identification,	bool isOutput, double bias);
+	NeuronRepresentation(ioPair identification,	unsigned int layer);
+
+	NeuronRepresentation(ioPair identification,	unsigned int layer,
+			unsigned int type); // useful for copying neurons
+
+	NeuronRepresentation(ioPair identification,	unsigned int layer,
+			unsigned int type, const std::vector<double> params);
 
 	virtual ~NeuronRepresentation();
 
@@ -59,19 +82,30 @@ public:
 	std::string &getId();
 
 	/**
+	 * @param params the params to be set
+	 */
+	void setParams(unsigned int type, const std::vector<double> params);
+
+
+	/**
 	 * @return true if the neuron is in the input layer
 	 */
 	bool isInput();
 
 	/**
-	 * @param value the bias value to be set
+	 * @return layer code of neuron
 	 */
-	void setBias(double value);
+	unsigned int getLayer();
 
 	/**
-	 * @return pointer to bias, handle for mutator
+	 * @return type code of neuron
 	 */
-	double *getBiasPointer();
+	unsigned int getType();
+
+	/**
+	 * @param params reference to a vector to be filled with params pointers
+	 */
+	void getParamsPointers(std::vector<double*> &params);
 
 	ioPair getIoPair();
 
@@ -81,6 +115,13 @@ public:
 	robogenMessage::Neuron serialize();
 
 private:
+	/**
+	 * Code common to all constructors
+	 */
+	void init(ioPair identification, unsigned int layer, unsigned int type);
+
+
+
 	/**
 	 * Identification (body part id, IO ID) of neuron
 	 */
@@ -92,15 +133,27 @@ private:
 	std::string id_;
 
 	/**
-	 * Layer identification. If true, Neuron is in Output layer, i.e.
-	 * corresponds to a motor
+	 * Type identification. See enum neuronLayer
 	 */
-	bool isOutput_;
+	unsigned int type_;
+
+	/**
+	 * Layer identification. See enum neuronLayer
+	 */
+	unsigned int layer_;
 
 	/**
 	 * Bias of the given Neuron
 	 */
 	double bias_;
+
+	double tau_;
+
+	double phaseOffset_;
+
+	double period_;
+
+	double gain_;
 };
 
 } /* namespace robogen */

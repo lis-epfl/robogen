@@ -30,21 +30,30 @@
 
 #include "brain/NeuralNetwork.h"
 
-void initNetwork(NeuralNetwork* network, unsigned int nInputs, unsigned int nOutputs,
-		const float *weights, const float* bias, const float* gain) {
+#define PI 3.14159265358979323846
+
+void initNetwork(NeuralNetwork* network, unsigned int nInputs,
+		unsigned int nOutputs, unsigned int nHidden,
+		const float *weights, const float* params,
+		const unsigned int *types) {
 
 	unsigned int i = 0;
 
-	/* Copy weights, bias and gains */
+	/* Copy weights, params and types */
 	memcpy(network->weight, weights,
-			sizeof(float) * (nInputs * nOutputs + nOutputs * nOutputs));
-	memcpy(network->bias, bias,
-			sizeof(float) * nOutputs);
-	memcpy(network->gain, gain,
-			sizeof(float) * nOutputs);
+			sizeof(float) * ((nInputs + nOutputs + nHidden) *
+					(nOutputs + nHidden)));
+	memcpy(network->params, params,
+			sizeof(float) * (nOutputs + nHidden) * MAX_PARAMS);
+
+	memcpy(network->types, types,
+			sizeof(unsigned int) * (nOutputs + nHidden));
+
+
+	network->nNonInputs = nOutputs + nHidden;
 
 	/* Initialize states */
-	for (i = 0; i < nOutputs * 2; ++i) {
+	for (i = 0; i < network->nNonInputs * 2; ++i) {
 		network->state[i] = 0.0;
 	}
 
@@ -55,6 +64,7 @@ void initNetwork(NeuralNetwork* network, unsigned int nInputs, unsigned int nOut
 
 	network->nInputs = nInputs;
 	network->nOutputs = nOutputs;
+	network->nHidden = nHidden;
 
 	network->curStateStart = 0;
 
@@ -69,7 +79,7 @@ void feed(NeuralNetwork* network, const float *input) {
 
 }
 
-void step(NeuralNetwork* network) {
+void step(NeuralNetwork* network, float time) {
 
 	unsigned int nextState;
 	unsigned int i = 0;
@@ -80,29 +90,56 @@ void step(NeuralNetwork* network) {
 	}
 
 	/* For each output neuron, sum the state of all the incoming connection */
-	nextState = (network->curStateStart + network->nOutputs)
-			% network->nOutputs;
+	nextState = (network->curStateStart + network->nNonInputs)
+			% network->nNonInputs;
 
-	for (i = 0; i < network->nOutputs; ++i) {
+	for (i = 0; i < network->nNonInputs; ++i) { /*testing just updating state of outputs*/
+
 
 		float curNeuronActivation = 0;
 		unsigned int baseIndexOutputWeigths = -1;
 
 		for (j = 0; j < network->nInputs; ++j) {
-			curNeuronActivation += network->weight[network->nOutputs * j + i]
+			curNeuronActivation += network->weight[network->nNonInputs * j + i]
 					* network->input[j];
 		}
-		baseIndexOutputWeigths = network->nOutputs * network->nInputs;
-		for (j = 0; j < network->nOutputs; ++j) {
+		baseIndexOutputWeigths = network->nNonInputs * network->nInputs;
+		for (j = 0; j < network->nNonInputs; ++j) {
 			curNeuronActivation += network->weight[baseIndexOutputWeigths
-					+ network->nOutputs * j + i]
+					+ network->nNonInputs * j + i]
 					* network->state[network->curStateStart + j];
 		}
 
 		/* Save next state */
-		curNeuronActivation -= network->bias[i];
-		network->state[nextState + i] = 1.0
-				/ (1.0 + exp(-network->gain[i] * curNeuronActivation));
+		if (network->types[i] == SIGMOID) {
+			/* params are bias, gain */
+			curNeuronActivation -= network->params[MAX_PARAMS*i];
+			network->state[nextState + i] = 1.0
+				/ (1.0 + exp(-network->params[MAX_PARAMS*i+1] *
+						curNeuronActivation));
+		} else if (network->types[i] == SIMPLE) {
+			/* linear, params are bias, gain */
+
+			curNeuronActivation -= network->params[MAX_PARAMS*i];
+			network->state[nextState + i] = network->params[MAX_PARAMS*i+1] *
+					curNeuronActivation;
+
+		} else if (network->types[i] == OSCILLATOR) {
+			/* TODO should this consider inputs too?? */
+			/* params are period, phase offset, gain (amplitude) */
+
+
+			float period = network->params[MAX_PARAMS*i];
+			float phaseOffset = network->params[MAX_PARAMS*i + 1];
+			float gain = network->params[MAX_PARAMS*i + 2];
+			network->state[nextState + i] = ((sin( (2.0*PI/period) *
+				 (time - period * phaseOffset))) + 1.0) / 2.0;
+
+			/* set output to be in [0.5 - gain/2, 0.5 + gain/2] */
+			network->state[nextState + i] = (0.5 - (gain/2.0) +
+					network->state[nextState + i] * gain);
+
+		}
 	}
 
 	network->curStateStart = nextState;

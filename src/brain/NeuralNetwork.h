@@ -32,12 +32,35 @@
 #define MAX_OUTPUT_NEURONS 8
 
 /*
+ * set arbitrarily
+ */
+#define MAX_HIDDEN_NEURONS 20
+
+/*
+ * max is either (bias, tau, gain) or (phase offset, period, gain)
+ */
+#define MAX_PARAMS 3
+
+/*
  * No namespace here on purpose ;-)
  */
+
+/*
+ * Copied from NeuronRepresentation.h
+ */
+enum neuronType{
+		SIMPLE, /* corresponds to inputs */
+		SIGMOID,
+		CTRNN_SIGMOID,
+		OSCILLATOR,
+		SUPG
+};
+
 
 typedef struct {
 
 	/*
+	 * TODO update this to handle hidden neurons
 	 * Given m input neurons and n output neurons
 	 * m <= MAX_INPUT_NEURONS
 	 * n <= MAX_OUTPUT_NEURONS
@@ -56,25 +79,21 @@ typedef struct {
 	 * ...  ...  ... ....
 	 * wo_n0 wo_n1 ... wo_nn
 	 */
-	float weight[MAX_INPUT_NEURONS * MAX_OUTPUT_NEURONS
-			+ MAX_OUTPUT_NEURONS * MAX_OUTPUT_NEURONS];
+	float weight[(MAX_INPUT_NEURONS + MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)
+	             * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 
 	/*
-	 * One bias for each output neuron
+	 * Params for hidden and output neurons, quantity depends on the type of
+	 * neuron
 	 */
-	float bias[MAX_OUTPUT_NEURONS];
+	float params[MAX_PARAMS * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 
 	/*
-	 * One gain for each output neuron
-	 */
-	float gain[MAX_OUTPUT_NEURONS];
-
-	/*
-	 * One state for each output neuron
+	 * One state for each output and hidden neuron
 	 * The state has double the space to store also the next
 	 * value.
 	 */
-	float state[MAX_OUTPUT_NEURONS*2];
+	float state[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)*2];
 
 	/**
 	 * Indicates at which index of the state array the current state starts
@@ -83,9 +102,15 @@ typedef struct {
 	int curStateStart;
 
 	/**
-	 * Onje input state for each input neuron
+	 * One input state for each input neuron
 	 */
 	float input[MAX_INPUT_NEURONS];
+
+
+	/**
+	 * Type of each non-input neuron
+	 */
+	unsigned int types[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 
 	/**
 	 * The number of inputs
@@ -97,9 +122,20 @@ typedef struct {
 	 */
 	unsigned int nOutputs;
 
+	/**
+	 * The number of hidden units
+	 */
+	unsigned int nHidden;
+
+	/**
+	 * The number of non-inputs (i.e. nOutputs + nHidden)
+	 */
+	unsigned int nNonInputs;
+
 } NeuralNetwork;
 
 /**
+ * TODO update this doc
  * Initializes a NeuralNetwork data structure
  * @param network the neural network
  * @param nInputs the number of inputs of the neural network
@@ -109,8 +145,10 @@ typedef struct {
  * @param bias the bias of each output neuron
  * @param gain the gain of each output neuron
  */
-void initNetwork(NeuralNetwork* network, unsigned int nInputs, unsigned int nOutputs,
-		const float *weights, const float* bias, const float* gain);
+void initNetwork(NeuralNetwork* network, unsigned int nInputs,
+		unsigned int nOutputs, unsigned int nHidden,
+		const float *weights, const float* params,
+		const unsigned int *types);
 
 /**
  * Feed the neural network with input values
@@ -122,8 +160,10 @@ void feed(NeuralNetwork* network, const float *input);
 /**
  * Step the neural network of 1 timestep
  * @param network the neural network
+ * @param time, amount of time elapsed since brain turned on
+ * 				(needed for oscillators)
  */
-void step(NeuralNetwork* network);
+void step(NeuralNetwork* network, float time);
 
 /**
  * Read the output of the neural network

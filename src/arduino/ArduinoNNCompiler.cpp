@@ -124,7 +124,11 @@ void ArduinoNNCompiler::compile(Robot &robot,
 	file << "};" << std::endl;
 	// process biases
 	std::vector<double> biases;
-	biases.insert(biases.end(),brain->bias,brain->bias+brain->nOutputs);
+	for (unsigned int i=0; i<brain->nOutputs; i++) {
+		biases.push_back(brain->params[MAX_PARAMS*i]);
+	}
+	// TODO handle other params and hidden neurons!!
+
 	file << "float EABiasWeight[] = {";
 	for (unsigned int i=0; i<biases.size(); ++i) file << (i?", ":"")<<biases[i];
 	file << "};" << std::endl;

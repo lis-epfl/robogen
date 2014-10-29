@@ -61,6 +61,9 @@ bool interrupted;
 void printNeuralNetwork(const NeuralNetwork* n) {
 	std::cout << "nInputs: " << n->nInputs << std::endl;
 	std::cout << "nOutputs: " << n->nOutputs << std::endl;
+	std::cout << "nHidden: " << n->nHidden << std::endl;
+
+	// TODO make work with hidden neurons!!
 
 	std::cout << "Input->Output connections" << std::endl;
 	for (unsigned int i = 0; i < n->nInputs; ++i) {
@@ -80,7 +83,8 @@ void printNeuralNetwork(const NeuralNetwork* n) {
 
 	std::cout << "Bias, gains" << std::endl;
 	for (unsigned int i = 0; i < n->nOutputs; ++i) {
-		std::cout << n->bias[i] << " " << n->gain[i] << std::endl;
+		// TODO other params!!
+		std::cout << n->params[MAX_PARAMS*i] << " " << n->params[MAX_PARAMS*i+1] << std::endl;
 	}
 }
 
@@ -349,7 +353,8 @@ int main(int argc, char* argv[]) {
 								// Elapsed time since last call
 								env->setTimeElapsed(step);
 
-								// Feed neural network
+
+								// Update Sensors
 								for (unsigned int i = 0; i < bodyParts.size();
 										++i) {
 									if (boost::dynamic_pointer_cast<
@@ -362,52 +367,56 @@ int main(int argc, char* argv[]) {
 									}
 								}
 
-								for (unsigned int i = 0; i < sensors.size();
-										++i) {
-									if (boost::dynamic_pointer_cast<TouchSensor>(
-											sensors[i])) {
-										networkInput[i] =
-												boost::dynamic_pointer_cast<
-												TouchSensor>(sensors[i])->read();
-									} else if (boost::dynamic_pointer_cast<
-											LightSensor>(sensors[i])) {
-										networkInput[i] =
-												boost::dynamic_pointer_cast<
-												LightSensor>(sensors[i])->read(
-														env->getLightSources(),
-														env->getAmbientLight());
-									} else if (boost::dynamic_pointer_cast<
-											SimpleSensor>(sensors[i])) {
-										networkInput[i] =
-												boost::dynamic_pointer_cast<
-												SimpleSensor>(
-														sensors[i])->read();
+								if(((count - 1) % configuration->getActuationPeriod()) == 0) {
+									// Feed neural network
+									for (unsigned int i = 0; i < sensors.size();
+											++i) {
+										if (boost::dynamic_pointer_cast<TouchSensor>(
+												sensors[i])) {
+											networkInput[i] =
+													boost::dynamic_pointer_cast<
+													TouchSensor>(sensors[i])->read();
+										} else if (boost::dynamic_pointer_cast<
+												LightSensor>(sensors[i])) {
+											networkInput[i] =
+													boost::dynamic_pointer_cast<
+													LightSensor>(sensors[i])->read(
+															env->getLightSources(),
+															env->getAmbientLight());
+										} else if (boost::dynamic_pointer_cast<
+												SimpleSensor>(sensors[i])) {
+											networkInput[i] =
+													boost::dynamic_pointer_cast<
+													SimpleSensor>(
+															sensors[i])->read();
+										}
 									}
-								}
-								::feed(neuralNetwork.get(), &networkInput[0]);
+									::feed(neuralNetwork.get(), &networkInput[0]);
 
-								// Step the neural network
-								::step(neuralNetwork.get());
+									// Step the neural network
+									::step(neuralNetwork.get(), t);
 
-								// Fetch the neural network ouputs
-								::fetch(neuralNetwork.get(),
-										&networkOutputs[0]);
+									// Fetch the neural network ouputs
+									::fetch(neuralNetwork.get(),
+											&networkOutputs[0]);
 
-								// Send control to motors
-								for (unsigned int i = 0; i < motors.size();
-										++i) {
-									if (boost::dynamic_pointer_cast<ServoMotor>(
-											motors[i])) {
+									// Send control to motors
+									for (unsigned int i = 0; i < motors.size();
+											++i) {
+										if (boost::dynamic_pointer_cast<ServoMotor>(
+												motors[i])) {
 
-										boost::shared_ptr<ServoMotor> motor =
-												boost::dynamic_pointer_cast<
-												ServoMotor>(motors[i]);
+											boost::shared_ptr<ServoMotor> motor =
+													boost::dynamic_pointer_cast<
+													ServoMotor>(motors[i]);
 
-										if (motor->isVelocityDriven()) {
-											motor->setVelocity(
-													networkOutputs[i]);
-										} else {
-											motor->setPosition(networkOutputs[i]);
+											if (motor->isVelocityDriven()) {
+												motor->setVelocity(networkOutputs[i], step *
+														configuration->getActuationPeriod());
+											} else {
+												motor->setPosition(networkOutputs[i], step *
+														configuration->getActuationPeriod());
+											}
 										}
 									}
 								}

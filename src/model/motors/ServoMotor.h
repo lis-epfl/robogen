@@ -48,6 +48,7 @@ public:
 	static const float MAX_POS_RAD;
 	static const float MIN_VELOCITY;
 	static const float MAX_VELOCITY;
+	static const int MAX_DIRECTION_SHIFTS_PER_SECOND;
 
 	/**
 	 * Apply the motor to the provided joint. Initializes a servo controlled in velocity.
@@ -81,18 +82,22 @@ public:
 	/**
 	 * Apply PI control to the motor to reach the desired position in [0,1]
 	 */
-	void setPosition(float position);
+	void setPosition(float position, float step);
 
 	/**
 	 * Set the velocity of the motor in [0,1]
 	 */
-	void setVelocity(float velocity);
+	void setVelocity(float velocity, float step);
 
 	/**
 	 * @return true if the motor is driven in velocity
 	 */
 	bool isVelocityDriven();
 
+	/**
+	 * @return whether the motor is burnt out or not
+	 */
+	bool isBurntOut();
 
 private:
 
@@ -115,6 +120,22 @@ private:
 	 * True for velocity driven motors, false otherwise
 	 */
 	bool isVelocityDriven_;
+
+	/**
+	 * Count number of time actuated
+	 */
+	unsigned int internalCounter_;
+
+
+	/**
+	 * Keep track of previous velocities,
+	 * to be used for preventing burnout
+	 */
+	std::vector<float> previousVelocities_;
+
+	bool isBurntOut_;
+
+	void testBurnout(float velocity, float step);
 
 };
 

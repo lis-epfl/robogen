@@ -64,9 +64,12 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 			boost::program_options::value<std::string>(), "Experiment scenario")(
 			"lightSourceHeight", boost::program_options::value<float>(),
 			"Height of light source")("timeStep",
-			boost::program_options::value<float>(), "Time step duration")(
+			boost::program_options::value<float>(), "Time step duration (s)")(
 			"nTimeSteps", boost::program_options::value<unsigned int>(),
-			"Number of timesteps")("startPositionConfigFile",
+			"Number of timesteps")
+			("actuationFrequency",boost::program_options::value<int>(),
+			"Actuation Frequency (Hz)")
+			("startPositionConfigFile",
 			boost::program_options::value<std::string>(),
 			"Start Positions Configuration File");
 
@@ -236,8 +239,27 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	}
 	unsigned int nTimesteps = vm["nTimeSteps"].as<unsigned int>();
 
+	int actuationPeriod;
+	if (!vm.count("actuationFrequency")) {
+		actuationPeriod = 1;
+		std::cout << "Undefined 'actuationFrequency' parameter in '"
+				<< fileName << "'" << ", will actuate every timeStep."
+				<< std::endl;
+	} else {
+		int actuationFrequencyTmp = (int) (
+				(1.0/((float)vm["actuationFrequency"].as<int>())) * 100000);
+		int timeStepTmp = (int) (timeStep * 100000);
+		if ((actuationFrequencyTmp % timeStepTmp) != 0) {
+			std::cout << "Inverse of 'actuationFrequency' must be a multiple "
+					<< "of 'timeStep'" << std::endl;
+			return boost::shared_ptr<RobogenConfig>();
+		}
+		actuationPeriod = actuationFrequencyTmp / timeStepTmp;
+	}
+
 	return boost::shared_ptr<RobogenConfig>(
-			new RobogenConfig(simulationScenario, nTimesteps, timeStep, terrain,
+			new RobogenConfig(simulationScenario, nTimesteps,
+					timeStep, actuationPeriod, terrain,
 					obstacles, obstaclesConfigFile, startPositions,
 					startPositionFile, lightSourceHeight));
 
@@ -433,10 +455,11 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 	unsigned int timeSteps = simulatorConf.ntimesteps();
 	float timeStepLength = simulatorConf.timestep();
 	float lightSourceHeight = simulatorConf.lightsourceheight();
+	int actuationPeriod = simulatorConf.actuationperiod();
 
 	return boost::shared_ptr<RobogenConfig>(
-			new RobogenConfig(simulationScenario, timeSteps, timeStepLength, terrain,
-					obstacles, "",
+			new RobogenConfig(simulationScenario, timeSteps, timeStepLength,
+					actuationPeriod, terrain, obstacles, "",
 					boost::shared_ptr<StartPositionConfig>(
 							new StartPositionConfig(startPositions)), "",
 					lightSourceHeight
