@@ -27,14 +27,15 @@
 
 #include <vector>
 #include "NeuralNetwork.h"
-
+#ifdef PYTHON_ENABLED
 #include <boost/python.hpp>
+#endif
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
-
+#ifdef PYTHON_ENABLED
 namespace py = boost::python;
-
+#endif
 namespace NEAT
 {
 
@@ -99,8 +100,9 @@ public:
               std::vector< std::vector<double> >& a_hidden,
               std::vector< std::vector<double> >& a_outputs );
     // Construct from 3 Python lists of tuples
+	#ifdef PYTHON_ENABLED
     Substrate(py::list a_inputs, py::list a_hidden, py::list a_outputs);
-
+	#endif
     int GetMaxDims();
 
     // Return the minimum input dimensionality of the CPPN
@@ -142,7 +144,7 @@ public:
     }
 };
 
-
+#ifdef PYTHON_ENABLED
 struct Substrate_pickle_suite : py::pickle_suite
 {
     static py::object getstate(const Substrate& a)
@@ -166,7 +168,7 @@ struct Substrate_pickle_suite : py::pickle_suite
     //static bool getstate_manages_dict() { return true; }
 };
 
-
+#endif
 
 
 

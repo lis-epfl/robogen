@@ -30,13 +30,16 @@
 // Description: Definitions for the Neuron and Link gene classes.
 /////////////////////////////////////////////////////////////////
 
+#ifdef PYTHON_ENABLED
 #include <boost/python.hpp>
+#endif
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 
+#ifdef PYTHON_ENABLED
 namespace py = boost::python;
-
+#endif
 
 #include <iostream>
 #include <vector>

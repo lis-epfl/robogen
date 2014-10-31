@@ -62,7 +62,7 @@ Substrate::Substrate(std::vector<std::vector<double> >& a_inputs,
     m_output_coords = a_outputs;
 }
 
-
+#ifdef PYTHON_ENABLED
 // 3 lists of iterables of floats
 Substrate::Substrate(py::list a_inputs, py::list a_hidden, py::list a_outputs)
 {
@@ -108,7 +108,7 @@ Substrate::Substrate(py::list a_inputs, py::list a_hidden, py::list a_outputs)
             m_output_coords[i].push_back(py::extract<double>(a_outputs[i][j]));
     }
 }
-
+#endif
 
 int Substrate::GetMinCPPNInputs()
 {

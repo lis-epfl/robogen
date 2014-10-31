@@ -29,8 +29,9 @@
 // File:        Genome.h
 // Description: Definition for the Genome class.
 ///////////////////////////////////////////////////////////////////////////////
-
+#ifdef PYTHON_ENABLED
 #include <boost/python.hpp>
+#endif
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
@@ -400,7 +401,7 @@ public:
     }
 };
 
-
+#ifdef PYTHON_ENABLED
 struct Genome_pickle_suite : py::pickle_suite
 {
     static py::object getstate(const Genome& a)
@@ -421,7 +422,7 @@ struct Genome_pickle_suite : py::pickle_suite
         ia >> a;
     }
 };
-
+#endif
 
 #define DBG(x) { std::cerr << x << "\n"; }
 

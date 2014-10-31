@@ -25,7 +25,7 @@
 //    Shane Ryan < shane.mcdonald.ryan@gmail.com >
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-
+#ifdef PYTHON_ENABLED
 #include <boost/python.hpp>
 #include <boost/python/numeric.hpp>
 #include <boost/python/tuple.hpp>
@@ -455,6 +455,6 @@ BOOST_PYTHON_MODULE(_MultiNEAT)
             .def(vector_indexing_suite< std::vector<PhenotypeBehavior> >() )
             ;
 }
-
+#endif /* PYTHON_ENABLED */
 
 #endif /* PYTHONBINDINGS_H_ */
