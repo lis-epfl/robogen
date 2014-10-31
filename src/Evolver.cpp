@@ -35,6 +35,8 @@
 #include "evolution/engine/Mutator.h"
 #include "evolution/engine/Selectors/DeterministicTournament.h"
 
+#include "evolution/engine/neat/NeatContainer.h"
+
 using namespace robogen;
 
 int exitRobogen(int exitCode) {
@@ -98,9 +100,9 @@ int main(int argc, char *argv[]) {
 	// Set up evolution
 	// ---------------------------------------
 
-	boost::shared_ptr<Selector> s;
+	boost::shared_ptr<Selector> selector;
 	if (conf->selection == conf->DETERMINISTIC_TOURNAMENT) {
-		s.reset(new DeterministicTournament(conf->tournamentSize, rng));
+		selector.reset(new DeterministicTournament(conf->tournamentSize, rng));
 	} else {
 		std::cout << "Selection type id " << conf->selection << " unknown."
 				<< std::endl;
@@ -141,12 +143,27 @@ int main(int argc, char *argv[]) {
 			return exitRobogen(EXIT_FAILURE);
 		}
 	}
-	boost::shared_ptr<Population> population(new Population()), previous;
+	
+
+	boost::shared_ptr<Population> population(new Population());
+	boost::shared_ptr<NeatContainer> neatContainer;
+
+	bool hyperNEAT = (conf->evolutionaryAlgorithm ==
+			EvolverConfiguration::HYPER_NEAT);
+
 	if (!population->init(referenceBot, conf->mu, mutator, growBodies,
-			(!conf->useBrainSeed))) {
+			(!(conf->useBrainSeed || hyperNEAT)) ) ) {
 		std::cout << "Error when initializing population!" << std::endl;
 		return exitRobogen(EXIT_FAILURE);
 	}
+
+	if (hyperNEAT) {
+		neatContainer.reset(new NeatContainer(conf, population, seed, rng));
+
+	}
+
+
+
 
 	// ---------------------------------------
 	// open sockets for communication with simulator processes
@@ -169,6 +186,13 @@ int main(int argc, char *argv[]) {
 	// run evolution TODO stopping criterion
 	// ---------------------------------------
 
+	if(hyperNEAT) {
+		if(!neatContainer->fillPopulationWeights(population)) {
+			std::cout << "Filling weights from NEAT failed." << std::endl;
+			return exitRobogen(EXIT_FAILURE);
+		}
+	}
+
 	population->evaluate(robotConf, sockets);
 	if (!log->logGeneration(1, *population.get())) {
 		return exitRobogen(EXIT_FAILURE);
@@ -178,32 +202,44 @@ int main(int argc, char *argv[]) {
 			++generation) {
 		// create children
 		IndividualContainer children;
-		s->initPopulation(population);
-		for (unsigned int i = 0; i < conf->lambda; i++) {
-			std::pair<boost::shared_ptr<RobotRepresentation>,
-					boost::shared_ptr<RobotRepresentation> > selection;
-			if (!s->select(selection)) {
-				std::cout << "Selector::select() failed." << std::endl;
+		if (hyperNEAT) {
+			//neatPopulation->Epoch();
+			if(!neatContainer->produceNextGeneration(population)) {
+				std::cout << "Producing next generation from NEAT failed."
+						<< std::endl;
 				return exitRobogen(EXIT_FAILURE);
 			}
-			children.push_back(
-					mutator->mutate(selection.first, selection.second));
+			population->evaluate(robotConf, sockets);
+
+		} else {
+			selector->initPopulation(population);
+			for (unsigned int i = 0; i < conf->lambda; i++) {
+				std::pair<boost::shared_ptr<RobotRepresentation>,
+						boost::shared_ptr<RobotRepresentation> > selection;
+				if (!selector->select(selection)) {
+					std::cout << "Selector::select() failed." << std::endl;
+					return exitRobogen(EXIT_FAILURE);
+				}
+				children.push_back(
+						mutator->mutate(selection.first, selection.second));
+			}
+
+			// evaluate children
+			children.evaluate(robotConf, sockets);
+
+			// comma or plus?
+			if (conf->replacement == conf->PLUS_REPLACEMENT) {
+				children += *population.get();
+			}
+
+			// replace
+			population.reset(new Population());
+			if (!population->init(children, conf->mu)) {
+				std::cout << "Error when initializing population!" << std::endl;
+				return exitRobogen(EXIT_FAILURE);
+			}
 		}
 
-		// evaluate children
-		children.evaluate(robotConf, sockets);
-
-		// comma or plus?
-		if (conf->replacement == conf->PLUS_REPLACEMENT) {
-			children += *population.get();
-		}
-
-		// replace
-		population.reset(new Population());
-		if (!population->init(children, conf->mu)) {
-			std::cout << "Error when initializing population!" << std::endl;
-			return exitRobogen(EXIT_FAILURE);
-		}
 
 		if (!log->logGeneration(generation, *population.get())) {
 			return exitRobogen(EXIT_FAILURE);
