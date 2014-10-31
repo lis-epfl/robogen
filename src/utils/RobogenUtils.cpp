@@ -65,9 +65,11 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 		dJointGroupID connectionJointGroup, dWorldID odeWorld) {
 
 	// Mandatory debug output
+	#if 0
+	// TODO make debug output based on something else
 	std::cout << "Connecting " << a->getId() << " to " << b->getId()
 			<< std::endl;
-
+	#endif
 	// 1) Rotate slotAxis of B such that we obtain a normal pointing inward the body
 	osg::Vec3 bSlotAxis = b->getSlotAxis(slotB);
 	osg::Vec3 bSlotAxisInv = -bSlotAxis;
