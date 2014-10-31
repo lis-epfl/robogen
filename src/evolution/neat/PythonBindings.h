@@ -454,7 +454,7 @@ BOOST_PYTHON_MODULE(_MultiNEAT)
     class_< std::vector<PhenotypeBehavior> >("PhenotypeBehaviorList")
             .def(vector_indexing_suite< std::vector<PhenotypeBehavior> >() )
             ;
-};
+}
 
 
 #endif /* PYTHONBINDINGS_H_ */

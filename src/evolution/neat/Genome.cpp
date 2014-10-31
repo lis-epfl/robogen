@@ -1934,7 +1934,7 @@ Genome Genome::Mate(Genome& a_Dad, bool a_MateAverage, bool a_InterSpecies, RNG&
         return *this;
 
     // helps make the code clearer
-    enum t_parent_type {MUM, DAD,};
+    enum t_parent_type {MUM, DAD};
 
     // This is the fittest genome.
     t_parent_type t_better;
