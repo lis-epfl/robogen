@@ -89,6 +89,7 @@ public:
 	 * Sets the weight from sensor or motor "from" to motor "to" to value after
 	 * verifying validness of connection
 	 */
+	bool setWeight(ioPair fromPair, ioPair toPair, double value);
 	bool setWeight(std::string fromPart, int fromIoId, std::string toPart,
 			int toIoId, double value);
 
@@ -136,6 +137,11 @@ public:
 	 */
 	std::vector<boost::weak_ptr<NeuronRepresentation> >
 		getBodyPartNeurons(std::string bodyPart);
+
+	/**
+	 * Returns if a given connection exists
+	 */
+	bool connectionExists(std::string from, std::string to);
 
 	/**
 	 * This is a conversion to a linear representation, which is currently

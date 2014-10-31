@@ -89,13 +89,18 @@ NeuralNetworkRepresentation::~NeuralNetworkRepresentation() {
 
 bool NeuralNetworkRepresentation::setWeight(std::string from, int fromIoId,
 		std::string to, int toIoId, double value) {
+	return setWeight(ioPair(from, fromIoId), ioPair(to, toIoId), value);
+}
+
+bool NeuralNetworkRepresentation::setWeight(ioPair fromPair, ioPair toPair,
+		double value) {
 	NeuronMap::iterator fi =
-			neurons_.find(ioPair(from, fromIoId));
+			neurons_.find(fromPair);
 	NeuronMap::iterator ti =
-			neurons_.find(ioPair(to, toIoId));
+			neurons_.find(toPair);
 	if (fi == neurons_.end()) {
-		std::cout << "Specified weight input io id pair " << from << " "
-				<< fromIoId
+		std::cout << "Specified weight input io id pair " << fromPair.first
+				<< " " << fromPair.second
 				<< " is not in the body cache of the neural network."
 						"Candidates are:" << std::endl;
 		for (fi = neurons_.begin(); fi != neurons_.end(); ++fi) {
@@ -106,8 +111,9 @@ bool NeuralNetworkRepresentation::setWeight(std::string from, int fromIoId,
 		return false;
 	}
 	if (ti == neurons_.end()) {
-		std::cout << "Specified weight output io id pair " << to << " "
-				<< toIoId << " is not in the body cache of the neural network."
+		std::cout << "Specified weight output io id pair " << toPair.first
+				<< " " << toPair.second
+				<< " is not in the body cache of the neural network."
 						"Candidates are:" << std::endl;
 		for (ti = neurons_.begin(); ti != neurons_.end(); ++ti) {
 			std::cout << "(" << ti->first.first << " " << ti->first.second
@@ -117,8 +123,8 @@ bool NeuralNetworkRepresentation::setWeight(std::string from, int fromIoId,
 		return false;
 	}
 	if (ti->second->isInput()) {
-		std::cout << "Attempted to make connection to input layer neuron " << to
-				<< " " << toIoId << std::endl;
+		std::cout << "Attempted to make connection to input layer neuron " <<
+				toPair.first << " " << toPair.second << std::endl;
 		return false;
 	}
 	weights_[std::pair<std::string, std::string>(fi->second->getId(),
@@ -350,6 +356,12 @@ std::vector<boost::weak_ptr<NeuronRepresentation> >
 	}
 	return ret;
 }
+
+bool NeuralNetworkRepresentation::connectionExists(std::string from,
+		std::string to) {
+	return (weights_.count(StringPair(from, to)) > 0);
+}
+
 
 /*
 bool NeuralNetworkRepresentation::getLinearRepresentation(

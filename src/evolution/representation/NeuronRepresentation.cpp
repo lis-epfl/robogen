@@ -86,6 +86,10 @@ unsigned int NeuronRepresentation::getType() {
 	return type_;
 }
 
+void NeuronRepresentation::setParams(const std::vector<double> params) {
+	setParams(type_, params);
+}
+
 void NeuronRepresentation::setParams(unsigned int type,
 		const std::vector<double> params) {
 	if (type == SIGMOID || type == SIMPLE) {

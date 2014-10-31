@@ -84,6 +84,11 @@ public:
 	/**
 	 * @param params the params to be set
 	 */
+	void setParams(const std::vector<double> params);
+
+	/**
+	 * Change the type of the neuron at the same time
+	 */
 	void setParams(unsigned int type, const std::vector<double> params);
 
 
