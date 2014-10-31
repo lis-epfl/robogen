@@ -352,11 +352,14 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
     bool t_baby_exists_in_pop = false;
     while(t_offspring_count--)
     {
+    	bool t_new_individual = true;
+
         // if the champ was not chosen, do it now..
         if (!t_champ_chosen)
         {
             t_baby = m_Individuals[0];
             t_champ_chosen = true;
+            t_new_individual = false;
         }
         // or if it was, then proceed with the others
         else
@@ -481,24 +484,25 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
         if ((t_baby.NumLinks() == 0) || t_baby.HasDeadEnds())
         {
             t_baby = GetIndividual(a_Parameters, a_RNG);
+            t_new_individual = false;
         }
 
+        if (t_new_individual) {
+			// We have a new offspring now
+			// give the offspring a new ID
+			t_baby.SetID(a_Pop.GetNextGenomeID());
+			a_Pop.IncrementNextGenomeID();
 
-        // We have a new offspring now
-        // give the offspring a new ID
-        t_baby.SetID(a_Pop.GetNextGenomeID());
-        a_Pop.IncrementNextGenomeID();
+			// sort the baby's genes
+			t_baby.SortGenes();
 
-        // sort the baby's genes
-        t_baby.SortGenes();
+			// clear the baby's fitness
+			t_baby.SetFitness(0);
+			t_baby.SetAdjFitness(0);
+			t_baby.SetOffspringAmount(0);
 
-        // clear the baby's fitness
-        t_baby.SetFitness(0);
-        t_baby.SetAdjFitness(0);
-        t_baby.SetOffspringAmount(0);
-
-        t_baby.ResetEvaluated();
-
+			t_baby.ResetEvaluated();
+        }
 
         //////////////////////////////////
         // put the baby to its species  //
