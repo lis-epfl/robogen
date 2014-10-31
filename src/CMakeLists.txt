@@ -71,6 +71,7 @@ file (GLOB_RECURSE
      brain/*.c
      config/*.cpp
      evolution/engine/*.cpp
+     evolution/engine/neat/*.cpp
      evolution/neat/*.cpp
      evolution/representation/*.cpp
      evolution/representation/parts/*.cpp
@@ -86,7 +87,7 @@ file (GLOB_RECURSE
 )
 
 
-find_package(Boost COMPONENTS chrono date_time graph system program_options regex filesystem timer thread python)
+find_package(Boost COMPONENTS chrono date_time graph system program_options regex filesystem timer thread python serialization)
 find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(PNG REQUIRED)
