@@ -80,7 +80,8 @@ public:
 	 * @param robotSpec
 	 */
 	bool init(dWorldID odeWorld, dSpaceID odeSpace,
-			const robogenMessage::Robot& robotSpec);
+			const robogenMessage::Robot& robotSpec,
+			bool printInfo=false);
 
 	/**
 	 * Destructor
@@ -134,6 +135,11 @@ public:
 	 * @return the robot ID
 	 */
 	int getId() const;
+
+	/**
+	 *
+	 */
+	boost::shared_ptr<Model> getBodyPart(std::string id);
 
 	/**
 	 * @return message that generated the robot
@@ -246,6 +252,8 @@ private:
 	 */
 
 	const robogenMessage::Robot* robotMessage_;
+
+	bool printInfo_;
 };
 
 }

@@ -92,12 +92,12 @@ Robot::Robot() :
 }
 
 bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
-		const robogenMessage::Robot& robotSpec) {
-
-	robotMessage_ = &robotSpec;
-
+		const robogenMessage::Robot& robotSpec,
+		bool printInfo) {
 	odeWorld_ = odeWorld;
 	odeSpace_ = odeSpace;
+	robotMessage_ = &robotSpec;
+	printInfo_ = printInfo;
 
 	connectionJointGroup_ = dJointGroupCreate(0);
 	this->id_ = robotSpec.id();
@@ -191,13 +191,16 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 		}
 
 		if (bodyPart.root()) {
-			std::cout << "Root node! " << i << std::endl;
+			if (printInfo_)
+				std::cout << "Root node! " << i << std::endl;
 			rootNode_ = i;
 			coreComponent_ = model;
 		}
 
-		std::cout << "Node: " << i << " id: " << bodyPart.id() << " type: "
+		if(printInfo_) {
+			std::cout << "Node: " << i << " id: " << bodyPart.id() << " type: "
 				<< bodyPart.type() << std::endl;
+		}
 
 		x += spacing;
 		y += spacing;
@@ -243,8 +246,10 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 	// We now have to connect them properly
 	this->reconnect();
 
-	std::cout << "Sensors: " << sensors_.size() << ", motors: "
+	if(printInfo_) {
+		std::cout << "Sensors: " << sensors_.size() << ", motors: "
 			<< motors_.size() << std::endl;
+	}
 
 	return true;
 
@@ -475,14 +480,18 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 		return false;
 	}
 
-	std::cout << "Contents of unordered sensors:" << std::endl;
-	for (unsigned int i = 0; i < sensors_.size(); ++i) {
-		std::cout << sensors_[i]->getLabel() << std::endl;
+	if(printInfo_) {
+		std::cout << "Contents of unordered sensors:" << std::endl;
+		for (unsigned int i = 0; i < sensors_.size(); ++i) {
+			std::cout << sensors_[i]->getLabel() << std::endl;
+		}
 	}
 	sensors_ = orderedSensors;
-	std::cout << "Contents of ordered sensors:" << std::endl;
-	for (unsigned int i = 0; i < sensors_.size(); ++i) {
-		std::cout << sensors_[i]->getLabel() << std::endl;
+	if(printInfo_) {
+		std::cout << "Contents of ordered sensors:" << std::endl;
+		for (unsigned int i = 0; i < sensors_.size(); ++i) {
+			std::cout << sensors_[i]->getLabel() << std::endl;
+		}
 	}
 	motors_ = orderedMotors;
 
@@ -549,9 +558,11 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			weight[nInputs * nNonInputs + sourceNeuronPos * nNonInputs
 					+ destNeuronPos] = connection.weight();
 		}
-		std::cout<<"connection, src: " << connection.src() << ", dest: " <<
+		if(printInfo_) {
+			std::cout<<"connection, src: " << connection.src() << ", dest: " <<
 				connection.dest() << " " << connection.weight() << " " <<
 				sourceNeuronPos << " " << destNeuronPos << std::endl;
+		}
 	}
 	::initNetwork(neuralNetwork_.get(), nInputs, nOutputs, nHidden,
 			&weight[0], &params[0], &types[0]);
@@ -640,6 +651,11 @@ void Robot::getBB(double& minX, double& maxX, double& minY, double& maxY,
 
 	}
 }
+
+boost::shared_ptr<Model> Robot::getBodyPart(std::string id) {
+	return bodyParts_[bodyPartsMap_[id]];
+}
+
 
 int Robot::getId() const {
 	return id_;
