@@ -194,7 +194,7 @@ public:
     bool Load(std::ifstream& a_DataFile);
 };
 
-}; // namespace NEAT
+} // namespace NEAT
 
 
 
