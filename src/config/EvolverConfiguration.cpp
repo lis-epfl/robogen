@@ -502,6 +502,8 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	// TODO make configurable
 	// ---------------------------------------
 
+	evolutionaryAlgorithm = HYPER_NEAT;
+
 	neatParams.PopulationSize = mu;
 	neatParams.WeightDiffCoeff = 0.4;
 	neatParams.DynamicCompatibility = true;
@@ -509,8 +511,8 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	neatParams.YoungAgeTreshold = 15;
 	neatParams.SpeciesMaxStagnation = 15;
 	neatParams.OldAgeTreshold = 35;
-	neatParams.MinSpecies = 5;
-	neatParams.MaxSpecies = 25;
+	neatParams.MinSpecies = 4; //5;
+	neatParams.MaxSpecies = 18; //25;
 	neatParams.RouletteWheelSelection = false;
 	neatParams.RecurrentProb = 0;
 	neatParams.OverallMutationRate = 0.33;

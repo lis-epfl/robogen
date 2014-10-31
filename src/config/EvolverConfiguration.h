@@ -64,6 +64,15 @@ typedef struct EvolverConfiguration {
 	};
 
 	/**
+	 * Evolationary Algorithm
+	 * TODO add other possibilities (e.g. CMA-ES)
+	 */
+	enum EvolutionaryAlgorithms {
+		BASIC, HYPER_NEAT
+	};
+
+
+	/**
 	 * Types of body mutation.
 	 * Last entry is used to get the amount of operators
 	 */
@@ -252,6 +261,11 @@ typedef struct EvolverConfiguration {
 	 * Std dev of body param mutations
 	 */
 	double bodyParamSigma;
+
+	/**
+	 * Evolutionary algorithm
+	 */
+	unsigned int evolutionaryAlgorithm;
 
 
 	NEAT::Parameters neatParams;
