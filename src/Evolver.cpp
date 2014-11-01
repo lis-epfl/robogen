@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
 				return exitRobogen(EXIT_FAILURE);
 			}
 			population->evaluate(robotConf, sockets);
-
+			population->sort();
 		} else {
 			selector->initPopulation(population);
 			for (unsigned int i = 0; i < conf->lambda; i++) {
