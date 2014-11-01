@@ -112,9 +112,9 @@ bool robotFitnessComparator(const boost::shared_ptr<RobotRepresentation>& a,
 
 }
 
-void IndividualContainer::sort() {
+void IndividualContainer::sort(bool forceSort) {
 
-	if (sorted_) {
+	if (sorted_  && (!forceSort)) {
 		return;
 	}
 

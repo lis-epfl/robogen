@@ -55,8 +55,9 @@ public:
 
 	/**
 	 * Sorts individuals from best to worst.
+	 * @param forceSort, will re-sort even if sorted_ flag is true
 	 */
-	void sort();
+	void sort(bool forceSort=false);
 
 	/**
 	 * Append the contents of another IndividualContainer to this one.
