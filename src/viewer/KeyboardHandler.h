@@ -2,9 +2,10 @@
  * @(#) KeyboardHandler.h   1.0   March 21, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -36,7 +37,8 @@ class KeyboardHandler: public osgGA::GUIEventHandler {
 
 public:
 
-	KeyboardHandler() : osgGA::GUIEventHandler(), paused_(true), quit_(false) {
+	KeyboardHandler(bool startPaused) : osgGA::GUIEventHandler(),
+		paused_(startPaused), quit_(false) {
 
 	}
 

@@ -2,9 +2,10 @@
  * @(#) Scenario.h   1.0   Mar 13, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -31,6 +32,8 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include "Robogen.h"
+#include "config/StartPosition.h"
+
 
 namespace robogen {
 

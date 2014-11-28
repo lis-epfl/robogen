@@ -1,10 +1,32 @@
 /*
- * FileViewerLog.cpp
+ * @(#) FileViewerLog.cpp   1.0   Aug 20, 2013
  *
- *  Created on: Aug 20, 2013
- *      Author: Titus Cieslewski
+ * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
+ *
+ * The ROBOGEN Framework
+ * Copyright © 2012-2014 Titus Cieslweski, Joshua Auerbach
+ *
+ * Laboratory of Intelligent Systems, EPFL
+ *
+ * This file is part of the ROBOGEN Framework.
+ *
+ * The ROBOGEN Framework is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License (GPL)
+ * as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @(#) $Id$
  */
-//TODO proper header comment
+
 
 #include "viewer/FileViewerLog.h"
 #include <iostream>
@@ -32,15 +54,22 @@
 
 namespace robogen{
 
-FileViewerLog::FileViewerLog(){
+FileViewerLog::FileViewerLog(std::string robotFile,
+		std::string confFile,
+		std::string obstacleFile,
+		std::string startPosFile,
+		std::string logFolderPostfix) :
+			robotFile_(robotFile),
+			confFile_(confFile),
+			obstacleFile_(obstacleFile),
+			startPosFile_(startPosFile),
+			logFolderPostfix_(logFolderPostfix) {
 }
 
-bool FileViewerLog::init(std::string robotFile, std::string confFile,
-		std::string obstacleFile, std::string startPosFile,
-		boost::shared_ptr<Robot> robot, const std::string& logFolderPostfix) {
+bool FileViewerLog::init(boost::shared_ptr<Robot> robot) {
 	// create log directory with time stamp
 	std::stringstream logPathSs;
-	logPathSs << LOG_DIRECTORY_PREFIX << logFolderPostfix;
+	logPathSs << LOG_DIRECTORY_PREFIX << this->logFolderPostfix_;
 
 	std::string prefixPath = logPathSs.str();
 	std::string tempPath = prefixPath;
@@ -107,8 +136,10 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 	}
 	BodyCompiler::compile(*robot.get(),body);
 
+	//TODO get rid of so much code duplication below
+
 	// copy robot file
-	boost::filesystem::path robotFrom(robotFile);
+	boost::filesystem::path robotFrom(this->robotFile_);
 	std::stringstream ss;
 	ss << logPath_ << "/" << robotFrom.filename().string();
 	boost::filesystem::path robotTo(ss.str());
@@ -120,7 +151,7 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 		return false;
 	}
 	// copy configuration file
-	boost::filesystem::path confFrom(confFile);
+	boost::filesystem::path confFrom(this->confFile_);
 	ss.str(""); ss.clear();
 	ss << logPath_ << "/" << confFrom.filename().string();
 	boost::filesystem::path confTo(ss.str());
@@ -132,7 +163,7 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 		return false;
 	}
 	// copy obstacle file
-	boost::filesystem::path obsFrom(obstacleFile);
+	boost::filesystem::path obsFrom(this->obstacleFile_);
 	ss.str(""); ss.clear();
 	ss << logPath_ << "/" << obsFrom.filename().string();
 	boost::filesystem::path obsTo(ss.str());
@@ -144,7 +175,7 @@ bool FileViewerLog::init(std::string robotFile, std::string confFile,
 		return false;
 	}
 	// copy starting position file
-	boost::filesystem::path staPoFrom(startPosFile);
+	boost::filesystem::path staPoFrom(this->startPosFile_);
 	ss.str(""); ss.clear();
 	ss << logPath_ << "/" << staPoFrom.filename().string();
 	boost::filesystem::path staPoTo(ss.str());

@@ -84,6 +84,7 @@ file (GLOB_RECURSE
      Robot.cpp
      Robogen.cpp
      PartList.cpp
+     Simulator.cpp
 )
 
 
@@ -125,9 +126,7 @@ target_link_libraries(robogen-server robogen ${ROBOGEN_DEPENDENCIES})
 add_executable(robogen-file-viewer viewer/FileViewer.cpp)
 target_link_libraries(robogen-file-viewer robogen ${ROBOGEN_DEPENDENCIES})
 
-# Robot Viewer (received on socket)
-add_executable(robogen-server-viewer viewer/ServerViewer.cpp)
-target_link_libraries(robogen-server-viewer robogen ${ROBOGEN_DEPENDENCIES})
+
 
 # Tests
 #add_executable(robogen-server-viewer-test viewer/ServerViewerTest.cpp)

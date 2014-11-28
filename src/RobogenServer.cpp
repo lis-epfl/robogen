@@ -2,9 +2,10 @@
  * @(#) RobogenServer.cpp   1.0   Mar 5, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -35,16 +36,15 @@
 #include "utils/network/TcpSocket.h"
 #include "utils/RobogenCollision.h"
 #include "utils/RobogenUtils.h"
-#include "viewer/KeyboardHandler.h"
 #include "Models.h"
 #include "RenderModels.h"
 #include "Robogen.h"
 #include "Robot.h"
 #include "robogen.pb.h"
 
-#define CAP_ACCELERATION
-#define MAX_ACCELERATION (10.0)
-#define MIN_FITNESS (-10000.0)
+#include "viewer/Viewer.h"
+#include "Simulator.h"
+
 using namespace robogen;
 
 // ODE World
@@ -66,13 +66,30 @@ int main(int argc, char* argv[]) {
 
 	interrupted = false;
 
-	if (argc != 2) {
+	if (argc < 2) {
 		std::cerr << "Please, provide server port." << std::endl;
 		return exitRobogen(EXIT_FAILURE);
-	}
+	} 
 
 	// Parameters: <PORT>
 	int port = std::atoi(argv[1]);
+
+	bool visualize = false;	
+	bool startPaused = false;
+	for (int currentArg=2; currentArg<argc; currentArg++) {
+		if (std::string(argv[currentArg]).compare("--visualization") == 0) {
+			visualize = true;
+		} else if (std::string(argv[currentArg]).compare("--pause") == 0) {
+			startPaused = true;
+		}
+	}
+
+	if (startPaused && !visualize) {
+		std::cerr << "Cannot start paused without visualization enabled." <<
+				std::endl;
+		return exitRobogen(EXIT_FAILURE);
+	}
+
 
 	TcpSocket socket;
 	bool rc = socket.create(port);
@@ -122,7 +139,7 @@ int main(int argc, char* argv[]) {
 							ConfigurationReader::parseRobogenMessage(
 									packet.getMessage()->configuration());
 					if (configuration == NULL) {
-						std::cout
+						std::cerr
 								<< "Problems parsing the configuration file. Quit."
 								<< std::endl;
 						return exitRobogen(EXIT_FAILURE);
@@ -142,261 +159,22 @@ int main(int argc, char* argv[]) {
 							<< "-----------------------------------------------"
 							<< std::endl;
 
-					bool accelerationCapExceeded = false;
+					// ---------------------------------------
+					// Run simulations
+					// ---------------------------------------
+					unsigned int simulationResult = runSimulations(scenario,
+							configuration, packet.getMessage()->robot(),
+							visualize, startPaused);
 
-					while (scenario->remainingTrials() &&
-							(!accelerationCapExceeded)) {
-
-						// ---------------------------------------
-						// Simulator initialization
-						// ---------------------------------------
-
-						dInitODE();
-
-						// Create ODE world
-						odeWorld = dWorldCreate();
-
-						// Set gravity [mm/s]
-						dWorldSetGravity(odeWorld, 0, 0, -9.81);
-
-						dWorldSetERP(odeWorld, 0.1);
-						dWorldSetCFM(odeWorld, 10e-6);
-
-						// Create collision world
-						dSpaceID odeSpace = dSimpleSpaceCreate(0);
-
-						// Create contact group
-						odeContactGroup = dJointGroupCreate(0);
-
-						// ---------------------------------------
-						// Generate Robot
-						// ---------------------------------------
-						boost::shared_ptr<Robot> robot(new Robot);
-						if (!robot->init(odeWorld, odeSpace,
-								packet.getMessage()->robot())) {
-							std::cout << "Problems decoding the robot. Quit."
-									<< std::endl;
-							return exitRobogen(EXIT_FAILURE);
-						}
-
-						std::cout << "Evaluating individual " << robot->getId()
-								<< ", trial: " << scenario->getCurTrial()
-								<< std::endl;
-
-						// Register sensors
-						std::vector<boost::shared_ptr<Sensor> > sensors =
-								robot->getSensors();
-						std::vector<boost::shared_ptr<TouchSensor> > touchSensors;
-						for (unsigned int i = 0; i < sensors.size(); ++i) {
-							if (boost::dynamic_pointer_cast<TouchSensor>(
-									sensors[i])) {
-								touchSensors.push_back(
-										boost::dynamic_pointer_cast<TouchSensor>(
-												sensors[i]));
-							}
-						}
-
-						// Register robot motors
-						std::vector<boost::shared_ptr<Motor> > motors =
-								robot->getMotors();
-
-						// Register brain and body parts
-						boost::shared_ptr<NeuralNetwork> neuralNetwork =
-								robot->getBrain();
-						std::vector<boost::shared_ptr<Model> > bodyParts =
-								robot->getBodyParts();
-
-						// Initialize scenario
-						if (!scenario->init(odeWorld, odeSpace, robot)) {
-							std::cout << "Cannot initialize scenario. Quit."
-									<< std::endl;
-							return exitRobogen(EXIT_FAILURE);
-						}
-
-						// Setup environment
-						boost::shared_ptr<Environment> env =
-								scenario->getEnvironment();
-
-						if (!scenario->setupSimulation()) {
-							std::cout << "Cannot setup scenario. Quit."
-									<< std::endl;
-							return exitRobogen(EXIT_FAILURE);
-						}
-
-
-#ifdef CAP_ACCELERATION
-						//setup vectors for keeping velocities
-						dReal previousLinVel[3];
-						dReal previousAngVel[3];
-#endif
-
-						// ---------------------------------------
-						// Main Loop
-						// ---------------------------------------
-
-						int count = 0;
-						double t = 0;
-						double step = configuration->getTimeStepLength();
-						while (t < configuration->getSimulationTime()) {
-
-							if ((count++) % 500 == 0) {
-								std::cout << "." << std::flush;
-							}
-
-							// Collision detection
-							dSpaceCollide(odeSpace, 0, odeCollisionCallback);
-
-							// Step the world by one timestep
-							dWorldStep(odeWorld, step);
-
-							// Empty contact groups used for collisions handling
-							dJointGroupEmpty(odeContactGroup);
-
-#ifdef CAP_ACCELERATION
-							dBodyID rootBody =
-									robot->getCoreComponent()->getRoot();
-							const dReal *angVel, *linVel;
-
-							angVel = dBodyGetAngularVel(rootBody);
-							linVel = dBodyGetLinearVel(rootBody);
-
-							if(t > 0) {
-								double angAccel = dCalcPointsDistance3(
-										angVel, previousAngVel);
-								double linAccel = dCalcPointsDistance3(
-										linVel, previousLinVel);
-
-								if(angAccel > MAX_ACCELERATION || linAccel > MAX_ACCELERATION) {
-									printf("EVALUATION CANCELED: max accel");
-									printf(" exceeded at time %f,", t);
-									printf("  will give 0 fitness.\n");
-									accelerationCapExceeded = true;
-									break;
-								}
-
-							}
-
-							// save current velocities as previous
-							for(unsigned int j=0; j<3; j++) {
-								previousAngVel[j] = angVel[j];
-								previousLinVel[j] = linVel[j];
-							}
-#endif
-
-
-							float networkInput[MAX_INPUT_NEURONS];
-							float networkOutputs[MAX_OUTPUT_NEURONS];
-
-							// Elapsed time since last call
-							env->setTimeElapsed(step);
-
-							// Update Sensors
-							for (unsigned int i = 0; i < bodyParts.size();
-									++i) {
-								if (boost::dynamic_pointer_cast<
-										PerceptiveComponent>(bodyParts[i])) {
-									boost::dynamic_pointer_cast<
-											PerceptiveComponent>(bodyParts[i])->updateSensors(
-											env);
-								}
-							}
-
-							if(((count - 1) % configuration->getActuationPeriod()) == 0) {
-								// Feed neural network
-								for (unsigned int i = 0; i < sensors.size(); ++i) {
-
-									if (boost::dynamic_pointer_cast<TouchSensor>(
-											sensors[i])) {
-										networkInput[i] =
-												boost::dynamic_pointer_cast<
-														TouchSensor>(sensors[i])->read();
-									} else if (boost::dynamic_pointer_cast<
-											LightSensor>(sensors[i])) {
-										networkInput[i] =
-												boost::dynamic_pointer_cast<
-														LightSensor>(sensors[i])->read(
-														env->getLightSources(),
-														env->getAmbientLight());
-									} else if (boost::dynamic_pointer_cast<
-											SimpleSensor>(sensors[i])) {
-										networkInput[i] =
-												boost::dynamic_pointer_cast<
-														SimpleSensor>(sensors[i])->read();
-									}
-								}
-								::feed(neuralNetwork.get(), &networkInput[0]);
-
-								// Step the neural network
-								::step(neuralNetwork.get(), t);
-
-								// Fetch the neural network ouputs
-								::fetch(neuralNetwork.get(), &networkOutputs[0]);
-
-								// Send control to motors
-								for (unsigned int i = 0; i < motors.size(); ++i) {
-									if (boost::dynamic_pointer_cast<ServoMotor>(
-											motors[i])) {
-
-										boost::shared_ptr<ServoMotor> motor =
-												boost::dynamic_pointer_cast<
-														ServoMotor>(motors[i]);
-
-										if (motor->isVelocityDriven()) {
-											motor->setVelocity(networkOutputs[i], step *
-													configuration->getActuationPeriod());
-										} else {
-											motor->setPosition(networkOutputs[i], step *
-													configuration->getActuationPeriod());
-										}
-									}
-								}
-							}
-
-							if (!scenario->afterSimulationStep()) {
-								std::cout
-										<< "Cannot execute scenario after simulation step. Quit."
-										<< std::endl;
-								return exitRobogen(EXIT_FAILURE);
-							}
-
-							t += step;
-
-						}
-
-						if (!scenario->endSimulation()) {
-							std::cout << "Cannot complete scenario. Quit."
-									<< std::endl;
-							return exitRobogen(EXIT_FAILURE);
-						}
-
-						// ---------------------------------------
-						// Simulator finalization
-						// ---------------------------------------
-
-						// Destroy robot (because of associated ODE joint group)
-						robot.reset();
-						// has shared pointer in scenario, so destroy that too
-						scenario->prune();
-
-						// Destroy the joint group
-						dJointGroupDestroy(odeContactGroup);
-
-						// Destroy ODE space
-						dSpaceDestroy(odeSpace);
-
-						// Destroy ODE world
-						dWorldDestroy(odeWorld);
-
-						// Destroy the ODE engine
-						dCloseODE();
-
+					if (simulationResult == SIMULATION_FAILURE) {
+						return exitRobogen(EXIT_FAILURE);
 					}
 
 					// ---------------------------------------
 					// Compute fitness
 					// ---------------------------------------
 					double fitness;
-					if (accelerationCapExceeded) {
+					if (simulationResult == ACCELERATION_CAP_EXCEEDED) {
 						fitness = MIN_FITNESS;
 					} else {
 						fitness = scenario->getFitness();
@@ -421,7 +199,6 @@ int main(int argc, char* argv[]) {
 
 				} catch (boost::system::system_error& e) {
 					socket.close();
-					google::protobuf::ShutdownProtobufLibrary();
 					return exitRobogen(EXIT_FAILURE);
 				}
 
@@ -430,7 +207,6 @@ int main(int argc, char* argv[]) {
 		} else {
 			std::cerr << "Cannot connect to client. Exiting." << std::endl;
 			socket.close();
-			google::protobuf::ShutdownProtobufLibrary();
 			return exitRobogen(EXIT_FAILURE);
 		}
 
