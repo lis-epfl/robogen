@@ -70,26 +70,42 @@ bool interrupted;
 int main(int argc, char *argv[]) {
 
 	if (argc < 3) {
-		std::cout << "Please provide a file containing the robot description as"
-				" input and the corresponding simulation configuration file. "
-				<< std::endl << "For example: " << std::string(argv[0])
-				<< " robot.json configuration.conf'" << std::endl << "or"
-				<< std::endl << "For example: " << std::string(argv[0])
-				<< " robot.txt configuration.conf'" << std::endl
-				<< "You can also select the starting position by "
-						"appending an integer 1..n to the command" << std::endl
-				<< "To save frames to file (for video rendering), use option "
-				<< "--record <N, INTEGER> <DIR, STRING>, "
-				<< "to save every Nth frame in directory DIR"
+		std::cout << std::endl
+				<< "USAGE: " << std::endl
+				<< "      " << std::string(argv[0])
+				<< " <ROBOT_FILE, STRING> "
+				<< "<CONFIGURATION_FILE, STRING> "
+				<< "[<START_POSITION, INTEGER>]"
+				<< std::endl << std::endl
+				<< "WHERE: " << std::endl
+				<< "      <ROBOT_FILE> is the name of a file containing "
+				<< "the robot description (either .json or .txt)."
+				<< std::endl << std::endl
+				<< "      <CONFIGURATION_FILE> is the name of the "
+				<< "corresponding simulation configuration file."
+				<< std::endl << std::endl
+				<< "      <START_POSITON> optionally specifies the starting "
+				<< "position 1..n"
 				<< std::endl
-				<< "To generate output files: sensor logs and Arduino files, "
-				<< "use option --output <DIR_POSTFIX, STRING>"
 				<< std::endl
-				<< "To evaluate an individual without the visualization, "
-				<< "use option --no-visualization"
+				<< "OPTIONS: " << std::endl
+				<< "      --no-visualization" << std::endl
+				<< "          Evaluate an individual without visualization."
+				<< std::endl << std::endl
+				<< "      --pause" << std::endl
+				<< "          Starts the simulation paused." << std::endl
 				<< std::endl
-				<< "Note, cannot record frames without visualization."
-				<< std::endl;
+				<< "      --output <DIR_POSTFIX, STRING>" << std::endl
+				<< "          Generates output files: sensor logs and "
+				<< "Arduino files." << std::endl << std::endl
+				<< "      --record <N, INTEGER> <DIR, STRING>" << std::endl
+				<< "          Save frames to file (for video rendering)."
+				<< std::endl
+				<< "          Saves every <N>th frame in directory <DIR>."
+				<< std::endl
+				<< "          Note, you cannot record frames without "
+				<< "visualization."
+				<< std::endl << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -171,9 +187,10 @@ int main(int argc, char *argv[]) {
 			currentArg++;
 
 			outputDirectoryName = argv[currentArg];
-		} else if (std::string("--no-visualization").compare(argv[currentArg]) == 0) {
+		} else if (std::string("--no-visualization").compare(argv[currentArg])
+				== 0) {
 			visualize = false;
-		} else if (std::string(argv[currentArg]).compare("--pause") == 0) {
+		} else if (std::string("--pause").compare(argv[currentArg]) == 0) {
 			startPaused = true;
 		}
 
