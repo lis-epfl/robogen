@@ -41,6 +41,10 @@
  */
 #define MAX_PARAMS 3
 
+
+/* HEADER_FOOTER_BREAK */
+
+
 /*
  * No namespace here on purpose ;-)
  */
@@ -60,7 +64,6 @@ enum neuronType{
 typedef struct {
 
 	/*
-	 * TODO update this to handle hidden neurons
 	 * Given m input neurons and n output neurons
 	 * m <= MAX_INPUT_NEURONS
 	 * n <= MAX_OUTPUT_NEURONS
