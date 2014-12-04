@@ -7,6 +7,9 @@ project (RoboGen)
 # Add customized CMAKE modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
+# Pass source dir to preprocessor
+add_definitions(-DSOURCE_DIR=${CMAKE_SOURCE_DIR})
+
 # Include Open Dynamics Engine (ODE)
 if ("${ODE_INCLUDE_PATH}" STREQUAL "" OR "${ODE_LIBRARIES}" STREQUAL "")
 
