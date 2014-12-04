@@ -50,6 +50,11 @@ public:
 	 * Compiles the given Robot's Neural Network to the given file stream
 	 */
 	static void compile(Robot &robot, std::ofstream &file);
+
+	/**
+	 * Gets the header and footer for NeuralNetwork.h
+	 */
+	static std::pair<std::string, std::string> getHeaderAndFooter();
 };
 
 } /* namespace robogen */

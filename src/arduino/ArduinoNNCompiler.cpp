@@ -43,6 +43,9 @@
 #include "model/sensors/SimpleSensor.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 namespace robogen {
 
 ArduinoNNCompiler::ArduinoNNCompiler() {
@@ -54,7 +57,9 @@ ArduinoNNCompiler::~ArduinoNNCompiler() {
 void ArduinoNNCompiler::compile(Robot &robot,
 		std::ofstream &file){
 
-	file << arduino::headTemplate << std::endl << std::endl;
+	std::pair<std::string, std::string> headerFooter = getHeaderAndFooter();
+
+	file << headerFooter.first << std::endl << std::endl;
 
 	int nLight = 0, nTouch = 0, nServo = 0;
 	std::vector<int> input;
@@ -92,6 +97,7 @@ void ArduinoNNCompiler::compile(Robot &robot,
 	file << "#define NB_LIGHTSENSORS " << nLight << std::endl;
 	file << "#define NB_TOUCH_SENSORS " << nTouch << std::endl;
 	file << "#define NB_SERVOS_MOTORS " << nServo << std::endl;
+	file << "#define NB_ACC_GYRO_SENSORS 6" << std::endl;
 	file << std::endl;
 
 	file << "int input[] = {";
@@ -114,30 +120,67 @@ void ArduinoNNCompiler::compile(Robot &robot,
 	}
 	file << "};" << std::endl;
 
+	boost::shared_ptr<NeuralNetwork> brain = robot.getBrain();
+	file << "#define NB_INPUTS " << brain->nInputs << std::endl;
+	file << "#define NB_OUTPUTS " << brain->nOutputs << std::endl;
+	file << "#define NB_HIDDEN " << brain->nHidden << std::endl;
+
+
+
 	// process weights
 	std::vector<double> weights;
-	boost::shared_ptr<NeuralNetwork> brain = robot.getBrain();
+
 	weights.insert(weights.end(),brain->weight,brain->weight+
-			(brain->nInputs+brain->nOutputs)*brain->nOutputs);
+			(brain->nInputs + brain->nOutputs + brain->nHidden)*
+			(brain->nOutputs + brain->nHidden));
 	file << "float EAWeight[] = {";
 	for (unsigned int i=0; i<weights.size(); ++i) file<<(i?", ":"")<<weights[i];
 	file << "};" << std::endl;
-	// process biases
-	std::vector<double> biases;
-	for (unsigned int i=0; i<brain->nOutputs; i++) {
-		biases.push_back(brain->params[MAX_PARAMS*i]);
-	}
-	// TODO handle other params and hidden neurons!!
 
-	file << "float EABiasWeight[] = {";
-	for (unsigned int i=0; i<biases.size(); ++i) file << (i?", ":"")<<biases[i];
+	// process params (biases, gains, etc)
+	std::vector<double> params;
+	params.insert(params.end(), brain->params, brain->params +
+			(brain->nOutputs + brain->nHidden) * MAX_PARAMS);
+	file << "float EAParams[] = {";
+	for (unsigned int i=0; i<params.size(); ++i) file << (i?", ":"")<<params[i];
 	file << "};" << std::endl;
-	// set all gains to 1. TODO evolve gains!
-	file << "float EAGain[] = {";
-	for (unsigned int i=0; i<biases.size(); ++i) file << (i?", ":"") << 1.;
-	file << "};" << std::endl << std::endl;
 
-	file << arduino::footTemplate;
+	// process types
+	std::vector<unsigned int> types;
+	types.insert(types.end(), brain->types, brain->types +
+			(brain->nOutputs + brain->nHidden));
+	file << "unsigned int EATypes[] = {";
+	for (unsigned int i=0; i<types.size(); ++i) file << (i?", ":"")<<types[i];
+	file << "};" << std::endl;
+
+
+	file << headerFooter.second;
 }
+
+std::pair<std::string, std::string> ArduinoNNCompiler::getHeaderAndFooter() {
+	#ifndef SOURCE_DIR
+	    std::cerr << "SOURCE_DIR not properly specified from CMake."
+	    		<< " Generating NeuralNetwork.h will not work."<< std::endl;
+	#endif
+	std::stringstream headerFileName;
+	headerFileName << TOSTRING(SOURCE_DIR) << "/brain/NeuralNetwork.h";
+	std::ifstream headerFile(headerFileName.str().c_str());
+	std::string line;
+	std::stringstream headerStream;
+	std::stringstream footerStream;
+	bool onFooter = false;
+	while (std::getline(headerFile, line)) {
+		if(line.find("HEADER_FOOTER_BREAK") != std::string::npos) {
+			onFooter = true;
+		} else if(onFooter) {
+			footerStream << line << std::endl;
+		} else {
+			headerStream << line << std::endl;
+		}
+
+	}
+	return std::make_pair(headerStream.str(), footerStream.str());
+}
+
 
 } /* namespace robogen */
