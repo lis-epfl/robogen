@@ -44,20 +44,16 @@ namespace robogen{
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
 		const robogenMessage::Robot &robotMessage,
-		bool visualize, bool startPaused) {
+		Viewer *viewer) {
 	boost::shared_ptr<FileViewerLog> log;
 	return runSimulations(scenario, configuration,
-			robotMessage, visualize, startPaused,
-			false, log, false, 0, NULL);
+			robotMessage, viewer, false, log);
 }
 
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
-		const robogenMessage::Robot &robotMessage,
-		bool visualize, bool startPaused,
-		bool onlyOnce, boost::shared_ptr<FileViewerLog> log,
-		bool recording, unsigned int recordFrequency,
-		char* recordDirectoryName) {
+		const robogenMessage::Robot &robotMessage, Viewer *viewer,
+		bool onlyOnce, boost::shared_ptr<FileViewerLog> log) {
 
 	bool accelerationCapExceeded = false;
 
@@ -84,10 +80,6 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// Create contact group
 		odeContactGroup = dJointGroupCreate(0);
 
-		Viewer* viewer = NULL;
-		if (visualize) {
-			viewer = new Viewer(startPaused);
-		}
 		// ---------------------------------------
 		// Generate Robot
 		// ---------------------------------------
@@ -100,7 +92,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 
 		if (log) {
-			if (!log->init(robot)) {
+			if (!log->init(robot, configuration)) {
 				std::cout << "Problem initializing log!" << std::endl;
 				return SIMULATION_FAILURE;
 			}
@@ -150,17 +142,13 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			return SIMULATION_FAILURE;
 		}
 
-
+		bool visualize = (viewer != NULL);
 		if(visualize && !viewer->configureScene(bodyParts, scenario)) {
 			std::cout << "Cannot configure scene. Quit."
 					<< std::endl;
 			return SIMULATION_FAILURE;
 		}
 
-
-		if(recording) {
-			viewer->initializeRecording(std::string(recordDirectoryName));
-		}
 
 #ifdef CAP_ACCELERATION
 		//setup vectors for keeping velocities
@@ -174,22 +162,19 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 		int count = 0;
 		double t = 0;
+
+
 		double step = configuration->getTimeStepLength();
 		while ((t < configuration->getSimulationTime())
 			   && (!(visualize && viewer->done()))) {
 
-
 			if(visualize) {
-				viewer->frame();
+				if(!viewer->frame(t, count)) {
+					continue;
+				}
 			}
 
-			if ((visualize && viewer->isPaused())) {
-				continue;
-			}
 
-			if (recording && count % recordFrequency == 0) {
-				viewer->record();
-			}
 
 			if ((count++) % 500 == 0) {
 				std::cout << "." << std::flush;
@@ -356,9 +341,6 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 		// Destroy the ODE engine
 		dCloseODE();
-
-		if (visualize)
-			delete viewer;
 
 		if(accelerationCapExceeded)
 			return ACCELERATION_CAP_EXCEEDED;

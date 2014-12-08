@@ -35,7 +35,9 @@
 #include "viewer/KeyboardHandler.h"
 #include "scenario/Scenario.h"
 #include "model/Model.h"
+#include "boost/date_time/posix_time/posix_time.hpp"
 
+#define MAX_TIME_BETWEEN_FRAMES 0.05
 
 namespace robogen{
 
@@ -52,23 +54,49 @@ namespace robogen{
 class Viewer{
 public:
 	Viewer(bool startPaused);
+	Viewer(bool startPaused, double speedFactor);
+	Viewer(bool startPaused, double speedFactor, bool recording,
+			unsigned int recordFrequency, std::string recordDirectoryName);
 	~Viewer();
 	bool configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
 			boost::shared_ptr<Scenario> scenario);
 	bool done();
-	void frame();
+
+	/***
+	 * frame:  updates frame if it should be updated
+	 * params:
+	 * 		simulatedTime: the amount of time simulated so far (in seconds)
+	 * 		numTimeSteps: the number of time steps simulated so far
+	 * returns:
+	 * 		false if paused or going to fast
+	 * 			(so simulator should continue without stepping physics)
+	 * 		true otherwise
+	 */
+
+	bool frame(double simulatedTime, unsigned int numTimeSteps);
+
 	bool isPaused();
 
-	void initializeRecording(std::string recordDirectoryName);
-	void record();
 
 private:
+	void init(bool startPaused, double speedFactor, bool recording,
+			unsigned int recordFrequency, std::string recordDirectoryName);
+	void record();
+
 	osgViewer::Viewer *viewer;
 	osg::ref_ptr<osg::Camera> camera;
 	osg::ref_ptr<osg::Group> root;
 	osg::ref_ptr<KeyboardHandler> keyboardEvent;
+
+	bool recording;
 	unsigned int frameCount;
 	std::string recordDirectoryName;
+	unsigned int recordFrequency;
+
+	boost::posix_time::ptime tick1, tick2;
+	double elapsedWallTime;
+	double speedFactor;
+	double timeSinceLastFrame;
 
 };
 

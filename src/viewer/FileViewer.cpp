@@ -43,7 +43,6 @@
 #include "utils/json2pb/json2pb.h"
 #include "utils/RobogenCollision.h"
 #include "utils/RobogenUtils.h"
-#include "viewer/KeyboardHandler.h"
 #include "viewer/FileViewerLog.h"
 #include "Models.h"
 #include "RenderModels.h"
@@ -52,7 +51,6 @@
 #include "robogen.pb.h"
 
 #include "Simulator.h"
-
 
 using namespace robogen;
 
@@ -95,16 +93,29 @@ int main(int argc, char *argv[]) {
 				<< "      --pause" << std::endl
 				<< "          Starts the simulation paused." << std::endl
 				<< std::endl
-				<< "      --output <DIR_POSTFIX, STRING>" << std::endl
+				<< "      --output <DIR, STRING>" << std::endl
 				<< "          Generates output files: sensor logs and "
 				<< "Arduino files." << std::endl << std::endl
 				<< "      --record <N, INTEGER> <DIR, STRING>" << std::endl
 				<< "          Save frames to file (for video rendering)."
 				<< std::endl
-				<< "          Saves every <N>th frame in directory <DIR>."
+				<< "          Saves every <N>th simulation step in directory "
+				<< "<DIR>." << std::endl << std::endl
+				<< "      --speed <S, FLOAT>" << std::endl
+				<< "          Run visualization at S * real time "
+				<< "(default is 1)."
+				<< std::endl << std::endl
+				<< "      Notes: " << std::endl
+				<< "        (a) Without visualization you cannot record frames,"
+				<< " and setting speed has no effect "
+				<< "(will always run as fast possible)."
 				<< std::endl
-				<< "          Note, you cannot record frames without "
-				<< "visualization."
+				<< "        (b) Speed will be capped by the rate at which your"
+				<< " system is capable of running the simulation." << std::endl
+				<< "              For complex simulations this may be slower "
+				<< "than real time." << std::endl
+				<< "        (c) Recording frames may make simulation run slower"
+								<< " than requested speed."  << std::endl
 				<< std::endl << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -122,7 +133,7 @@ int main(int argc, char *argv[]) {
 	unsigned int desiredStart = 0;
 	unsigned int recordFrequency = 0;
 	bool recording = false;
-	char *recordDirectoryName = NULL;
+	std::string recordDirectoryName = "";
 
 	bool writeLog = false;
 	char *outputDirectoryName;
@@ -149,6 +160,7 @@ int main(int argc, char *argv[]) {
 	}
 	bool visualize = true;
 	bool startPaused = false;
+	double speed = 1.0;
 	for (; currentArg<argc; currentArg++) {
 		if (std::string("--record").compare(argv[currentArg]) == 0) {
 			if (argc < (currentArg + 3)) {
@@ -168,17 +180,30 @@ int main(int argc, char *argv[]) {
 			}
 			currentArg++;
 
-			recordDirectoryName = argv[currentArg];
-			boost::filesystem::path recordDirectory(recordDirectoryName);
+			recordDirectoryName = std::string(argv[currentArg]);
+			int curIndex = 0;
+			std::string tempPath = recordDirectoryName;
+			while (boost::filesystem::is_directory(tempPath)) {
+				std::stringstream newPath;
+				newPath << recordDirectoryName << "_" << ++curIndex;
+				tempPath = newPath.str();
+			}
 
-			if (recording && !boost::filesystem::is_directory(recordDirectory) ) {
+			recordDirectoryName = tempPath;
+
+
+			boost::filesystem::path recordDirectory(
+					recordDirectoryName.c_str());
+
+			if (recording &&
+					!boost::filesystem::is_directory(recordDirectory) ) {
 				boost::filesystem::create_directories(recordDirectory);
 			}
 
 		} else if (std::string("--output").compare(argv[currentArg]) == 0) {
 			if (argc < (currentArg + 2)) {
 				std::cerr << "In order to write output files, must provide "
-										<< "directory postfix."
+										<< "directory."
 										<< std::endl;
 										return EXIT_FAILURE;
 
@@ -192,6 +217,15 @@ int main(int argc, char *argv[]) {
 			visualize = false;
 		} else if (std::string("--pause").compare(argv[currentArg]) == 0) {
 			startPaused = true;
+		} else if (std::string("--speed").compare(argv[currentArg]) == 0) {
+			if (argc < (currentArg + 2)) {
+				std::cerr << "Must specify a speed factor with option --speed."
+						<< std::endl;
+				return EXIT_FAILURE;
+			}
+			currentArg++;
+			std::stringstream ss(argv[currentArg]);
+			ss >> speed;
 		}
 
 	}
@@ -211,7 +245,7 @@ int main(int argc, char *argv[]) {
 
 
 
-		// ---------------------------------------
+	// ---------------------------------------
 	// Robot decoding
 	// ---------------------------------------
 	robogenMessage::Robot robotMessage;
@@ -301,10 +335,18 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 	// Run simulations
 	// ---------------------------------------
+	Viewer *viewer = NULL;
+	if(visualize) {
+		viewer = new Viewer(startPaused, speed, recording, recordFrequency,
+				recordDirectoryName);
+	}
+
 	unsigned int simulationResult = runSimulations(scenario,
-			configuration, robotMessage,
-			visualize, startPaused, true, log, recording, recordFrequency,
-			recordDirectoryName);
+			configuration, robotMessage, viewer, true, log);
+
+	if(viewer != NULL) {
+		delete viewer;
+	}
 
 	if (simulationResult == SIMULATION_FAILURE) {
 		return EXIT_FAILURE;

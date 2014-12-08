@@ -36,6 +36,7 @@
 #include "config/RobogenConfig.h"
 #include "scenario/Scenario.h"
 #include "viewer/FileViewerLog.h"
+#include "viewer/Viewer.h"
 
 #define CAP_ACCELERATION
 #define MAX_ACCELERATION (15.0)
@@ -66,17 +67,13 @@ enum result{
  */
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
-		const robogenMessage::Robot &robotMessage,
-		bool visualize, bool startPaused);
+		const robogenMessage::Robot &robotMessage, Viewer *viewer);
 
 
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
-		const robogenMessage::Robot &robotMessage,
-		bool visualize, bool startPaused, bool onlyOnce,
-		boost::shared_ptr<FileViewerLog> log,
-		bool recording, unsigned int recordFrequency,
-		char* recordDirectoryName);
+		const robogenMessage::Robot &robotMessage, Viewer *viewer,
+		bool onlyOnce, boost::shared_ptr<FileViewerLog> log);
 
 
 

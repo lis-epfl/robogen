@@ -79,8 +79,10 @@ protected:
 
 };
 
-Viewer::Viewer(bool startPaused) :
-	frameCount(0) {
+void Viewer::init(bool startPaused, double speedFactor,
+		bool recording, unsigned int recordFrequency,
+		std::string recordDirectoryName) {
+
 	// ---------------------------------------
 	// OSG Initialization
 	// ---------------------------------------
@@ -98,6 +100,40 @@ Viewer::Viewer(bool startPaused) :
 
 	//Creating the root node
 	this->root = osg::ref_ptr<osg::Group>(new osg::Group);
+
+	// Needed for timing
+	this->speedFactor = speedFactor;
+	this->tick1 = boost::posix_time::microsec_clock::universal_time();
+	this->elapsedWallTime = 0.0;
+	this->timeSinceLastFrame = 0.0;
+	// Initialize recording (if recording == true)
+
+	this->recording = recording;
+	if (recording) {
+		this->frameCount = 0;
+		this->recordFrequency = recordFrequency;
+		osg::ref_ptr<SnapImageDrawCallback> snapImageDrawCallback = new
+													SnapImageDrawCallback();
+		this->viewer->getCamera()->setPostDrawCallback(
+				snapImageDrawCallback.get());
+		this->recordDirectoryName = recordDirectoryName;
+	}
+}
+
+Viewer::Viewer(bool startPaused) {
+	this->init(startPaused, 1.0, false, 0, "");
+}
+
+Viewer::Viewer(bool startPaused, double speedFactor) {
+	this->init(startPaused, speedFactor, false, 0, "");
+}
+
+Viewer::Viewer(bool startPaused, double speedFactor,
+		bool recording, unsigned int recordFrequency,
+		std::string recordDirectoryName) {
+	this->init(startPaused, speedFactor,
+			recording, recordFrequency, recordDirectoryName);
+
 
 }
 
@@ -170,20 +206,56 @@ bool Viewer::configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
 }
 
 bool Viewer::done() {
-	return this->viewer->done();
+	return (this->viewer->done() || this->keyboardEvent->isQuit());
 }
 
-void Viewer::frame() {
-	this->viewer->frame();
+bool Viewer::frame(double simulatedTime, unsigned int numTimeSteps) {
+	this->tick2 = boost::posix_time::microsec_clock::universal_time();
+	boost::posix_time::time_duration diff = this->tick2 - this->tick1;
+	if(!this->isPaused()) {
+		double frameTime = diff.total_milliseconds()/1000.0;
+		this->elapsedWallTime += frameTime;
+		this->timeSinceLastFrame += frameTime;
+
+	}
+
+	this->tick1 = boost::posix_time::microsec_clock::universal_time();
+
+	// --------------------
+	// decide whether to draw frame
+	// (a) if paused, always draw
+	// (b) if recording and on a frame to be captured, draw
+	// (c) if have simulated more time than has actually
+	//       passed scaled by speedFactor, draw
+	// (d) if have not drawn a frame in MAX_TIME_BETWEEN_FRAMES
+	// --------------------
+
+	if(this->isPaused() ||
+			(this->recording && (numTimeSteps % recordFrequency == 0)) ||
+			(simulatedTime > (elapsedWallTime * speedFactor) ) ||
+			(this->timeSinceLastFrame >= MAX_TIME_BETWEEN_FRAMES)
+			) {
+
+		this->viewer->frame();
+
+		this->timeSinceLastFrame = 0.0;
+
+		// loop back around in case paused
+		// or really want to go slow
+		if(this->isPaused() ||
+				(simulatedTime > (elapsedWallTime * speedFactor))) {
+			return false;
+		}
+	}
+
+	if (this->recording && (numTimeSteps % recordFrequency == 0)) {
+		this->record();
+	}
+
+	return true;
 }
 
-void Viewer::initializeRecording(std::string recordDirectoryName) {
-	osg::ref_ptr<SnapImageDrawCallback> snapImageDrawCallback = new
-												SnapImageDrawCallback();
-	this->viewer->getCamera()->setPostDrawCallback(
-			snapImageDrawCallback.get());
-	this->recordDirectoryName = recordDirectoryName;
-}
+
 
 void Viewer::record() {
 
