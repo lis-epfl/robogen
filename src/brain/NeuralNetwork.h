@@ -2,9 +2,10 @@
  * @(#) NeuralNetwork.h   1.0   March 5, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -82,15 +83,17 @@ typedef struct {
 	 * ...  ...  ... ....
 	 * wo_n0 wo_n1 ... wo_nn
 	 */
+	#ifndef ARDUINO
 	float weight[(MAX_INPUT_NEURONS + MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)
 	             * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
-
+	#endif
 	/*
 	 * Params for hidden and output neurons, quantity depends on the type of
 	 * neuron
 	 */
+	#ifndef ARDUINO
 	float params[MAX_PARAMS * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
-
+	#endif
 	/*
 	 * One state for each output and hidden neuron
 	 * The state has double the space to store also the next
@@ -113,8 +116,9 @@ typedef struct {
 	/**
 	 * Type of each non-input neuron
 	 */
+	#ifndef ARDUINO
 	unsigned int types[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
-
+	#endif
 	/**
 	 * The number of inputs
 	 */
