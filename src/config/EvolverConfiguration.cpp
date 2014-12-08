@@ -149,9 +149,9 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		("tauBounds", boost::program_options::value<std::string>(),
 				"Bounds of brain taus. Format: min:max")
 		("periodSigma", boost::program_options::value<double>(&brainPeriodSigma),
-				"Sigma of brain period mutation (defined in terms of second)")
+				"Sigma of brain period mutation (defined in terms of seconds)")
 		("periodBounds", boost::program_options::value<std::string>(),
-				"Bounds of brain period (defined in terms of second). Format: min:max")
+				"Bounds of brain period (defined in terms of seconds). Format: min:max")
 		("phaseOffsetSigma", boost::program_options::value<double>(&brainPhaseOffsetSigma),
 				"Sigma of brain phase offset mutation (defined in terms of # periods).")
 		("phaseOffsetBounds", boost::program_options::value<std::string>(),

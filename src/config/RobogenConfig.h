@@ -126,7 +126,7 @@ public:
 	}
 
 	/**
-	 * @return the actuation frequency
+	 * @return the actuation period
 	 */
 	int getActuationPeriod() const {
 		return actuationPeriod_;
