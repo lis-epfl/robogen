@@ -53,18 +53,12 @@ public:
 
 			// Toggle Pause Simulation
 			case 'p':
-				if (paused_ == true) {
-					paused_ = false;
-				} else {
-					paused_ = true;
-				}
+				paused_ = !paused_;
 				return true;
 				break;
 
 			case 'q':
-				if (quit_ == false) {
-					quit_ = true;
-				}
+				quit_ = true;
 				return true;
 				break;
 
