@@ -58,25 +58,21 @@ FileViewerLog::FileViewerLog(std::string robotFile,
 		std::string confFile,
 		std::string obstacleFile,
 		std::string startPosFile,
-		std::string logFolderPostfix) :
+		std::string logFolder) :
 			robotFile_(robotFile),
 			confFile_(confFile),
 			obstacleFile_(obstacleFile),
 			startPosFile_(startPosFile),
-			logFolderPostfix_(logFolderPostfix) {
+			logFolder_(logFolder) {
 }
 
-bool FileViewerLog::init(boost::shared_ptr<Robot> robot) {
-	// create log directory with time stamp
-	std::stringstream logPathSs;
-	logPathSs << LOG_DIRECTORY_PREFIX << this->logFolderPostfix_;
-
-	std::string prefixPath = logPathSs.str();
-	std::string tempPath = prefixPath;
+bool FileViewerLog::init(boost::shared_ptr<Robot> robot,
+		boost::shared_ptr<RobogenConfig> config) {
+	std::string tempPath = logFolder_;
 	int curIndex = 0;
 	while (boost::filesystem::is_directory(tempPath)) {
 		std::stringstream newPath;
-		newPath << prefixPath << "_" << ++curIndex;
+		newPath << logFolder_ << "_" << ++curIndex;
 		tempPath = newPath.str();
 	}
 
@@ -123,7 +119,7 @@ bool FileViewerLog::init(boost::shared_ptr<Robot> robot) {
 		std::cout << "Can't open arduino neural net log file" << std::endl;
 		return false;
 	}
-	ArduinoNNCompiler::compile(*robot.get(),arduinoNN);
+	ArduinoNNCompiler::compile(*robot.get(),*config.get(),arduinoNN);
 
 	// compile neural network representation for Body
 	// open motor log

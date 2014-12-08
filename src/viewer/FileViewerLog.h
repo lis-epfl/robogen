@@ -37,6 +37,7 @@
 #include <boost/timer/timer.hpp>
 #include <boost/shared_ptr.hpp>
 #include "Robot.h"
+#include "config/RobogenConfig.h"
 
 namespace robogen{
 
@@ -57,14 +58,15 @@ public:
 		std::string confFile,
 		std::string obstacleFile,
 		std::string startPosFile,
-		std::string logFolderPostfix);
+		std::string logFolder);
 
 	/**
 	 * Initializes the directory, copies the inputs and opens the log files for
 	 * writing.
 	 * @return true if successful
 	 */
-	bool init(boost::shared_ptr<Robot> robot);
+	bool init(boost::shared_ptr<Robot> robot,
+			boost::shared_ptr<RobogenConfig> config);
 
 	/**
 	 * Closes all open file streams
@@ -99,7 +101,7 @@ private:
 	std::string confFile_;
 	std::string obstacleFile_;
 	std::string startPosFile_;
-	std::string logFolderPostfix_;
+	std::string logFolder_;
 
 };
 
