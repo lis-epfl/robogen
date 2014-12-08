@@ -54,7 +54,7 @@ ArduinoNNCompiler::ArduinoNNCompiler() {
 ArduinoNNCompiler::~ArduinoNNCompiler() {
 }
 
-void ArduinoNNCompiler::compile(Robot &robot,
+void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 		std::ofstream &file){
 
 	std::pair<std::string, std::string> headerFooter = getHeaderAndFooter();
@@ -100,6 +100,12 @@ void ArduinoNNCompiler::compile(Robot &robot,
 	file << "#define NB_ACC_GYRO_SENSORS 6" << std::endl;
 	file << std::endl;
 
+	float actuation_period_ms = config.getActuationPeriod() *
+			config.getTimeStepLength() * 1000.0;
+
+	file << "#define ACTUATION_PERIOD "  << ((int) actuation_period_ms)
+			<< std::endl << std::endl;
+
 	file << "int input[] = {";
 	for (unsigned int i=0; i<input.size(); ++i) file << (i?", ":"") << input[i];
 	file << "};" << std::endl;
@@ -133,7 +139,7 @@ void ArduinoNNCompiler::compile(Robot &robot,
 	weights.insert(weights.end(),brain->weight,brain->weight+
 			(brain->nInputs + brain->nOutputs + brain->nHidden)*
 			(brain->nOutputs + brain->nHidden));
-	file << "float EAWeight[] = {";
+	file << "PROGMEM const float EAWeight[] = {";
 	for (unsigned int i=0; i<weights.size(); ++i) file<<(i?", ":"")<<weights[i];
 	file << "};" << std::endl;
 
@@ -141,7 +147,7 @@ void ArduinoNNCompiler::compile(Robot &robot,
 	std::vector<double> params;
 	params.insert(params.end(), brain->params, brain->params +
 			(brain->nOutputs + brain->nHidden) * MAX_PARAMS);
-	file << "float EAParams[] = {";
+	file << "PROGMEM const float EAParams[] = {";
 	for (unsigned int i=0; i<params.size(); ++i) file << (i?", ":"")<<params[i];
 	file << "};" << std::endl;
 

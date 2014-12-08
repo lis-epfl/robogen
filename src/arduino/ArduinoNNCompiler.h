@@ -33,6 +33,7 @@
 
 #include <fstream>
 #include "Robot.h"
+#include "config/RobogenConfig.h"
 
 namespace robogen {
 
@@ -49,7 +50,8 @@ public:
 	/**
 	 * Compiles the given Robot's Neural Network to the given file stream
 	 */
-	static void compile(Robot &robot, std::ofstream &file);
+	static void compile(Robot &robot, RobogenConfig &config,
+			std::ofstream &file);
 
 	/**
 	 * Gets the header and footer for NeuralNetwork.h
