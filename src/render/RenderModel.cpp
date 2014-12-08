@@ -60,6 +60,7 @@ boost::shared_ptr<Model> RenderModel::getModel() {
 
 /**
  * Function taken from James Moliere, Open Scene Graph examples
+ * x is red, y is blue, z is green
  */
 void RenderModel::attachAxis(osg::Transform* transform) {
 

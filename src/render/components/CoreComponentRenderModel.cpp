@@ -54,12 +54,20 @@ bool CoreComponentRenderModel::initRenderModel() {
 		return false;
 	}
 
+	// display with plate down, as this is how will be in reality
+	// (we want the arduino to be on top so wires can come out)
+	this->mesh_->getMesh()->setAttitude(
+			osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0)));
+
 	if (isDebugActive()) {
 		this->showDebugView();
 		return true;
 	}
 
-	//attachAxis(this->getRootNode());
+	// show the axis for the root node
+	// if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
+	//		hasSensors() )
+	//	attachAxis(this->getRootNode());
 
 	this->getRootNode()->addChild(this->mesh_->getMesh());
 	this->getRootNode()->setUpdateCallback(
