@@ -162,9 +162,19 @@ int main(int argc, char* argv[]) {
 					// ---------------------------------------
 					// Run simulations
 					// ---------------------------------------
+					Viewer *viewer = NULL;
+					if(visualize) {
+						viewer = new Viewer(startPaused);
+					}
+
 					unsigned int simulationResult = runSimulations(scenario,
 							configuration, packet.getMessage()->robot(),
-							visualize, startPaused);
+							viewer);
+
+					if(viewer != NULL) {
+						delete viewer;
+					}
+
 
 					if (simulationResult == SIMULATION_FAILURE) {
 						return exitRobogen(EXIT_FAILURE);
