@@ -77,6 +77,10 @@ public:
 
 	virtual void updateSensors(boost::shared_ptr<Environment>& env);
 
+	inline bool hasSensors() {
+		return hasSensors_;
+	}
+
 private:
 
 	boost::shared_ptr<ImuSensor> sensor_;
