@@ -75,7 +75,7 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	// rotation
 	double angle;
 	osg::Vec3 rotaxis;
-	osg::Quat dAttitude = attitude / attitude_; // att = att_*datt
+	osg::Quat dAttitude = attitude / attitude_; // this is attitude_.inverse() * attitude
 	// in particular, no need to project!
 	attitude_ = attitude;
 	dAttitude.getRotate(angle, rotaxis);
