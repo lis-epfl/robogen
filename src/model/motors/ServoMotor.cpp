@@ -37,8 +37,8 @@ const float ServoMotor::DEFAULT_GAIN = 0.5;
 const float ServoMotor::DEFAULT_MAX_FORCE_ROTATIONAL = 4 * 9.81 / 100;
 const float ServoMotor::DEFAULT_MAX_FORCE_SERVO = 1.8 * 9.81 / 100;
 
-const float ServoMotor::MIN_POS_RAD = -(M_PI / 2) * 6 / 9;
-const float ServoMotor::MAX_POS_RAD = (M_PI / 2) * 6 / 9;
+const float ServoMotor::MIN_POS_RAD = -(50 * M_PI / 180);
+const float ServoMotor::MAX_POS_RAD = (50 * M_PI / 180);
 
 // 100 rpm converted to rad/s
 const float ServoMotor::MIN_VELOCITY = -(100.0/60.0) * 2 * M_PI;
@@ -126,7 +126,7 @@ void ServoMotor::setPosition(float position, float step) {
 		dJointSetHingeParam(joint_, dParamVel, 0);
 	}
 
-	testBurnout(velocity, step);
+	//testBurnout(velocity, step);
 
 }
 
@@ -152,7 +152,7 @@ void ServoMotor::setVelocity(float velocity, float step) {
 		dJointSetHingeParam(joint_, dParamVel, velocity);
 	}
 
-	testBurnout(velocity, step);
+	//testBurnout(velocity, step);
 }
 
 bool ServoMotor::isVelocityDriven() {
