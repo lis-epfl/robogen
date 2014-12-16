@@ -3,9 +3,10 @@
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -176,6 +177,7 @@ public:
 		ret.set_terrainwidth(terrain_->getWidth());
 		ret.set_timestep(timeStepLength_);
 		ret.set_actuationperiod(actuationPeriod_);
+		ret.set_terrainfriction(terrain_->getFriction());
 		obstacles_->serialize(ret);
 		startPositions_->serialize(ret);
 		return ret;

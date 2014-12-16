@@ -2,9 +2,10 @@
  * @(#) ConfigurationReader.h   1.0   Mar 13, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -59,6 +60,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 			"terrainHeight", boost::program_options::value<float>(),
 			"Terrain height")("terrainLength",
 			boost::program_options::value<float>(), "Terrain length")(
+			"terrainFriction",boost::program_options::value<float>(),
+			"Terrain Friction Coefficient")(
 			"obstaclesConfigFile", boost::program_options::value<std::string>(),
 			"Obstacles configuration file")("scenario",
 			boost::program_options::value<std::string>(), "Experiment scenario")(
@@ -87,6 +90,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	// Read terrain configuration
 	float terrainLength;
 	float terrainWidth;
+	float terrainFriction;
 	std::string terrainType;
 
 	if (!vm.count("terrainType")) {
@@ -107,14 +111,22 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		return boost::shared_ptr<RobogenConfig>();
 	}
 
+	if (!vm.count("terrainFriction")) {
+		std::cout << "Undefined 'terrainFriction' parameter in '" << fileName
+				<< "'" << std::endl;
+		return boost::shared_ptr<RobogenConfig>();
+	}
+
 	terrainType = vm["terrainType"].as<std::string>();
 	terrainLength = vm["terrainLength"].as<float>();
 	terrainWidth = vm["terrainWidth"].as<float>();
+	terrainFriction = vm["terrainFriction"].as<float>();
 
 	boost::shared_ptr<TerrainConfig> terrain;
 	if (terrainType.compare("flat") == 0) {
 
-		terrain.reset(new TerrainConfig(terrainLength, terrainWidth));
+		terrain.reset(new TerrainConfig(terrainLength, terrainWidth,
+				terrainFriction));
 
 	} else if (terrainType.compare("rugged") == 0) {
 
@@ -138,7 +150,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 
 		terrain.reset(
 				new TerrainConfig(terrainHeightField, terrainLength,
-						terrainWidth, terrainHeight));
+						terrainWidth, terrainHeight, terrainFriction));
 
 	} else {
 		std::cout << "Unknown value of 'terrainType' parameter in '" << fileName
@@ -437,7 +449,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 	// Decode terrain configuration
 	boost::shared_ptr<TerrainConfig> terrain(
 			new TerrainConfig(simulatorConf.terrainlength(),
-					simulatorConf.terrainwidth()));
+					simulatorConf.terrainwidth(),
+					simulatorConf.terrainfriction()));
 
 	// Decode simulator configuration
 	RobogenConfig::SimulationScenario simulationScenario;

@@ -2,9 +2,10 @@
  * @(#) TerrainConfig.h   1.0   Mar 12, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2013 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -45,8 +46,9 @@ public:
 	 * @param length
 	 * @param width
 	 */
-	TerrainConfig(float length, float width) :
-			flat_(true), length_(length), width_(width), height_(0) {
+	TerrainConfig(float length, float width, float friction) :
+			flat_(true), length_(length), width_(width), height_(0),
+			friction_(friction) {
 
 	}
 
@@ -59,9 +61,10 @@ public:
 	 * @param height
 	 */
 	TerrainConfig(const std::string& heightFieldFileName, float length,
-			float width, float height) :
-				flat_(false), heightFieldFileName_(heightFieldFileName), length_(length), width_(
-					width), height_(height) {
+			float width, float height, float friction) :
+				flat_(false), heightFieldFileName_(heightFieldFileName),
+				length_(length), width_(width), height_(height),
+				friction_(friction) {
 
 	}
 
@@ -107,6 +110,15 @@ public:
 		return height_;
 	}
 
+	/**
+	 * @return the friction coefficient of the terrain
+	 * TODO: make this be more configurable than just global
+	 * 	friction coefficient
+	 */
+	float getFriction() {
+		return friction_;
+	}
+
 private:
 
 	/**
@@ -133,6 +145,11 @@ private:
 	 * Terrain maximum height
 	 */
 	float height_;
+
+	/**
+	 * Terrain friction coefficient
+	 */
+	float friction_;
 
 };
 

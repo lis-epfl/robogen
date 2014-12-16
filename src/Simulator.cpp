@@ -181,7 +181,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			}
 
 			// Collision detection
-			dSpaceCollide(odeSpace, 0, odeCollisionCallback);
+			dSpaceCollide(odeSpace, configuration.get(), odeCollisionCallback);
 
 			// Step the world by one timestep
 			dWorldStep(odeWorld, step);

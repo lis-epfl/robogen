@@ -84,6 +84,7 @@ message SimulatorConf {
   required int32 nTimeSteps = 7;
   repeated StartPosition startPositions = 8;
   required int32 actuationPeriod = 9;
+  required float terrainFriction = 10;
 }
 
 message EvaluationRequest {

@@ -2,9 +2,10 @@
  * @(#) RobogenCollision.cpp   1.0   March 21, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -25,8 +26,8 @@
  *
  * @(#) $Id$
  */
-#include "model/sensors/TouchSensor.h"
 #include "utils/RobogenCollision.h"
+#include "config/RobogenConfig.h"
 
 // ODE World
 extern dWorldID odeWorld;
@@ -36,9 +37,11 @@ extern dJointGroupID odeContactGroup;
 
 namespace robogen {
 
-void odeCollisionCallback(void*, dGeomID o1, dGeomID o2) {
+const int MAX_CONTACTS = 32; // maximum number of contact points per body
 
-	const int MAX_CONTACTS = 32; // maximum number of contact points per body
+void odeCollisionCallback(void *data, dGeomID o1, dGeomID o2) {
+
+	RobogenConfig *config = static_cast<RobogenConfig*>(data);
 
 	// exit without doing anything if the two bodies are connected by a joint
 	dBodyID b1 = dGeomGetBody(o1);
@@ -57,7 +60,7 @@ void odeCollisionCallback(void*, dGeomID o1, dGeomID o2) {
 					dContactApprox1 |
 					dContactSlip1 | dContactSlip2;
 
-		contact[i].surface.mu = dInfinity;
+		contact[i].surface.mu = config->getTerrainConfig()->getFriction();
 		contact[i].surface.soft_erp = 0.96;
 		contact[i].surface.soft_cfm = 0.01;
 

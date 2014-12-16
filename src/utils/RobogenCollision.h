@@ -2,9 +2,10 @@
  * @(#) RobogenCollision.h   1.0   March 21, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -35,8 +36,9 @@ namespace robogen {
 /**
  * Handles collisions between two ODE geometries.
  * Relies on two extern variables. See .cpp.
+ * data should be a pointer to a RobogenConfig
  */
-void odeCollisionCallback(void*, dGeomID o1, dGeomID o2);
+void odeCollisionCallback(void *data, dGeomID o1, dGeomID o2);
 
 }
 
