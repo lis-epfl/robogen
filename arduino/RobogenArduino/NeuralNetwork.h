@@ -2,9 +2,10 @@
  * @(#) NeuralNetwork.h   1.0   March 5, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -25,31 +26,61 @@
  *
  * @(#) $Id$
  */
- #ifndef ROBOGEN_NEURAL_NETWORK_H_
- #define ROBOGEN_NEURAL_NETWORK_H_
+#ifndef ROBOGEN_NEURAL_NETWORK_H_
+#define ROBOGEN_NEURAL_NETWORK_H_
 
 #define MAX_INPUT_NEURONS 13
-#define MAX_OUTPUT_NEURONS 6
+#define MAX_OUTPUT_NEURONS 8
 
-#define NB_ACC_GYRO_SENSORS 6
+/*
+ * set arbitrarily
+ */
+#define MAX_HIDDEN_NEURONS 20
 
-// Branch myid1000 0 to D9
-// Branch myid1003 0 to D10
+/*
+ * max is either (bias, tau, gain) or (phase offset, period, gain)
+ */
+#define MAX_PARAMS 3
+
+
+
+
+// Branch Hip2 0 to D9
+// Branch Knee2 0 to D10
 
 #define NB_LIGHTSENSORS 0
 #define NB_TOUCH_SENSORS 0
 #define NB_SERVOS_MOTORS 2
+#define NB_ACC_GYRO_SENSORS 6
+
+#define ACTUATION_PERIOD 40
 
 int input[] = {2, 2, 2, 2, 2, 2};
-int motor[] = {0,1};
-float EAWeight[] = {0.573019, 0.594191, -0.863813, 2.41171, 0.200004, -1.26473, 3, 1.15443, 0.4496, 1.73862, -0.1793, 2.35559, 1.48391, 0.191214, -0.0134674, 1.1152};
-float EABiasWeight[] = {-1.11666, -1.25401};
-float EAGain[] = {1, 1};
+int motor[] = {0, 0};
+#define NB_INPUTS 6
+#define NB_OUTPUTS 2
+#define NB_HIDDEN 0
+PROGMEM const float EAWeight[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+PROGMEM const float EAParams[] = {4, 0, 1, 0, 1, 0};
+unsigned int EATypes[] = {3, 1};
 
 
 /*
  * No namespace here on purpose ;-)
  */
+
+/*
+ * Copied from NeuronRepresentation.h
+ */
+enum neuronType{
+		SIMPLE, /* corresponds to inputs */
+		SIGMOID,
+		CTRNN_SIGMOID,
+		OSCILLATOR,
+		SUPG
+};
+
+
 typedef struct {
 
 	/*
@@ -57,7 +88,7 @@ typedef struct {
 	 * m <= MAX_INPUT_NEURONS
 	 * n <= MAX_OUTPUT_NEURONS
 	 *
-	 * One weight for each input-output connection (w_ij, input neuron i, 0 <= i <= m, output neuron j, 0 <= j <= n )
+	 * One weight for each input-output connection (w_ij, input neuron i, 0 <= i <= m, output neuron j, 0 <= j <= n
 	 * One weight for each output-output connection (wr_ij, output neuron i,j, 0 <= i,j <= n )
 	 *
 	 * The weights are saved as the concatenation by row of the following:
@@ -71,25 +102,23 @@ typedef struct {
 	 * ...  ...  ... ....
 	 * wo_n0 wo_n1 ... wo_nn
 	 */
-	float weight[MAX_INPUT_NEURONS * MAX_OUTPUT_NEURONS
-			+ MAX_OUTPUT_NEURONS * MAX_OUTPUT_NEURONS];
-
+	#ifndef ARDUINO
+	float weight[(MAX_INPUT_NEURONS + MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)
+	             * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
+	#endif
 	/*
-	 * One bias for each output neuron
+	 * Params for hidden and output neurons, quantity depends on the type of
+	 * neuron
 	 */
-	float bias[MAX_OUTPUT_NEURONS];
-
+	#ifndef ARDUINO
+	float params[MAX_PARAMS * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
+	#endif
 	/*
-	 * One gain for each output neuron
-	 */
-	float gain[MAX_OUTPUT_NEURONS];
-
-	/*
-	 * One state for each output neuron
+	 * One state for each output and hidden neuron
 	 * The state has double the space to store also the next
 	 * value.
 	 */
-	float state[MAX_OUTPUT_NEURONS*2];
+	float state[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)*2];
 
 	/**
 	 * Indicates at which index of the state array the current state starts
@@ -98,10 +127,17 @@ typedef struct {
 	int curStateStart;
 
 	/**
-	 * Onje input state for each input neuron
+	 * One input state for each input neuron
 	 */
 	float input[MAX_INPUT_NEURONS];
 
+
+	/**
+	 * Type of each non-input neuron
+	 */
+	#ifndef ARDUINO
+	unsigned int types[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
+	#endif
 	/**
 	 * The number of inputs
 	 */
@@ -112,6 +148,67 @@ typedef struct {
 	 */
 	unsigned int nOutputs;
 
+	/**
+	 * The number of hidden units
+	 */
+	unsigned int nHidden;
+
+	/**
+	 * The number of non-inputs (i.e. nOutputs + nHidden)
+	 */
+	unsigned int nNonInputs;
+
+#if 0
+	/**
+	 * Arrays for storing intermediary states for RungeKutta
+	 */
+	float ctrnnState[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float currY[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn1[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn2[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn3[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn4[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+#endif
+
 } NeuralNetwork;
 
-#endif /* ROBOGEN_NEURAL_NETWORK_H_ */ 
+/**
+ * TODO update this doc
+ * Initializes a NeuralNetwork data structure
+ * @param network the neural network
+ * @param nInputs the number of inputs of the neural network
+ * @param nOutputs the number of outputs of the neural network
+ * @param weight weights of the neural network. Weights must be provided in the same order as
+ *               specified in the NeuralNetwork structure
+ * @param bias the bias of each output neuron
+ * @param gain the gain of each output neuron
+ */
+void initNetwork(NeuralNetwork* network, unsigned int nInputs,
+		unsigned int nOutputs, unsigned int nHidden,
+		const float *weights, const float* params,
+		const unsigned int *types);
+
+/**
+ * Feed the neural network with input values
+ * @param network the neural network
+ * @param input the input values, must be an array of m inputs
+ */
+void feed(NeuralNetwork* network, const float *input);
+
+/**
+ * Step the neural network of 1 timestep
+ * @param network the neural network
+ * @param time, amount of time elapsed since brain turned on
+ * 				(needed for oscillators)
+ */
+void step(NeuralNetwork* network, float time);
+
+/**
+ * Read the output of the neural network
+ * @param network the neural network
+ * @param output the output of the neural network, must point to an area of memory of at least size n
+ */
+void fetch(const NeuralNetwork* network, float *output);
+
+
+#endif /* ROBOGEN_NEURAL_NETWORK_H_ */
