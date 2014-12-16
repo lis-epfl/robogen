@@ -2,9 +2,10 @@
  * @(#) RenderModel.cpp   1.0   Feb 5, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -36,8 +37,9 @@
 
 namespace robogen {
 
-RenderModel::RenderModel(boost::shared_ptr<Model> model) :
-		model_(model) {
+RenderModel::RenderModel(boost::shared_ptr<Model> model,
+		bool debugActive) :
+		model_(model), debugActive_(debugActive) {
 	this->rootNode_ = osg::ref_ptr<osg::PositionAttitudeTransform>(
 			new osg::PositionAttitudeTransform());
 }
@@ -51,7 +53,7 @@ osg::ref_ptr<osg::PositionAttitudeTransform> RenderModel::getRootNode() {
 }
 
 bool RenderModel::isDebugActive() {
-	return false;
+	return debugActive_;
 }
 
 boost::shared_ptr<Model> RenderModel::getModel() {

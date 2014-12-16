@@ -79,7 +79,7 @@ protected:
 
 };
 
-void Viewer::init(bool startPaused, double speedFactor,
+void Viewer::init(bool startPaused, bool debugActive, double speedFactor,
 		bool recording, unsigned int recordFrequency,
 		std::string recordDirectoryName) {
 
@@ -118,20 +118,26 @@ void Viewer::init(bool startPaused, double speedFactor,
 				snapImageDrawCallback.get());
 		this->recordDirectoryName = recordDirectoryName;
 	}
+
+	this->debugActive = debugActive;
 }
 
 Viewer::Viewer(bool startPaused) {
-	this->init(startPaused, 1.0, false, 0, "");
+	this->init(startPaused, false, 1.0, false, 0, "");
 }
 
-Viewer::Viewer(bool startPaused, double speedFactor) {
-	this->init(startPaused, speedFactor, false, 0, "");
+Viewer::Viewer(bool startPaused, bool debugActive) {
+	this->init(startPaused, debugActive, 1.0, false, 0, "");
 }
 
-Viewer::Viewer(bool startPaused, double speedFactor,
+Viewer::Viewer(bool startPaused, bool debugActive, double speedFactor) {
+	this->init(startPaused, debugActive, speedFactor, false, 0, "");
+}
+
+Viewer::Viewer(bool startPaused, bool debugActive, double speedFactor,
 		bool recording, unsigned int recordFrequency,
 		std::string recordDirectoryName) {
-	this->init(startPaused, speedFactor,
+	this->init(startPaused, debugActive, speedFactor,
 			recording, recordFrequency, recordDirectoryName);
 
 
@@ -155,6 +161,8 @@ bool Viewer::configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
 			<< i << std::endl;
 			return false;
 		}
+
+		renderModel->setDebugActive(this->debugActive);
 
 		if (!renderModel->initRenderModel()) {
 			std::cout

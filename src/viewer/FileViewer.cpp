@@ -87,6 +87,9 @@ int main(int argc, char *argv[]) {
 				<< std::endl
 				<< std::endl
 				<< "OPTIONS: " << std::endl
+				<< "      --debug" << std::endl
+				<< "          Run in debug visualization mode."
+				<< std::endl << std::endl
 				<< "      --no-visualization" << std::endl
 				<< "          Evaluate an individual without visualization."
 				<< std::endl << std::endl
@@ -161,6 +164,7 @@ int main(int argc, char *argv[]) {
 	bool visualize = true;
 	bool startPaused = false;
 	double speed = 1.0;
+	bool debug = false;
 	for (; currentArg<argc; currentArg++) {
 		if (std::string("--record").compare(argv[currentArg]) == 0) {
 			if (argc < (currentArg + 3)) {
@@ -226,6 +230,8 @@ int main(int argc, char *argv[]) {
 			currentArg++;
 			std::stringstream ss(argv[currentArg]);
 			ss >> speed;
+		} else if (std::string("--debug").compare(argv[currentArg]) == 0) {
+			debug = true;
 		}
 
 	}
@@ -337,7 +343,8 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 	Viewer *viewer = NULL;
 	if(visualize) {
-		viewer = new Viewer(startPaused, speed, recording, recordFrequency,
+		viewer = new Viewer(startPaused, debug,
+				speed, recording, recordFrequency,
 				recordDirectoryName);
 	}
 

@@ -2,9 +2,10 @@
  * @(#) CoreComponentRenderModel.cpp   1.0   Feb 5, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -54,20 +55,16 @@ bool CoreComponentRenderModel::initRenderModel() {
 		return false;
 	}
 
-	// display with plate down, as this is how will be in reality
-	// (we want the arduino to be on top so wires can come out)
-	this->mesh_->getMesh()->setAttitude(
-			osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0)));
-
 	if (isDebugActive()) {
 		this->showDebugView();
 		return true;
 	}
 
-	// show the axis for the root node
-	// if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
-	//		hasSensors() )
-	//	attachAxis(this->getRootNode());
+	// display with plate down, as this is how will be in reality
+	// (we want the arduino to be on top so wires can come out)
+	this->mesh_->getMesh()->setAttitude(
+			osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0)));
+
 
 	this->getRootNode()->addChild(this->mesh_->getMesh());
 	this->getRootNode()->setUpdateCallback(
@@ -80,9 +77,15 @@ bool CoreComponentRenderModel::initRenderModel() {
 
 void CoreComponentRenderModel::showDebugView() {
 
-	this->attachBox(CoreComponentModel::B_CORE_COMPONENT_ID,
+	osg::ref_ptr<osg::PositionAttitudeTransform> pat = this->attachBox(
+			CoreComponentModel::B_CORE_COMPONENT_ID,
 			CoreComponentModel::WIDTH, CoreComponentModel::WIDTH,
 			CoreComponentModel::WIDTH);
+
+	// show the axis for the root node
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
+			hasSensors() )
+		attachAxis(pat);
 
 }
 

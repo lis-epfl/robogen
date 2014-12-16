@@ -2,9 +2,10 @@
  * @(#) RenderModel.h   1.0   Feb 5, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -41,7 +42,7 @@ class RenderModel {
 
 public:
 
-	RenderModel(boost::shared_ptr<Model> model);
+	RenderModel(boost::shared_ptr<Model> model, bool debugActive = false);
 
 	virtual ~RenderModel();
 
@@ -66,6 +67,10 @@ public:
 
 	virtual void setColor(osg::Vec4 color) = 0;
 
+	inline void setDebugActive(bool debugActive) {
+		debugActive_ = debugActive;
+	}
+
 protected:
 
 	/**
@@ -88,6 +93,11 @@ private:
 	 * The physics model
 	 */
 	boost::shared_ptr<Model> model_;
+
+	/**
+	 * Debug mode
+	 */
+	bool debugActive_;
 
 };
 

@@ -54,8 +54,10 @@ namespace robogen{
 class Viewer{
 public:
 	Viewer(bool startPaused);
-	Viewer(bool startPaused, double speedFactor);
-	Viewer(bool startPaused, double speedFactor, bool recording,
+	Viewer(bool startPaused, bool debugActive);
+	Viewer(bool startPaused, bool debugActive, double speedFactor);
+	Viewer(bool startPaused, bool debugActive, double speedFactor,
+			bool recording,
 			unsigned int recordFrequency, std::string recordDirectoryName);
 	~Viewer();
 	bool configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
@@ -79,7 +81,8 @@ public:
 
 
 private:
-	void init(bool startPaused, double speedFactor, bool recording,
+	void init(bool startPaused, bool debugActive, double speedFactor,
+			bool recording,
 			unsigned int recordFrequency, std::string recordDirectoryName);
 	void record();
 
@@ -97,6 +100,8 @@ private:
 	double elapsedWallTime;
 	double speedFactor;
 	double timeSinceLastFrame;
+
+	bool debugActive;
 
 };
 
