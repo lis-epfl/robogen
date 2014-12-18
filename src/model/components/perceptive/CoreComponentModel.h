@@ -2,9 +2,10 @@
  * @(#) CoreComponentModel.h   1.0   Feb 8, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -37,7 +38,8 @@ class CoreComponentModel: public PerceptiveComponent {
 
 public:
 
-	static const float MASS;
+	static const float BRICK_MASS;
+	static const float CORE_MASS;
 	static const float WIDTH;
 
 	static const unsigned int B_CORE_COMPONENT_ID = 0;

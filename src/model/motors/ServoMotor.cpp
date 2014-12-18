@@ -3,9 +3,10 @@
  *
  * Andrea Maesani (andrea.maesani@epfl.ch),
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -37,8 +38,8 @@ const float ServoMotor::DEFAULT_GAIN = 0.5;
 const float ServoMotor::DEFAULT_MAX_FORCE_ROTATIONAL = 4 * 9.81 / 100;
 const float ServoMotor::DEFAULT_MAX_FORCE_SERVO = 1.8 * 9.81 / 100;
 
-const float ServoMotor::MIN_POS_RAD = -(50 * M_PI / 180);
-const float ServoMotor::MAX_POS_RAD = (50 * M_PI / 180);
+const float ServoMotor::MIN_POS_RAD = -(45 * M_PI / 180);
+const float ServoMotor::MAX_POS_RAD = (45 * M_PI / 180);
 
 // 100 rpm converted to rad/s
 const float ServoMotor::MIN_VELOCITY = -(100.0/60.0) * 2 * M_PI;

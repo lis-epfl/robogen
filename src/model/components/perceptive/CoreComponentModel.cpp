@@ -2,9 +2,10 @@
  * @(#) CoreComponentModel.cpp   1.0   Feb 8, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -29,7 +30,10 @@
 
 namespace robogen {
 
-const float CoreComponentModel::MASS = inGrams(33);
+// mass of just the brick
+const float CoreComponentModel::BRICK_MASS = inGrams(14.9);
+// mass of brick with electronics (including battery)
+const float CoreComponentModel::CORE_MASS = inGrams(55.4);
 const float CoreComponentModel::WIDTH = inMm(46.5);
 
 CoreComponentModel::CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace,
@@ -49,7 +53,8 @@ CoreComponentModel::~CoreComponentModel() {
 bool CoreComponentModel::initModel() {
 
 	coreComponent_ = this->createBody(B_CORE_COMPONENT_ID);
-	this->createBoxGeom(coreComponent_, MASS, osg::Vec3(0, 0, 0), WIDTH, WIDTH,
+	this->createBoxGeom(coreComponent_, hasSensors_ ? CORE_MASS : BRICK_MASS,
+			osg::Vec3(0, 0, 0), WIDTH, WIDTH,
 			WIDTH);
 
 	return true;
