@@ -67,7 +67,22 @@ THE SOFTWARE.
 //#define CHECK_MEMORY
 
 // uncomment to perform motor calibration test
-//#define CALIBRATION
+//#define CALIBRATE_SERVOS
+
+// uncomment to perform imu calibration
+//#define CALIBRATE_SENSOR_OFFSET
+
+// put in values for your Arduino after doing calibration
+#define ACCEL_OFFSET_X (3249) 			
+#define ACCEL_OFFSET_Y (1629)
+#define ACCEL_OFFSET_Z (1698)
+#define GYRO_OFFSET_X (433) 			
+#define GYRO_OFFSET_Y (542)
+#define GYRO_OFFSET_Z (284)
+
+#define PI 3.14159265358979323846f
+
+#define LIGHT_SENSOR_THRESHOLD (400)
 
 #include <Servo.h>
 
@@ -87,7 +102,8 @@ THE SOFTWARE.
 #include "MemoryFree.h"
 #endif
 
-#define PI 3.14159265358979323846
+#include "IMU.h"
+#include "quaternions.h"
 
 
 /* Define Neural network*/
@@ -103,24 +119,8 @@ int nbLightSensors, nbTouchSensors;
 // specific I2C addresses may be passed as a parameter here
 // AD0 low = 0x68 (default for InvenSense evaluation board)
 // AD0 high = 0x69
-MPU6050 accelgyro;
-//float accelX, accelY, accelZ;
-//float gyroX, gyroY, gyroZ;
-//float xAccelOffset = 0.0;
-//float yAccelOffset = 0.0; 
-//float zAccelOffset = 2500;//-700;//2500;
-const float ACCEL_SCALE_FACTOR = (9.81/2100); //(9.81/16500.0);
-const float GYRO_SCALE_FACTOR = (1.0/131.0) * (PI/180.0);
+MPU6050 accelGyro;
 
-
-int16_t ax, ay, az, gx, gy, gz;
-int16_t ax_, ay_, az_, gx_, gy_, gz_;
-
-float xGyroOffset = 0;
-float yGyroOffset = 0;
-float zGyroOffset = 0;
-
-const float ALPHA = 0.0;
 
 
 /* Sensor pin allocation*/
@@ -141,16 +141,22 @@ Servo myservo[8]={myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6
 float servoOffsets[NB_SERVOS_MOTORS] = {4.0,0.0};
 
 float servoPosition, servoSpeed, lightInput;
-const int threshold = 400;
+
 
 /* Keep elapsed time */
 unsigned long t = 0;
 
 
+quat_t q_rot;
+IMU imu;
 
-float gyroIntegrate = 0;
+bool started=false;
+int startTime;
 
 void setup() {
+  
+  started = false;
+  t = 0;
 
   #ifdef USE_SERIAL
   Serial.begin(9600);
@@ -221,104 +227,130 @@ void setup() {
       myservo[i].write(90 + servoOffsets[i]);    
   } 
   
-  delay(5000);
+  delay(4000);
+  
 
- /* initialize acceleromoter and gyroscope */
+  /* initialize acceleromoter and gyroscope */
   #ifdef USE_SERIAL
   Serial.println(F("Initializing I2C devices..."));
   #endif
-  accelgyro.initialize();
+  accelGyro.initialize();
   
   /* verify connection */
-  bool connectionSuccess = accelgyro.testConnection();
+  bool connectionSuccess = accelGyro.testConnection();
   #ifdef USE_SERIAL
   Serial.println(F("Testing device connections..."));
   Serial.println(connectionSuccess ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
   #endif
 
   //set full Scale sensor range to its lowest resolution
-  accelgyro.setFullScaleGyroRange(0); // 3 = +/- 250 degrees/sec
-  accelgyro.setFullScaleAccelRange(3); // 3 = +/- 16g
+  accelGyro.setFullScaleGyroRange(0); // 3 = +/- 250 degrees/sec
+  accelGyro.setFullScaleAccelRange(3); // 3 = +/- 16g
   #ifdef USE_SERIAL
-  Serial.print(F(" Full Scale :  gyro_scale = "));
-  Serial.print(accelgyro.getFullScaleGyroRange());
+  Serial.print(F("Full Scale :  gyro_scale = "));
+  Serial.print(accelGyro.getFullScaleGyroRange());
   Serial.print(F("\t  acc_scale = "));
-  Serial.print(accelgyro.getFullScaleAccelRange());
+  Serial.print(accelGyro.getFullScaleAccelRange());
   Serial.print(F("\n"));
   #endif
   
   //set to Low pass filter mode 3 for a max freq of 44Hz (refer uint8_t MPU6050::getDLPFMode() )
   #ifdef USE_SERIAL
-  Serial.print(F(" DLPG : "));
-  Serial.print(accelgyro.getDLPFMode());
+  Serial.print(F("DLPG : "));
+  Serial.print(accelGyro.getDLPFMode());
   Serial.print(F("\n"));
   #endif
   
-  accelgyro.setDLPFMode(6);
+  accelGyro.setDLPFMode(6);
   
   #ifdef USE_SERIAL
-  Serial.print(F(" DLPG : "));
-  Serial.print(accelgyro.getDLPFMode());
+  Serial.print(F("DLPG : "));
+  Serial.print(accelGyro.getDLPFMode());
   Serial.print(F("\n"));  
   #endif
   
+   
   // use the code below to change accel/gyro offset values
   #ifdef USE_SERIAL
-  Serial.println("Updating internal sensor offsets...");
+  Serial.println(F("Updating internal sensor offsets..."));
   #endif
-  // read raw accel/gyro measurements from device
-  for(int i= 0; i <2 ; i++)
+  // If you want to calibrate the accelero offset, ensure the Arduino board in perfectly leveled (=FLAT)
+  #ifdef CALIBRATE_SENSOR_OFFSET   
+    // read raw accel/gyro measurements from device
+    
+    
+    for(int i= 0; i <10 ; i++)
+    {
+      delay(50);
+      imuUpdate(&imu, &accelGyro);
+      accelGyro.setXAccelOffset((int16_t)(accelGyro.getXAccelOffset() - imu.rawAccel[0]));
+      accelGyro.setYAccelOffset((int16_t)(accelGyro.getYAccelOffset() - imu.rawAccel[1]));
+      accelGyro.setZAccelOffset((int16_t)(accelGyro.getZAccelOffset() - (imu.rawAccel[2] - 2100)));
+    
+      imu.gyroOffset[0] = -imu.rawGyro[0];
+      imu.gyroOffset[1] = -imu.rawGyro[1];
+      imu.gyroOffset[2] = -imu.rawGyro[2];    
+
+
+
+      #ifdef USE_SERIAL
+      delay(50);
+      imuUpdate(&imu, &accelGyro);
+      Serial.print(F("Accelero offsets\n"));
+      Serial.print(accelGyro.getXAccelOffset()); Serial.print(F("\t"));
+      Serial.print(accelGyro.getYAccelOffset()); Serial.print(F("\t"));
+      Serial.print(accelGyro.getZAccelOffset()); Serial.print(F("\n"));
+      Serial.println(F("Accelero values, should be close to (0, 0, 0)"));
+      Serial.print(imu.rawAccel[0]); Serial.print(F("\t")); //should be close to 0
+      Serial.print(imu.rawAccel[1]); Serial.print(F("\t")); //should be close to 0
+      Serial.print(imu.rawAccel[2] - 2100); Serial.print(F("\n")); //should be close to 0
+
+
+      Serial.print(F("Gyro offsets\n"));
+      Serial.print(imu.gyroOffset[0]); Serial.print(F("\t"));
+      Serial.print(imu.gyroOffset[1]); Serial.print(F("\t"));
+      Serial.print(imu.gyroOffset[2]); Serial.print(F("\n"));
+
+      Serial.println(F("Gyro values, should be close to (0, 0, 0)"));
+      Serial.print(imu.rawGyro[0] + imu.gyroOffset[0]); Serial.print(F("\t")); //should be close to 0
+      Serial.print(imu.rawGyro[1] + imu.gyroOffset[1]); Serial.print(F("\t")); //should be close to 0
+      Serial.print(imu.rawGyro[2] + imu.gyroOffset[2]); Serial.print(F("\n")); //should be close to 0
+      
+      #endif
+    }
+  #else
+    // set these macros above to proper values
+    accelGyro.setXAccelOffset((int16_t)(ACCEL_OFFSET_X));
+    accelGyro.setYAccelOffset((int16_t)(ACCEL_OFFSET_Y));
+    accelGyro.setZAccelOffset((int16_t)(ACCEL_OFFSET_Z));
+    
+    imu.gyroOffset[0] = (int16_t)(GYRO_OFFSET_X);
+    imu.gyroOffset[1] = (int16_t)(GYRO_OFFSET_Y);
+    imu.gyroOffset[2] = (int16_t)(GYRO_OFFSET_Z);    
+  #endif
+  
+  //update imu in order to get rotation of gravity vector
+  for(int i=0; i< 20; i++)
   {
     delay(50);
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     
-    #ifdef USE_SERIAL
-    Serial.print(F("a/g:\t"));
-    Serial.print(ax); Serial.print(F("\t"));
-    Serial.print(ay); Serial.print(F("\t"));
-    Serial.print(az); Serial.print(F("\t"));
-    Serial.print(gx); Serial.print(F("\t"));
-    Serial.print(gy); Serial.print(F("\t"));
-    Serial.print(gz); Serial.print(F("\t"));
-    Serial.print(F("\n"));
-    Serial.print(accelgyro.getXAccelOffset()); Serial.print(F("\t")); 
-    Serial.print(accelgyro.getYAccelOffset()); Serial.print(F("\t")); 
-    Serial.print(accelgyro.getZAccelOffset()); Serial.print(F("\t")); 
-    Serial.print(accelgyro.getXGyroOffset()); Serial.print(F("\t"));
-    Serial.print(accelgyro.getYGyroOffset()); Serial.print(F("\t"));
-    Serial.print(accelgyro.getZGyroOffset()); Serial.print(F("\t"));
-    Serial.print(F("\n"));
-    #endif
-    
-    accelgyro.setXAccelOffset((int16_t)(accelgyro.getXAccelOffset() - ax)); //-50
-    accelgyro.setYAccelOffset((int16_t)(accelgyro.getYAccelOffset() - ay)); //30 
-    accelgyro.setZAccelOffset((int16_t)(accelgyro.getZAccelOffset() - (az - 2100))); //300
-    accelgyro.setXGyroOffset(0);
-    accelgyro.setYGyroOffset(0);
-    accelgyro.setZGyroOffset(0);
-    
-    xGyroOffset = - gx;
-    yGyroOffset = - gy;
-    zGyroOffset = - gz;
-    
-    
-    
-    #ifdef USE_SERIAL
-    Serial.print(accelgyro.getXAccelOffset()); Serial.print(F("\t"));
-    Serial.print(accelgyro.getYAccelOffset()); Serial.print(F("\t"));
-    Serial.print(accelgyro.getZAccelOffset()); Serial.print(F("\t"));
-    Serial.print(accelgyro.getXGyroOffset()); Serial.print(F("\t"));
-    Serial.print(accelgyro.getYGyroOffset()); Serial.print(F("\t"));
-    Serial.print(accelgyro.getZGyroOffset()); Serial.print(F("\t"));
-    Serial.print(F("\n"));
-    #endif
+    //update imu
+    imuUpdate(&imu, &accelGyro);
   }
+  float up[3] = {0.0, 0.0, 1.0};
+  float out[3];
+  vectors_cross_product(imu.scaledAccel,up,out);
+  //initial rotation, to relevel imu
+  q_rot.s = sqrt((vectors_norm_sqr(imu.scaledAccel)) * (vectors_norm_sqr(up))) + vectors_scalar_product(imu.scaledAccel, up);
+  q_rot.v[0] = out[0];
+  q_rot.v[1] = out[1];
+  q_rot.v[2] = out[2];
+  q_rot = quaternions_normalise(q_rot);
   
 
   #ifdef USE_SERIAL
-  #ifdef CALIBRATION
-  
-  delay(5000);
+  #ifdef CALIBRATE_SERVOS
+
   Serial.print(F("\n"));
   Serial.print(F("\n"));
   Serial.print(F("\n"));
@@ -337,8 +369,6 @@ void setup() {
   
 }
 
-bool started=false;
-int startTime;
 void loop() {
   
   
@@ -357,9 +387,9 @@ void loop() {
       {
         //To comply with the simulator we cast this sensor output into a float between 0.1 and 1. with 1 = maxLight
         lightInput = float(analogRead(inputTab[i][0]))/1000;
-        //Serial.print(lightInput); Serial.print(F("\t"));  
-        //you can set a certain threshold
-        if(analogRead(inputTab[i][0]) > threshold) //you 
+
+        //you can set a certain threshold 
+        if(analogRead(inputTab[i][0]) > (LIGHT_SENSOR_THRESHOLD))
           networkInput[i] = lightInput;
         else
           networkInput[i] = 0.1;
@@ -368,51 +398,29 @@ void loop() {
         networkInput[i] = digitalRead(inputTab[i][0]);
       else if(inputTab[i][1]==2)//Type is accelerometer and gyroscope
       {
-        accelgyro.getMotion6(&ax_, &ay_, &az_, &gx_, &gy_, &gz_);
-        
-        gyroIntegrate += ((gy_ + yGyroOffset) * GYRO_SCALE_FACTOR)*(elapsedTime)/1000;
-        
-        #ifdef USE_SERIAL
-        Serial.print(F("integrated gyro z \t"));
-        Serial.println(gyroIntegrate);
-        #endif
-        
-        #ifdef USE_SERIAL1
-        Serial1.print(gyroIntegrate); Serial1.print(F("\t"));
-        #endif
-        
-        ax = ax * ALPHA + ax_ * (1-ALPHA);
-        ay = ay * ALPHA + ay_ * (1-ALPHA);
-        az = az * ALPHA + az_ * (1-ALPHA);
-        gx = gx * ALPHA + gx_ * (1-ALPHA);
-        gy = gy * ALPHA + gy_ * (1-ALPHA);
-        gz = gz * ALPHA + gz_ * (1-ALPHA);
-        
-        
-        //normalize accel values from 16500 to 9.81 (1g)
-        //accelX = (float)(ax+xAccelOffset)*ACCEL_SCALE_FACTOR;
-        //accelY = (float)(ay+yAccelOffset)*ACCEL_SCALE_FACTOR;
-        //accelZ = (float)(az+zAccelOffset)*ACCEL_SCALE_FACTOR;
+        //update imu, scaling and low pass filtering
+        imuUpdate(&imu, &accelGyro);
+        quat_t temp = quaternions_create_from_vector(imu.scaledAccel);
+        float norm = vectors_norm(imu.scaledAccel);
+        temp = quaternions_multiply(quaternions_multiply(q_rot, temp),quaternions_inverse(q_rot));
+        temp = quaternions_normalise(temp);
+        temp.v[0] *= norm;
+        temp.v[1] *= norm;
+        temp.v[2] *= norm;
 
         //fill in neuralNetwork
-        networkInput[i] = ax * ACCEL_SCALE_FACTOR; i++;  //0; i++; //
-        networkInput[i] = ay * ACCEL_SCALE_FACTOR; i++; //0; i++; //
-        networkInput[i] = az * ACCEL_SCALE_FACTOR; i++; //0; i++; //
+        networkInput[i] = temp.v[0]; i++;
+        networkInput[i] = temp.v[1]; i++;
+        networkInput[i] = temp.v[2]; i++;
 
-        networkInput[i] = gx * GYRO_SCALE_FACTOR; i++;  
-        networkInput[i] = gy * GYRO_SCALE_FACTOR; i++; 
-        networkInput[i] = gz * GYRO_SCALE_FACTOR; 
+        networkInput[i] = imu.scaledGyro[0]; i++;  
+        networkInput[i] = imu.scaledGyro[1]; i++; 
+        networkInput[i] = imu.scaledGyro[2]; 
 
         #ifdef USE_SERIAL
-        //Serial.print(xAccelOffset); Serial.print(F("\t"));
-        //Serial.print(yAccelOffset); Serial.print(F("\t"));
-        //Serial.print(zAccelOffset); Serial.print(F("\t"));
-        Serial.print(ax * ACCEL_SCALE_FACTOR); Serial.print(F("\t"));
-        Serial.print(ay * ACCEL_SCALE_FACTOR); Serial.print(F("\t"));
-        Serial.print(az * ACCEL_SCALE_FACTOR); Serial.print(F("\t"));
-        Serial.print(gx * GYRO_SCALE_FACTOR); Serial.print(F("\t"));
-        Serial.print(gy * GYRO_SCALE_FACTOR); Serial.print(F("\t")); 
-        Serial.print(gz * GYRO_SCALE_FACTOR); Serial.print(F("\t")); 
+        for(int j=0; j<6; j++) {
+          Serial.print(networkInput[j]); Serial.print(F("\t"));
+        }
         #endif
         
       }
