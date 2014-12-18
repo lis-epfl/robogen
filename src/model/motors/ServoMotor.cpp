@@ -41,9 +41,11 @@ const float ServoMotor::DEFAULT_MAX_FORCE_SERVO = 1.8 * 9.81 / 100;
 const float ServoMotor::MIN_POS_RAD = -(45 * M_PI / 180);
 const float ServoMotor::MAX_POS_RAD = (45 * M_PI / 180);
 
-// 100 rpm converted to rad/s
-const float ServoMotor::MIN_VELOCITY = -(100.0/60.0) * 2 * M_PI;
-const float ServoMotor::MAX_VELOCITY = (100.0/60.0) * 2 * M_PI;
+// 50 rpm converted to rad/s
+// 	note, max velocity should really be 100 rpm, but only with 0 torque
+// 	50 rpms is a compromise
+const float ServoMotor::MIN_VELOCITY = -(50.0/60.0) * 2 * M_PI;
+const float ServoMotor::MAX_VELOCITY = (50.0/60.0) * 2 * M_PI;
 
 // TODO find what this should be before burnout is likely
 const int ServoMotor::MAX_DIRECTION_SHIFTS_PER_SECOND = 20;
