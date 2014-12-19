@@ -163,6 +163,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		int count = 0;
 		double t = 0;
 
+		bool ctrnn = (neuralNetwork->types[0] == CTRNN_SIGMOID);
 
 		double step = configuration->getTimeStepLength();
 		while ((t < configuration->getSimulationTime())
@@ -238,7 +239,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				}
 			}
 
-			if(((count - 1) % configuration->getActuationPeriod()) == 0) {
+			bool shouldActuate = (((count - 1) %
+									configuration->getActuationPeriod()) == 0);
+
+
+			if (shouldActuate) {
 				// Feed neural network
 				for (unsigned int i = 0; i < sensors.size(); ++i) {
 
@@ -264,12 +269,19 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				if (log) {
 					log->logSensors(networkInput, sensors.size());
 				}
-
-
 				::feed(neuralNetwork.get(), &networkInput[0]);
+			}
 
+			if (ctrnn) {
+				// want to update the ctrnn every loop, even if not reading
+				// from outputs
+				::updateCTRNN(neuralNetwork.get(), step);
+			} else if (shouldActuate) {
 				// Step the neural network
 				::step(neuralNetwork.get(), t);
+			}
+
+			if(shouldActuate) {
 
 				// Fetch the neural network ouputs
 				::fetch(neuralNetwork.get(), &networkOutputs[0]);

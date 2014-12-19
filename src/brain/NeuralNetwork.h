@@ -139,6 +139,15 @@ typedef struct {
 	 */
 	unsigned int nNonInputs;
 
+	/**
+	 * Arrays for storing intermediary states for RungeKutta
+	 */
+	float currY[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn1[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn2[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn3[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn4[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+
 } NeuralNetwork;
 
 /**
@@ -178,6 +187,10 @@ void step(NeuralNetwork* network, float time);
  * @param output the output of the neural network, must point to an area of memory of at least size n
  */
 void fetch(const NeuralNetwork* network, float *output);
+
+
+void updateCTRNN(NeuralNetwork* network, float stepSize);
+void updateNeurons(NeuralNetwork* network, float *kn);
 
 
 #endif /* ROBOGEN_NEURAL_NETWORK_H_ */

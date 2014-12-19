@@ -79,6 +79,66 @@ void feed(NeuralNetwork* network, const float *input) {
 
 }
 
+void updateNeurons(NeuralNetwork* network, float *kn) {
+	unsigned int i,j;
+	for (i=0;i<network->nNonInputs;i++) {
+		kn[i] = -network->currY[i];
+		for (j=0;j<network->nNonInputs;j++) {
+			float bias = network->params[MAX_PARAMS*j];
+			float gain = network->params[MAX_PARAMS*j + 2];
+			kn[i] += network->weight[network->nNonInputs * network->nInputs
+			     					 + network->nNonInputs * j + i] *
+			     		1./( 1. + exp( -gain * (network->currY[j] - bias) ) );
+		}
+
+		for (j=0;j<network->nInputs;j++) {
+			kn[i] += network->weight[network->nNonInputs * j + i] *
+						network->input[j];
+		}
+
+		/* divide by tau*/
+		kn[i] /= network->params[MAX_PARAMS*i + 1];
+	}
+}
+
+void updateCTRNN(NeuralNetwork* network, float stepSize){
+
+	unsigned int i;
+
+	for (i=0;i<network->nNonInputs;i++) {
+		network->currY[i] = network->state[i];
+	}
+	updateNeurons(network,network->kn1);
+
+	for (i=0;i<network->nNonInputs;i++) {
+		network->currY[i] = network->state[i] +
+								( stepSize * network->kn1[i]/2.0 );
+	}
+	updateNeurons(network, network->kn2);
+
+	for (i=0;i<network->nNonInputs;i++) {
+		network->currY[i] = network->state[i] +
+								( stepSize * network->kn2[i]/2.0 );
+	}
+	updateNeurons(network, network->kn3);
+
+	for (i=0;i<network->nNonInputs;i++) {
+		network->currY[i] = network->state[i] + (network->kn3[i] );
+	}
+	updateNeurons(network, network->kn4);
+
+
+	for (i=0;i<network->nNonInputs;i++) {
+		network->state[i] += (stepSize/6.0)*(
+								network->kn1[i] +
+								2*network->kn2[i] +
+								2*network->kn3[i] +
+								network->kn4[i]
+							 );
+	}
+}
+
+
 void step(NeuralNetwork* network, float time) {
 
 	unsigned int nextState;
@@ -93,19 +153,18 @@ void step(NeuralNetwork* network, float time) {
 	nextState = (network->curStateStart + network->nNonInputs)
 			% network->nNonInputs;
 
-	for (i = 0; i < network->nNonInputs; ++i) { /*testing just updating state of outputs*/
-
+	for (i = 0; i < network->nNonInputs; ++i) {
 
 		float curNeuronActivation = 0;
-		unsigned int baseIndexOutputWeigths = -1;
 
 		for (j = 0; j < network->nInputs; ++j) {
 			curNeuronActivation += network->weight[network->nNonInputs * j + i]
 					* network->input[j];
 		}
-		baseIndexOutputWeigths = network->nNonInputs * network->nInputs;
+
 		for (j = 0; j < network->nNonInputs; ++j) {
-			curNeuronActivation += network->weight[baseIndexOutputWeigths
+			curNeuronActivation += network->weight[
+				    network->nNonInputs * network->nInputs
 					+ network->nNonInputs * j + i]
 					* network->state[network->curStateStart + j];
 		}
@@ -147,10 +206,19 @@ void step(NeuralNetwork* network, float time) {
 }
 
 void fetch(const NeuralNetwork* network, float *output) {
-
 	unsigned int i = 0;
 	for (i = 0; i < network->nOutputs; ++i) {
-		output[i] = network->state[network->curStateStart + i];
+		if (network->types[0] == CTRNN_SIGMOID) {
+			/* CTRNN stores state before logistic applied, and doesn't use
+			 * startState
+			 */
+			float bias = network->params[MAX_PARAMS*i];
+			float gain = network->params[MAX_PARAMS*i + 2];
+			output[i] = 1./( 1. + exp( -gain * (network->state[i] - bias) ) );
+
+		} else {
+			output[i] = network->state[network->curStateStart + i];
+		}
 	}
 
 }
