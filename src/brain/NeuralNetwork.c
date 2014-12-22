@@ -123,7 +123,7 @@ void updateCTRNN(NeuralNetwork* network, float stepSize){
 	updateNeurons(network, network->kn3);
 
 	for (i=0;i<network->nNonInputs;i++) {
-		network->currY[i] = network->state[i] + (network->kn3[i] );
+		network->currY[i] = network->state[i] + (stepSize * network->kn3[i] );
 	}
 	updateNeurons(network, network->kn4);
 

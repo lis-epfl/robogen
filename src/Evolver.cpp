@@ -129,13 +129,14 @@ int main(int argc, char *argv[]) {
 				<< std::endl;
 		return exitRobogen(EXIT_FAILURE);
 	} else if (conf->referenceRobotFile.compare("") != 0) {
-		if (!referenceBot->init(conf->referenceRobotFile)) {
+		if (!referenceBot->init(conf->referenceRobotFile,
+				conf->continuousTime)) {
 			std::cout << "Failed interpreting robot from text file"
 					<< std::endl;
 			return exitRobogen(EXIT_FAILURE);
 		}
 	} else { //doing body evolution and don't have a reference robot
-		if (referenceBot->init()) {
+		if (referenceBot->init(conf->continuousTime)) {
 			growBodies = true;
 		} else {
 			std::cout << "Failed creating base robot for body evolution"

@@ -267,6 +267,8 @@ typedef struct EvolverConfiguration {
 	 */
 	unsigned int evolutionaryAlgorithm;
 
+	bool continuousTime;
+
 
 	NEAT::Parameters neatParams;
 

@@ -357,9 +357,16 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				params[nOutputs * MAX_PARAMS + 1] = neuron.phaseoffset();
 				params[nOutputs * MAX_PARAMS + 2] = neuron.gain();
 				types[nOutputs] = OSCILLATOR;
+			} else if (neuron.type().compare("ctrnn_sigmoid") == 0) {
+				params[nOutputs * MAX_PARAMS] = neuron.bias();
+				params[nOutputs * MAX_PARAMS + 1] = neuron.tau();
+				params[nOutputs * MAX_PARAMS + 2] = neuron.gain();
+				types[nOutputs] = CTRNN_SIGMOID;
+
 			} else {
 				//TODO add in this stuff for other neurons
-				std::cout << "only sigmoid and oscillator neurons supported currently" << std::endl;
+				std::cout << "only sigmoid (discrete and continuous time) and oscillator neurons " <<
+						"supported currently" << std::endl;
 				return false;
 			}
 			nOutputs++;

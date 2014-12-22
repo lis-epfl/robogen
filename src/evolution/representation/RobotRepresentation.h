@@ -82,14 +82,14 @@ public:
 	 * Constructs a robot representation from nothing.
 	 * Will have just the core component.
 	 */
-	bool init();
+	bool init(bool continuousTime = false);
 
 	/**
 	 * Constructs a robot representation from a robot text file
 	 * @param robotTextFile text file of the robot description
 	 * @todo make a better handling of formatting errors
 	 */
-	bool init(std::string robotTextFile);
+	bool init(std::string robotTextFile, bool continuousTime=false);
 
 	/**
 	 * @return robot message of this robot to be transmitted to simulator

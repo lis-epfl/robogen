@@ -148,6 +148,8 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				"Sigma of brain tau mutation")
 		("tauBounds", boost::program_options::value<std::string>(),
 				"Bounds of brain taus. Format: min:max")
+		("continuousTime", boost::program_options::value<bool>(&continuousTime),
+				"Use continuous time ANN")
 		("periodSigma", boost::program_options::value<double>(&brainPeriodSigma),
 				"Sigma of brain period mutation (defined in terms of seconds)")
 		("periodBounds", boost::program_options::value<std::string>(),
@@ -283,10 +285,18 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				<< " ( and sigmas for other brain params)" << std::endl;
 	}
 
-	if(vm.count("tauBounds") > 0) {
-		if(!parseBounds(vm["tauBounds"].as<std::string>(), minBrainTau,
-				maxBrainTau))
+	if(vm.count("continuousTime") == 0) {
+		continuousTime = false;
+	} else if(continuousTime) {
+		if(vm.count("tauBounds") > 0) {
+			if(!parseBounds(vm["tauBounds"].as<std::string>(), minBrainTau,
+					maxBrainTau))
+				return false;
+		} else {
+			std::cout << "Must supply tauBounds if using continuous time ANNs"
+					<< std::endl;
 			return false;
+		}
 	}
 
 	if(vm.count("periodBounds") > 0) {
