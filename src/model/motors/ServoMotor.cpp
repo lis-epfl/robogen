@@ -48,7 +48,7 @@ const float ServoMotor::MIN_VELOCITY = -(50.0/60.0) * 2 * M_PI;
 const float ServoMotor::MAX_VELOCITY = (50.0/60.0) * 2 * M_PI;
 
 // TODO find what this should be before burnout is likely
-const int ServoMotor::MAX_DIRECTION_SHIFTS_PER_SECOND = 20;
+const int ServoMotor::MAX_DIRECTION_SHIFTS_PER_SECOND = 15;
 
 ServoMotor::ServoMotor(dJointID joint, float maxForce, float gain,
 		ioPair id) : Motor(id),
@@ -129,7 +129,7 @@ void ServoMotor::setPosition(float position, float step) {
 		dJointSetHingeParam(joint_, dParamVel, 0);
 	}
 
-	//testBurnout(velocity, step);
+	testBurnout(velocity, step);
 
 }
 
@@ -155,7 +155,7 @@ void ServoMotor::setVelocity(float velocity, float step) {
 		dJointSetHingeParam(joint_, dParamVel, velocity);
 	}
 
-	//testBurnout(velocity, step);
+	testBurnout(velocity, step);
 }
 
 bool ServoMotor::isVelocityDriven() {
