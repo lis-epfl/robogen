@@ -34,9 +34,9 @@ NeatContainer::NeatContainer(boost::shared_ptr<EvolverConfiguration> &evoConf,
 		boost::shared_ptr<Population> &population, unsigned int seed,
 		boost::random::mt19937 &rng) :
 			evoConf_(evoConf), rng_(rng) {
-	// create CPPN with 9 inputs (x1, y1, z1, io1, x2, y2, z2, io2, bias)
+	// create CPPN with 7 inputs (x1, y1, io1, x2, y2, io2, bias)
 	// and 5 outputs: connection exists, weight, params
-	neatPopulation_.reset(new NEAT::Population(NEAT::Genome(0, 9, 0, 5, false,
+	neatPopulation_.reset(new NEAT::Population(NEAT::Genome(0, 7, 0, 5, false,
 							NEAT::UNSIGNED_SIGMOID,NEAT::UNSIGNED_SIGMOID, 0,
 							evoConf->neatParams),
 						  evoConf->neatParams, true, 1.0, seed));
@@ -243,13 +243,23 @@ bool NeatContainer::fillBrain(NEAT::Genome *genome,
 
     	for (unsigned int j = 0; j<neurons.size(); j++) {
     		std::vector<double> position;
-    		position.push_back(pos.x());
-    		position.push_back(pos.y());
-    		position.push_back(pos.z());
-    		position.push_back(neurons[j].lock()->getIoPair().second);
+    		position.push_back(pos.x() * 10.0); //roughly something in [-1,1]
+    		position.push_back(pos.y() * 10.0);
+    		//position.push_back(pos.z());
+    		float io = neurons[j].lock()->getIoPair().second;
+    		position.push_back((io/10.0));
     		neuronToPositionMap[neurons[j].lock()->getId()] = position;
     		neuronMap[neurons[j].lock()->getId()] = neurons[j];
+
+    		for (unsigned int k = 0; k<position.size(); k++) {
+				std::cout << position[k] <<  " ";
+			}
+    		std::cout << std::endl;
+
     	}
+
+
+
     }
 
     // Now go through all neurons and query for weights and params with
