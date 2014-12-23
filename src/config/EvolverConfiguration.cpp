@@ -180,7 +180,10 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				boost::program_options::value<unsigned int>(&maxBodyParts),
 				"Maximum number of body parts.")
 		("bodyParamSigma", boost::program_options::value<double>(&bodyParamSigma),
-				"Sigma of body param mutation (all params in [0,1])");
+				"Sigma of body param mutation (all params in [0,1])")
+		("evolutionaryAlgorithm",
+				boost::program_options::value<std::string>(),
+				"EA: Basic or HyperNEAT");
 	// generate body operator probability options from contraptions in header
 	for (unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		desc.add_options()(
@@ -502,49 +505,57 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	// TODO make configurable
 	// ---------------------------------------
 
-	evolutionaryAlgorithm = HYPER_NEAT;
+	evolutionaryAlgorithm = BASIC;
+	if ( vm.count("evolutionaryAlgorithm") > 0 ) {
+		if (vm["evolutionaryAlgorithm"].as<std::string>().compare("HyperNEAT")
+				== 0) {
 
-	neatParams.PopulationSize = mu;
-	neatParams.WeightDiffCoeff = 0.4;
-	neatParams.DynamicCompatibility = true;
-	neatParams.CompatTreshold = 3.0;
-	neatParams.YoungAgeTreshold = 15;
-	neatParams.SpeciesMaxStagnation = 15;
-	neatParams.OldAgeTreshold = 35;
-	neatParams.MinSpecies = 4; //5;
-	neatParams.MaxSpecies = 18; //25;
-	neatParams.RouletteWheelSelection = false;
-	neatParams.RecurrentProb = 0;
-	neatParams.OverallMutationRate = 0.33;
+			evolutionaryAlgorithm = HYPER_NEAT;
+			neatParams.PopulationSize = mu;
+			neatParams.WeightDiffCoeff = 0.4;
+			neatParams.DynamicCompatibility = true;
+			neatParams.CompatTreshold = 3.0;
+			neatParams.YoungAgeTreshold = 15;
+			neatParams.SpeciesMaxStagnation = 15;
+			neatParams.OldAgeTreshold = 35;
+			neatParams.MinSpecies = 4; //5;
+			neatParams.MaxSpecies = 18; //25;
+			neatParams.RouletteWheelSelection = false;
+			neatParams.RecurrentProb = 0;
+			neatParams.OverallMutationRate = 0.33;
 
-	neatParams.MutateWeightsProb = 0.90;
+			neatParams.MutateWeightsProb = 0.90;
 
-	neatParams.WeightMutationMaxPower = 2.5;
-	neatParams.WeightReplacementMaxPower = 5.0;
-	neatParams.MutateWeightsSevereProb = 0.5;
-	neatParams.WeightMutationRate = 0.25;
+			neatParams.WeightMutationMaxPower = 2.5;
+			neatParams.WeightReplacementMaxPower = 5.0;
+			neatParams.MutateWeightsSevereProb = 0.5;
+			neatParams.WeightMutationRate = 0.25;
 
-	neatParams.MaxWeight = 20;
+			neatParams.MaxWeight = 20;
 
-	neatParams.MutateAddNeuronProb = 0.03;
-	neatParams.MutateAddLinkProb = 0.05;
-	neatParams.MutateRemLinkProb = 0.00;
+			neatParams.MutateAddNeuronProb = 0.03;
+			neatParams.MutateAddLinkProb = 0.05;
+			neatParams.MutateRemLinkProb = 0.00;
 
-	neatParams.MinActivationA  = 4.9;
-	neatParams.MaxActivationA  = 4.9;
+			neatParams.MinActivationA  = 4.9;
+			neatParams.MaxActivationA  = 4.9;
 
-	neatParams.ActivationFunction_SignedSigmoid_Prob = 1.0;
-	neatParams.ActivationFunction_UnsignedSigmoid_Prob = 0.0;
-	neatParams.ActivationFunction_Tanh_Prob = 1.0;
-	neatParams.ActivationFunction_TanhCubic_Prob = 0.0;
-	neatParams.ActivationFunction_SignedStep_Prob = 0.0;
-	neatParams.ActivationFunction_UnsignedStep_Prob = 0.0;
-	neatParams.ActivationFunction_SignedGauss_Prob = 1.0;
-	neatParams.ActivationFunction_UnsignedGauss_Prob = 0.0;
-	neatParams.ActivationFunction_Abs_Prob = 0.0;
-	neatParams.ActivationFunction_SignedSine_Prob = 1.0;
-	neatParams.ActivationFunction_UnsignedSine_Prob = 0.0;
-	neatParams.ActivationFunction_Linear_Prob = 1.0;
+			neatParams.ActivationFunction_SignedSigmoid_Prob = 1.0;
+			neatParams.ActivationFunction_UnsignedSigmoid_Prob = 0.0;
+			neatParams.ActivationFunction_Tanh_Prob = 1.0;
+			neatParams.ActivationFunction_TanhCubic_Prob = 0.0;
+			neatParams.ActivationFunction_SignedStep_Prob = 0.0;
+			neatParams.ActivationFunction_UnsignedStep_Prob = 0.0;
+			neatParams.ActivationFunction_SignedGauss_Prob = 1.0;
+			neatParams.ActivationFunction_UnsignedGauss_Prob = 0.0;
+			neatParams.ActivationFunction_Abs_Prob = 0.0;
+			neatParams.ActivationFunction_SignedSine_Prob = 1.0;
+			neatParams.ActivationFunction_UnsignedSine_Prob = 0.0;
+			neatParams.ActivationFunction_Linear_Prob = 1.0;
+		}
+	}
+
+
 
 
 
