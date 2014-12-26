@@ -251,11 +251,6 @@ bool NeatContainer::fillBrain(NEAT::Genome *genome,
     		neuronToPositionMap[neurons[j].lock()->getId()] = position;
     		neuronMap[neurons[j].lock()->getId()] = neurons[j];
 
-    		for (unsigned int k = 0; k<position.size(); k++) {
-				std::cout << position[k] <<  " ";
-			}
-    		std::cout << std::endl;
-
     	}
 
 
