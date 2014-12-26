@@ -1,9 +1,10 @@
 scenario=racing
 timeStep=0.002
-actuationFrequency=50
+actuationFrequency=25
 nTimeSteps=4000
 terrainType=flat
 terrainLength=2
 terrainWidth=2
+terrainFriction=1.0
 obstaclesConfigFile=no-obstacles.txt
 startPositionConfigFile=startPos.txt

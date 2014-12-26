@@ -302,12 +302,25 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 							motor->setPosition(networkOutputs[i], step *
 									configuration->getActuationPeriod());
 						}
+
+						// TODO find a cleaner way to do this
+						// for now will reuse accel cap infrastructure
+						if (motor->isBurntOut()) {
+							std::cout << "Motor burnt out, will return 0 "
+									<< "fitness" << std::endl;
+							accelerationCapExceeded = true;
+						}
+
 					}
 				}
 
 				if(log) {
 					log->logMotors(networkOutputs, motors.size());
 				}
+			}
+
+			if(accelerationCapExceeded) {
+				break;
 			}
 
 			if (!scenario->afterSimulationStep()) {
