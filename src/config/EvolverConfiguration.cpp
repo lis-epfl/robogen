@@ -512,6 +512,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 			evolutionaryAlgorithm = HYPER_NEAT;
 			neatParams.PopulationSize = mu;
+
 			neatParams.WeightDiffCoeff = 0.4;
 			neatParams.DynamicCompatibility = true;
 			neatParams.CompatTreshold = 3.0;
@@ -522,7 +523,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			neatParams.MaxSpecies = 18; //25;
 			neatParams.RouletteWheelSelection = false;
 			neatParams.RecurrentProb = 0;
-			neatParams.OverallMutationRate = 0.33;
+			neatParams.OverallMutationRate = 0.8;
 
 			neatParams.MutateWeightsProb = 0.90;
 
@@ -531,14 +532,14 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			neatParams.MutateWeightsSevereProb = 0.5;
 			neatParams.WeightMutationRate = 0.25;
 
-			neatParams.MaxWeight = 20;
+			neatParams.MaxWeight = 8;
 
 			neatParams.MutateAddNeuronProb = 0.03;
 			neatParams.MutateAddLinkProb = 0.05;
-			neatParams.MutateRemLinkProb = 0.00;
+			neatParams.MutateRemLinkProb = 0.001;
 
-			neatParams.MinActivationA  = 4.9;
-			neatParams.MaxActivationA  = 4.9;
+			neatParams.MinActivationA  = 1.0;
+			neatParams.MaxActivationA  = 6.0;
 
 			neatParams.ActivationFunction_SignedSigmoid_Prob = 1.0;
 			neatParams.ActivationFunction_UnsignedSigmoid_Prob = 0.0;

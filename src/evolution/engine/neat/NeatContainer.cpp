@@ -328,8 +328,7 @@ bool NeatContainer::fillBrain(NEAT::Genome *genome,
 			std::vector<double> outputs = net.Output();
 			std::vector<double> params;
 			if(neuronI->getType() == NeuronRepresentation::SIGMOID ||
-					neuronI->getType() == NeuronRepresentation::CTRNN_SIGMOID)
-					{
+					neuronI->getType() == NeuronRepresentation::CTRNN_SIGMOID){
 				// bias
 				params.push_back(outputs[2] * (evoConf_->maxBrainBias -
 						evoConf_->minBrainBias) + evoConf_->minBrainBias);
