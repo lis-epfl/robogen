@@ -44,18 +44,21 @@ namespace robogen{
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
 		const robogenMessage::Robot &robotMessage,
-		Viewer *viewer) {
+		Viewer *viewer, boost::random::mt19937 &rng) {
 	boost::shared_ptr<FileViewerLog> log;
 	return runSimulations(scenario, configuration,
-			robotMessage, viewer, false, log);
+			robotMessage, viewer, rng, false, log);
 }
 
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
 		const robogenMessage::Robot &robotMessage, Viewer *viewer,
+		boost::random::mt19937 &rng,
 		bool onlyOnce, boost::shared_ptr<FileViewerLog> log) {
 
 	bool accelerationCapExceeded = false;
+
+	boost::random::normal_distribution<float> normalDistribution;
 
 	while (scenario->remainingTrials() && (!accelerationCapExceeded)) {
 
@@ -260,6 +263,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 								boost::dynamic_pointer_cast<
 										SimpleSensor>(sensors[i])->read();
 					}
+					networkInput[i] += (normalDistribution(rng) *
+							configuration->getSensorNoiseSigma());
 				}
 				if (log) {
 					log->logSensors(networkInput, sensors.size());
@@ -278,6 +283,10 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				for (unsigned int i = 0; i < motors.size(); ++i) {
 					if (boost::dynamic_pointer_cast<ServoMotor>(
 							motors[i])) {
+
+						networkOutputs[i] += (normalDistribution(rng) *
+										configuration->getMotorNoiseSigma());
+
 
 						boost::shared_ptr<ServoMotor> motor =
 								boost::dynamic_pointer_cast<

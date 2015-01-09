@@ -72,6 +72,10 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 			"Number of timesteps")
 			("actuationFrequency",boost::program_options::value<int>(),
 			"Actuation Frequency (Hz)")
+			("sensorNoiseSigma",boost::program_options::value<float>(),
+			"Std Deviation for Sensor Noise")
+			("motorNoiseSigma",boost::program_options::value<float>(),
+			"Std Deviation for Motor Noise")
 			("startPositionConfigFile",
 			boost::program_options::value<std::string>(),
 			"Start Positions Configuration File");
@@ -269,11 +273,28 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		actuationPeriod = actuationFrequencyTmp / timeStepTmp;
 	}
 
+	// noise
+
+	float sensorNoiseSigma = 0;
+	float motorNoiseSigma = 0;
+
+	if(vm.count("sensorNoiseSigma")) {
+		sensorNoiseSigma = vm["sensorNoiseSigma"].as<float>();
+	}
+
+	if(vm.count("motorNoiseSigma")) {
+		motorNoiseSigma = vm["motorNoiseSigma"].as<float>();
+	}
+
+
+	vm["terrainFriction"].as<float>();
+
 	return boost::shared_ptr<RobogenConfig>(
 			new RobogenConfig(simulationScenario, nTimesteps,
 					timeStep, actuationPeriod, terrain,
 					obstacles, obstaclesConfigFile, startPositions,
-					startPositionFile, lightSourceHeight));
+					startPositionFile, lightSourceHeight, sensorNoiseSigma,
+					motorNoiseSigma));
 
 }
 
@@ -470,12 +491,15 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 	float lightSourceHeight = simulatorConf.lightsourceheight();
 	int actuationPeriod = simulatorConf.actuationperiod();
 
+	float sensorNoiseSigma = simulatorConf.sensornoisesigma();
+	float motorNoiseSigma = simulatorConf.motornoisesigma();
+
 	return boost::shared_ptr<RobogenConfig>(
 			new RobogenConfig(simulationScenario, timeSteps, timeStepLength,
 					actuationPeriod, terrain, obstacles, "",
 					boost::shared_ptr<StartPositionConfig>(
 							new StartPositionConfig(startPositions)), "",
-					lightSourceHeight
+					lightSourceHeight, sensorNoiseSigma, motorNoiseSigma
 
 					));
 

@@ -104,6 +104,10 @@ int main(int argc, char *argv[]) {
 				<< std::endl
 				<< "          Saves every <N>th simulation step in directory "
 				<< "<DIR>." << std::endl << std::endl
+				<< "      --seed <A, INTEGER> " << std::endl
+				<< "          Set the seed A for the random number generator "
+				<< "for noisy evaluations."
+				<< std::endl << std::endl
 				<< "      --speed <S, FLOAT>" << std::endl
 				<< "          Run visualization at S * real time "
 				<< "(default is 1)."
@@ -165,6 +169,7 @@ int main(int argc, char *argv[]) {
 	bool startPaused = false;
 	double speed = 1.0;
 	bool debug = false;
+	int seed = -1;
 	for (; currentArg<argc; currentArg++) {
 		if (std::string("--record").compare(argv[currentArg]) == 0) {
 			if (argc < (currentArg + 3)) {
@@ -232,6 +237,10 @@ int main(int argc, char *argv[]) {
 			ss >> speed;
 		} else if (std::string("--debug").compare(argv[currentArg]) == 0) {
 			debug = true;
+		} else if (std::string("--seed").compare(argv[currentArg]) == 0) {
+			currentArg++;
+			std::stringstream ss(argv[currentArg]);
+			ss >> seed;
 		}
 
 	}
@@ -249,7 +258,9 @@ int main(int argc, char *argv[]) {
 	}
 
 
-
+	boost::random::mt19937 rng;
+	if (seed != -1)
+		rng.seed(seed);
 
 	// ---------------------------------------
 	// Robot decoding
@@ -349,7 +360,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	unsigned int simulationResult = runSimulations(scenario,
-			configuration, robotMessage, viewer, true, log);
+			configuration, robotMessage, viewer, rng, true, log);
 
 	if(viewer != NULL) {
 		delete viewer;

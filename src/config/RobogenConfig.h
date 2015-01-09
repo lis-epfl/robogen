@@ -58,7 +58,8 @@ public:
 			boost::shared_ptr<ObstaclesConfig> obstacles,
 			std::string obstacleFile,
 			boost::shared_ptr<StartPositionConfig> startPositions,
-			std::string startPosFile, float lightSourceHeight) :
+			std::string startPosFile, float lightSourceHeight,
+			float sensorNoiseSigma, float motorNoiseSigma) :
 				scenario_(scenario), timeSteps_(timeSteps),
 				timeStepLength_(timeStepLength),
 				actuationPeriod_(actuationPeriod),
@@ -66,7 +67,9 @@ public:
 				obstacleFile_(obstacleFile),
 				startPositions_(startPositions),
 				startPosFile_(startPosFile),
-				lightSourceHeight_(lightSourceHeight) {
+				lightSourceHeight_(lightSourceHeight),
+				sensorNoiseSigma_(sensorNoiseSigma),
+				motorNoiseSigma_(motorNoiseSigma) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -162,6 +165,20 @@ public:
 	}
 
 	/**
+	 * @return sensor noise level
+	 */
+	float getSensorNoiseSigma() {
+		return sensorNoiseSigma_;
+	}
+
+	/**
+	 * @return motor noise level
+	 */
+	float getMotorNoiseSigma() {
+		return motorNoiseSigma_;
+	}
+
+	/**
 	 * Convert configuration into configuration message.
 	 */
 	robogenMessage::SimulatorConf serialize() const{
@@ -178,6 +195,8 @@ public:
 		ret.set_timestep(timeStepLength_);
 		ret.set_actuationperiod(actuationPeriod_);
 		ret.set_terrainfriction(terrain_->getFriction());
+		ret.set_sensornoisesigma(sensorNoiseSigma_);
+		ret.set_motornoisesigma(motorNoiseSigma_);
 		obstacles_->serialize(ret);
 		startPositions_->serialize(ret);
 		return ret;
@@ -240,6 +259,15 @@ private:
 	 */
 	float simulationTime_;
 
+	/**
+	 * Sensor noise level
+	 */
+	float sensorNoiseSigma_;
+
+	/**
+	 * Motor noise level
+	 */
+	float motorNoiseSigma_;
 
 };
 

@@ -99,6 +99,10 @@ int main(int argc, char* argv[]) {
 		return exitRobogen(EXIT_FAILURE);
 	}
 
+
+	boost::random::mt19937 rng;
+	rng.seed(port);
+
 	while (!interrupted) {
 
 		// Wait for client to connect
@@ -169,7 +173,7 @@ int main(int argc, char* argv[]) {
 
 					unsigned int simulationResult = runSimulations(scenario,
 							configuration, packet.getMessage()->robot(),
-							viewer);
+							viewer, rng);
 
 					if(viewer != NULL) {
 						delete viewer;
