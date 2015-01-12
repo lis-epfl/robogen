@@ -59,6 +59,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 	bool accelerationCapExceeded = false;
 
 	boost::random::normal_distribution<float> normalDistribution;
+	boost::random::uniform_01<float> uniformDistribution;
 
 	while (scenario->remainingTrials() && (!accelerationCapExceeded)) {
 
@@ -263,8 +264,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 								boost::dynamic_pointer_cast<
 										SimpleSensor>(sensors[i])->read();
 					}
+					// Add sensor noise: Gaussian with std dev of
+					// sensorNoiseLevel * actualValue
 					networkInput[i] += (normalDistribution(rng) *
-							configuration->getSensorNoiseSigma());
+							configuration->getSensorNoiseLevel() *
+							networkInput[i]);
 				}
 				if (log) {
 					log->logSensors(networkInput, sensors.size());
@@ -284,8 +288,14 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					if (boost::dynamic_pointer_cast<ServoMotor>(
 							motors[i])) {
 
-						networkOutputs[i] += (normalDistribution(rng) *
-										configuration->getMotorNoiseSigma());
+						// Add motor noise:
+						// uniform in range +/- motorNoiseLevel * actualValue
+						networkOutputs[i] += (
+										((uniformDistribution(rng) *
+										2.0 *
+										configuration->getMotorNoiseLevel())
+										- configuration->getMotorNoiseLevel())
+										* networkOutputs[i]);
 
 
 						boost::shared_ptr<ServoMotor> motor =

@@ -64,18 +64,26 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 			"Terrain Friction Coefficient")(
 			"obstaclesConfigFile", boost::program_options::value<std::string>(),
 			"Obstacles configuration file")("scenario",
-			boost::program_options::value<std::string>(), "Experiment scenario")(
-			"lightSourceHeight", boost::program_options::value<float>(),
+			boost::program_options::value<std::string>(), "Experiment scenario")
+			("lightSourceHeight", boost::program_options::value<float>(),
 			"Height of light source")("timeStep",
 			boost::program_options::value<float>(), "Time step duration (s)")(
 			"nTimeSteps", boost::program_options::value<unsigned int>(),
 			"Number of timesteps")
 			("actuationFrequency",boost::program_options::value<int>(),
 			"Actuation Frequency (Hz)")
-			("sensorNoiseSigma",boost::program_options::value<float>(),
-			"Std Deviation for Sensor Noise")
-			("motorNoiseSigma",boost::program_options::value<float>(),
-			"Std Deviation for Motor Noise")
+			("sensorNoiseLevel",boost::program_options::value<float>(),
+			"Sensor Noise Level:\n "
+			"Sensor noise is Gaussian with std dev of "
+			"sensorNoiseLevel * actualValue.\n"
+			"i.e. value given to Neural Network is "
+			"N(a, a * s)\n"
+			"where a is actual value and s is sensorNoiseLevel")
+			("motorNoiseLevel",boost::program_options::value<float>(),
+			"Motor noise level:\n"
+			"Motor noise is uniform in range +/-"
+			"(motorNoiseLevel * actualValue)"
+			)
 			("startPositionConfigFile",
 			boost::program_options::value<std::string>(),
 			"Start Positions Configuration File");
@@ -275,15 +283,15 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 
 	// noise
 
-	float sensorNoiseSigma = 0;
-	float motorNoiseSigma = 0;
+	float sensorNoiseLevel = 0;
+	float motorNoiseLevel = 0;
 
-	if(vm.count("sensorNoiseSigma")) {
-		sensorNoiseSigma = vm["sensorNoiseSigma"].as<float>();
+	if(vm.count("sensorNoiseLevel")) {
+		sensorNoiseLevel = vm["sensorNoiseLevel"].as<float>();
 	}
 
-	if(vm.count("motorNoiseSigma")) {
-		motorNoiseSigma = vm["motorNoiseSigma"].as<float>();
+	if(vm.count("motorNoiseLevel")) {
+		motorNoiseLevel = vm["motorNoiseLevel"].as<float>();
 	}
 
 
@@ -293,8 +301,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 			new RobogenConfig(simulationScenario, nTimesteps,
 					timeStep, actuationPeriod, terrain,
 					obstacles, obstaclesConfigFile, startPositions,
-					startPositionFile, lightSourceHeight, sensorNoiseSigma,
-					motorNoiseSigma));
+					startPositionFile, lightSourceHeight, sensorNoiseLevel,
+					motorNoiseLevel));
 
 }
 
@@ -491,15 +499,15 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 	float lightSourceHeight = simulatorConf.lightsourceheight();
 	int actuationPeriod = simulatorConf.actuationperiod();
 
-	float sensorNoiseSigma = simulatorConf.sensornoisesigma();
-	float motorNoiseSigma = simulatorConf.motornoisesigma();
+	float sensorNoiseLevel = simulatorConf.sensornoiselevel();
+	float motorNoiseLevel = simulatorConf.motornoiselevel();
 
 	return boost::shared_ptr<RobogenConfig>(
 			new RobogenConfig(simulationScenario, timeSteps, timeStepLength,
 					actuationPeriod, terrain, obstacles, "",
 					boost::shared_ptr<StartPositionConfig>(
 							new StartPositionConfig(startPositions)), "",
-					lightSourceHeight, sensorNoiseSigma, motorNoiseSigma
+					lightSourceHeight, sensorNoiseLevel, motorNoiseLevel
 
 					));
 

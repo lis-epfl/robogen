@@ -85,8 +85,8 @@ message SimulatorConf {
   repeated StartPosition startPositions = 8;
   required int32 actuationPeriod = 9;
   required float terrainFriction = 10;
-  required float sensorNoiseSigma = 11;
-  required float motorNoiseSigma = 12;
+  required float sensorNoiseLevel = 11;
+  required float motorNoiseLevel = 12;
 }
 
 message EvaluationRequest {

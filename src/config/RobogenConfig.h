@@ -59,7 +59,7 @@ public:
 			std::string obstacleFile,
 			boost::shared_ptr<StartPositionConfig> startPositions,
 			std::string startPosFile, float lightSourceHeight,
-			float sensorNoiseSigma, float motorNoiseSigma) :
+			float sensorNoiseLevel, float motorNoiseLevel) :
 				scenario_(scenario), timeSteps_(timeSteps),
 				timeStepLength_(timeStepLength),
 				actuationPeriod_(actuationPeriod),
@@ -68,8 +68,8 @@ public:
 				startPositions_(startPositions),
 				startPosFile_(startPosFile),
 				lightSourceHeight_(lightSourceHeight),
-				sensorNoiseSigma_(sensorNoiseSigma),
-				motorNoiseSigma_(motorNoiseSigma) {
+				sensorNoiseLevel_(sensorNoiseLevel),
+				motorNoiseLevel_(motorNoiseLevel) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -166,16 +166,20 @@ public:
 
 	/**
 	 * @return sensor noise level
+	 * Sensor noise is Gaussian with std dev of sensorNoiseLevel * actualValue
+	 * i.e. value given to Neural Network is N(a, a * s)
+	 * where a is actual value and s is sensorNoiseLevel
 	 */
-	float getSensorNoiseSigma() {
-		return sensorNoiseSigma_;
+	float getSensorNoiseLevel() {
+		return sensorNoiseLevel_;
 	}
 
 	/**
 	 * @return motor noise level
+	 * Motor noise is uniform in range +/- motorNoiseLevel * actualValue
 	 */
-	float getMotorNoiseSigma() {
-		return motorNoiseSigma_;
+	float getMotorNoiseLevel() {
+		return motorNoiseLevel_;
 	}
 
 	/**
@@ -195,8 +199,8 @@ public:
 		ret.set_timestep(timeStepLength_);
 		ret.set_actuationperiod(actuationPeriod_);
 		ret.set_terrainfriction(terrain_->getFriction());
-		ret.set_sensornoisesigma(sensorNoiseSigma_);
-		ret.set_motornoisesigma(motorNoiseSigma_);
+		ret.set_sensornoiselevel(sensorNoiseLevel_);
+		ret.set_motornoiselevel(motorNoiseLevel_);
 		obstacles_->serialize(ret);
 		startPositions_->serialize(ret);
 		return ret;
@@ -260,14 +264,14 @@ private:
 	float simulationTime_;
 
 	/**
-	 * Sensor noise level
+	 * Sensor noise level (see getter for details)
 	 */
-	float sensorNoiseSigma_;
+	float sensorNoiseLevel_;
 
 	/**
-	 * Motor noise level
+	 * Motor noise level (see getter for details)
 	 */
-	float motorNoiseSigma_;
+	float motorNoiseLevel_;
 
 };
 
