@@ -129,7 +129,7 @@ void ServoMotor::setPosition(float position, float step) {
 		dJointSetHingeParam(joint_, dParamVel, 0);
 	}
 
-	testBurnout(velocity, step);
+	//testBurnout(velocity, step);
 
 }
 
@@ -155,7 +155,7 @@ void ServoMotor::setVelocity(float velocity, float step) {
 		dJointSetHingeParam(joint_, dParamVel, velocity);
 	}
 
-	testBurnout(velocity, step);
+	//testBurnout(velocity, step);
 }
 
 bool ServoMotor::isVelocityDriven() {
