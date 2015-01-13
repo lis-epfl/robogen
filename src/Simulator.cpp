@@ -207,10 +207,13 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				double linAccel = dCalcPointsDistance3(
 						linVel, previousLinVel);
 
-				if(angAccel > MAX_ACCELERATION || linAccel > MAX_ACCELERATION) {
+				if(angAccel > MAX_ANGULAR_ACCELERATION ||
+						linAccel > MAX_LINEAR_ACCELERATION) {
 					printf("EVALUATION CANCELED: max accel");
-					printf(" exceeded at time %f,", t);
-					printf("  will give 0 fitness.\n");
+					printf(" exceeded at time %f.", t);
+					printf(" Angular accel: %f, Linear accel: %f.\n",
+							angAccel, linAccel);
+					printf("Will give 0 fitness.\n");
 					accelerationCapExceeded = true;
 					break;
 				}
