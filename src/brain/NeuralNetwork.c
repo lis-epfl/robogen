@@ -128,8 +128,8 @@ void step(NeuralNetwork* network, float time) {
 
 			/* params are period, phase offset, gain (amplitude) */
 
-			// squash incoming signal than modulate period
-			// TODO could have bias and gain on this as well!!
+			/* squash incoming signal than modulate period */
+			/* TODO could have bias and gain on this as well!! */
 			float period = network->params[MAX_PARAMS*i] *
 					1.0 / (1.0 + exp(-curNeuronActivation));
 			float phaseOffset = network->params[MAX_PARAMS*i + 1];
