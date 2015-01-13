@@ -125,11 +125,13 @@ void step(NeuralNetwork* network, float time) {
 					curNeuronActivation;
 
 		} else if (network->types[i] == OSCILLATOR) {
-			/* TODO should this consider inputs too?? */
+
 			/* params are period, phase offset, gain (amplitude) */
 
-
-			float period = network->params[MAX_PARAMS*i];
+			// squash incoming signal than modulate period
+			// TODO could have bias and gain on this as well!!
+			float period = network->params[MAX_PARAMS*i] *
+					1.0 / (1.0 + exp(-curNeuronActivation));
 			float phaseOffset = network->params[MAX_PARAMS*i + 1];
 			float gain = network->params[MAX_PARAMS*i + 2];
 			network->state[nextState + i] = ((sin( (2.0*PI/period) *

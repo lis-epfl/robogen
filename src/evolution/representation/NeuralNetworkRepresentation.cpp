@@ -180,10 +180,10 @@ bool NeuralNetworkRepresentation::setParams(std::string bodyPart, int ioId,
 			std::cout << std::endl;
 			return false;
 		}
-		std::cout << "neuron " << bodyPart << " " << ioId <<
-				" set to be oscillator.  Will remove incoming connections" <<
-				std::endl;
-		removeIncomingConnections(it->second);
+		//std::cout << "neuron " << bodyPart << " " << ioId <<
+		//		" set to be oscillator.  Will remove incoming connections" <<
+		//		std::endl;
+		//removeIncomingConnections(it->second);
 
 	} else {
 		std::cout << "Invalid neuron type "	<< type << std::endl;
