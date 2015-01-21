@@ -2,9 +2,10 @@
  * @(#) LightSensor.h   1.0   Feb 25, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2013 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -97,13 +98,16 @@ public:
 
 private:
 	/**
-	 * Calculates light intensity from angle and distance. This is the function
-	 * to be modified according to light sensor calibration.
+	 * Calculates intensity at light sensor from angle, light's intensity,
+	 * and distance. This is the function to be modified according to
+	 * light sensor calibration.
 	 * @param angle
+	 * @param lightIntensity
 	 * @param distance
-	 * @return light intensity
+	 * @return intensity
 	 */
-	static double lightIntensity(double angle, double distance);
+	static double getIntensity(double angle, double lightIntensity,
+			double distance);
 
 	/**
 	 * Ode collision space
