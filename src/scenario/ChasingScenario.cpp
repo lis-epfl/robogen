@@ -2,9 +2,10 @@
  * @(#) ChasingScenario.cpp   1.0   Mar 20, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2013 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -46,7 +47,6 @@ ChasingScenario::~ChasingScenario() {
 bool ChasingScenario::setupSimulation() {
 
 	this->distances_.push_back(0);
-
 	return true;
 
 }
@@ -56,11 +56,11 @@ bool ChasingScenario::init(dWorldID odeWorld, dSpaceID odeSpace, boost::shared_p
 	Scenario::init(odeWorld, odeSpace, robot);
 
 	boost::shared_ptr<Environment> env(new Environment());
-	env->setAmbientLight(10);
+	env->setAmbientLight(0.04);
 	std::vector<boost::shared_ptr<LightSource> > lightSources;
 	lightSources.push_back(boost::shared_ptr<LightSource>(
 			new LightSource(odeSpace, osg::Vec3(0, 0,
-					this->getRobogenConfig()->getLightSourceHeight()), 100)));
+					this->getRobogenConfig()->getLightSourceHeight()), 1.0)));
 	env->setLightSources(lightSources);
 
 	this->setEnvironment(env);
