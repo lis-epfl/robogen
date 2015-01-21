@@ -190,6 +190,20 @@ bool Viewer::configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
 		this->root->addChild(obstacleRender->getRootNode());
 	}
 
+
+	for(unsigned int i = 0;
+			i < scenario->getEnvironment()->getLightSources().size(); i++) {
+
+		boost::shared_ptr<LightSourceRender> lightSourceRender(
+				new LightSourceRender(
+						scenario->getEnvironment()->getLightSources()[i],
+						root));
+
+		root->addChild(lightSourceRender->getRootNode());
+	}
+
+
+
 	// ---------------------------------------
 	// Setup OSG viewer
 	// ---------------------------------------
