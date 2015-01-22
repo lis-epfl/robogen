@@ -82,7 +82,7 @@ THE SOFTWARE.
 
 #define PI 3.14159265358979323846f
 
-#define LIGHT_SENSOR_THRESHOLD (400)
+#define LIGHT_SENSOR_THRESHOLD (0)
 
 #include <Servo.h>
 
@@ -138,9 +138,10 @@ Servo myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7;
 int outputTab[8]={9,10,5,6,11,13,16,14}; //{"D9", "D10", "D5", "D6", "D11", "D13", "ROLL", "PITCH"}
 Servo myservo[8]={myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7};
 
-float servoOffsets[NB_SERVOS_MOTORS] = {4.0,0.0};
+float servoOffsets[NB_SERVOS_MOTORS] = {2,8,18,-3,-7, -13,17,0};
 
-float servoPosition, servoSpeed, lightInput;
+float servoPosition, servoSpeed;
+int lightInput;
 
 
 /* Keep elapsed time */
@@ -385,14 +386,14 @@ void loop() {
     {  
       if(inputTab[i][1]==0)//Type lightSensor
       {
-        //To comply with the simulator we cast this sensor output into a float between 0.1 and 1. with 1 = maxLight
-        lightInput = float(analogRead(inputTab[i][0]))/1000;
+        //To comply with the simulator we cast this sensor output into a float between 0.0 and 1. with 1 = maxLight
+        lightInput = analogRead(inputTab[i][0]);
 
         //you can set a certain threshold 
-        if(analogRead(inputTab[i][0]) > (LIGHT_SENSOR_THRESHOLD))
-          networkInput[i] = lightInput;
+        if(lightInput > (LIGHT_SENSOR_THRESHOLD))
+          networkInput[i] = float(lightInput)/1000.0;
         else
-          networkInput[i] = 0.1;
+          networkInput[i] = 0.0;
       }
       else if(inputTab[i][1]==1)//Type touchSensor
         networkInput[i] = digitalRead(inputTab[i][0]);
@@ -418,7 +419,7 @@ void loop() {
         networkInput[i] = imu.scaledGyro[2]; 
 
         #ifdef USE_SERIAL
-        for(int j=0; j<6; j++) {
+        for(int j=0; j<NB_INPUTS; j++) {
           Serial.print(networkInput[j]); Serial.print(F("\t"));
         }
         #endif
