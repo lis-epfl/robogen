@@ -128,7 +128,8 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				"Mode of evolution: brain or full")
 		("useBrainSeed",
 				boost::program_options::value<bool>(&useBrainSeed),
-				"Mode of evolution: brain or full")
+				"Set true to continue evolving from provided brain instead of "\
+				"re-initialing.")
 		("pBrainMutate", boost::program_options::value<double>
 				(&pBrainMutate),"Probability of mutation for any single brain "\
 				"parameter")
