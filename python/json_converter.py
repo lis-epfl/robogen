@@ -74,7 +74,7 @@ def write_brain(output, brain):
                 output.write(" ")
                 output.write(neuron["id"].split("-")[1])
                 output.write(" ")
-                output.write(str(neuron["biasWeight"]))
+                output.write(str(neuron["bias"]))
                 output.write("\n")
         
 if __name__ == "__main__":
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     
     output = open(sys.argv[2], "w")
     write_body(output, robot["body"])    
-    output.write("\n") 
+    output.write("\n\n") 
     if "brain" in robot :
         write_brain(output, robot["brain"])
     
