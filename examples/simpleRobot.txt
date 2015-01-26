@@ -1,17 +1,16 @@
 0 E Core 0
-	0 ActiveHinge Hip1 0 
-		0 FixedBrick UpperLeg1 0
+	0 ActiveHinge Hip1 1 
+		0 FixedBrick UpperLeg1 1
 			0 ActiveHinge Knee1 0 
 				0 FixedBrick LowerLeg1 0 
-	1 ActiveHinge Hip2 0 
-		0 FixedBrick UpperLeg2 0
+	1 ActiveHinge Hip2 1 
+		0 FixedBrick UpperLeg2 1
 			0 ActiveHinge Knee2 0 
 				0 FixedBrick LowerLeg2 0 
-	4 ActiveHinge Hip3 1 
-		0 FixedBrick UpperLeg3 0
-			0 ActiveHinge Knee3 0 
-				0 FixedBrick LowerLeg3 0 
-	5 ActiveHinge Hip4 1 
-		0 FixedBrick UpperLeg4 0
-			0 ActiveHinge Knee4 0 
-				0 FixedBrick LowerLeg4 0
+
+
+
+Hip1 0 Oscillator 0.8 -0.8 1
+Hip2 0 Oscillator 0.8 -0.95 1
+Knee1 0 Oscillator 0.8 0.2 1
+Knee2 0 Oscillator 0.8 -1.0 1
