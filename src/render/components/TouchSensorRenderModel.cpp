@@ -67,7 +67,7 @@ bool TouchSensorRenderModel::initRenderModel() {
 					osg::Vec3(
 							TouchSensorModel::SENSOR_BASE_THICKNESS / 2
 									+ TouchSensorModel::SENSOR_THICKNESS / 2
-									- 0.001, 0, 0)));
+									- 0.002, 0, 0)));
 
 	partA_->setColor(osg::Vec4(1, 0, 0, 1));
 
