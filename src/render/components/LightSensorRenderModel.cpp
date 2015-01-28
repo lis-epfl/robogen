@@ -73,10 +73,10 @@ bool LightSensorRenderModel::initRenderModel() {
 	partA_->setColor(osg::Vec4(1, 0, 0, 1));
 
 	if (internalSensor_) {
-		partA->setPosition(osg::Vec3(-7, 0, 0));
+		partA->setPosition(osg::Vec3(-4.25, 0, 0));
 		partA->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
 	} else {
-		partA->setPosition(osg::Vec3(7, 0, 0));
+		partA->setPosition(osg::Vec3(4.25, 0, 0));
 		partA->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
 	}
 
