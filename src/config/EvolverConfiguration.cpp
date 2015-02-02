@@ -544,7 +544,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 			neatParams.ActivationFunction_SignedSigmoid_Prob = 1.0;
 			neatParams.ActivationFunction_UnsignedSigmoid_Prob = 0.0;
-			neatParams.ActivationFunction_Tanh_Prob = 1.0;
+			neatParams.ActivationFunction_Tanh_Prob = 0.0;
 			neatParams.ActivationFunction_TanhCubic_Prob = 0.0;
 			neatParams.ActivationFunction_SignedStep_Prob = 0.0;
 			neatParams.ActivationFunction_UnsignedStep_Prob = 0.0;
@@ -554,6 +554,10 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			neatParams.ActivationFunction_SignedSine_Prob = 1.0;
 			neatParams.ActivationFunction_UnsignedSine_Prob = 0.0;
 			neatParams.ActivationFunction_Linear_Prob = 1.0;
+
+			neatParams.CrossoverRate = 0.75;  // mutate only 0.25
+			neatParams.MultipointCrossoverRate = 0.4;
+			neatParams.SurvivalRate = 0.2;
 		}
 	}
 
