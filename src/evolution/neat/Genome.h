@@ -161,7 +161,8 @@ public:
            bool a_FS_NEAT, ActivationFunction a_OutputActType,
            ActivationFunction a_HiddenActType,
            unsigned int a_SeedType,
-           const Parameters& a_Parameters);
+           const Parameters& a_Parameters,
+           bool a_FULLY_RECURRENT = false);
 
     /////////////
     // Other possible constructors for different types of networks go here

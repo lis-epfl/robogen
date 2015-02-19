@@ -148,16 +148,18 @@ int main(int argc, char *argv[]) {
 	boost::shared_ptr<Population> population(new Population());
 	boost::shared_ptr<NeatContainer> neatContainer;
 
-	bool hyperNEAT = (conf->evolutionaryAlgorithm ==
-			EvolverConfiguration::HYPER_NEAT);
+	bool neat = (conf->evolutionaryAlgorithm ==
+			EvolverConfiguration::HYPER_NEAT || conf->evolutionaryAlgorithm ==
+			EvolverConfiguration::FT_NEAT || conf->evolutionaryAlgorithm ==
+			EvolverConfiguration::NEAT);
 
 	if (!population->init(referenceBot, conf->mu, mutator, growBodies,
-			(!(conf->useBrainSeed || hyperNEAT)) ) ) {
+			(!(conf->useBrainSeed || neat)) ) ) {
 		std::cout << "Error when initializing population!" << std::endl;
 		return exitRobogen(EXIT_FAILURE);
 	}
 
-	if (hyperNEAT) {
+	if (neat) {
 		neatContainer.reset(new NeatContainer(conf, population, seed, rng));
 
 	}
@@ -186,7 +188,7 @@ int main(int argc, char *argv[]) {
 	// run evolution TODO stopping criterion
 	// ---------------------------------------
 
-	if(hyperNEAT) {
+	if(neat) {
 		if(!neatContainer->fillPopulationWeights(population)) {
 			std::cout << "Filling weights from NEAT failed." << std::endl;
 			return exitRobogen(EXIT_FAILURE);
@@ -202,7 +204,7 @@ int main(int argc, char *argv[]) {
 			++generation) {
 		// create children
 		IndividualContainer children;
-		if (hyperNEAT) {
+		if (neat) {
 			//neatPopulation->Epoch();
 			if(!neatContainer->produceNextGeneration(population)) {
 				std::cout << "Producing next generation from NEAT failed."

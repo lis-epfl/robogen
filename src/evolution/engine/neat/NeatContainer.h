@@ -53,8 +53,10 @@ public:
 
 private:
 
-	bool fillBrain(NEAT::Genome *genome,
+	bool fillBrainHyperNEAT(NEAT::Genome *genome,
 			boost::shared_ptr<RobotRepresentation> &robotRepresentation);
+	bool fillBrainNEAT(NEAT::Genome *genome,
+				boost::shared_ptr<RobotRepresentation> &robotRepresentation);
 
 	typedef std::map<unsigned int, NEAT::Genome*> NeatIdToGenomeMap;
 	typedef std::map<unsigned int, boost::shared_ptr<RobotRepresentation> >

@@ -111,7 +111,8 @@ Genome::Genome(unsigned int a_ID,
                bool a_FS_NEAT, ActivationFunction a_OutputActType,
                ActivationFunction a_HiddenActType,
                unsigned int a_SeedType,
-               const Parameters& a_Parameters)
+               const Parameters& a_Parameters,
+               bool a_FULLY_RECURRENT)
 {
     ASSERT((a_NumInputs > 1) && (a_NumOutputs > 0));
     RNG t_RNG;
@@ -178,6 +179,16 @@ Genome::Genome(unsigned int a_ID,
                     m_LinkGenes.push_back( LinkGene(j+1, i+a_NumInputs+a_NumOutputs+1, t_innovnum, 0.0, false) );
                     t_innovnum++;
                 }
+                // links from hidden to hidden
+				if(a_FULLY_RECURRENT) {
+					for(unsigned int j= 0; j < a_NumHidden; j++)
+					{
+						// add the link
+						// created with zero weights. needs future random initialization. !!!!!!!!
+						m_LinkGenes.push_back( LinkGene(j+a_NumInputs+a_NumOutputs+1, i+a_NumInputs+a_NumOutputs+1, t_innovnum, 0.0, false) );
+						t_innovnum++;
+					}
+				}
             }
             // The links from this hidden node to each output
             for(unsigned int i=0; i < (a_NumOutputs); i++)
@@ -189,14 +200,35 @@ Genome::Genome(unsigned int a_ID,
                     m_LinkGenes.push_back( LinkGene(j+a_NumInputs+a_NumOutputs+1, i+a_NumInputs+1, t_innovnum, 0.0, false) );
                     t_innovnum++;
                 }
+                // links from outputs to outputs
+                if(a_FULLY_RECURRENT) {
+                	for(unsigned int j= 0; j < a_NumOutputs; j++)
+					{
+						// add the link
+						// created with zero weights. needs future random initialization. !!!!!!!!
+						m_LinkGenes.push_back( LinkGene(j+a_NumInputs+1, i+a_NumInputs+1, t_innovnum, 0.0, false) );
+						t_innovnum++;
+					}
+
+                	//links from inputs to output
+                	for(unsigned int j= 0; j < a_NumInputs; j++)
+					{
+						// add the link
+						// created with zero weights. needs future random initialization. !!!!!!!!
+						m_LinkGenes.push_back( LinkGene(j+1, i+a_NumInputs+1, t_innovnum, 0.0, false) );
+						t_innovnum++;
+					}
+                }
             }
             // Connect the bias to the outputs as well
-            for(unsigned int i=0; i < (a_NumOutputs); i++)
-            {
-                // add the link
-                // created with zero weights. needs future random initialization. !!!!!!!!
-                m_LinkGenes.push_back( LinkGene(a_NumInputs, i+a_NumInputs+1, t_innovnum, 0.0, false) );
-                t_innovnum++;
+            if(!a_FULLY_RECURRENT) { //otherwise already created
+				for(unsigned int i=0; i < (a_NumOutputs); i++)
+				{
+					// add the link
+					// created with zero weights. needs future random initialization. !!!!!!!!
+					m_LinkGenes.push_back( LinkGene(a_NumInputs, i+a_NumInputs+1, t_innovnum, 0.0, false) );
+					t_innovnum++;
+				}
             }
         }
     }
@@ -212,6 +244,16 @@ Genome::Genome(unsigned int a_ID,
                     m_LinkGenes.push_back( LinkGene(j+1, i+a_NumInputs+1, t_innovnum, 0.0, false) );
                     t_innovnum++;
                 }
+                // links from outputs to outputs
+				if(a_FULLY_RECURRENT) {
+					for(unsigned int j= 0; j < a_NumOutputs; j++)
+					{
+						// add the link
+						// created with zero weights. needs future random initialization. !!!!!!!!
+						m_LinkGenes.push_back( LinkGene(j+a_NumInputs+1, i+a_NumInputs+1, t_innovnum, 0.0, false) );
+						t_innovnum++;
+					}
+				}
             }
         }
         else

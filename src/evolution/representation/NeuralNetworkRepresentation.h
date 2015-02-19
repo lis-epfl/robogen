@@ -172,6 +172,11 @@ public:
 	 */
 	std::string toString();
 
+	int getNumInputs();
+	int getNumOutputs();
+	int getNumHidden();
+
+
 private:
 	/**
 	 * Neurons of the neural network. This is the principal representation of
