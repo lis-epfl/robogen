@@ -37,8 +37,9 @@ class KeyboardHandler: public osgGA::GUIEventHandler {
 
 public:
 
-	KeyboardHandler(bool startPaused) : osgGA::GUIEventHandler(),
-		paused_(startPaused), quit_(false) {
+	KeyboardHandler(bool startPaused, bool geoms, bool meshes/*, bool transparent*/)
+		: osgGA::GUIEventHandler(), paused_(startPaused), geoms_(geoms),
+		  meshes_(meshes), /*transparent_(transparent),*/ quit_(false)  {
 
 	}
 
@@ -62,6 +63,21 @@ public:
 				return true;
 				break;
 
+			case 'g':
+				geoms_ = !geoms_;
+				return true;
+				break;
+
+			case 'm':
+				meshes_ = !meshes_;
+				return true;
+				break;
+
+			//case 't':
+			//	transparent_ = !transparent_;
+			//	return true;
+			//	break;
+
 			default:
 				return false;
 
@@ -84,6 +100,19 @@ public:
 		return paused_;
 	}
 
+	bool showGeoms() {
+		return geoms_;
+	}
+
+	bool showMeshes() {
+		return meshes_;
+	}
+
+	//bool isTransparent() {
+	//	return transparent_;
+	//}
+
+
 	/**
 	 * True if the quit button was pressed
 	 */
@@ -94,6 +123,12 @@ public:
 private:
 
 	bool paused_;
+
+	bool geoms_;
+
+	bool meshes_;
+
+	//bool transparent_;
 
 	bool quit_;
 
