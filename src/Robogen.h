@@ -34,8 +34,8 @@
 #include <ode/ode.h>
 #include <osg/Vec3>
 
-#define inMm(x) (x/1000.0)
-#define inGrams(x) (x/1000.0)
+#define inMm(x) ((x)/1000.0)
+#define inGrams(x) ((x)/1000.0)
 
 float fromOde(float x);
 double fromOde(double x);
