@@ -31,10 +31,11 @@
 namespace robogen {
 
 // mass of just the brick
-const float CoreComponentModel::BRICK_MASS = inGrams(14.9);
+const float CoreComponentModel::BRICK_MASS = inGrams(11);//inGrams(14.9);
 // mass of brick with electronics (including battery)
-const float CoreComponentModel::CORE_MASS = inGrams(55.4);
-const float CoreComponentModel::WIDTH = inMm(46.5);
+const float CoreComponentModel::CORE_MASS = inGrams(11 + 40.5);//inGrams(14.9 + 40.5);
+const float CoreComponentModel::HEIGHT = inMm(35.5);
+const float CoreComponentModel::WIDTH = inMm(41);//inMm(46.5);
 
 CoreComponentModel::CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id, bool hasSensors) :
@@ -55,7 +56,7 @@ bool CoreComponentModel::initModel() {
 	coreComponent_ = this->createBody(B_CORE_COMPONENT_ID);
 	this->createBoxGeom(coreComponent_, hasSensors_ ? CORE_MASS : BRICK_MASS,
 			osg::Vec3(0, 0, 0), WIDTH, WIDTH,
-			WIDTH);
+			HEIGHT);
 
 	return true;
 }

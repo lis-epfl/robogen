@@ -154,6 +154,16 @@ std::vector<dBodyID> Model::getBodies() {
 
 }
 
+std::vector<int> Model::getIDs() {
+	std::vector<int> bodies;
+	std::map<int, dBodyID>::iterator it = this->bodies_.begin();
+	for (; it != this->bodies_.end(); ++it) {
+		bodies.push_back(it->first);
+	}
+	return bodies;
+
+}
+
 void Model::addBody(dBodyID body, int id) {
 	this->bodies_.insert(std::pair<int, dBodyID>(id, body));
 }

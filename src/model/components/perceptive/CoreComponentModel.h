@@ -40,6 +40,7 @@ public:
 
 	static const float BRICK_MASS;
 	static const float CORE_MASS;
+	static const float HEIGHT;
 	static const float WIDTH;
 
 	static const unsigned int B_CORE_COMPONENT_ID = 0;

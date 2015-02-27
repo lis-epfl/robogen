@@ -32,7 +32,12 @@ namespace robogen {
 const float LightSensorModel::MASS = inGrams(2);
 const float LightSensorModel::SENSOR_BASE_WIDTH = inMm(34);
 const float LightSensorModel::SENSOR_BASE_THICKNESS = inMm(1.5);
-const float LightSensorModel::SENSOR_DISPLACEMENT = inMm(8);
+const float LightSensorModel::SENSOR_PLATFORM_THICKNESS = inMm(2);
+const float LightSensorModel::SENSOR_PLATFORM_WIDTH = inMm(16);
+
+const float LightSensorModel::SENSOR_CYLINDER_HEIGHT = inMm(6);
+const float LightSensorModel::SENSOR_CYLINDER_RADIUS = inMm(4);
+const float LightSensorModel::SENSOR_DISPLACEMENT = inMm(6);
 
 LightSensorModel::LightSensorModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id,	bool internalSensor) :
@@ -46,11 +51,24 @@ LightSensorModel::~LightSensorModel() {
 
 bool LightSensorModel::initModel() {
 
-	// Create the 4 components of the hinge
+
 	sensorRoot_ = this->createBody(B_SENSOR_BASE_ID);
 
-	this->createBoxGeom(sensorRoot_, MASS, osg::Vec3(0, 0, 0),
+	//just dividing the mass by 3 for each component, is there a better way to do this?
+	this->createBoxGeom(sensorRoot_, MASS/3.0, osg::Vec3(0, 0, 0),
 			SENSOR_BASE_THICKNESS, SENSOR_BASE_WIDTH, SENSOR_BASE_WIDTH);
+
+	dBodyID platform = this->createBody(B_SENSOR_PLATFORM_ID);
+	this->createBoxGeom(platform, MASS/3.0, osg::Vec3(SENSOR_BASE_THICKNESS/2.0 + SENSOR_PLATFORM_THICKNESS/2.0, 0, 0),
+				SENSOR_PLATFORM_THICKNESS, SENSOR_PLATFORM_WIDTH, SENSOR_PLATFORM_WIDTH);
+
+	this->fixBodies(sensorRoot_, platform, osg::Vec3(1, 0, 0));
+
+	dBodyID cylinder = this->createBody(B_SENSOR_CYLINDER_ID);
+	this->createCylinderGeom(cylinder, MASS/3.0, osg::Vec3(SENSOR_BASE_THICKNESS/2.0 + SENSOR_PLATFORM_THICKNESS + SENSOR_CYLINDER_HEIGHT/2.0, 0, 0), 1,
+				SENSOR_CYLINDER_RADIUS, SENSOR_CYLINDER_HEIGHT);
+
+	this->fixBodies(platform, cylinder, osg::Vec3(1, 0, 0));
 
 	this->sensor_.reset(new LightSensor(this->getCollisionSpace(),
 			this->getBodies(), this->getId()));
@@ -83,7 +101,7 @@ osg::Vec3 LightSensorModel::getSlotPosition(unsigned int i) {
 
 		osg::Vec3 curPos = this->getPosition(sensorRoot_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		slotPos = curPos + slotAxis * (SENSOR_BASE_THICKNESS / 2);
+		slotPos = curPos - slotAxis * (SENSOR_BASE_THICKNESS / 2);
 
 	}
 

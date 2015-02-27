@@ -30,20 +30,22 @@
 
 namespace robogen {
 
-const float ActiveHingeModel::MASS_SERVO = inGrams(9);
-const float ActiveHingeModel::MASS_SLOT = inGrams(7);
-const float ActiveHingeModel::MASS_FRAME = inGrams(1.2);
+const float ActiveHingeModel::MASS_SERVO = inGrams(4 + 6);//inGrams(9);
+const float ActiveHingeModel::MASS_SLOT = inGrams(2);//inGrams(7);
+const float ActiveHingeModel::MASS_FRAME = inGrams(1);////inGrams(1.2);
 
 const float ActiveHingeModel::SLOT_WIDTH = inMm(34);
 const float ActiveHingeModel::SLOT_THICKNESS = inMm(1.5);
 
-const float ActiveHingeModel::FRAME_LENGTH = inMm(18);
-const float ActiveHingeModel::FRAME_HEIGHT = inMm(10);
+const float ActiveHingeModel::FRAME_LENGTH = inMm(20.5);//inMm(18);
+const float ActiveHingeModel::FRAME_HEIGHT = inMm(13.0);//inMm(10);
+const float ActiveHingeModel::FRAME_WIDTH = inMm(36);
 const float ActiveHingeModel::FRAME_ROTATION_OFFSET = inMm(14); // Left to right
 
-const float ActiveHingeModel::SERVO_LENGTH = inMm(24.5);
-const float ActiveHingeModel::SERVO_HEIGHT = inMm(10);
-const float ActiveHingeModel::SERVO_ROTATION_OFFSET = inMm(20.5); // Right to left
+const float ActiveHingeModel::SERVO_LENGTH = inMm(27.5);//inMm(32);//inMm(24.5);
+const float ActiveHingeModel::SERVO_HEIGHT = inMm(16.25);//inMm(10);
+const float ActiveHingeModel::SERVO_WIDTH = inMm(36.5);
+const float ActiveHingeModel::SERVO_ROTATION_OFFSET = inMm(21.5);//inMm(20.5); // Right to left
 
 ActiveHingeModel::ActiveHingeModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id) :
@@ -65,20 +67,19 @@ bool ActiveHingeModel::initModel() {
 
 	// Set the masses for the various boxes
 
-	float separation = inMm(0.1);
+	float separation = 0;//inMm(0.1);
 
 	this->createBoxGeom(hingeRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
 			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
 
-	dReal xFrame = SLOT_THICKNESS / 2 + separation + FRAME_LENGTH / 2 -
-			SLOT_THICKNESS;
+	dReal xFrame = separation + FRAME_LENGTH / 2 + SLOT_THICKNESS / 2;
 	this->createBoxGeom(frame, MASS_FRAME, osg::Vec3(xFrame, 0, 0),
-			FRAME_LENGTH, SLOT_WIDTH, FRAME_HEIGHT);
+			FRAME_LENGTH, FRAME_WIDTH, FRAME_HEIGHT);
 
 	dReal xServo = xFrame + (FRAME_ROTATION_OFFSET - (FRAME_LENGTH / 2))
-			+ (SERVO_LENGTH / 2 - (SERVO_LENGTH - SERVO_ROTATION_OFFSET));
+			+ SERVO_ROTATION_OFFSET - SERVO_LENGTH/2;
 	this->createBoxGeom(servo, MASS_SERVO, osg::Vec3(xServo, 0, 0),
-			SERVO_LENGTH, SLOT_WIDTH, SERVO_HEIGHT);
+			SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT);
 
 	dReal xTail = xServo + SERVO_LENGTH / 2 + separation + SLOT_THICKNESS / 2;
 	this->createBoxGeom(hingeTail_, MASS_SLOT, osg::Vec3(xTail, 0, 0),
@@ -133,16 +134,15 @@ osg::Vec3 ActiveHingeModel::getSlotPosition(unsigned int i) {
 
 		osg::Vec3 curPos = this->getPosition(hingeRoot_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		slotPos = curPos + slotAxis * (SLOT_THICKNESS / 2);
+		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
 
 	} else {
 
 		osg::Vec3 curPos = this->getPosition(hingeTail_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		slotPos = curPos + slotAxis * (SLOT_THICKNESS / 2);
+		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
 
 	}
-
 	return slotPos;
 
 }

@@ -160,6 +160,11 @@ public:
 	std::vector<dBodyID> getBodies();
 
 	/**
+	 * @return all the bodies belonging to this model
+	 */
+	std::vector<int> getIDs();
+
+	/**
 	 * Create the specified body
 	 * @param body label. If the label is negative, does not register the body in the list of bodies of this model.
 	 */
