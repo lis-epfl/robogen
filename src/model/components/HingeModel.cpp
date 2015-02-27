@@ -60,7 +60,7 @@ bool HingeModel::initModel() {
 	hingeTail_ = this->createBody(B_SLOT_B_ID);
 
 	// Create the geometries
-	float separation = inMm(0.1);
+	float separation = 0;//inMm(0.1);
 
 	this->createBoxGeom(hingeRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
 			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
@@ -130,13 +130,13 @@ osg::Vec3 HingeModel::getSlotPosition(unsigned int i) {
 
 		osg::Vec3 curPos = this->getPosition(hingeRoot_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		return curPos + slotAxis * (SLOT_THICKNESS / 2);
+		return curPos - slotAxis * (SLOT_THICKNESS / 2);
 
 	} else {
 
 		osg::Vec3 curPos = this->getPosition(hingeTail_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		return curPos + slotAxis * (SLOT_THICKNESS / 2);
+		return curPos - slotAxis * (SLOT_THICKNESS / 2);
 
 	}
 

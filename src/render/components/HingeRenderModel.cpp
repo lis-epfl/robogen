@@ -61,15 +61,14 @@ bool HingeRenderModel::initRenderModel() {
 
 	if (isDebugActive()) {
 		this->showDebugView();
-		return true;
 	}
 
 	// PART A
 	osg::ref_ptr<osg::PositionAttitudeTransform> partA =
 			this->partA_->getMesh();
 
-	partA_->setColor(osg::Vec4(1, 0, 0, 1));
-	partB_->setColor(osg::Vec4(0, 1, 0, 1));
+	partA_->setColor(osg::Vec4(1, 0, 0, 0.5));
+	partB_->setColor(osg::Vec4(0, 1, 0, 0.5));
 
 	partA->setPosition(
 			fromOde(
@@ -103,28 +102,20 @@ bool HingeRenderModel::initRenderModel() {
 	patPartB->setUpdateCallback(
 			new BodyCallback(this->getModel(), HingeModel::B_SLOT_B_ID));
 
+
+	if(isDebugActive()) {
+		this->activateTransparency(patPartA->getOrCreateStateSet());
+		this->activateTransparency(patPartB->getOrCreateStateSet());
+	}
+
+
 	return true;
 
 }
 
 void HingeRenderModel::showDebugView() {
 
-	this->attachBox(HingeModel::B_SLOT_A_ID, HingeModel::SLOT_THICKNESS,
-			HingeModel::SLOT_WIDTH, HingeModel::SLOT_WIDTH);
-
-	this->attachBox(HingeModel::B_SLOT_B_ID, HingeModel::SLOT_THICKNESS,
-			HingeModel::SLOT_WIDTH, HingeModel::SLOT_WIDTH);
-
-	this->attachBox(HingeModel::B_CONNECTION_A_ID,
-			HingeModel::CONNNECTION_PART_LENGTH,
-			HingeModel::CONNECTION_PART_THICKNESS,
-			HingeModel::CONNECTION_PART_HEIGHT);
-
-	this->attachBox(HingeModel::B_CONNECTION_B_ID,
-			HingeModel::CONNNECTION_PART_LENGTH,
-			HingeModel::CONNECTION_PART_THICKNESS,
-			HingeModel::CONNECTION_PART_HEIGHT);
-
+	this->attachGeoms();
 }
 
 void HingeRenderModel::setColor(osg::Vec4 color) {
