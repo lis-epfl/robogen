@@ -90,6 +90,15 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 	osg::Vec3 aCenter = a->getRootPosition();
 	a->setRootPosition(aCenter + aTranslation);
 
+	#if 0
+	std::cout << a->getId() << " root position";
+	for (unsigned int i=0; i<3; i++) std::cout << " " << a->getRootPosition()[i];
+	std::cout << std::endl;
+	std::cout << b->getId() << " root position";
+	for (unsigned int i=0; i<3; i++) std::cout << " " << b->getRootPosition()[i];
+		std::cout << std::endl;
+	#endif
+
 	if (!RobogenUtils::areAxisParallel(a->getSlotAxis(slotA),
 			-b->getSlotAxis(slotB))) {
 		std::cout << "ALERT1!!!!!! axis not parallel" << std::endl;
