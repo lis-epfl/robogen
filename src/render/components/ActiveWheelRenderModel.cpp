@@ -131,7 +131,8 @@ void ActiveWheelRenderModel::showDebugView() {
          fromOde(
                boost::dynamic_pointer_cast < ActiveWheelModel
                      > (this->getModel())->getRadius()),
-         fromOde(ActiveWheelModel::WHEEL_THICKNESS));
+         fromOde(ActiveWheelModel::WHEEL_THICKNESS),
+         osg::Vec4(1,0,0,1));
 
    // Wheel rotation
    osg::ref_ptr<osg::PositionAttitudeTransform> wheelRotation(

@@ -57,35 +57,50 @@ bool CoreComponentRenderModel::initRenderModel() {
 
 	if (isDebugActive()) {
 		this->showDebugView();
-		return true;
 	}
+
+	osg::ref_ptr<osg::PositionAttitudeTransform> brick = this->mesh_->getMesh();
 
 	// display with plate down, as this is how will be in reality
 	// (we want the arduino to be on top so wires can come out)
+
 	this->mesh_->getMesh()->setAttitude(
-			osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0)));
+				osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0)));
+
+	//this->mesh_>setColor(osg::Vec4(1, 0, 0, 0.5));
+	osg::ref_ptr<osg::PositionAttitudeTransform> brickFrame(
+			new osg::PositionAttitudeTransform());
+	brickFrame->addChild(brick);
+
+	this->getMeshes()->addChild(brickFrame.get());
+	brickFrame->setUpdateCallback(
+			new BodyCallback(this->getModel(), CoreComponentModel::B_CORE_COMPONENT_ID));
 
 
-	this->getRootNode()->addChild(this->mesh_->getMesh());
-	this->getRootNode()->setUpdateCallback(
-			new BodyCallback(this->getModel(),
-					CoreComponentModel::B_CORE_COMPONENT_ID));
-
+	if (isDebugActive()) {
+		this->activateTransparency(brick->getOrCreateStateSet());
+	}
 	return true;
 
 }
 
+
 void CoreComponentRenderModel::showDebugView() {
+	std::vector<osg::Vec4> colors;
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
+				hasSensors() ) {
+		colors.push_back(osg::Vec4(0,1,1,0.7));
+	} else {
+		colors.push_back(osg::Vec4(1,0,0,0.7));
+	}
 
-	osg::ref_ptr<osg::PositionAttitudeTransform> pat = this->attachBox(
-			CoreComponentModel::B_CORE_COMPONENT_ID,
-			CoreComponentModel::WIDTH, CoreComponentModel::WIDTH,
-			CoreComponentModel::WIDTH);
 
+	std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > pats = this->attachGeoms(colors);
 	// show the axis for the root node
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
-			hasSensors() )
-		attachAxis(pat);
+			hasSensors() ) {
+		attachAxis(pats[0]);
+	}
 
 }
 

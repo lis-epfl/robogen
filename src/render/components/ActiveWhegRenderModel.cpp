@@ -150,7 +150,8 @@ void ActiveWhegRenderModel::showDebugView() {
 
    osg::ref_ptr<osg::Geode> wheel = this->getCylinder(
          fromOde(ActiveWhegModel::WHEG_BASE_RADIUS),
-         fromOde(ActiveWhegModel::WHEG_THICKNESS));
+         fromOde(ActiveWhegModel::WHEG_THICKNESS),
+         osg::Vec4(1,0,0,1));
 
    // Wheel rotation
    osg::ref_ptr<osg::PositionAttitudeTransform> wheelRotation(

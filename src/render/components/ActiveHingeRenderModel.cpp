@@ -65,71 +65,72 @@ bool ActiveHingeRenderModel::initRenderModel() {
 
 	if (isDebugActive()) {
 		this->showDebugView();
-		return true;
 	}
 
 	// PART A
 	osg::ref_ptr<osg::PositionAttitudeTransform> frame =
 			this->partA_->getMesh();
 
-	partA_->setColor(osg::Vec4(1, 0, 0, 1));
-	partB_->setColor(osg::Vec4(0, 1, 0, 1));
+	partA_->setColor(osg::Vec4(1, 0, 0, 0.5));
+	partB_->setColor(osg::Vec4(0, 1, 0, 0.5));
 
+
+	// x = 0 is midpoint of slot, so  -SLOT_THICKNESS/2 is edge of frame
+	// and frame is (FRAME_LENGTH + SLOT_THICKNESS) long
+	// so (FRAME_LENGTH + SLOT_THICKNESS)/2 -SLOT_THICKNESS/2 =
+	// FRAME_LENGTH/2
 	frame->setPosition(
 			fromOde(
 					osg::Vec3(
-							ActiveHingeModel::FRAME_LENGTH / 2 -
-							ActiveHingeModel::SLOT_THICKNESS, 0,
+							ActiveHingeModel::FRAME_LENGTH / 2, 0,
 							0)));
-	frame->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0)));
+	frame->setAttitude(osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0)));
+
 	osg::ref_ptr<osg::PositionAttitudeTransform> patFrame(
 			new osg::PositionAttitudeTransform());
 	patFrame->addChild(frame);
 
-	this->getRootNode()->addChild(patFrame.get());
+	this->getMeshes()->addChild(patFrame.get());
 	patFrame->setUpdateCallback(
 			new BodyCallback(this->getModel(), ActiveHingeModel::B_SLOT_A_ID));
 
 	// PART B
-	float servoMeshCorrection = inMm(2.2);
+	//float servoMeshCorrection = inMm(3.2);
 
+
+	// x = 0 is midpoint of slot so SLOT_THICKNESS/2 is edge of servo
+	// and servo is  SERVO_LENGTH + SLOT_THICKNESS  long
+	// so -(SERVO_LENGTH + SLOT_THICKNESS)/2 + SLOT_THICKNESS/2
+	// = -(SERVO_LENGTH)/2
 	osg::ref_ptr<osg::PositionAttitudeTransform> servo =
 			this->partB_->getMesh();
 	servo->setPosition(
 			fromOde(
-					osg::Vec3(
-							-(ActiveHingeModel::SERVO_LENGTH / 2) - servoMeshCorrection, 0,
+					osg::Vec3(-(ActiveHingeModel::SERVO_LENGTH) / 2, 0,
 							0)));
 
-	servo->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 0, 1)) *
-			osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 1, 0)));
+	servo->setAttitude(osg::Quat(osg::inDegrees(270.0), osg::Vec3(1, 0, 0)));
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patServo(
 			new osg::PositionAttitudeTransform());
 	patServo->addChild(servo.get());
 
-	this->getRootNode()->addChild(patServo.get());
+	this->getMeshes()->addChild(patServo.get());
 	patServo->setUpdateCallback(
 			new BodyCallback(this->getModel(), ActiveHingeModel::B_SLOT_B_ID));
 
-	return true;
 
+	if(isDebugActive()) {
+		this->activateTransparency(patFrame->getOrCreateStateSet());
+		this->activateTransparency(patServo->getOrCreateStateSet());
+	}
+
+	return true;
 }
 
 void ActiveHingeRenderModel::showDebugView() {
+	std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > pats = this->attachGeoms();
 
-	this->attachBox(ActiveHingeModel::B_SLOT_A_ID,
-			ActiveHingeModel::SLOT_THICKNESS, ActiveHingeModel::SLOT_WIDTH,
-			ActiveHingeModel::SLOT_WIDTH);
-	this->attachBox(ActiveHingeModel::B_SLOT_B_ID,
-			ActiveHingeModel::SLOT_THICKNESS, ActiveHingeModel::SLOT_WIDTH,
-			ActiveHingeModel::SLOT_WIDTH);
-	this->attachBox(ActiveHingeModel::B_FRAME_ID,
-			ActiveHingeModel::FRAME_LENGTH, ActiveHingeModel::SLOT_WIDTH,
-			ActiveHingeModel::FRAME_HEIGHT);
-	this->attachBox(ActiveHingeModel::B_SERVO_ID,
-			ActiveHingeModel::SERVO_LENGTH, ActiveHingeModel::SLOT_WIDTH,
-			ActiveHingeModel::SERVO_HEIGHT);
 
 }
 

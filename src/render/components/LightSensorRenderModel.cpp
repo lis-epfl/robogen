@@ -48,8 +48,10 @@ bool LightSensorRenderModel::initRenderModel() {
 	bool meshLoadingA;
 
 	if (internalSensor_) {
-		meshLoadingA = this->partA_->loadMesh(
-				"../models/LightSensor_Internal.stl");
+		std::cerr << "Internal light sensor has been deprecated" << std::endl;
+		return false;
+		//meshLoadingA = this->partA_->loadMesh(
+		//		"../models/LightSensor_Internal.stl");
 	} else {
 		meshLoadingA = this->partA_->loadMesh(
 				"../models/LightSensor_External.stl");
@@ -63,20 +65,31 @@ bool LightSensorRenderModel::initRenderModel() {
 
 	if (isDebugActive()) {
 		this->showDebugView();
-		return true;
 	}
 
 	// PART A
 	osg::ref_ptr<osg::PositionAttitudeTransform> partA =
 			this->partA_->getMesh();
 
-	partA_->setColor(osg::Vec4(1, 0, 0, 1));
+	partA_->setColor(osg::Vec4(1, 0, 0, 0.5));
+
+	// x = 0 is midpoint of base, so  -SENSOR_BASE_THICKNESS/2 is edge of base
+	// and frame is (SENSOR_BASE_THICKNESS + SENSOR_PLATFORM_THICKNESS +
+	// SENSOR_CYLINDER_HEIGHT) long
+	// so (SENSOR_BASE_THICKNESS + SENSOR_PLATFORM_THICKNESS +
+	// SENSOR_CYLINDER_HEIGHT)/2 -SENSOR_BASE_THICKNESS/2 =
+	// (SENSOR_PLATFORM_THICKNESS + SENSOR_CYLINDER_HEIGHT)/2
 
 	if (internalSensor_) {
-		partA->setPosition(osg::Vec3(-4.25, 0, 0));
-		partA->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
+		std::cerr << "Internal light sensor has been deprecated" << std::endl;
+		return false;
 	} else {
-		partA->setPosition(osg::Vec3(4.25, 0, 0));
+		partA->setPosition(
+				fromOde(osg::Vec3(
+						(LightSensorModel::SENSOR_PLATFORM_THICKNESS +
+								LightSensorModel::SENSOR_CYLINDER_HEIGHT)/2, 0,
+						0)));
+
 		partA->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
 	}
 
@@ -84,10 +97,14 @@ bool LightSensorRenderModel::initRenderModel() {
 			new osg::PositionAttitudeTransform());
 	patPartA->addChild(partA);
 
-	this->getRootNode()->addChild(patPartA.get());
+	this->getMeshes()->addChild(patPartA.get());
 	patPartA->setUpdateCallback(
 			new BodyCallback(this->getModel(),
 					LightSensorModel::B_SENSOR_BASE_ID));
+
+	if(isDebugActive()) {
+		this->activateTransparency(patPartA->getOrCreateStateSet());
+	}
 
 	return true;
 
@@ -95,12 +112,7 @@ bool LightSensorRenderModel::initRenderModel() {
 
 void LightSensorRenderModel::showDebugView() {
 
-	this->attachBox(LightSensorModel::B_SENSOR_BASE_ID,
-			LightSensorModel::SENSOR_BASE_THICKNESS,
-			LightSensorModel::SENSOR_BASE_WIDTH,
-			LightSensorModel::SENSOR_BASE_WIDTH);
-	this->attachAxis(this->getRootNode());
-
+	this->attachGeoms();
 }
 
 void LightSensorRenderModel::setColor(osg::Vec4 color) {

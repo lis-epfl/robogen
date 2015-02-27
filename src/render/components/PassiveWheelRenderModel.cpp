@@ -120,7 +120,8 @@ void PassiveWheelRenderModel::showDebugView() {
          fromOde(
                boost::dynamic_pointer_cast < PassiveWheelModel
                      > (this->getModel())->getRadius()),
-         fromOde(PassiveWheelModel::WHEEL_THICKNESS));
+         fromOde(PassiveWheelModel::WHEEL_THICKNESS),
+         osg::Vec4(1,0,0,1));
 
    // Wheel rotation
    osg::ref_ptr<osg::PositionAttitudeTransform> wheelRotation(
