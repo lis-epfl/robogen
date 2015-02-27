@@ -46,6 +46,7 @@ const float ActiveHingeModel::SERVO_LENGTH = inMm(27.5);//inMm(32);//inMm(24.5);
 const float ActiveHingeModel::SERVO_HEIGHT = inMm(16.25);//inMm(10);
 const float ActiveHingeModel::SERVO_WIDTH = inMm(36.5);
 const float ActiveHingeModel::SERVO_ROTATION_OFFSET = inMm(21.5);//inMm(20.5); // Right to left
+const float ActiveHingeModel::SERVO_POSITION_OFFSET = inMm(0.5);
 
 ActiveHingeModel::ActiveHingeModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id) :
@@ -73,12 +74,14 @@ bool ActiveHingeModel::initModel() {
 			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
 
 	dReal xFrame = separation + FRAME_LENGTH / 2 + SLOT_THICKNESS / 2;
-	this->createBoxGeom(frame, MASS_FRAME, osg::Vec3(xFrame, 0, 0),
+	this->createBoxGeom(frame, MASS_FRAME, osg::Vec3(xFrame,
+			SERVO_POSITION_OFFSET, 0),
 			FRAME_LENGTH, FRAME_WIDTH, FRAME_HEIGHT);
 
 	dReal xServo = xFrame + (FRAME_ROTATION_OFFSET - (FRAME_LENGTH / 2))
 			+ SERVO_ROTATION_OFFSET - SERVO_LENGTH/2;
-	this->createBoxGeom(servo, MASS_SERVO, osg::Vec3(xServo, 0, 0),
+	this->createBoxGeom(servo, MASS_SERVO, osg::Vec3(xServo,
+			SERVO_POSITION_OFFSET, 0),
 			SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT);
 
 	dReal xTail = xServo + SERVO_LENGTH / 2 + separation + SLOT_THICKNESS / 2;

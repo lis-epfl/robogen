@@ -82,7 +82,8 @@ bool ActiveHingeRenderModel::initRenderModel() {
 	frame->setPosition(
 			fromOde(
 					osg::Vec3(
-							ActiveHingeModel::FRAME_LENGTH / 2, 0,
+							ActiveHingeModel::FRAME_LENGTH / 2,
+							ActiveHingeModel::SERVO_POSITION_OFFSET,
 							0)));
 	frame->setAttitude(osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0)));
 
