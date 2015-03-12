@@ -79,7 +79,7 @@ bool ParametricBrickModel::initModel() {
 
 	// Rotating the connection should be enough before fixing it
 	osg::Quat rotationA;
-	rotationA.makeRotate(angleA_, osg::Vec3(0, 1, 0));
+	rotationA.makeRotate(osg::DegreesToRadians(angleA_), osg::Vec3(0, 1, 0));
 
 	dQuaternion quatOde;
 	quatOde[0] = rotationA.w();
@@ -97,7 +97,7 @@ bool ParametricBrickModel::initModel() {
 
 	// Rotate slot B
 	osg::Quat rotationB;
-	rotationB.makeRotate(angleB_, osg::Vec3(1, 0, 0));
+	rotationB.makeRotate(osg::DegreesToRadians(angleB_), osg::Vec3(1, 0, 0));
 
 	rotationB = rotationB * rotationA;
 
