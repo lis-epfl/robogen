@@ -76,6 +76,13 @@ bool CoreComponentRenderModel::initRenderModel() {
 	brickFrame->setUpdateCallback(
 			new BodyCallback(this->getModel(), CoreComponentModel::B_CORE_COMPONENT_ID));
 
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
+					hasSensors() ) {
+		this->setColor(osg::Vec4(1,1,1,0.7));
+	} else {
+		this->setColor(osg::Vec4(0,1,0,0.7));
+	}
+
 
 	if (isDebugActive()) {
 		this->activateTransparency(brick->getOrCreateStateSet());
