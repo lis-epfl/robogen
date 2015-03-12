@@ -67,9 +67,7 @@ public:
 
 		// This is the gist of the bfs visitor
 		RobogenUtils::connect(c->getTo(), c->getToSlot(), c->getFrom(),
-				c->getFromSlot(),
-				c->getTo()->getOrientationToParentSlot() * 90.,
-				connectionJointGroup_, odeWorld_);
+				c->getFromSlot(), connectionJointGroup_, odeWorld_);
 
 		return;
 	}

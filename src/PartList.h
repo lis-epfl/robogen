@@ -33,20 +33,32 @@
 #include <vector>
 #include <string>
 
+//#define ALLOW_ROTATIONAL_COMPONENTS
+//#define ALLOW_CARDANS
+#define ENFORCE_PLANAR
+
 namespace robogen {
 
+#ifdef ALLOW_CARDANS
 #define PART_TYPE_ACTIVE_CARDAN 	"ActiveCardan"
-#define PART_TYPE_ACTIVE_HINGE 		"ActiveHinge"
-#define PART_TYPE_ACTIVE_WHEEL 		"ActiveWheel"
-#define PART_TYPE_ACTIVE_WHEG 		"ActiveWheg"
+#endif
+	#define PART_TYPE_ACTIVE_HINGE 		"ActiveHinge"
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
+	#define PART_TYPE_ACTIVE_WHEEL 		"ActiveWheel"
+	#define PART_TYPE_ACTIVE_WHEG 		"ActiveWheg"
+#endif
 #define PART_TYPE_CORE_COMPONENT 	"CoreComponent"
 #define PART_TYPE_FIXED_BRICK 		"FixedBrick"
 #define PART_TYPE_LIGHT_SENSOR 		"LightSensor"
 #define PART_TYPE_PARAM_JOINT 		"ParametricJoint"
-#define PART_TYPE_PASSIVE_CARDAN 	"PassiveCardan"
+#ifdef ALLOW_CARDANS
+	#define PART_TYPE_PASSIVE_CARDAN 	"PassiveCardan"
+#endif
 #define PART_TYPE_PASSIVE_HINGE 	"PassiveHinge"
-#define PART_TYPE_PASSIVE_WHEEL 	"PassiveWheel"
-#define PART_TYPE_ROTATOR 			"Rotator"
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
+	#define PART_TYPE_PASSIVE_WHEEL 	"PassiveWheel"
+	#define PART_TYPE_ROTATOR 			"Rotator"
+#endif
 #define PART_TYPE_TOUCH_SENSOR 		"TouchSensor"
 
 extern const std::map<char, std::string> PART_TYPE_MAP;

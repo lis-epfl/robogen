@@ -149,7 +149,7 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 				throw std::runtime_error("");
 			}
 			//add param in [0,1]
-			params.push_back(
+			params.push_back((fabs(ranges.first - ranges.second) < 1e-6) ? 0 :
 					(rawParamValue - ranges.first)
 							/ (ranges.second - ranges.first));
 		}

@@ -45,12 +45,13 @@ public:
 
 	static const unsigned int B_CORE_COMPONENT_ID = 0;
 
-	static const unsigned int LEFT_FACE_SLOT = 0;
-	static const unsigned int RIGHT_FACE_SLOT = 1;
-	static const unsigned int TOP_FACE_SLOT = 2;
-	static const unsigned int BOTTOM_FACE_SLOT = 3;
-	static const unsigned int FRONT_FACE_SLOT = 4;
-	static const unsigned int BACK_FACE_SLOT = 5;
+	enum neuronType{
+		LEFT_FACE_SLOT, /* corresponds to inputs */
+		RIGHT_FACE_SLOT,
+		FRONT_FACE_SLOT,
+		BACK_FACE_SLOT,
+		NUM_SLOTS
+	};
 
 	/**
 	 * Initializes a CoreComponentModel

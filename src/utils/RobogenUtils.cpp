@@ -32,6 +32,8 @@
 #include "utils/RobogenUtils.h"
 #include "PartList.h"
 
+//#define DEBUG_CONNECT
+
 namespace robogen {
 
 template<typename CharT, typename Traits>
@@ -60,16 +62,69 @@ RobogenUtils::~RobogenUtils() {
 
 }
 
+
+
 void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
-		boost::shared_ptr<Model> b, unsigned int slotB, float orientation,
+		boost::shared_ptr<Model> b, unsigned int slotB,
 		dJointGroupID connectionJointGroup, dWorldID odeWorld) {
 
 	// Mandatory debug output
-	#if 0
+	#ifdef DEBUG_CONNECT
 	// TODO make debug output based on something else
+	std::cout << std::endl << "****************************" << std::endl;
 	std::cout << "Connecting " << a->getId() << " to " << b->getId()
 			<< std::endl;
+	std::cout << "slotA " << slotA << ", slotB " << slotB << std::endl;
 	#endif
+
+	// before anything else, specify parent's orientation so can figure out
+	// orientation relative to root of part -- needed to enforce "planarity"
+	// e.g. all bricks should be in default orientation
+	#ifdef ENFORCE_PLANAR
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(b)) {
+		// enforce root being in orientation 0
+		if(boost::dynamic_pointer_cast<CoreComponentModel>(b)->hasSensors()) {
+			b->setOrientationToParentSlot(0);
+		}
+		if(slotB == CoreComponentModel::LEFT_FACE_SLOT) {
+			a->setParentOrientation((b->getOrientationToRoot() + 2) % 4);
+		} else if(slotB == CoreComponentModel::RIGHT_FACE_SLOT) {
+			a->setParentOrientation(b->getOrientationToRoot());
+		} else if(slotB == CoreComponentModel::FRONT_FACE_SLOT) {
+			a->setParentOrientation((b->getOrientationToRoot() + 3) % 4);
+		} else if(slotB == CoreComponentModel::BACK_FACE_SLOT) {
+			a->setParentOrientation((b->getOrientationToRoot() + 3) % 4);
+		}
+
+	//} else if (boost::dynamic_pointer_cast<ParametricBrickModel>(b)) {
+	//	a->setParentOrientation((b->getOrientationToRoot() + 1) % 4);
+	} else {
+		a->setParentOrientation(b->getOrientationToRoot());
+	}
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(a)) {
+		#ifdef DEBUG_CONNECT
+		std::cout << "Core Component with orientation to parent " <<
+				a->getOrientationToParentSlot() << " and orientation to root "
+				<< a->getOrientationToRoot() << std::endl;
+		#endif
+
+		a->setOrientationToParentSlot((a->getOrientationToParentSlot() +
+										(4 - a->getOrientationToRoot())) % 4
+									  );
+		#ifdef DEBUG_CONNECT
+		std::cout << "After update: orientation to parent " <<
+				a->getOrientationToParentSlot() << " and orientation to root "
+				<< a->getOrientationToRoot() << std::endl;
+		#endif
+	} else if (boost::dynamic_pointer_cast<ParametricBrickModel>(a)) {
+		a->setOrientationToParentSlot((a->getOrientationToParentSlot() +
+									(4 - a->getOrientationToRoot())) % 4
+								  + 1);
+	}
+	#endif
+	float orientation = 90. * a->getOrientationToParentSlot();
+
+
 	// 1) Rotate slotAxis of B such that we obtain a normal pointing inward the body
 	osg::Vec3 bSlotAxis = b->getSlotAxis(slotB);
 	osg::Vec3 bSlotAxisInv = -bSlotAxis;
@@ -90,7 +145,7 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 	osg::Vec3 aCenter = a->getRootPosition();
 	a->setRootPosition(aCenter + aTranslation);
 
-	#if 0
+	#ifdef DEBUG_CONNECT
 	std::cout << a->getId() << " root position";
 	for (unsigned int i=0; i<3; i++) std::cout << " " << a->getRootPosition()[i];
 	std::cout << std::endl;
@@ -124,13 +179,17 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 	if (RobogenUtils::areAxisParallel(aSlotAxis, -rotAxis)) {
 		angle *= -1;
 	}
-	//std::cout << "Angle: " << angle * 180 / M_PI << std::endl;
+	#ifdef DEBUG_CONNECT
+	std::cout << "Angle: " << angle * 180 / M_PI << std::endl;
+	#endif
 	osg::Quat slotAlignRotation;
 	slotAlignRotation.makeRotate(angle, aSlotAxis);
 
-	//std::cout << "bSlotOrientation: " << bSlotOrientation << std::endl;
-	//std::cout << "aSlotOrientation: " << aSlotOrientation << std::endl;
-	//std::cout << "slotAlignRotation: " << slotAlignRotation << std::endl;
+	#ifdef DEBUG_CONNECT
+	std::cout << "bSlotOrientation: " << bSlotOrientation << std::endl;
+	std::cout << "aSlotOrientation: " << aSlotOrientation << std::endl;
+	std::cout << "slotAlignRotation: " << slotAlignRotation << std::endl;
+	#endif
 
 	// ...and has the correct orientation
 	if (abs(orientation) > 1e-6) {
@@ -189,11 +248,11 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 						bodyPart.evolvableparam(0).paramvalue(),
 						bodyPart.evolvableparam(1).paramvalue(),
 						bodyPart.evolvableparam(2).paramvalue()));
-
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	} else if (bodyPart.type().compare(PART_TYPE_ROTATOR) == 0) {
 
 		model.reset(new RotateJointModel(odeWorld, odeSpace, id));
-
+#endif
 	} else if (bodyPart.type().compare(PART_TYPE_PASSIVE_HINGE) == 0) {
 
 		model.reset(new HingeModel(odeWorld, odeSpace, id));
@@ -201,7 +260,7 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 	} else if (bodyPart.type().compare(PART_TYPE_ACTIVE_HINGE) == 0) {
 
 		model.reset(new ActiveHingeModel(odeWorld, odeSpace, id));
-
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	} else if (bodyPart.type().compare(PART_TYPE_PASSIVE_CARDAN) == 0) {
 
 		model.reset(new CardanModel(odeWorld, odeSpace, id));
@@ -209,7 +268,8 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 	} else if (bodyPart.type().compare(PART_TYPE_ACTIVE_CARDAN) == 0) {
 
 		model.reset(new ActiveCardanModel(odeWorld, odeSpace, id));
-
+#endif
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	} else if (bodyPart.type().compare(PART_TYPE_PASSIVE_WHEEL) == 0) {
 
 		// Read radius
@@ -248,7 +308,7 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 		model.reset(
 				new ActiveWhegModel(odeWorld, odeSpace, id,
 						bodyPart.evolvableparam(0).paramvalue()));
-
+#endif
 	} else if (bodyPart.type().compare(PART_TYPE_TOUCH_SENSOR) == 0) {
 
 		model.reset(new TouchSensorModel(odeWorld, odeSpace, id));
@@ -291,11 +351,11 @@ boost::shared_ptr<RenderModel> RobogenUtils::createRenderModel(
 						boost::dynamic_pointer_cast<ActiveHingeModel>(model)));
 
 	} else if (boost::dynamic_pointer_cast<ActiveWheelModel>(model)) {
-
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 		return boost::shared_ptr<ActiveWheelRenderModel>(
 				new ActiveWheelRenderModel(
 						boost::dynamic_pointer_cast<ActiveWheelModel>(model)));
-
+#endif
 	} else if (boost::dynamic_pointer_cast<CardanModel>(model)) {
 
 		return boost::shared_ptr<CardanRenderModel>(
@@ -314,7 +374,7 @@ boost::shared_ptr<RenderModel> RobogenUtils::createRenderModel(
 				new ParametricBrickRenderModel(
 						boost::dynamic_pointer_cast<ParametricBrickModel>(
 								model)));
-
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	} else if (boost::dynamic_pointer_cast<PassiveWheelModel>(model)) {
 
 		return boost::shared_ptr<PassiveWheelRenderModel>(
@@ -332,7 +392,7 @@ boost::shared_ptr<RenderModel> RobogenUtils::createRenderModel(
 		return boost::shared_ptr<ActiveWhegRenderModel>(
 				new ActiveWhegRenderModel(
 						boost::dynamic_pointer_cast<ActiveWhegModel>(model)));
-
+#endif
 	} else if (boost::dynamic_pointer_cast<TouchSensorModel>(model)) {
 
 		return boost::shared_ptr<TouchSensorRenderModel>(

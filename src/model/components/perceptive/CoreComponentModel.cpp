@@ -71,9 +71,9 @@ dBodyID CoreComponentModel::getSlot(unsigned int /*i*/) {
 
 osg::Vec3 CoreComponentModel::getSlotPosition(unsigned int i) {
 
-	if (i > 5) {
+	if (i >= NUM_SLOTS) {
 		std::cout << "[CoreComponentModel] Invalid slot: " << i << std::endl;
-		assert(i <= 5);
+		assert(i < NUM_SLOTS);
 	}
 
 	osg::Vec3 curPos = this->getRootPosition();
@@ -86,9 +86,9 @@ osg::Vec3 CoreComponentModel::getSlotPosition(unsigned int i) {
 
 osg::Vec3 CoreComponentModel::getSlotAxis(unsigned int i) {
 
-	if (i > 5) {
+	if (i >= NUM_SLOTS) {
 		std::cout << "[CoreComponentModel] Invalid slot: " << i << std::endl;
-		assert(i <= 5);
+		assert(i < NUM_SLOTS);
 	}
 
 	osg::Quat quat = this->getRootAttitude();
@@ -103,7 +103,7 @@ osg::Vec3 CoreComponentModel::getSlotAxis(unsigned int i) {
 
 		// Right face
 		axis.set(1, 0, 0);
-
+	/*
 	} else if (i == TOP_FACE_SLOT) {
 
 		// Top face
@@ -113,7 +113,7 @@ osg::Vec3 CoreComponentModel::getSlotAxis(unsigned int i) {
 
 		// Bottom face
 		axis.set(0, 0, -1);
-
+	 */
 	} else if (i == FRONT_FACE_SLOT) {
 
 		// Front face
@@ -132,9 +132,9 @@ osg::Vec3 CoreComponentModel::getSlotAxis(unsigned int i) {
 
 osg::Vec3 CoreComponentModel::getSlotOrientation(unsigned int i) {
 
-	if (i > 5) {
+	if (i >= NUM_SLOTS) {
 		std::cout << "[CoreComponentModel] Invalid slot: " << i << std::endl;
-		assert(i <= 5);
+		assert(i < NUM_SLOTS);
 	}
 
 	osg::Quat quat = this->getRootAttitude();
@@ -149,7 +149,7 @@ osg::Vec3 CoreComponentModel::getSlotOrientation(unsigned int i) {
 
 		// Right face
 		tangent.set(0, 1, 0);
-
+	/*
 	} else if (i == TOP_FACE_SLOT) {
 
 		// Top face
@@ -159,7 +159,7 @@ osg::Vec3 CoreComponentModel::getSlotOrientation(unsigned int i) {
 
 		// Bottom face
 		tangent.set(1, 0, 0);
-
+	*/
 	} else if (i == FRONT_FACE_SLOT) {
 
 		// Front face

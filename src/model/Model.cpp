@@ -32,7 +32,8 @@
 namespace robogen {
 
 Model::Model(dWorldID odeWorld, dSpaceID odeSpace, std::string id) :
-		odeWorld_(odeWorld), odeSpace_(odeSpace), id_(id) {
+		odeWorld_(odeWorld), odeSpace_(odeSpace), id_(id),
+		orientationToParentSlot_(0), orientationToRoot_(0) {
 }
 
 Model::~Model() {
@@ -289,12 +290,31 @@ bool Model::setOrientationToParentSlot(int orientation){
 				" between 0 and 3." << std::endl;
 		return false;
 	}
+	int deltaOrientation = orientation - this->orientationToParentSlot_ ;
 	this->orientationToParentSlot_ = orientation;
+	this->orientationToRoot_ = (this->orientationToRoot_ +
+								deltaOrientation) % 4;
+
 	return true;
 }
 
 int Model::getOrientationToParentSlot(){
 	return this->orientationToParentSlot_;
+}
+
+bool Model::setParentOrientation(int orientation) {
+	if (orientation < 0 || orientation > 3){
+		std::cout << "Specified parent orientation is not"\
+				" between 0 and 3." << std::endl;
+		return false;
+	}
+	this->orientationToRoot_ = (this->getOrientationToParentSlot() +
+								orientation) % 4;
+	return true;
+}
+
+int Model::getOrientationToRoot() {
+	return this->orientationToRoot_;
 }
 
 }

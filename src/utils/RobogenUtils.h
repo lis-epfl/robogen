@@ -57,7 +57,7 @@ public:
 	 * It is b that remains fixed!!
 	 */
 	static void connect(boost::shared_ptr<Model> a, unsigned int slotA,
-			boost::shared_ptr<Model> b, unsigned int slotB, float orientation,
+			boost::shared_ptr<Model> b, unsigned int slotB,
 			dJointGroupID connectionJointGroup, dWorldID odeWorld);
 
 	static boost::shared_ptr<Model> createModel(
