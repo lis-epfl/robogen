@@ -376,7 +376,7 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			}
 			//brainHiddenToBodyPart.push_back(bodyPartId->second);
 			//brainHiddenToIoId.push_back(neuron.ioid());
-			hiddenNeuronIds.insert(ioPair(neuron.id(),nOutputs));
+			hiddenNeuronIds.insert(ioPair(neuron.id(),nHidden));
 			isNeuronInput.insert(
 					std::pair<std::string, bool>(neuron.id(), false));
 

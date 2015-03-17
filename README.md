@@ -5,7 +5,7 @@ Joshua Auerbach (joshua.auerbach@epfl.ch)
 Laboratory of Intelligent Systems, EPFL
 
 **Read carefully this document and the online documentation: http://www.robogen.org/wiki/index.php/Documentation
-before starting doing anything!**
+before starting to do anything!**
 
 **Please check at the end of the file for some tricks you might try in order**
 **to improve the stability of the simulator**
