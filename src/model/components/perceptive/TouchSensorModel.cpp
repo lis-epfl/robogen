@@ -33,9 +33,12 @@ namespace robogen {
 const float TouchSensorModel::MASS = inGrams(3);
 const float TouchSensorModel::SENSOR_BASE_WIDTH = inMm(34);
 const float TouchSensorModel::SENSOR_BASE_THICKNESS = inMm(1.5);
-const float TouchSensorModel::SENSOR_THICKNESS = inMm(9);
+const float TouchSensorModel::SENSOR_THICKNESS = inMm(9.5);
+// TODO update this once get new stl file.
+// Right now sensor can extend beyond brick
 const float TouchSensorModel::SENSOR_WIDTH = inMm(18.5); // Of each left/right sensors
 const float TouchSensorModel::SENSOR_HEIGHT = inMm(16);
+const float TouchSensorModel::SENSOR_SEPARATION = inMm(0.6);
 
 TouchSensorModel::TouchSensorModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id) :
@@ -58,8 +61,8 @@ bool TouchSensorModel::initModel() {
 			SENSOR_BASE_THICKNESS, SENSOR_BASE_WIDTH, SENSOR_BASE_WIDTH);
 
 	dReal xSensors = SENSOR_BASE_THICKNESS / 2 + SENSOR_THICKNESS / 2;
-	dReal yLeftSensor = -SENSOR_WIDTH / 2 - inMm(1);
-	dReal yRightSensor = SENSOR_WIDTH / 2 + inMm(1);
+	dReal yLeftSensor = -SENSOR_WIDTH / 2 - SENSOR_SEPARATION / 2;
+	dReal yRightSensor = SENSOR_WIDTH / 2 + SENSOR_SEPARATION / 2;
 
 	this->sensorLeft_.reset(
 			new TouchSensor(this->getCollisionSpace(), leftSensor, MASS,
@@ -98,7 +101,7 @@ osg::Vec3 TouchSensorModel::getSlotPosition(unsigned int i) {
 
 		osg::Vec3 curPos = this->getPosition(sensorRoot_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		slotPos = curPos + slotAxis * (SENSOR_BASE_THICKNESS / 2);
+		slotPos = curPos - slotAxis * (SENSOR_BASE_THICKNESS / 2);
 
 	}
 

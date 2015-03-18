@@ -86,7 +86,7 @@ bool HingeRenderModel::initRenderModel() {
 			new osg::PositionAttitudeTransform());
 	patPartA->addChild(partA);
 
-	this->getRootNode()->addChild(patPartA.get());
+	this->getMeshes()->addChild(patPartA.get());
 	patPartA->setUpdateCallback(
 			new BodyCallback(this->getModel(), HingeModel::B_SLOT_A_ID));
 
@@ -104,7 +104,7 @@ bool HingeRenderModel::initRenderModel() {
 			new osg::PositionAttitudeTransform());
 	patPartB->addChild(partB.get());
 
-	this->getRootNode()->addChild(patPartB.get());
+	this->getMeshes()->addChild(patPartB.get());
 	patPartB->setUpdateCallback(
 			new BodyCallback(this->getModel(), HingeModel::B_SLOT_B_ID));
 
