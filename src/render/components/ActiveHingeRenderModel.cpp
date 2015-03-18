@@ -31,6 +31,8 @@
 #include "render/components/ActiveHingeRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 ActiveHingeRenderModel::ActiveHingeRenderModel(
@@ -46,7 +48,9 @@ ActiveHingeRenderModel::~ActiveHingeRenderModel() {
 
 bool ActiveHingeRenderModel::initRenderModel() {
 
-	bool meshLoadingA = this->partA_->loadMesh("../models/ActiveHinge_Frame.stl");
+	bool meshLoadingA = this->partA_->loadMesh(
+			RobogenUtils::getMeshFile(this->getModel(),
+			  ActiveHingeModel::B_SLOT_A_ID));
 
 	if (!meshLoadingA) {
 		std::cerr << "[ActiveHingeRenderModel] Error loading model"
@@ -55,7 +59,8 @@ bool ActiveHingeRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingB = this->partB_->loadMesh(
-			"../models/ActiveCardanHinge_Servo_Holder.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+			  ActiveHingeModel::B_SLOT_B_ID));
 
 	if (!meshLoadingB) {
 		std::cerr << "[ActiveHingeRenderModel] Error loading model"

@@ -32,6 +32,8 @@
 #include "render/components/ActiveCardanRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 ActiveCardanRenderModel::ActiveCardanRenderModel(
@@ -49,7 +51,8 @@ ActiveCardanRenderModel::~ActiveCardanRenderModel() {
 bool ActiveCardanRenderModel::initRenderModel() {
 
 	bool meshLoadingA = this->partA_->loadMesh(
-			"../models/ActiveCardanHinge_Servo_Holder.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+									  ActiveCardanModel::B_SLOT_A_ID));
 
 	if (!meshLoadingA) {
 		std::cerr << "[ActiveCardanRenderModel] Error loading model"
@@ -58,7 +61,9 @@ bool ActiveCardanRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingB = this->partB_->loadMesh(
-			"../models/ActiveCardanHinge_Servo_Holder.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+									  ActiveCardanModel::B_SLOT_B_ID));
+
 
 	if (!meshLoadingB) {
 		std::cerr << "[ActiveCardanRenderModel] Error loading model"
@@ -67,7 +72,8 @@ bool ActiveCardanRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingC = this->patCross_->loadMesh(
-			"../models/ActiveCardan_CrossShaft.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+									  ActiveCardanModel::B_CROSS_PART_A_ID));
 
 	if (!meshLoadingC) {
 		std::cerr << "[ActiveCardanRenderModel] Error loading model"

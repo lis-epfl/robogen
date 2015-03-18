@@ -31,6 +31,8 @@
 #include "render/components/TouchSensorRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 TouchSensorRenderModel::TouchSensorRenderModel(
@@ -45,7 +47,9 @@ TouchSensorRenderModel::~TouchSensorRenderModel() {
 
 bool TouchSensorRenderModel::initRenderModel() {
 
-	bool meshLoadingA = this->partA_->loadMesh("../models/TouchSensor.stl");
+	bool meshLoadingA = this->partA_->loadMesh(
+			   RobogenUtils::getMeshFile(this->getModel(),
+				  TouchSensorModel::B_SENSOR_BASE_ID));
 
 	if (!meshLoadingA) {
 		std::cerr << "[TouchSensorRenderModel] Error loading model"

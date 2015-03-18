@@ -32,6 +32,8 @@
 #include "render/components/CardanRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 CardanRenderModel::CardanRenderModel(boost::shared_ptr<CardanModel> model) :
@@ -48,7 +50,8 @@ CardanRenderModel::~CardanRenderModel() {
 bool CardanRenderModel::initRenderModel() {
 
 	bool meshLoadingA = this->partA_->loadMesh(
-			"../models/PassiveCardan_Frame.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+			  CardanModel::B_SLOT_A_ID));
 
 	if (!meshLoadingA) {
 		std::cerr << "[CardanRenderModel] Error loading model" << std::endl;
@@ -56,7 +59,8 @@ bool CardanRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingB = this->partB_->loadMesh(
-			"../models/PassiveCardan_Frame.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+			  CardanModel::B_SLOT_B_ID));
 
 	if (!meshLoadingB) {
 		std::cerr << "[CardanRenderModel] Error loading model" << std::endl;
@@ -64,7 +68,8 @@ bool CardanRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingC = this->patCross_->loadMesh(
-			"../models/PassiveCardan_Cross.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+			  CardanModel::B_CONNECTION_A_ID));
 
 	if (!meshLoadingC) {
 		std::cerr << "[CardanRenderModel] Error loading model" << std::endl;

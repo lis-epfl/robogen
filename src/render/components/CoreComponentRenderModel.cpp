@@ -33,6 +33,8 @@
 #include "render/components/CoreComponentRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 CoreComponentRenderModel::CoreComponentRenderModel(
@@ -47,7 +49,8 @@ CoreComponentRenderModel::~CoreComponentRenderModel() {
 
 bool CoreComponentRenderModel::initRenderModel() {
 
-	bool meshLoading = this->mesh_->loadMesh("../models/CoreComponent.stl");
+	bool meshLoading = this->mesh_->loadMesh(RobogenUtils::getMeshFile(
+			this->getModel(),CoreComponentModel::B_CORE_COMPONENT_ID));
 
 	if (!meshLoading) {
 		std::cerr << "[CoreComponentRenderModel] Error loading model"
@@ -74,7 +77,8 @@ bool CoreComponentRenderModel::initRenderModel() {
 
 	this->getMeshes()->addChild(brickFrame.get());
 	brickFrame->setUpdateCallback(
-			new BodyCallback(this->getModel(), CoreComponentModel::B_CORE_COMPONENT_ID));
+			new BodyCallback(this->getModel(),
+					CoreComponentModel::B_CORE_COMPONENT_ID));
 
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
 					hasSensors() ) {

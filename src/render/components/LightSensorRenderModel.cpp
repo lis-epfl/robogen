@@ -31,6 +31,8 @@
 #include "render/components/LightSensorRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 LightSensorRenderModel::LightSensorRenderModel(
@@ -54,7 +56,8 @@ bool LightSensorRenderModel::initRenderModel() {
 		//		"../models/LightSensor_Internal.stl");
 	} else {
 		meshLoadingA = this->partA_->loadMesh(
-				"../models/LightSensor_External.stl");
+				   RobogenUtils::getMeshFile(this->getModel(),
+					  LightSensorModel::B_SENSOR_BASE_ID));
 	}
 
 	if (!meshLoadingA) {

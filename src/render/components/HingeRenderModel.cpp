@@ -31,6 +31,8 @@
 #include "render/components/HingeRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 HingeRenderModel::HingeRenderModel(boost::shared_ptr<HingeModel> model) :
@@ -45,14 +47,18 @@ HingeRenderModel::~HingeRenderModel() {
 
 bool HingeRenderModel::initRenderModel() {
 
-	bool meshLoadingA = this->partA_->loadMesh("../models/PassiveHinge.stl");
+	bool meshLoadingA = this->partA_->loadMesh(
+			RobogenUtils::getMeshFile(this->getModel(),
+			  HingeModel::B_SLOT_A_ID));
 
 	if (!meshLoadingA) {
 		std::cerr << "[HingeRenderModel] Error loading model" << std::endl;
 		return false;
 	}
 
-	bool meshLoadingB = this->partB_->loadMesh("../models/PassiveHinge.stl");
+	bool meshLoadingB = this->partB_->loadMesh(
+			RobogenUtils::getMeshFile(this->getModel(),
+			  HingeModel::B_SLOT_B_ID));
 
 	if (!meshLoadingB) {
 		std::cerr << "[HingeRenderModel] Error loading model" << std::endl;

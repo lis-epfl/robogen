@@ -464,5 +464,119 @@ double RobogenUtils::getAngle(const osg::Vec3& a, const osg::Vec3& b) {
 		return osg::RadiansToDegrees(acos((a * b) / (a.length() * b.length())));
 	}
 }
+// NOTE:  typeid returns static point to type_info,
+// so lasts for duration of program
+typedef std::pair<const std::type_info*, const unsigned int> TypeAndId;
+typedef std::map<TypeAndId, std::string> ModelMeshMap;
+
+ModelMeshMap initModelMeshMap() {
+	ModelMeshMap modelMeshMap;
+
+	// ActiveCardan
+	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
+		static_cast<unsigned int>(ActiveCardanModel::B_SLOT_A_ID))]
+				= "ActiveCardanHinge_Servo_Holder.stl";
+	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
+		static_cast<unsigned int>(ActiveCardanModel::B_SLOT_A_ID))]
+				= "ActiveCardanHinge_Servo_Holder.stl";
+	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
+		static_cast<unsigned int>(ActiveCardanModel::B_CROSS_PART_A_ID))]
+				= "ActiveCardan_CrossShaft.stl";
+
+	// ActiveHinge
+	modelMeshMap[std::make_pair(&typeid(ActiveHingeModel),
+		static_cast<unsigned int>(ActiveHingeModel::B_SLOT_A_ID))]
+				= "ActiveHinge_Frame.stl";
+	modelMeshMap[std::make_pair(&typeid(ActiveHingeModel),
+		static_cast<unsigned int>(ActiveHingeModel::B_SLOT_B_ID))]
+				= "ActiveCardanHinge_Servo_Holder.stl";
+
+	// Active Wheel
+	modelMeshMap[std::make_pair(&typeid(ActiveWheelModel),
+		static_cast<unsigned int>(ActiveWheelModel::B_SLOT_ID))]
+				= "ActiveRotation_Motor_Holder.stl";
+	modelMeshMap[std::make_pair(&typeid(ActiveWheelModel),
+		static_cast<unsigned int>(ActiveWheelModel::B_WHEEL_ID))]
+				= "ActiveRotation_Wheel.stl";
+
+	// Active Wheg
+	modelMeshMap[std::make_pair(&typeid(ActiveWhegModel),
+		static_cast<unsigned int>(ActiveWhegModel::B_SLOT_ID))]
+				= "ActiveRotation_Motor_Holder.stl";
+	modelMeshMap[std::make_pair(&typeid(ActiveWhegModel),
+		static_cast<unsigned int>(ActiveWhegModel::B_WHEG_BASE))]
+				= "ActiveRotation_Wheg.stl";
+
+	// Cardan
+	modelMeshMap[std::make_pair(&typeid(CardanModel),
+		static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
+				= "PassiveCardan_Frame.stl";
+	modelMeshMap[std::make_pair(&typeid(CardanModel),
+		static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
+				= "PassiveCardan_Frame.stl";
+	// the callback for this works a little differently though!
+	modelMeshMap[std::make_pair(&typeid(CardanModel),
+		static_cast<unsigned int>(CardanModel::B_CONNECTION_A_ID))]
+				= "PassiveCardan_Cross.stl";
+
+	// Core
+	modelMeshMap[std::make_pair(&typeid(CoreComponentModel),
+		static_cast<unsigned int>(CoreComponentModel::B_CORE_COMPONENT_ID))]
+	             = "CoreComponent.stl";
+
+	// Hinge
+	modelMeshMap[std::make_pair(&typeid(HingeModel),
+		static_cast<unsigned int>(HingeModel::B_SLOT_A_ID))]
+	             = "PassiveHinge.stl";
+	modelMeshMap[std::make_pair(&typeid(HingeModel),
+		static_cast<unsigned int>(HingeModel::B_SLOT_B_ID))]
+				 = "PassiveHinge.stl";
+
+	// Parametric has no stl files for now
+
+	// Passive Wheel
+	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
+		static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))]
+				= "PassiveRotation_Frame.stl";
+	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
+		static_cast<unsigned int>(PassiveWheelModel::B_WHEEL_ID))]
+				= "PassiveRotation_Wheel.stl";
+
+	// Rotate Joint
+	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
+		static_cast<unsigned int>(RotateJointModel::B_SLOT_ID))]
+				= "ActiveRotation_Motor_Holder.stl";
+	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
+		static_cast<unsigned int>(RotateJointModel::B_JOINT_CONNECTION_ID))]
+				= "ActiveRotation_Connection.stl";
+
+	// Touch Sensor
+	modelMeshMap[std::make_pair(&typeid(TouchSensorModel),
+			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))]
+					= "TouchSensor.stl";
+
+	// Light Sensor
+	modelMeshMap[std::make_pair(&typeid(LightSensorModel),
+			static_cast<unsigned int>(LightSensorModel::B_SENSOR_BASE_ID))]
+					= "LightSensor_External.stl";
+
+
+	return modelMeshMap;
+}
+
+
+const ModelMeshMap MODEL_MESH_MAP = initModelMeshMap();
+
+
+std::string RobogenUtils::getMeshFile(boost::shared_ptr<Model> model,
+		const unsigned int id) {
+	TypeAndId key = make_pair(&typeid(*model.get()), id);
+	if(MODEL_MESH_MAP.count(key) > 0) {
+		return MESH_DIRECTORY + MODEL_MESH_MAP.at(key);
+	}
+
+	return "";
+}
+
 
 }

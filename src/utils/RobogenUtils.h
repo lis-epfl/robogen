@@ -36,6 +36,8 @@
 #include "RenderModels.h"
 #include "robogen.pb.h"
 
+#define MESH_DIRECTORY "../models/"
+
 namespace robogen {
 
 class RobogenUtils {
@@ -44,6 +46,11 @@ public:
 
 	static const double OSG_EPSILON;
 	static const double OSG_EPSILON_2;
+
+	//static const std::map<std::pair<const std::type_info&, int>,
+	//						const osg::Vec3&> MESH_RELATIVE_POSITION_MAP;
+	//static const std::map<std::pair<const std::type_info&, int>,
+	//						const osg::Quat&> MESH_RELATIVE_ATTITUDE_MAP;
 
 	virtual ~RobogenUtils();
 
@@ -66,6 +73,9 @@ public:
 
 	static boost::shared_ptr<RenderModel> createRenderModel(
 			boost::shared_ptr<Model> model);
+
+	static std::string getMeshFile(boost::shared_ptr<Model> model,
+								const unsigned int id);
 
 private:
 
