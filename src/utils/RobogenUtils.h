@@ -47,11 +47,6 @@ public:
 	static const double OSG_EPSILON;
 	static const double OSG_EPSILON_2;
 
-	//static const std::map<std::pair<const std::type_info&, int>,
-	//						const osg::Vec3&> MESH_RELATIVE_POSITION_MAP;
-	//static const std::map<std::pair<const std::type_info&, int>,
-	//						const osg::Quat&> MESH_RELATIVE_ATTITUDE_MAP;
-
 	virtual ~RobogenUtils();
 
 	static osg::Quat makeRotate(const osg::Vec3& from, const osg::Vec3& to);
@@ -75,6 +70,10 @@ public:
 			boost::shared_ptr<Model> model);
 
 	static std::string getMeshFile(boost::shared_ptr<Model> model,
+								const unsigned int id);
+	static osg::Vec3 getRelativePosition(boost::shared_ptr<Model> model,
+								const unsigned int id);
+	static osg::Quat getRelativeAttitude(boost::shared_ptr<Model> model,
 								const unsigned int id);
 
 private:

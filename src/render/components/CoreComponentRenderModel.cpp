@@ -64,13 +64,11 @@ bool CoreComponentRenderModel::initRenderModel() {
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> brick = this->mesh_->getMesh();
 
-	// display with plate down, as this is how will be in reality
-	// (we want the arduino to be on top so wires can come out)
 
 	this->mesh_->getMesh()->setAttitude(
-				osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0)));
+			RobogenUtils::getRelativeAttitude(this->getModel(),
+					CoreComponentModel::B_CORE_COMPONENT_ID));
 
-	//this->mesh_>setColor(osg::Vec4(1, 0, 0, 0.5));
 	osg::ref_ptr<osg::PositionAttitudeTransform> brickFrame(
 			new osg::PositionAttitudeTransform());
 	brickFrame->addChild(brick);
