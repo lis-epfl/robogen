@@ -377,10 +377,16 @@ int Parameters::Load(std::ifstream& a_DataFile)
     {
         a_DataFile >> s;
     }
-    while (s != "NEAT_ParametersStart");
+    while (s != "NEAT_ParametersStart" && !a_DataFile.eof());
+
+    if(a_DataFile.eof())
+    	return(-1);
 
     while(s != "NEAT_ParametersEnd")
     {
+    	if(a_DataFile.eof()) {
+    		return(-1);
+    	}
         a_DataFile >> s;
 
         if (s == "PopulationSize")
