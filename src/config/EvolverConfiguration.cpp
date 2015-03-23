@@ -184,7 +184,10 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				"Sigma of body param mutation (all params in [0,1])")
 		("evolutionaryAlgorithm",
 				boost::program_options::value<std::string>(),
-				"EA: Basic or HyperNEAT");
+				"EA: Basic or HyperNEAT")
+		("neatParamsFile",
+				boost::program_options::value<std::string>(&neatParamsFile),
+				"File for NEAT/HyperNEAT specific params");
 	// generate body operator probability options from contraptions in header
 	for (unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		desc.add_options()(
@@ -514,6 +517,8 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			evolutionaryAlgorithm = HYPER_NEAT;
 			neatParams.PopulationSize = mu;
 
+
+			//defaults
 			neatParams.WeightDiffCoeff = 0.4;
 			neatParams.DynamicCompatibility = true;
 			neatParams.CompatTreshold = 3.0;
@@ -554,6 +559,24 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			neatParams.ActivationFunction_SignedSine_Prob = 1.0;
 			neatParams.ActivationFunction_UnsignedSine_Prob = 0.0;
 			neatParams.ActivationFunction_Linear_Prob = 1.0;
+
+
+			if ( neatParamsFile.compare("") != 0 ) {
+				const boost::filesystem::path neatParamsFilePath(
+						neatParamsFile);
+				if (!neatParamsFilePath.is_absolute()) {
+					const boost::filesystem::path absolutePath =
+							boost::filesystem::absolute(neatParamsFilePath,
+									confFilePath.parent_path());
+					neatParamsFile = absolutePath.string();
+				}
+
+				if (neatParams.Load(neatParamsFile.c_str()) < 0) {
+					std::cout << "Problem parsing neatParams file." <<
+							std::endl;
+					return false;
+				}
+			}
 		}
 	}
 

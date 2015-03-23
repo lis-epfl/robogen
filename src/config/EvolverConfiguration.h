@@ -267,8 +267,15 @@ typedef struct EvolverConfiguration {
 	 */
 	unsigned int evolutionaryAlgorithm;
 
-
+	/**
+	 * NEAT/HyperNEAT parameters
+	 */
 	NEAT::Parameters neatParams;
+
+	/**
+	 * File for NEAT/HyperNEAT parameters
+	 */
+	std::string neatParamsFile;
 
 
 
