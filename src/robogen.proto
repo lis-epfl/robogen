@@ -87,6 +87,9 @@ message SimulatorConf {
   required float terrainFriction = 10;
   required float sensorNoiseLevel = 11;
   required float motorNoiseLevel = 12;
+  required bool capAcceleration = 13;
+  required float maxLinearAcceleration = 14;
+  required float maxAngularAcceleration = 15;
 }
 
 message EvaluationRequest {

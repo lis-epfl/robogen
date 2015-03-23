@@ -154,11 +154,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		}
 
 
-#ifdef CAP_ACCELERATION
 		//setup vectors for keeping velocities
 		dReal previousLinVel[3];
 		dReal previousAngVel[3];
-#endif
 
 		// ---------------------------------------
 		// Main Loop
@@ -193,39 +191,40 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			// Empty contact groups used for collisions handling
 			dJointGroupEmpty(odeContactGroup);
 
-#ifdef CAP_ACCELERATION
-			dBodyID rootBody =
-					robot->getCoreComponent()->getRoot();
-			const dReal *angVel, *linVel;
+			if (configuration->isCapAlleration()) {
+				dBodyID rootBody =
+						robot->getCoreComponent()->getRoot();
+				const dReal *angVel, *linVel;
 
-			angVel = dBodyGetAngularVel(rootBody);
-			linVel = dBodyGetLinearVel(rootBody);
+				angVel = dBodyGetAngularVel(rootBody);
+				linVel = dBodyGetLinearVel(rootBody);
 
-			if(t > 0) {
-				double angAccel = dCalcPointsDistance3(
-						angVel, previousAngVel);
-				double linAccel = dCalcPointsDistance3(
-						linVel, previousLinVel);
+				if(t > 0) {
+					double angAccel = dCalcPointsDistance3(
+							angVel, previousAngVel);
+					double linAccel = dCalcPointsDistance3(
+							linVel, previousLinVel);
 
-				if(angAccel > MAX_ANGULAR_ACCELERATION ||
-						linAccel > MAX_LINEAR_ACCELERATION) {
-					printf("EVALUATION CANCELED: max accel");
-					printf(" exceeded at time %f.", t);
-					printf(" Angular accel: %f, Linear accel: %f.\n",
-							angAccel, linAccel);
-					printf("Will give 0 fitness.\n");
-					accelerationCapExceeded = true;
-					break;
+					if(angAccel > configuration->getMaxAngularAcceleration() ||
+					   linAccel > configuration->getMaxLinearAcceleration()) {
+
+						printf("EVALUATION CANCELED: max accel");
+						printf(" exceeded at time %f.", t);
+						printf(" Angular accel: %f, Linear accel: %f.\n",
+								angAccel, linAccel);
+						printf("Will give %f fitness.\n", MIN_FITNESS);
+						accelerationCapExceeded = true;
+						break;
+					}
+
 				}
 
+				// save current velocities as previous
+				for(unsigned int j=0; j<3; j++) {
+					previousAngVel[j] = angVel[j];
+					previousLinVel[j] = linVel[j];
+				}
 			}
-
-			// save current velocities as previous
-			for(unsigned int j=0; j<3; j++) {
-				previousAngVel[j] = angVel[j];
-				previousLinVel[j] = linVel[j];
-			}
-#endif
 
 
 			float networkInput[MAX_INPUT_NEURONS];

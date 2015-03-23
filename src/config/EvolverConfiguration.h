@@ -279,6 +279,7 @@ typedef struct EvolverConfiguration {
 
 
 
+
 } EvolverConfiguration;
 
 } /* namespace robogen */
