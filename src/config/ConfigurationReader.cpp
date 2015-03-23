@@ -313,15 +313,6 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		motorNoiseLevel = vm["motorNoiseLevel"].as<float>();
 	}
 
-
-	if(vm.count("sensorNoiseLevel")) {
-		sensorNoiseLevel = vm["sensorNoiseLevel"].as<float>();
-	}
-
-	if(vm.count("motorNoiseLevel")) {
-		motorNoiseLevel = vm["motorNoiseLevel"].as<float>();
-	}
-
 	bool capAcceleration = false;
 	float maxLinearAcceleration = DEFAULT_MAX_LINEAR_ACCELERATION;
 	float maxAngularAcceleration = DEFAULT_MAX_ANGULAR_ACCELERATION;
