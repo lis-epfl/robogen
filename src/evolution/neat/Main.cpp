@@ -24,7 +24,7 @@ double evaluate(Genome& genome) {
     	inputs.push_back((i<2) ? 1 : 0);
     	inputs.push_back((i%2==0) ? 1 : 0);
     	inputs.push_back(1);
-    	double output = (i == 1 or i == 2) ? 1 : 0;
+    	double output = ((i == 1) || (i == 2)) ? 1 : 0;
         net.Flush();
         net.Input(inputs);
         for(int t=0; t<3; t++) {
