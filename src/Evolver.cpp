@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (argc != 4) {
-		std::cout << "Bad amount of arguments. " << std::endl
+		std::cout << "Incorrect number of arguments. " << std::endl
 				<< " Usage: robogen-evolver "
 						"<seed, INTEGER>, <output directory, STRING>, "
 						"<configuration file, STRING>" << std::endl;
