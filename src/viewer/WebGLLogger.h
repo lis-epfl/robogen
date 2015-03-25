@@ -40,35 +40,38 @@
 
 namespace robogen {
 
-	struct BodyDescriptor {
-		boost::shared_ptr<Model> model;
-		int bodyId;
-	};
+struct BodyDescriptor {
+	boost::shared_ptr<Model> model;
+	int bodyId;
+};
 
-	class WebGLLogger {
+class WebGLLogger {
 
-		public :
-			WebGLLogger(std::string in_filename, boost::shared_ptr<Robot> in_robot);
-			void log(double dt);
-			~ WebGLLogger();
-			static const char* STRUCTURE_TAG;
-			static const char* LOG_TAG;
+	public :
+		WebGLLogger(std::string inFileName,
+				boost::shared_ptr<Robot> inRobot);
+		void log(double dt);
+		~ WebGLLogger();
+		static const char* STRUCTURE_TAG;
+		static const char* LOG_TAG;
 
-		private :
-			boost::shared_ptr<Robot> robot;
-			std::string fileName;
-			json_t *jsonRoot;
-			json_t *jsonStructure;
-			json_t *jsonLog;
-			std::vector<struct BodyDescriptor> bodies;
+	private :
+		boost::shared_ptr<Robot> robot;
+		std::string fileName;
+		json_t *jsonRoot;
+		json_t *jsonStructure;
+		json_t *jsonLog;
+		std::vector<struct BodyDescriptor> bodies;
 
-			WebGLLogger(const WebGLLogger& that); //disable copy constructor;
-			const WebGLLogger& operator=(const WebGLLogger& that); //disable copy constructor
-			void generateBodyCollection();
-			void writeJSONHeaders();
-			void writeRobotStructure();
+		//disable copy constructor;
+		WebGLLogger(const WebGLLogger& that);
+		//disable copy constructor
+		const WebGLLogger& operator=(const WebGLLogger& that);
+		void generateBodyCollection();
+		void writeJSONHeaders();
+		void writeRobotStructure();
 
-	};
+};
 }
 
 #endif
