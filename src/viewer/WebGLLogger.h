@@ -53,6 +53,8 @@ namespace robogen {
 			~ WebGLLogger();
 			static const char* STRUCTURE_TAG;
 			static const char* LOG_TAG;
+			static const char* ATTITUDE_TAG;
+			static const char* POSITION_TAG;
 
 		private :
 			boost::shared_ptr<Robot> robot;
