@@ -104,9 +104,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		}
 
 
-		/***
-		 * Init the webGLLogger
-		 */
+
 
 		std::cout << "Evaluating individual " << robot->getId()
 				<< ", trial: " << scenario->getCurTrial()
@@ -142,9 +140,6 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			return SIMULATION_FAILURE;
 		}
 
-		// Init log
-        WebGLLogger myLogger("./hello.json", scenario->getRobot());
-
 		// Setup environment
 		boost::shared_ptr<Environment> env =
 				scenario->getEnvironment();
@@ -161,6 +156,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					<< std::endl;
 			return SIMULATION_FAILURE;
 		}
+
+		/***
+         * Init the webGLLogger
+         */
+        WebGLLogger webGLlogger("./hello.json", scenario->getRobot());
 
 
 #ifdef CAP_ACCELERATION
@@ -355,6 +355,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 							)->getCoreComponent()->getRootPosition());
 			}
 
+			webGLlogger.log(t);
 
 			t += step;
 
