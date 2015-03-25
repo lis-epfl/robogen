@@ -36,23 +36,38 @@
 #include "Robot.h"
 #include <string>
 #include <fstream>
-using namespace std;
+#include <jansson.h>
 
 namespace robogen {
+
+	struct BodyDescriptor {
+		boost::shared_ptr<Model> model;
+		int bodyId;
+	};
 
 	class WebGLLogger {
 
 		public :
-			void logRobot(boost::shared_ptr<Robot> robot, double time);
-
-			static boost::shared_ptr<WebGLLogger> getInstance();
-			static void setFileName(string);
+			WebGLLogger(std::string in_filename, boost::shared_ptr<Robot> in_robot);
+			void log(double dt);
+			~ WebGLLogger();
+			static const char* STRUCTURE_TAG;
+			static const char* LOG_TAG;
 
 		private :
-			static string fileName;
-			WebGLLogger();
-			ofstream fileHandler;
-			static boost::shared_ptr<WebGLLogger> _instance;
+			boost::shared_ptr<Robot> robot;
+			std::string fileName;
+			json_t *jsonRoot;
+			json_t *jsonStructure;
+			json_t *jsonLog;
+			std::vector<struct BodyDescriptor> bodies;
+
+			WebGLLogger(const WebGLLogger& that); //disable copy constructor;
+			const WebGLLogger& operator=(const WebGLLogger& that); //disable copy constructor
+			void generateBodyCollection();
+			void writeJSONHeaders();
+			void writeRobotStructure();
+
 	};
 }
 

@@ -103,6 +103,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			}
 		}
 
+
+		/***
+		 * Init the webGLLogger
+		 */
+
 		std::cout << "Evaluating individual " << robot->getId()
 				<< ", trial: " << scenario->getCurTrial()
 				<< std::endl;
@@ -137,6 +142,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			return SIMULATION_FAILURE;
 		}
 
+		// Init log
+        WebGLLogger myLogger("./hello.json", scenario->getRobot());
+
 		// Setup environment
 		boost::shared_ptr<Environment> env =
 				scenario->getEnvironment();
@@ -160,8 +168,6 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		dReal previousLinVel[3];
 		dReal previousAngVel[3];
 #endif
-
-		WebGLLogger::setFileName("out.json");
 
 		// ---------------------------------------
 		// Main Loop
@@ -349,7 +355,6 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 							)->getCoreComponent()->getRootPosition());
 			}
 
-			WebGLLogger::getInstance()->logRobot(scenario->getRobot(), t);
 
 			t += step;
 
