@@ -31,6 +31,7 @@
 #include "viewer/Viewer.h"
 #include "Models.h"
 #include "Robot.h"
+#include "viewer/WebGLLogger.h"
 
 
 // ODE World
@@ -159,6 +160,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		dReal previousLinVel[3];
 		dReal previousAngVel[3];
 #endif
+
+		WebGLLogger::setFileName("out.json");
 
 		// ---------------------------------------
 		// Main Loop
@@ -345,6 +348,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					scenario->getRobot(
 							)->getCoreComponent()->getRootPosition());
 			}
+
+			WebGLLogger::getInstance()->logRobot(scenario->getRobot(), t);
 
 			t += step;
 
