@@ -27,18 +27,26 @@ namespace robogen {
 	}
 
 	void WebGLLogger::generateBodyCollection() {
+		int nbMeshesIgnored = 0;
 		for (size_t i = 0; i < this->robot->getBodyParts().size(); ++i) {
 			boost::shared_ptr<Model> currentModel =
 					this->robot->getBodyParts()[i];
 			std::vector<int> ids = currentModel->getIDs();
 			for (std::vector<int>::iterator it = ids.begin(); it != ids.end();
 					++it) {
-				struct BodyDescriptor desc;
-				desc.model = currentModel;
-				desc.bodyId = *it;
-				this->bodies.push_back(desc);
+				std::string meshName = RobogenUtils::getMeshFile(currentModel, *it);
+				if(meshName.length() > 0) {
+					struct BodyDescriptor desc;
+					desc.model = currentModel;
+					desc.bodyId = *it;
+					this->bodies.push_back(desc);
+				} else {
+					++nbMeshesIgnored;
+				}
 			}
 		}
+
+		std::cout << nbMeshesIgnored << " have an empty string as mesh" << std::endl;
 	}
 	WebGLLogger::~WebGLLogger() {
 		json_dump_file(this->jsonRoot, this->fileName.c_str(), 0);
@@ -67,8 +75,6 @@ namespace robogen {
 		json_t* positions = json_array();
 		json_object_set_new(this->jsonLog, obKey.c_str(), positions);
 
-		std::cout << "logInited" << std::endl;
-
 		for (std::vector<struct BodyDescriptor>::iterator it =
 				this->bodies.begin(); it != this->bodies.end(); ++it) {
 			json_t* bodyLog = json_object();
@@ -78,13 +84,15 @@ namespace robogen {
 			json_object_set_new(bodyLog, WebGLLogger::POSITION_TAG, position);
 			json_array_append(positions, bodyLog);
 			osg::Vec3 relativePosition = RobogenUtils::getRelativePosition(
-					it->model, it->bodyId);
+					it->model, it->bodyId)/1000;
 			osg::Quat relativeAttitude = RobogenUtils::getRelativeAttitude(
 					it->model, it->bodyId);
+
 			osg::Vec3 currentPosition = it->model->getBodyPosition(it->bodyId);
 			osg::Quat currentAttitude = it->model->getBodyAttitude(it->bodyId);
+			std::cout << it->bodyId << std::endl;
+			currentAttitude = relativeAttitude * currentAttitude;
 			currentPosition += relativePosition;
-			currentAttitude += relativeAttitude;
 
 			json_array_append(position, json_real(currentPosition.x()));
 			json_array_append(position, json_real(currentPosition.y()));
