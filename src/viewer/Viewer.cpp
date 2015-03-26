@@ -202,6 +202,13 @@ bool Viewer::configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
 	}
 
 
+	// show global axis at origin
+	osg::ref_ptr<osg::PositionAttitudeTransform> pat(
+				new osg::PositionAttitudeTransform());
+
+
+	root->addChild(pat);
+	RenderModel::attachAxis(pat);
 
 	// ---------------------------------------
 	// Setup OSG viewer
