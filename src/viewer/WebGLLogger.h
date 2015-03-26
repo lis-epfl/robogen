@@ -55,6 +55,9 @@ public :
 	static const char* LOG_TAG;
 	static const char* ATTITUDE_TAG;
 	static const char* POSITION_TAG;
+	static const char* REL_POS_TAG;
+	static const char* REL_ATT_TAG;
+	static const char* MESH_PATH;
 
 private :
 	boost::shared_ptr<Robot> robot;
