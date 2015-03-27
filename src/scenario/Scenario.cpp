@@ -86,8 +86,8 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 	robot->rotateRobot(roboRot);
 	robot->getBB(minX, maxX, minY, maxY, minZ, maxZ);
 	robot->translateRobot(
-			osg::Vec3(startingPosition.x() - (maxX - minX) / 2,
-					startingPosition.y() - (maxY - minY) / 2,
+			osg::Vec3(startingPosition.x(),
+					startingPosition.y(),
 					terrainConfig->getHeight() + inMm(2) - minZ));
 	robot->getBB(minX, maxX, minY, maxY, minZ, maxZ);
 
