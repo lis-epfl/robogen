@@ -310,7 +310,7 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			isNeuronInput.insert(
 					std::pair<std::string, bool>(neuron.id(), true));
 
-			if (nInputs >= MAX_INPUT_NEURONS) {
+			if (nInputs > MAX_INPUT_NEURONS) {
 				std::cout << "The number of input neurons(" << nInputs
 						<< ") is greater than the maximum allowed one ("
 						<< MAX_INPUT_NEURONS << ")" << std::endl;
