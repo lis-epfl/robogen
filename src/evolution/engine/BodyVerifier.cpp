@@ -10,6 +10,9 @@
 #include "utils/RobogenUtils.h"
 #include "model/Model.h"
 
+// Comment the following if you don't want OSG popping up all the time
+//#define VISUAL_DEBUG
+
 namespace robogen {
 
 //std::vector<dGeomID> BodyVerifier::cylinders;
@@ -73,7 +76,8 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	// Initialize OSG
 	osgViewer::Viewer viewer;
 	viewer.setUpViewInWindow(200, 200, 800, 600);
-	osg::ref_ptr<KeyboardHandler> keyboardEvent(new KeyboardHandler());
+	osg::ref_ptr<KeyboardHandler> keyboardEvent(new KeyboardHandler(true,
+			true, true));
 	viewer.addEventHandler(keyboardEvent.get());
 	osg::ref_ptr<osg::Camera> camera = viewer.getCamera();
 #endif
@@ -135,7 +139,33 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 		}
 
 		dSpaceCollide(odeSpace, (void *) collisionData, collisionCallback);
+		std::vector<std::pair<dBodyID, dBodyID> >::iterator iter;
+		for (iter = collisionData->offendingBodies.begin();
+				iter != collisionData->offendingBodies.end(); ) {
+			std::string bodyA = dBodyToPartID[iter->first];
+			std::string bodyB = dBodyToPartID[iter->second];
+			//std::cout << bodyA << " " << bodyB  << std::endl;
+
+			//std:: cout << robotRep.getBody().at(bodyA).lock()->getId() << std::endl;
+			//std:: cout << robotRep.getBody().at(bodyB).lock()->getId() << std::endl;
+
+			// purge out parent/child pairs
+			// TODO is there a better way to do this?  Stopped working do to
+			// overlaps in components
+			if (robotRep.getBody().at(bodyA).lock()->getParent() ==
+					robotRep.getBody().at(bodyB).lock().get() ||
+				robotRep.getBody().at(bodyB).lock()->getParent() ==
+					robotRep.getBody().at(bodyA).lock().get() ) {
+				//std::cout << "parent/child\n";
+				iter = collisionData->offendingBodies.erase(iter);
+
+			} else {
+				++iter;
+			}
+		}
+
 		if (collisionData->offendingBodies.size()) {
+			//std::cout << "self intersection!" << std::endl;
 			success = false;
 			errorCode = SELF_INTERSECTION;
 		} else if(collisionData->cylinders.size() > 0) {
@@ -150,6 +180,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 			}
 			dSpaceCollide(odeSpace, (void *) collisionData, collisionCallback);
 			if ( collisionData->offendingBodies.size() ) {
+				//std::cout << "self intersection!" << std::endl;
 				success = false;
 				errorCode = SELF_INTERSECTION;
 			}
@@ -162,6 +193,8 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 							dBodyToPartID[collisionData->offendingBodies[i].first],
 							dBodyToPartID[collisionData->offendingBodies[i].second
 										  ]));
+
+
 		}
 
 	#ifdef VISUAL_DEBUG
