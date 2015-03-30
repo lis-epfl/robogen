@@ -93,9 +93,18 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 	minBrainPhaseOffset = -1;
 	maxBrainPhaseOffset = 1;
+	brainPhaseOffsetSigma = 0.4;
 
 	minBrainAmplitude = 0;
 	maxBrainAmplitude = 1;
+	brainAmplitudeSigma = 0.2;
+
+	minBrainPeriod = 0.0;
+	maxBrainPeriod = 2.0;
+	brainPeriodSigma = 0.2;
+
+
+
 
 	// DON'T AUTO-INDENT THE FOLLOWING ON ECLIPSE:
 	desc.add_options()
@@ -382,10 +391,19 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		return false;
 	}
 
+	if (vm.count("pBrainMutate") == 0) {
+		std::cout << "Must specify pBrainMutate" << std::endl;
+		return false;
+	}
 	// - 0. <= probabilities <= 1.
 	if (pBrainMutate > 1. || pBrainMutate < 0.){
 		std::cout << "Brain mutation probability parameter " << pBrainMutate <<
 				" not between 0 and 1!" << std::endl;
+		return false;
+	}
+
+	if (vm.count("pBrainCrossover") == 0) {
+		std::cout << "Must specify pBrainCrossover" << std::endl;
 		return false;
 	}
 	if (pBrainCrossover > 1. || pBrainCrossover < 0.){
