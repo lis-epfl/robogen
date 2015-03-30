@@ -117,9 +117,8 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 				<< a->getOrientationToRoot() << std::endl;
 		#endif
 	} else if (boost::dynamic_pointer_cast<ParametricBrickModel>(a)) {
-		a->setOrientationToParentSlot((a->getOrientationToParentSlot() +
-									(4 - a->getOrientationToRoot())) % 4
-								  );
+		a->setOrientationToParentSlot((a->getOrientationToParentSlot() + 1 +
+									(4 - a->getOrientationToRoot())) % 4);
 	}
 	#endif
 	float orientation = 90. * a->getOrientationToParentSlot();
