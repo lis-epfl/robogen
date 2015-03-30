@@ -101,6 +101,10 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 			("maxAngularAcceleration",boost::program_options::value<float>(),
 					"Maximum angular acceleration (if capAcceleration."\
 					" is true")
+			("maxDirectionShiftsPerSecond",boost::program_options::value<int>(),
+					"Maximum number of direction shifts per second"\
+					"for testing motor burnout.  If not set, then there is no"\
+					"cap")
 			("startPositionConfigFile",
 					boost::program_options::value<std::string>(),
 					"Start Positions Configuration File");
@@ -329,13 +333,19 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		maxAngularAcceleration = vm["maxAngularAcceleration"].as<float>();
 	}
 
+	int maxDirectionShiftsPerSecond = -1;
+	if(vm.count("maxDirectionShiftsPerSecond")) {
+		maxDirectionShiftsPerSecond = vm["maxDirectionShiftsPerSecond"
+		                                 ].as<int>();
+	}
+
 	return boost::shared_ptr<RobogenConfig>(
 			new RobogenConfig(simulationScenario, nTimesteps,
 					timeStep, actuationPeriod, terrain,
 					obstacles, obstaclesConfigFile, startPositions,
 					startPositionFile, lightSourceHeight, sensorNoiseLevel,
 					motorNoiseLevel, capAcceleration, maxLinearAcceleration,
-					maxAngularAcceleration));
+					maxAngularAcceleration, maxDirectionShiftsPerSecond));
 
 }
 
@@ -541,7 +551,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 					simulatorConf.motornoiselevel(),
 					simulatorConf.capacceleration(),
 					simulatorConf.maxlinearacceleration(),
-					simulatorConf.maxangularacceleration()
+					simulatorConf.maxangularacceleration(),
+					simulatorConf.maxdirectionshiftspersecond()
 					));
 
 }

@@ -123,6 +123,16 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		std::vector<boost::shared_ptr<Motor> > motors =
 				robot->getMotors();
 
+		// set cap for checking motor burnout
+		for(unsigned int i=0; i< motors.size(); i++) {
+			if (boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
+				boost::shared_ptr<ServoMotor> motor =
+						boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
+				motor->setMaxDirectionShiftsPerSecond(
+						configuration->getMaxDirectionShiftsPerSecond());
+			}
+		}
+
 		// Register brain and body parts
 		boost::shared_ptr<NeuralNetwork> neuralNetwork =
 				robot->getBrain();

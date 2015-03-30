@@ -61,7 +61,7 @@ public:
 			std::string startPosFile, float lightSourceHeight,
 			float sensorNoiseLevel, float motorNoiseLevel,
 			bool capAcceleration, float maxLinearAcceleration,
-			float maxAngularAcceleration) :
+			float maxAngularAcceleration, int maxDirectionShiftsPerSecond) :
 				scenario_(scenario), timeSteps_(timeSteps),
 				timeStepLength_(timeStepLength),
 				actuationPeriod_(actuationPeriod),
@@ -74,7 +74,8 @@ public:
 				motorNoiseLevel_(motorNoiseLevel),
 				capAcceleration_(capAcceleration),
 				maxLinearAcceleration_(maxLinearAcceleration),
-				maxAngularAcceleration_(maxAngularAcceleration){
+				maxAngularAcceleration_(maxAngularAcceleration),
+				maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -209,6 +210,14 @@ public:
 	}
 
 	/**
+	 * @return max direction shifts per second for testing motor burnout
+	 * 		if -1, then do not check burnout
+	 */
+	int getMaxDirectionShiftsPerSecond() {
+		return maxDirectionShiftsPerSecond_;
+	}
+
+	/**
 	 * Convert configuration into configuration message.
 	 */
 	robogenMessage::SimulatorConf serialize() const{
@@ -230,6 +239,8 @@ public:
 		ret.set_capacceleration(capAcceleration_);
 		ret.set_maxlinearacceleration(maxLinearAcceleration_);
 		ret.set_maxangularacceleration(maxAngularAcceleration_);
+		ret.set_maxdirectionshiftspersecond(maxDirectionShiftsPerSecond_);
+
 		obstacles_->serialize(ret);
 		startPositions_->serialize(ret);
 		return ret;
@@ -318,6 +329,11 @@ private:
 	 *  Maximum allowed angular acceleration if acceleration is capped
 	 */
 	float maxAngularAcceleration_;
+
+	/**
+	 *  Maximum allowed direction shifts per second (if specified)
+	 */
+	int maxDirectionShiftsPerSecond_;
 };
 
 }
