@@ -32,6 +32,8 @@
 #include "evolution/engine/Mutator.h"
 #include "PartList.h"
 
+//#define DEBUG_MUTATE
+
 namespace robogen {
 
 Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
@@ -173,11 +175,11 @@ bool Mutator::mutate(boost::shared_ptr<RobotRepresentation>& robot) {
 	// mutate brain TODO conf bits?
 	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
 			|| conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
-		mutated = (mutated || this->mutateBrain(robot));
+		mutated = (this->mutateBrain(robot) || mutated);
 	}
 
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
-		mutated = (mutated || this->mutateBody(robot));
+		mutated = (this->mutateBody(robot) || mutated);
 	}
 
 	return mutated;
@@ -319,6 +321,9 @@ typedef std::pair<MutationOperator,
 		boost::random::bernoulli_distribution<double> > MutOpPair;
 
 bool Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
+#ifdef DEBUG_MUTATE
+	std::cout << "mutating body" << std::endl;
+#endif
 	bool mutated = false;
 	MutOpPair mutOpPairs[] = { std::make_pair(&Mutator::removeSubtree,
 			subtreeRemovalDist_), std::make_pair(&Mutator::duplicateSubtree,
@@ -340,9 +345,11 @@ bool Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 			for (unsigned int attempt = 0;
 					attempt < conf_->maxBodyMutationAttempts; ++attempt) {
 
+#ifdef DEBUG_MUTATE
 				std::cout << "Robot was mutated using mutation " << i << std::endl;
 							std::cout << "OldBot: " << std::endl;
 							std::cout << robot->toString() << std::endl;
+#endif
 
 				boost::shared_ptr<RobotRepresentation> newBot =
 						boost::shared_ptr<RobotRepresentation>(
@@ -350,10 +357,11 @@ bool Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 
 				bool mutationSuccess = (this->*mutOp)(newBot);
 
-
-
-							std::cout << "NewBot: " << std::endl;
-							std::cout << newBot->toString() << std::endl;
+#ifdef DEBUG_MUTATE
+				std::cout << "mutationSuccess " << mutationSuccess << std::endl;
+				std::cout << "NewBot: " << std::endl;
+				std::cout << newBot->toString() << std::endl;
+#endif
 
 				int errorCode;
 				std::vector<std::pair<std::string, std::string> > affectedBodyParts;
@@ -375,6 +383,9 @@ bool Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 			}
 		}
 	}
+#ifdef DEBUG_MUTATE
+	std::cout << "body mutated " << mutated << std::endl;
+#endif
 	return mutated;
 }
 
