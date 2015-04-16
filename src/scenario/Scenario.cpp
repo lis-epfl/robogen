@@ -58,12 +58,16 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 
 	terrain_.reset(new Terrain(odeWorld_, odeSpace_));
 	if (terrainConfig->isFlat()) {
-		terrain_->initFlat(terrainConfig->getLength(),
-				terrainConfig->getWidth());
+		if(!terrain_->initFlat(terrainConfig->getLength(),
+				terrainConfig->getWidth())) {
+			return false;
+		}
 	} else {
-		terrain_->initRough(terrainConfig->getHeightFieldFileName(),
+		if(!terrain_->initRough(terrainConfig->getHeightFieldFileName(),
 				terrainConfig->getLength(), terrainConfig->getWidth(),
-				terrainConfig->getHeight());
+				terrainConfig->getHeight())) {
+			return false;
+		}
 	}
 
 	// Setup robot position

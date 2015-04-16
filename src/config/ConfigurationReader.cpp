@@ -56,7 +56,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	desc.add_options()
 			("terrainType",
 					boost::program_options::value<std::string>(),
-					"Terrain type: flat or rough")
+					"Terrain type: flat or rugged")
 			("terrainHeightField",
 					boost::program_options::value<std::string>(),
 					"Height Field for terrain generation")
@@ -150,6 +150,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		return boost::shared_ptr<RobogenConfig>();
 	}
 
+	const boost::filesystem::path filePath(fileName);
+
 	terrainType = vm["terrainType"].as<std::string>();
 	terrainLength = vm["terrainLength"].as<float>();
 	terrainWidth = vm["terrainWidth"].as<float>();
@@ -179,6 +181,17 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		}
 
 		terrainHeightField = vm["terrainHeightField"].as<std::string>();
+		const boost::filesystem::path terrainHeightFieldFilePath(
+				terrainHeightField);
+		if (!terrainHeightFieldFilePath.is_absolute()) {
+			const boost::filesystem::path absolutePath =
+					boost::filesystem::absolute(terrainHeightFieldFilePath,
+							filePath.parent_path());
+			terrainHeightField = absolutePath.string();
+		}
+
+
+
 		terrainHeight = vm["terrainHeight"].as<float>();
 
 		terrain.reset(
@@ -199,7 +212,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	}
 
 
-	const boost::filesystem::path filePath(fileName);
+
 
 	std::string obstaclesConfigFile =
 			vm["obstaclesConfigFile"].as<std::string>();
