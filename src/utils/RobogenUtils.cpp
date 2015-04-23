@@ -87,17 +87,17 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 			b->setOrientationToParentSlot(0);
 		}
 		if(slotB == CoreComponentModel::LEFT_FACE_SLOT) {
-			a->setParentOrientation((b->getOrientationToRoot() + 2) % 4);
+			a->setParentOrientation(modulo((b->getOrientationToRoot() + 2), 4));
 		} else if(slotB == CoreComponentModel::RIGHT_FACE_SLOT) {
 			a->setParentOrientation(b->getOrientationToRoot());
 		} else if(slotB == CoreComponentModel::FRONT_FACE_SLOT) {
-			a->setParentOrientation((b->getOrientationToRoot() + 3) % 4);
+			a->setParentOrientation(modulo((b->getOrientationToRoot() + 3), 4));
 		} else if(slotB == CoreComponentModel::BACK_FACE_SLOT) {
-			a->setParentOrientation((b->getOrientationToRoot() + 3) % 4);
+			a->setParentOrientation(modulo((b->getOrientationToRoot() + 3), 4));
 		}
 
 	//} else if (boost::dynamic_pointer_cast<ParametricBrickModel>(b)) {
-	//	a->setParentOrientation((b->getOrientationToRoot() + 1) % 4);
+	//	a->setParentOrientation(modulo((b->getOrientationToRoot() + 1), 4));
 	} else {
 		a->setParentOrientation(b->getOrientationToRoot());
 	}
@@ -108,8 +108,8 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 				<< a->getOrientationToRoot() << std::endl;
 		#endif
 
-		a->setOrientationToParentSlot((a->getOrientationToParentSlot() +
-										(4 - a->getOrientationToRoot())) % 4
+		a->setOrientationToParentSlot(modulo((a->getOrientationToParentSlot() +
+										(4 - a->getOrientationToRoot())), 4)
 									  );
 		#ifdef DEBUG_CONNECT
 		std::cout << "After update: orientation to parent " <<
@@ -117,8 +117,8 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 				<< a->getOrientationToRoot() << std::endl;
 		#endif
 	} else if (boost::dynamic_pointer_cast<ParametricBrickModel>(a)) {
-		a->setOrientationToParentSlot((a->getOrientationToParentSlot() + 1 +
-									(4 - a->getOrientationToRoot())) % 4);
+		a->setOrientationToParentSlot(modulo((a->getOrientationToParentSlot() + 1 +
+									(4 - a->getOrientationToRoot())), 4));
 	}
 	#endif
 	float orientation = 90. * a->getOrientationToParentSlot();
