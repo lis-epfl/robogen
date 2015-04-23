@@ -346,7 +346,7 @@ bool Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 					attempt < conf_->maxBodyMutationAttempts; ++attempt) {
 
 #ifdef DEBUG_MUTATE
-				std::cout << "Robot was mutated using mutation " << i << std::endl;
+				std::cout << "Robot will be mutated using mutation " << i << std::endl;
 							std::cout << "OldBot: " << std::endl;
 							std::cout << robot->toString() << std::endl;
 #endif
@@ -399,9 +399,13 @@ bool Mutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 	std::advance(subtreeRootPart, dist(rng_));
 
 	// Trim the body tree at the selected random body node
-	robot->trimBodyAt(subtreeRootPart->first);
+	bool success = robot->trimBodyAt(subtreeRootPart->first);
 
-	return true;
+#ifdef DEBUG_MUTATE
+	std::cout << "Removing subtree at" << subtreeRootPart->first  << " " << success << std::endl;
+#endif
+
+	return success;
 }
 
 bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
@@ -437,7 +441,13 @@ bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 
 		boost::random::uniform_int_distribution<> freeSlotsDist(0,
 				freeSlots.size() - 1);
-		unsigned int selectedSlotId = freeSlotsDist(rng_);
+		unsigned int selectedSlotId = freeSlots[freeSlotsDist(rng_)];
+
+#ifdef DEBUG_MUTATE
+		std::cout << "duplicating subtree rooted at " << subtreeRootPart->first
+				<< " to " << subtreeDestPart->first << " at slot " <<
+				selectedSlotId << std::endl;
+#endif
 
 		return robot->duplicateSubTree(subtreeRootPart->first,
 				subtreeDestPart->first, selectedSlotId);
@@ -522,13 +532,17 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	boost::shared_ptr<PartRepresentation> parentPart = parent->second.lock();
 
+	std::vector<unsigned int> freeSlots = parentPart->getFreeSlots();
+
 	// Sample a random slot
-	if (parentPart->getArity() == 0) {
+	if (freeSlots.size() == 0) {
 		return false;
 	}
-	boost::random::uniform_int_distribution<> distSlot(0,
-			parentPart->getArity() - 1);
-	unsigned int parentSlot = distSlot(rng_);
+
+	boost::random::uniform_int_distribution<> freeSlotsDist(0,
+					freeSlots.size() - 1);
+	unsigned int parentSlot = freeSlots[freeSlotsDist(rng_)];
+
 
 	// Select node type
 	boost::random::uniform_int_distribution<> distType(0,
@@ -575,7 +589,11 @@ bool Mutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
 			idPartMap.begin();
 	std::advance(partToRemove, dist(rng_));
 
-	return robot->removePart(partToRemove->first);
+	bool success= robot->removePart(partToRemove->first);
+#ifdef DEBUG_MUTATE
+	std::cout << "Removed " << partToRemove->first << " " << success << std::endl;
+#endif
+	return success;
 
 }
 
