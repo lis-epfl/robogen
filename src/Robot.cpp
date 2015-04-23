@@ -103,13 +103,13 @@ bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
 	const robogenMessage::Body& body = robotSpec.body();
 	const robogenMessage::Brain& brain = robotSpec.brain();
 	if (!this->decodeBody(body)) {
-		std::cout << "Cannot decode the body of the robot. Exiting."
+		std::cout << "Cannot decode the body of the robot."
 				<< std::endl;
 		return false;
 	}
 	// decode brain needs to come after decode body, as IO reordering
 	if (!this->decodeBrain(brain)) {
-		std::cout << "Cannot decode the brain of the robot. Exiting."
+		std::cout << "Cannot decode the brain of the robot."
 				<< std::endl;
 		return false;
 	}
@@ -158,7 +158,7 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 		if (model == NULL) {
 			std::cerr << "Unrecognized body part: " << bodyPart.id()
-					<< ". Exiting." << std::endl;
+					<< "." << std::endl;
 			return false;
 		}
 
