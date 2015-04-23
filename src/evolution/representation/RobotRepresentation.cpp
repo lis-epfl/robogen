@@ -623,20 +623,20 @@ bool RobotRepresentation::trimBodyAt(const std::string& id) {
 		std::cout << "Trying to remove root body part!" << std::endl;
 		return false;
 	}
-	std::cout << "Has references: " << idToPart_[id].lock().use_count()
-			<< std::endl;
+	//std::cout << "Has references: " << idToPart_[id].lock().use_count()
+	//		<< std::endl;
 	if (!parent->setChild(position, boost::shared_ptr<PartRepresentation>())) {
 		std::cout << "Failed trimming robot body!" << std::endl;
 		return false;
 	}
 	if (!parent->getChild(position)) {
-		std::cout << "Successfully removed" << std::endl;
+		//std::cout << "Successfully removed" << std::endl;
 	}
 	// need to update the id to body part map! Easily done with weak pointers
 	for (IdPartMap::iterator it = idToPart_.begin(); it != idToPart_.end();) {
 		if (!it->second.lock()) {
 			idToPart_.erase(it++);
-			std::cout << "Had a part to erase! " << parent << std::endl;
+			//std::cout << "Had a part to erase! " << parent << std::endl;
 		} else {
 			++it;
 		}
