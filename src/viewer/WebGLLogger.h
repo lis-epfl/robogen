@@ -48,7 +48,7 @@ struct BodyDescriptor {
 class WebGLLogger {
 
 public :
-	WebGLLogger(std::string inFileName, boost::shared_ptr<Robot> inRobot);
+	WebGLLogger(std::string inFileName, boost::shared_ptr<Robot> inRobot, double targetFramerate = 120.0);
 	void log(double dt);
 	~ WebGLLogger();
 	static const char* STRUCTURE_TAG;
@@ -60,6 +60,8 @@ public :
 	static const char* MESH_PATH;
 
 private :
+	double frameRate;
+	double lastFrame;
 	boost::shared_ptr<Robot> robot;
 	std::string fileName;
 	json_t *jsonRoot;
