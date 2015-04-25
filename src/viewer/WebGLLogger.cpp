@@ -6,12 +6,7 @@
 #include <boost/lexical_cast.hpp>
 #include <osg/Quat>
 #include <osg/Vec3>
-#include "render/Mesh.h"
 #include "Robot.h"
-#include <osg/Node>
-#include <osgDB/ReadFile>
-
-
 
 namespace robogen {
 
@@ -22,7 +17,6 @@ const char *WebGLLogger::ATTITUDE_TAG = "attitude";
 const char *WebGLLogger::REL_POS_TAG = "rel_position";
 const char *WebGLLogger::REL_ATT_TAG = "rel_attitude";
 const char *WebGLLogger::MESH_PATH = "filename";
-const char *WebGLLogger::CENTER_SHIFT_TAG = "center";
 
 WebGLLogger::WebGLLogger(std::string inFileName,
 		boost::shared_ptr<Robot> inRobot) :
@@ -72,31 +66,20 @@ void WebGLLogger::writeRobotStructure() {
 		json_t* obDescriptor = json_object();
 		json_t* relAttitude = json_array();
 		json_t* relPosition = json_array();
-		json_t* shiftPos = json_array();
-		std::string filename = RobogenUtils::getMeshFile(it->model, it->bodyId);
-
 		json_object_set_new(obDescriptor, WebGLLogger::MESH_PATH,
-				json_string(filename.c_str()));
+				json_string(
+						RobogenUtils::getMeshFile(it->model, it->bodyId).c_str()));
 
 		json_array_append(relAttitude, json_real(relativeAttitude.x()));
 		json_array_append(relAttitude, json_real(relativeAttitude.y()));
 		json_array_append(relAttitude, json_real(relativeAttitude.z()));
 		json_array_append(relAttitude, json_real(relativeAttitude.w()));
-		json_object_set_new(obDescriptor, WebGLLogger::REL_ATT_TAG,
-				relAttitude);
+		json_object_set_new(obDescriptor, WebGLLogger::REL_ATT_TAG, relAttitude);
 
 		json_array_append(relPosition, json_real(relativePosition.x()));
 		json_array_append(relPosition, json_real(relativePosition.y()));
 		json_array_append(relPosition, json_real(relativePosition.z()));
-		json_object_set_new(obDescriptor, WebGLLogger::REL_POS_TAG,
-				relPosition);
-
-		osg::Node* node(osgDB::readNodeFile(filename));
-		osg::Vec3 shiftPosition(node->getBound().center());
-		json_array_append(shiftPos, json_real(shiftPosition.x()));
-		json_array_append(shiftPos, json_real(shiftPosition.y()));
-		json_array_append(shiftPos, json_real(shiftPosition.z()));
-		json_object_set_new(obDescriptor, WebGLLogger::CENTER_SHIFT_TAG, shiftPos);
+		json_object_set_new(obDescriptor, WebGLLogger::REL_POS_TAG, relPosition);
 
 		json_array_append(this->jsonStructure, obDescriptor);
 	}

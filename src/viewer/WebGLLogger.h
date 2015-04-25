@@ -58,7 +58,6 @@ public :
 	static const char* REL_POS_TAG;
 	static const char* REL_ATT_TAG;
 	static const char* MESH_PATH;
-	static const char* CENTER_SHIFT_TAG;
 
 private :
 	boost::shared_ptr<Robot> robot;
