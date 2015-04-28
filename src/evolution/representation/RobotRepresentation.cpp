@@ -509,6 +509,10 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	file.close();
 
 	maxid_ = 1000;
+
+	//TODO loop through existing ids to find what new maxid should be.
+
+
 	return true;
 }
 
