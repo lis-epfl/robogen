@@ -74,7 +74,15 @@ def write_brain(output, brain):
                 output.write(" ")
                 output.write(neuron["id"].split("-")[1])
                 output.write(" ")
-                output.write(str(neuron["bias"]))
+                if neuron["type"] == "oscillator" :
+                    output.write("oscillator ")
+                    output.write(str(neuron["period"]))
+                    output.write(" ")
+                    output.write(str(neuron["phaseOffset"]))
+                    output.write(" ")
+                    output.write(str(neuron["gain"]))
+                else :
+                    output.write(str(neuron["bias"]))
                 output.write("\n")
         
 if __name__ == "__main__":

@@ -509,6 +509,21 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	file.close();
 
 	maxid_ = 1000;
+
+	// loop through existing ids to find what new maxid should be.
+	// this is necessary when trying to seed evolution with a previously
+	// evolved morphology
+	for(IdPartMap::iterator i = idToPart_.begin(); i!= idToPart_.end(); ++i) {
+		if(i->first.substr(0,4).compare("myid") == 0) {
+			int idVal = atoi(i->first.substr(4).c_str());
+			if (idVal >= maxid_) {
+				maxid_ = idVal + 1;
+			}
+		}
+	}
+
+
+
 	return true;
 }
 
@@ -623,20 +638,20 @@ bool RobotRepresentation::trimBodyAt(const std::string& id) {
 		std::cout << "Trying to remove root body part!" << std::endl;
 		return false;
 	}
-	std::cout << "Has references: " << idToPart_[id].lock().use_count()
-			<< std::endl;
+	//std::cout << "Has references: " << idToPart_[id].lock().use_count()
+	//		<< std::endl;
 	if (!parent->setChild(position, boost::shared_ptr<PartRepresentation>())) {
 		std::cout << "Failed trimming robot body!" << std::endl;
 		return false;
 	}
 	if (!parent->getChild(position)) {
-		std::cout << "Successfully removed" << std::endl;
+		//std::cout << "Successfully removed" << std::endl;
 	}
 	// need to update the id to body part map! Easily done with weak pointers
 	for (IdPartMap::iterator it = idToPart_.begin(); it != idToPart_.end();) {
 		if (!it->second.lock()) {
 			idToPart_.erase(it++);
-			std::cout << "Had a part to erase! " << parent << std::endl;
+			//std::cout << "Had a part to erase! " << parent << std::endl;
 		} else {
 			++it;
 		}

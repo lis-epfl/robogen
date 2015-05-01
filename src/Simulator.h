@@ -39,9 +39,6 @@
 #include "viewer/FileViewerLog.h"
 #include "viewer/Viewer.h"
 
-#define CAP_ACCELERATION
-#define MAX_LINEAR_ACCELERATION (15.0)
-#define MAX_ANGULAR_ACCELERATION (25.0)
 #define MIN_FITNESS (-10000.0)
 
 namespace robogen{

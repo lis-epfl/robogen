@@ -47,22 +47,21 @@ const float ServoMotor::MAX_POS_RAD = (45 * M_PI / 180);
 const float ServoMotor::MIN_VELOCITY = -(50.0/60.0) * 2 * M_PI;
 const float ServoMotor::MAX_VELOCITY = (50.0/60.0) * 2 * M_PI;
 
-// TODO find what this should be before burnout is likely
-const int ServoMotor::MAX_DIRECTION_SHIFTS_PER_SECOND = 15;
-
 ServoMotor::ServoMotor(dJointID joint, float maxForce, float gain,
-		ioPair id) : Motor(id),
+		ioPair id, int maxDirectionShiftsPerSecond) : Motor(id),
 		joint_(joint), maxForce_(maxForce), gain_(gain),
 		isVelocityDriven_(false),
-		internalCounter_(0), isBurntOut_(false) {
+		internalCounter_(0), isBurntOut_(false),
+		maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond) {
 	dJointSetHingeParam(joint_, dParamFMax, maxForce_);
 }
 
 ServoMotor::ServoMotor(dJointID joint, float maxForce,
-		ioPair id) : Motor(id),
+		ioPair id, int maxDirectionShiftsPerSecond) : Motor(id),
 		joint_(joint), maxForce_(maxForce), gain_(0),
 		isVelocityDriven_(true),
-		internalCounter_(0), isBurntOut_(false) {
+		internalCounter_(0), isBurntOut_(false),
+		maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond) {
 	dJointSetHingeParam(joint_, dParamFMax, maxForce_);
 }
 
@@ -91,7 +90,7 @@ void ServoMotor::testBurnout(float velocity, float step) {
 	}
 
 	// considering previous half-second of simulated time
-	if ((numDirectionFlips * 2) > MAX_DIRECTION_SHIFTS_PER_SECOND) {
+	if ((numDirectionFlips * 2) > maxDirectionShiftsPerSecond_) {
 		std::cout << "motor burnt out!" << std::endl;
 		isBurntOut_ = true;
 	}
@@ -129,7 +128,8 @@ void ServoMotor::setPosition(float position, float step) {
 		dJointSetHingeParam(joint_, dParamVel, 0);
 	}
 
-	//testBurnout(velocity, step);
+	if(maxDirectionShiftsPerSecond_ != -1)
+		testBurnout(velocity, step);
 
 }
 
@@ -155,7 +155,8 @@ void ServoMotor::setVelocity(float velocity, float step) {
 		dJointSetHingeParam(joint_, dParamVel, velocity);
 	}
 
-	//testBurnout(velocity, step);
+	if(maxDirectionShiftsPerSecond_ != -1)
+		testBurnout(velocity, step);
 }
 
 bool ServoMotor::isVelocityDriven() {
@@ -166,6 +167,9 @@ bool ServoMotor::isBurntOut() {
 	return isBurntOut_;
 }
 
-
+void ServoMotor::setMaxDirectionShiftsPerSecond(int
+		maxDirectionShiftsPerSecond) {
+	maxDirectionShiftsPerSecond_ = maxDirectionShiftsPerSecond;
+}
 
 }

@@ -136,8 +136,8 @@ dBodyID Model::getBody(int id) {
 	std::map<int, dBodyID>::iterator it = this->bodies_.find(id);
 	if (it == this->bodies_.end()) {
 		std::cout
-				<< "[Model] Error: The specified body does not exists in this model"
-				<< std::endl;
+				<< "[Model] Error: The specified body does not exists in this "
+				<< " model" << std::endl;
 		assert(it != this->bodies_.end());
 		return NULL;
 	}
@@ -292,9 +292,8 @@ bool Model::setOrientationToParentSlot(int orientation){
 	}
 	int deltaOrientation = orientation - this->orientationToParentSlot_ ;
 	this->orientationToParentSlot_ = orientation;
-	this->orientationToRoot_ = (this->orientationToRoot_ +
-								deltaOrientation) % 4;
-
+	this->orientationToRoot_ = modulo(this->orientationToRoot_ +
+										deltaOrientation, 4);
 	return true;
 }
 
@@ -308,8 +307,8 @@ bool Model::setParentOrientation(int orientation) {
 				" between 0 and 3." << std::endl;
 		return false;
 	}
-	this->orientationToRoot_ = (this->getOrientationToParentSlot() +
-								orientation) % 4;
+	this->orientationToRoot_ = modulo(this->getOrientationToParentSlot() +
+								orientation, 4);
 	return true;
 }
 
