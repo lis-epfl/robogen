@@ -1,9 +1,16 @@
 #include "viewer/WebGLLogger.h"
 #include <Models.h>
 #include <utils/RobogenUtils.h>
+#include <scenario/Terrain.h>
 #include <iostream>
 #include <jansson.h>
 #include <boost/lexical_cast.hpp>
+#include <osg/ref_ptr>
+#include <osg/Geode>
+#include <osg/Shape>
+#include <osg/ShapeDrawable>
+#include <osgTerrain/GeometryTechnique>
+#include <osgTerrain/Terrain>
 #include <osg/Quat>
 #include <osg/Vec3>
 #include "Robot.h"
@@ -17,21 +24,26 @@ const char *WebGLLogger::ATTITUDE_TAG = "attitude";
 const char *WebGLLogger::REL_POS_TAG = "rel_position";
 const char *WebGLLogger::REL_ATT_TAG = "rel_attitude";
 const char *WebGLLogger::MESH_PATH = "filename";
+const char *WebGLLogger::MAP_TAG = "map";
+const char *WebGLLogger::MAP_DIM_TAG = "size";
+const char *WebGLLogger::MAP_DATA_TAG = "data";
 
 WebGLLogger::WebGLLogger(std::string inFileName,
-		boost::shared_ptr<Robot> inRobot, double targetFrameRate) :
-		 frameRate(targetFrameRate), lastFrame(-1000.0),
-		 robot(inRobot), fileName(inFileName) {
+		boost::shared_ptr<Scenario> in_scenario, double targetFrameRate) :
+		frameRate(targetFrameRate), lastFrame(-1000.0), robot(
+				in_scenario->getRobot()), scenario(in_scenario), fileName(
+				inFileName) {
 	this->jsonRoot = json_object();
 	this->jsonStructure = json_array();
 	this->jsonLog = json_object();
+	this->jsonMap = json_object();
 	this->generateBodyCollection();
 	this->writeJSONHeaders();
 	this->writeRobotStructure();
+	this->generateMapInfo();
 }
 
 void WebGLLogger::generateBodyCollection() {
-	int nbMeshesIgnored = 0;
 	for (size_t i = 0; i < this->robot->getBodyParts().size(); ++i) {
 		boost::shared_ptr<Model> currentModel = this->robot->getBodyParts()[i];
 		std::vector<int> ids = currentModel->getIDs();
@@ -43,18 +55,13 @@ void WebGLLogger::generateBodyCollection() {
 				desc.model = currentModel;
 				desc.bodyId = *it;
 				this->bodies.push_back(desc);
-			} else {
-				++nbMeshesIgnored;
 			}
 		}
 	}
-
-	std::cout << nbMeshesIgnored << " have an empty string as mesh"
-			<< std::endl;
 }
 WebGLLogger::~WebGLLogger() {
 	json_dump_file(this->jsonRoot, this->fileName.c_str(),
-			JSON_REAL_PRECISION(5) | JSON_COMPACT);
+	JSON_REAL_PRECISION(5) | JSON_COMPACT);
 	json_decref(this->jsonRoot);
 }
 
@@ -93,6 +100,33 @@ void WebGLLogger::writeJSONHeaders() {
 	json_object_set_new(this->jsonRoot, WebGLLogger::LOG_TAG, this->jsonLog);
 	json_object_set_new(this->jsonRoot, WebGLLogger::STRUCTURE_TAG,
 			this->jsonStructure);
+	json_object_set_new(this->jsonRoot, WebGLLogger::MAP_TAG, this->jsonMap);
+}
+
+void WebGLLogger::generateMapInfo() {
+	boost::shared_ptr<Terrain> terrain = scenario->getTerrain();
+	json_t *dims = json_array();
+	json_object_set_new(this->jsonMap, WebGLLogger::MAP_DIM_TAG, dims);
+	json_array_append(dims, json_real(terrain->getWidth()));
+	json_array_append(dims, json_real(terrain->getDepth()));
+
+	if (!terrain->isFlat()) {
+		json_array_append(dims, json_real(terrain->getHeightFieldHeight()));
+		json_t *mapData = json_array();
+		json_object_set_new(this->jsonMap, WebGLLogger::MAP_DATA_TAG, mapData);
+		unsigned int cols = terrain->getHeightFieldData()->s();
+		unsigned int rows = terrain->getHeightFieldData()->t();
+		for (unsigned int i = 0 ; i < cols; ++i) {
+			json_t *current_row = json_array();
+			json_array_append(mapData, current_row);
+			for (unsigned int j = 0 ; j < rows ; ++j) {
+				int value = static_cast<int>(*terrain->getHeightFieldData()->data(i, j));
+				json_array_append(current_row, json_integer(value));
+			}
+		}
+	} else {
+		json_array_append(dims, json_real(0));
+	}
 }
 
 void WebGLLogger::log(double dt) {
@@ -123,7 +157,7 @@ void WebGLLogger::log(double dt) {
 			json_array_append(attitude, json_real(currentAttitude.w()));
 
 		}
-        lastFrame = dt;
+		lastFrame = dt;
 	}
 }
 

@@ -36,6 +36,7 @@
 #include "Robot.h"
 #include <string>
 #include <fstream>
+#include <scenario/Scenario.h>
 #include <jansson.h>
 
 namespace robogen {
@@ -48,7 +49,7 @@ struct BodyDescriptor {
 class WebGLLogger {
 
 public :
-	WebGLLogger(std::string inFileName, boost::shared_ptr<Robot> inRobot, double targetFramerate = 120.0);
+	WebGLLogger(std::string inFileName, boost::shared_ptr<Scenario> in_scenario, double targetFramerate = 120.0);
 	void log(double dt);
 	~ WebGLLogger();
 	static const char* STRUCTURE_TAG;
@@ -57,13 +58,18 @@ public :
 	static const char* POSITION_TAG;
 	static const char* REL_POS_TAG;
 	static const char* REL_ATT_TAG;
+	static const char* MAP_TAG;
 	static const char* MESH_PATH;
+	static const char* MAP_DIM_TAG;
+	static const char* MAP_DATA_TAG;
 
 private :
 	double frameRate;
 	double lastFrame;
 	boost::shared_ptr<Robot> robot;
+	boost::shared_ptr<Scenario> scenario;
 	std::string fileName;
+	json_t *jsonMap;
 	json_t *jsonRoot;
 	json_t *jsonStructure;
 	json_t *jsonLog;
@@ -74,6 +80,7 @@ private :
 	//disable copy constructor
 	const WebGLLogger& operator=(const WebGLLogger& that);
 	void generateBodyCollection();
+	void generateMapInfo();
 	void writeJSONHeaders();
 	void writeRobotStructure();
 

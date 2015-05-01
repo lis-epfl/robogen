@@ -160,7 +160,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		/***
          * Init the webGLLogger
          */
-        WebGLLogger webGLlogger("./hello.json", scenario->getRobot());
+        WebGLLogger webGLlogger("./hello.json", scenario);
 
 
 #ifdef CAP_ACCELERATION
