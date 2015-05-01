@@ -48,16 +48,17 @@ public:
 	static const float MAX_POS_RAD;
 	static const float MIN_VELOCITY;
 	static const float MAX_VELOCITY;
-	static const int MAX_DIRECTION_SHIFTS_PER_SECOND;
 
 	/**
 	 * Apply the motor to the provided joint. Initializes a servo controlled in velocity.
 	 *
 	 * @param joint ODE joint
 	 * @param maxForce maximum force the motor can produce
+	 * @param maxDirectionShiftsPerSecond, used for testing motor burn out
+	 * 			default is -1, which means no motor burnout is tested
 	 */
 	ServoMotor(dJointID joint, float maxForce,
-			ioPair id);
+			ioPair id, int maxDirectionShiftsPerSecond=-1);
 
 	/**
 	 * Apply the motor to the provided joint. Initializes a servo controlled in position.
@@ -65,9 +66,11 @@ public:
 	 * @param joint ODE joint
 	 * @param maxForce maximum force the motor can produce
 	 * @param proportional control gain
+	 * @param maxDirectionShiftsPerSecond, used for testing motor burn out
+	 * 			default is -1, which means no motor burnout is tested
 	 */
 	ServoMotor(dJointID joint, float maxForce, float gain,
-			ioPair id);
+			ioPair id, int maxDirectionShiftsPerSecond=-1);
 
 	/**
 	 * Destructor
@@ -88,6 +91,12 @@ public:
 	 * Set the velocity of the motor in [0,1]
 	 */
 	void setVelocity(float velocity, float step);
+
+	/**
+	 * Set the maxDirectionShifts per second for testing motor burn out
+	 * without an argument, will be set to -1 = disabled
+	 */
+	void setMaxDirectionShiftsPerSecond(int maxDirectionShiftsPerSecond=-1);
 
 	/**
 	 * @return true if the motor is driven in velocity
@@ -134,6 +143,8 @@ private:
 	std::vector<float> previousVelocities_;
 
 	bool isBurntOut_;
+
+	int maxDirectionShiftsPerSecond_;
 
 	void testBurnout(float velocity, float step);
 
