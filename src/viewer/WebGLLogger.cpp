@@ -61,7 +61,7 @@ void WebGLLogger::generateBodyCollection() {
 }
 WebGLLogger::~WebGLLogger() {
 	json_dump_file(this->jsonRoot, this->fileName.c_str(),
-	JSON_REAL_PRECISION(5) | JSON_COMPACT);
+	JSON_REAL_PRECISION(10) | JSON_COMPACT);
 	json_decref(this->jsonRoot);
 }
 
