@@ -135,10 +135,10 @@ int inputTab[10][2];
 /* Define Servos Motors*/
 Servo myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7;
 /* Servopin allocation*/
-int outputTab[8]={9,10,5,6,11,13,16,14}; //{"D9", "D10", "D5", "D6", "D11", "D13", "ROLL", "PITCH"}
-Servo myservo[8]={myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7};
+int outputTab[MAX_OUTPUT_NEURONS]={9,10,5,6,11,13,16,14}; //{"D9", "D10", "D5", "D6", "D11", "D13", "ROLL", "PITCH"}
+Servo myservo[MAX_OUTPUT_NEURONS]={myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7};
 
-float servoOffsets[NB_SERVOS_MOTORS] = {2,8,18,-3,-7, -13,17,0};
+float servoOffsets[MAX_OUTPUT_NEURONS] = {0,0,0,0,0,0,0,0};
 
 float servoPosition, servoSpeed;
 int lightInput;
