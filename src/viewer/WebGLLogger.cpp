@@ -1,5 +1,7 @@
 #include "viewer/WebGLLogger.h"
 #include <Models.h>
+#include <model/objects/BoxObstacle.h>
+#include <model/objects/LightSource.h>
 #include <utils/RobogenUtils.h>
 #include <scenario/Terrain.h>
 #include <iostream>
@@ -27,6 +29,10 @@ const char *WebGLLogger::MESH_PATH = "filename";
 const char *WebGLLogger::MAP_TAG = "map";
 const char *WebGLLogger::MAP_DIM_TAG = "size";
 const char *WebGLLogger::MAP_DATA_TAG = "data";
+const char *WebGLLogger::OBSTACLE_TAGS = "obstacles";
+const char *WebGLLogger::OBSTACLE_DEF_TAG = "definition";
+const char *WebGLLogger::OBSTACLE_LOG_TAG = "log";
+const char *WebGLLogger::LIGHT_TAGS = "lights";
 
 WebGLLogger::WebGLLogger(std::string inFileName,
 		boost::shared_ptr<Scenario> in_scenario, double targetFrameRate) :
@@ -37,10 +43,29 @@ WebGLLogger::WebGLLogger(std::string inFileName,
 	this->jsonStructure = json_array();
 	this->jsonLog = json_object();
 	this->jsonMap = json_object();
+	this->jsonObstacles = json_object();
+	this->jsonLights = json_object();
+	this->jsonObstaclesLog = json_object();
+	this->jsonObstaclesDefinition = json_array();
+	this->writeObstaclesDefinition();
 	this->generateBodyCollection();
 	this->writeJSONHeaders();
 	this->writeRobotStructure();
 	this->generateMapInfo();
+}
+
+void WebGLLogger::writeObstaclesDefinition() {
+	std::vector<boost::shared_ptr<BoxObstacle> > obstacles =
+			this->scenario->getObstacles();
+	for (std::vector<boost::shared_ptr<BoxObstacle> >::iterator it =
+			obstacles.begin(); it != obstacles.end(); ++it) {
+		json_t* json_size = json_array();
+		json_array_append(this->jsonObstaclesDefinition, json_size);
+		osg::Vec3 size = (*it)->getSize();
+		json_array_append(json_size, json_real(size.x()));
+		json_array_append(json_size, json_real(size.y()));
+		json_array_append(json_size, json_real(size.z()));
+	}
 }
 
 void WebGLLogger::generateBodyCollection() {
@@ -97,10 +122,16 @@ void WebGLLogger::writeRobotStructure() {
 }
 
 void WebGLLogger::writeJSONHeaders() {
-	json_object_set_new(this->jsonRoot, WebGLLogger::LOG_TAG, this->jsonLog);
-	json_object_set_new(this->jsonRoot, WebGLLogger::STRUCTURE_TAG,
-			this->jsonStructure);
-	json_object_set_new(this->jsonRoot, WebGLLogger::MAP_TAG, this->jsonMap);
+	//json_object_set_new(this->jsonRoot, WebGLLogger::LOG_TAG, this->jsonLog);
+	//json_object_set_new(this->jsonRoot, WebGLLogger::STRUCTURE_TAG,
+	//this->jsonStructure);
+	//json_object_set_new(this->jsonRoot, WebGLLogger::MAP_TAG, this->jsonMap);
+	//json_object_set_new(this->jsonRoot, WebGLLogger::OBSTACLE_TAGS,
+			//this->jsonObstacles);
+	//json_object_set_new(this->jsonObstacles, WebGLLogger::OBSTACLE_DEF_TAG, this->jsonObstaclesDefinition);
+	//json_object_set_new(this->jsonObstacles, WebGLLogger::OBSTACLE_LOG_TAG, this->jsonObstaclesLog);
+	json_object_set_new(this->jsonRoot, WebGLLogger::LIGHT_TAGS,
+	this->jsonLights);
 }
 
 void WebGLLogger::generateMapInfo() {
@@ -116,11 +147,13 @@ void WebGLLogger::generateMapInfo() {
 		json_object_set_new(this->jsonMap, WebGLLogger::MAP_DATA_TAG, mapData);
 		unsigned int cols = terrain->getHeightFieldData()->s();
 		unsigned int rows = terrain->getHeightFieldData()->t();
-		for (unsigned int i = 0 ; i < cols; ++i) {
+		for (unsigned int i = 0; i < cols; ++i) {
 			json_t *current_row = json_array();
 			json_array_append(mapData, current_row);
-			for (unsigned int j = 0 ; j < rows ; ++j) {
-				int value = static_cast<int>(*terrain->getHeightFieldData()->data(i, j));
+			for (unsigned int j = 0; j < rows; ++j) {
+				int value =
+						static_cast<int>(*terrain->getHeightFieldData()->data(i,
+								j));
 				json_array_append(current_row, json_integer(value));
 			}
 		}
@@ -157,8 +190,51 @@ void WebGLLogger::log(double dt) {
 			json_array_append(attitude, json_real(currentAttitude.w()));
 
 		}
+
+		std::vector<boost::shared_ptr<BoxObstacle> > obstacles =
+				this->scenario->getObstacles();
+		json_t* obstacles_positions = json_array();
+		json_object_set_new(this->jsonObstaclesLog, obKey.c_str(),
+				obstacles_positions);
+		for (std::vector<boost::shared_ptr<BoxObstacle> >::iterator it =
+				obstacles.begin(); it != obstacles.end(); ++it) {
+			json_t* obstacleLog = json_array();
+			json_t* attitude = json_array();
+			json_t* position = json_array();
+			json_array_append(obstacleLog, attitude);
+			json_array_append(obstacleLog, position);
+			json_array_append(obstacles_positions, obstacleLog);
+
+			osg::Vec3 currentPosition = (*it)->getPosition();
+			osg::Quat currentAttitude = (*it)->getAttitude();
+
+			json_array_append(position, json_real(currentPosition.x()));
+			json_array_append(position, json_real(currentPosition.y()));
+			json_array_append(position, json_real(currentPosition.z()));
+
+			json_array_append(attitude, json_real(currentAttitude.x()));
+			json_array_append(attitude, json_real(currentAttitude.y()));
+			json_array_append(attitude, json_real(currentAttitude.z()));
+			json_array_append(attitude, json_real(currentAttitude.w()));
+		}
+
 		lastFrame = dt;
+
+		std::vector<boost::shared_ptr<LightSource> > lights =
+				this->scenario->getEnvironment()->getLightSources();
+		json_t* jsonFrameLights = json_array();
+		json_object_set_new(this->jsonLights, obKey.c_str(), jsonFrameLights);
+
+		for (std::vector<boost::shared_ptr<LightSource> >::iterator light =
+				lights.begin(); light != lights.end(); ++light) {
+			json_t* jsonLightCoordinates = json_array();
+			json_array_append(jsonFrameLights, jsonLightCoordinates);
+			osg::Vec3 coordinates = (*light)->getPosition();
+
+			json_array_append(jsonLightCoordinates, json_real(coordinates.x()));
+			json_array_append(jsonLightCoordinates, json_real(coordinates.y()));
+			json_array_append(jsonLightCoordinates, json_real(coordinates.z()));
+		}
 	}
 }
-
 }

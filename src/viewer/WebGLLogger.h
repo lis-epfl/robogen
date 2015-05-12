@@ -62,6 +62,10 @@ public :
 	static const char* MESH_PATH;
 	static const char* MAP_DIM_TAG;
 	static const char* MAP_DATA_TAG;
+	static const char* OBSTACLE_TAGS;
+	static const char* OBSTACLE_DEF_TAG;
+	static const char* OBSTACLE_LOG_TAG;
+	static const char* LIGHT_TAGS;
 
 private :
 	double frameRate;
@@ -73,6 +77,10 @@ private :
 	json_t *jsonRoot;
 	json_t *jsonStructure;
 	json_t *jsonLog;
+	json_t *jsonObstacles;
+	json_t *jsonObstaclesDefinition;
+	json_t *jsonObstaclesLog;
+	json_t *jsonLights;
 	std::vector<struct BodyDescriptor> bodies;
 
 	//disable copy constructor;
@@ -83,7 +91,7 @@ private :
 	void generateMapInfo();
 	void writeJSONHeaders();
 	void writeRobotStructure();
-
+	void writeObstaclesDefinition();
 };
 }
 
