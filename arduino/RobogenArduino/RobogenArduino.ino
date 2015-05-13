@@ -108,12 +108,8 @@ THE SOFTWARE.
 
 /* Define Neural network*/
 NeuralNetwork network;
-unsigned int nInputs, nOutputs, nHidden;
-//const float *weights, *params;
-//const unsigned int *types;
 float networkInput[NB_INPUTS];
 float networkOutputs[NB_OUTPUTS];
-int nbLightSensors, nbTouchSensors;
 
 // class default I2C address is 0x68
 // specific I2C addresses may be passed as a parameter here
@@ -125,12 +121,12 @@ MPU6050 accelGyro;
 
 /* Sensor pin allocation*/
 const int lightSensorTab[4] = {A0,A1,A2,A3};
-const int touchSensorTab[6] = {15,8,7,4};//{"YAW", "AUX1", "D7", "D4"};
+const int touchSensorTab[4] = {15,8,7,4};//{"YAW", "AUX1", "D7", "D4"};
 
 /* double dimension Tab 
  * inputTab[i][0] is the value of the input port 
  * inputTab[i][1] is the type of the input : 0 for lightSensor, 1 for Touch sensor and 2 for Accelerometer and Gyroscope */
-int inputTab[10][2]; 
+int inputTab[NB_INPUTS][2]; 
 
 /* Define Servos Motors*/
 Servo myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7;
@@ -170,56 +166,43 @@ void setup() {
   
 
   /* neural network initialization : */  
-  nbLightSensors = NB_LIGHTSENSORS;
-  nbTouchSensors = NB_TOUCH_SENSORS*2; //two inputs per touch_sensor
-
-  nInputs = NB_INPUTS;//NB_LIGHTSENSORS+NB_TOUCH_SENSORS*2+NB_ACC_GYRO_SENSORS;//MAX_INPUT_NEURONS;
-  nOutputs = NB_OUTPUTS;//NB_SERVOS_MOTORS;
-  nHidden = NB_HIDDEN;
-  //weights = EAWeight;
-  //params = EAParams;
-  //types = EATypes;
-  
-  initNetwork(&network, nInputs, nOutputs, nHidden, NULL, NULL, NULL);
+  initNetwork(&network, NB_INPUTS, NB_OUTPUTS, NB_HIDDEN);
   
   /* Feed inputTab according to the mapping of light sensors and touch sensors
   * We need to separate them because light sensors use analog inputs and touch sensors digital inputs
   */
-  int sensorCounter = 0;
   int lightSensorCounter = 0;
-  int TouchSensorCounter = 0;
-  for(int i=0;i<NB_LIGHTSENSORS+NB_TOUCH_SENSORS*2+NB_ACC_GYRO_SENSORS ;i++)
+  int touchSensorCounter = 0;
+  for(int i=0; i<NB_INPUTS; i++)
   {
      if(input[i] == 0)//Type = lightSensor
      {  
-       inputTab[i][0]=lightSensorTab[i-sensorCounter+lightSensorCounter];
+       inputTab[i][0]=lightSensorTab[lightSensorCounter];
        inputTab[i][1]=0; //Type = lightSensor
        lightSensorCounter++;
-       sensorCounter++;
      }
      else if(input[i] == 1)//Type = touchSensor
      {
-       inputTab[i][0]=touchSensorTab[i-sensorCounter+TouchSensorCounter]; //i-j because the index should begin to zero and i did not begin at zero at this step but at nbLightSensor, which has been added previously
+       inputTab[i][0]=touchSensorTab[touchSensorCounter]; 
        inputTab[i][1]=1; //Type = touchSensor
-       TouchSensorCounter++;
-       sensorCounter++;
+       touchSensorCounter++;
      }
      else if(input[i] == 2)//Type = Accelerometer&Gyroscope
      {
        inputTab[i][1]=2; //Type = Accelerometer&Gyroscope
-       sensorCounter++;
      }
   }
   
   /* Define sensors as input*/
-  for(int i=0;i<NB_LIGHTSENSORS+NB_TOUCH_SENSORS*2+NB_ACC_GYRO_SENSORS;i++)
+  for(int i=0;i<NB_INPUTS;i++)
   {  
+    // Initialize pin for all sensors except IMU (which has no pin)
     if(inputTab[i][1] != 2)
       pinMode(inputTab[i][0], INPUT);
   }
   
   /* Assigns servos motors port and set initial command to activate full rotation motors */
-  for(int i=0;i<nOutputs;i++)
+  for(int i=0;i<NB_OUTPUTS;i++)
   {
     myservo[i].attach(outputTab[i]);
     if(motor[i] == 1)
@@ -280,7 +263,7 @@ void setup() {
     // read raw accel/gyro measurements from device
     
     
-    for(int i= 0; i <10 ; i++)
+    for(int i= 0; i <100 ; i++)
     {
       delay(50);
       imuUpdate(&imu, &accelGyro);
@@ -382,7 +365,7 @@ void loop() {
     t = millis();
     
     /* read sensors */
-    for(int i=0;i<nInputs;i++)
+    for(int i=0;i<NB_INPUTS;i++)
     {  
       if(inputTab[i][1]==0)//Type lightSensor
       {
@@ -437,7 +420,7 @@ void loop() {
     
     #ifdef USE_SERIAL1
     Serial1.print((millis() - startTime)); Serial1.print(F("\t"));
-    for(int i=0;i<nInputs;i++)
+    for(int i=0;i<NB_INPUTS;i++)
     {
       Serial1.print(networkInput[i]); 
       Serial1.print(F("\t"));
@@ -457,7 +440,7 @@ void loop() {
     fetch(&network, &networkOutputs[0]);
     
     /* set Servos Motors according to the Fetch of the neural network outputs above*/
-    for(int i=0;i<nOutputs;i++)
+    for(int i=0;i<NB_OUTPUTS;i++)
     {
       if(motor[i] == 0) //servoMotors => set poisition 
       {
@@ -486,9 +469,9 @@ void loop() {
     #endif
     
     #ifdef USE_SERIAL1
-    for(int i=0;i<nOutputs; i++) {
+    for(int i=0;i<NB_OUTPUTS; i++) {
       Serial1.print(networkOutputs[i]); 
-      Serial1.print((i==nOutputs-1)?F("\n"):F("\t"));
+      Serial1.print((i==NB_OUTPUTS-1)?F("\n"):F("\t"));
     }
     #endif
     
@@ -502,9 +485,7 @@ void loop() {
 
 
 void initNetwork(NeuralNetwork* network, unsigned int nInputs,
-		unsigned int nOutputs, unsigned int nHidden,
-		const float *weights, const float* params,
-		const unsigned int *types) {
+		unsigned int nOutputs, unsigned int nHidden) {
 
 	unsigned int i = 0;
         
