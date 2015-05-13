@@ -72,14 +72,14 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 				sensors[i])){
 			input.push_back(arduino::LIGHT_SENSOR);
 			file << "// Branch " << sensors[i]->getLabel() << " to " <<
-					arduino::lightOrder[nLight++] << std::endl;
+					arduino::analogOrder[nLight++] << std::endl;
 		}
 		// touch sensor
 		if (boost::dynamic_pointer_cast<TouchSensor>(
 				sensors[i])){
 			input.push_back(arduino::TOUCH_SENSOR);
 			file << "// Branch " << sensors[i]->getLabel() << " to " <<
-					arduino::touchOrder[nTouch++] << std::endl;
+					arduino::digitalOrder[nTouch++] << std::endl;
 		}
 		// IMU sensor
 		if (boost::dynamic_pointer_cast<SimpleSensor>(
@@ -91,7 +91,7 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 	for (unsigned int i=0; i<motors.size(); ++i){
 		ioPair id = motors[i]->getId();
 		file << "// Branch " << id.first << " " << id.second  << " to " <<
-				arduino::servoOrder[nServo++] << std::endl;
+				arduino::digitalOrder[nTouch + (nServo++)] << std::endl;
 	}
 	file << std::endl;
 	file << "#define NB_LIGHTSENSORS " << nLight << std::endl;

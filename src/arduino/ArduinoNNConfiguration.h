@@ -44,19 +44,18 @@ namespace arduino {
 
 
 /**
- * Slots for light sensors
+ * Slots for digital signals: touch sensors and servos
  */
-std::string lightOrder[] = {"A0", "A1", "A2", "A3"};
+std::string digitalOrder = {"D9", "D10", "D5", "D6", "D11", "D13", "ROLL",
+							"PITCH", "YAW", "AUX1", "D7", "D4"};
 
 /**
- * Slots for touch sensors
+ * Slots for analog signals: light sensors
  */
-std::string touchOrder[] = {"YAW", "AUX1", "D7", "D4"};
 
-/**
- * Slots for servos
- */
-std::string servoOrder[] = {"D9", "D10", "D5", "D6", "D11", "D13", "ROLL", "PITCH"};
+std::string analogOrder[] = {"A0", "A1", "A2", "A3"};
+
+
 
 /**
  * Integer codes for input type tab
