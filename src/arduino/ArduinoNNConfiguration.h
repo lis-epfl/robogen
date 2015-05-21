@@ -2,6 +2,7 @@
  * @(#) ArduinoNNConfiguration.h   1.0   Sep 10, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  * based on previous work by:
  * Gregoire Heitz (gregoire.heitz@epfl.ch)
  *
@@ -37,16 +38,10 @@ namespace robogen {
 
 namespace arduino {
 
-/*
- * TODO make this more flexible, real limitation is number of analog and
- * digital pins
- */
-
-
 /**
  * Slots for digital signals: touch sensors and servos
  */
-std::string digitalOrder = {"D9", "D10", "D5", "D6", "D11", "D13", "ROLL",
+std::string digitalOrder[] = {"D9", "D10", "D5", "D6", "D11", "D13", "ROLL",
 							"PITCH", "YAW", "AUX1", "D7", "D4"};
 
 /**

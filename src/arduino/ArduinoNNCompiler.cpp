@@ -2,6 +2,7 @@
  * @(#) ArduinoNNCompiler.cpp   1.0   Sep 9, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  * based on previous work by:
  * Gregoire Heitz (gregoire.heitz@epfl.ch)
  *
