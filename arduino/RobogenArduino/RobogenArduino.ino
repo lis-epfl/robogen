@@ -378,8 +378,9 @@ void loop() {
         else
           networkInput[i] = 0.0;
       }
-      else if(inputTab[i][1]==1)//Type touchSensor
-        networkInput[i] = digitalRead(inputTab[i][0]);
+      else if(inputTab[i][1]==1) { //Type touchSensor
+        networkInput[i] = !digitalRead(inputTab[i][0]);
+      }
       else if(inputTab[i][1]==2)//Type is accelerometer and gyroscope
       {
         //update imu, scaling and low pass filtering
