@@ -117,24 +117,10 @@ float networkOutputs[NB_OUTPUTS];
 // AD0 high = 0x69
 MPU6050 accelGyro;
 
-
-
-/* Sensor pin allocation*/
-const int lightSensorTab[4] = {A0,A1,A2,A3};
-const int touchSensorTab[4] = {15,8,7,4};//{"YAW", "AUX1", "D7", "D4"};
-
-/* double dimension Tab 
- * inputTab[i][0] is the value of the input port 
- * inputTab[i][1] is the type of the input : 0 for lightSensor, 1 for Touch sensor and 2 for Accelerometer and Gyroscope */
-int inputTab[NB_INPUTS][2]; 
-
 /* Define Servos Motors*/
 Servo myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7;
-/* Servopin allocation*/
-int outputTab[MAX_OUTPUT_NEURONS]={9,10,5,6,11,13,16,14}; //{"D9", "D10", "D5", "D6", "D11", "D13", "ROLL", "PITCH"}
-Servo myservo[MAX_OUTPUT_NEURONS]={myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7};
-
-float servoOffsets[MAX_OUTPUT_NEURONS] = {0,0,0,0,0,0,0,0};
+Servo myservo[]={myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7};
+float servoOffsets[] = {0,0,0,0,0,0,0,0};
 
 float servoPosition, servoSpeed;
 int lightInput;
@@ -168,31 +154,6 @@ void setup() {
   /* neural network initialization : */  
   initNetwork(&network, NB_INPUTS, NB_OUTPUTS, NB_HIDDEN);
   
-  /* Feed inputTab according to the mapping of light sensors and touch sensors
-  * We need to separate them because light sensors use analog inputs and touch sensors digital inputs
-  */
-  int lightSensorCounter = 0;
-  int touchSensorCounter = 0;
-  for(int i=0; i<NB_INPUTS; i++)
-  {
-     if(input[i] == 0)//Type = lightSensor
-     {  
-       inputTab[i][0]=lightSensorTab[lightSensorCounter];
-       inputTab[i][1]=0; //Type = lightSensor
-       lightSensorCounter++;
-     }
-     else if(input[i] == 1)//Type = touchSensor
-     {
-       inputTab[i][0]=touchSensorTab[touchSensorCounter]; 
-       inputTab[i][1]=1; //Type = touchSensor
-       touchSensorCounter++;
-     }
-     else if(input[i] == 2)//Type = Accelerometer&Gyroscope
-     {
-       inputTab[i][1]=2; //Type = Accelerometer&Gyroscope
-     }
-  }
-  
   /* Define sensors as input*/
   for(int i=0;i<NB_INPUTS;i++)
   {  
@@ -204,15 +165,14 @@ void setup() {
   /* Assigns servos motors port and set initial command to activate full rotation motors */
   for(int i=0;i<NB_OUTPUTS;i++)
   {
-    myservo[i].attach(outputTab[i]);
-    if(motor[i] == 1)
+    myservo[i].attach(outputTab[i][0]);
+    if(outputTab[i][1] == 1)
       myservo[i].write(0);
     else
       myservo[i].write(90 + servoOffsets[i]);    
   } 
   
-  delay(4000);
-  
+  delay(4000);  
 
   /* initialize acceleromoter and gyroscope */
   #ifdef USE_SERIAL
@@ -443,7 +403,7 @@ void loop() {
     /* set Servos Motors according to the Fetch of the neural network outputs above*/
     for(int i=0;i<NB_OUTPUTS;i++)
     {
-      if(motor[i] == 0) //servoMotors => set poisition 
+      if(outputTab[i][1] == 0) //servoMotors => set poisition 
       {
         servoPosition = networkOutputs[i]; //goes from 0 degrees to 180 degrees 
         myservo[i].write(servoPosition + servoOffsets[i]);
@@ -451,7 +411,7 @@ void loop() {
         Serial.print(servoPosition); Serial.print(F("\t"));
         #endif
       }
-      else if(motor[i] == 1)  // full rotation motors => set speed
+      else if(outputTab[i][1] == 1)  // full rotation motors => set speed
       {
         if( networkOutputs[i] >= 90)//one rotation direction only => discard other rotation direction
           servoSpeed = networkOutputs[i] - 30; //we  
