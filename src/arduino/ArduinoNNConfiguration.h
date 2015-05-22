@@ -34,6 +34,10 @@
 
 #include <string>
 
+#define MAX_DIGITAL_PINS 12
+#define MAX_ANALOG_PINS 4
+
+
 namespace robogen {
 
 namespace arduino {
@@ -41,14 +45,14 @@ namespace arduino {
 /**
  * Slots for digital signals: touch sensors and servos
  */
-std::string digitalOrder[] = {"D9", "D10", "D5", "D6", "D11", "D13", "ROLL",
-							"PITCH", "YAW", "AUX1", "D7", "D4"};
+const std::string digitalOrder[] = {"D9", "D10", "D5", "D6", "D11", "D13",
+		"ROLL", "PITCH", "YAW", "AUX1", "D7", "D4"};
 
 /**
  * Slots for analog signals: light sensors
  */
 
-std::string analogOrder[] = {"A0", "A1", "A2", "A3"};
+const std::string analogOrder[] = {"A0", "A1", "A2", "A3"};
 
 
 

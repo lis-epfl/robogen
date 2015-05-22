@@ -67,6 +67,16 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 	std::vector<boost::shared_ptr<Sensor> > sensors = robot.getSensors();
 	std::vector<boost::shared_ptr<Motor> > motors = robot.getMotors();
 
+
+	// go through all motors first, so that they can use the "privileged"
+	// digital pins (i.e. those which will not require any soldering)
+
+	for (unsigned int i=0; i<motors.size(); ++i){
+		ioPair id = motors[i]->getId();
+		file << "// Branch " << id.first << " " << id.second  << " to " <<
+				arduino::digitalOrder[nServo++] << std::endl;
+	}
+
 	for (unsigned int i=0; i<sensors.size(); i++){
 		// light sensor
 		if (boost::dynamic_pointer_cast<LightSensor>(
@@ -80,7 +90,7 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 				sensors[i])){
 			input.push_back(arduino::TOUCH_SENSOR);
 			file << "// Branch " << sensors[i]->getLabel() << " to " <<
-					arduino::digitalOrder[nTouch++] << std::endl;
+					arduino::digitalOrder[nServo + (nTouch++)] << std::endl;
 		}
 		// IMU sensor
 		if (boost::dynamic_pointer_cast<SimpleSensor>(
@@ -89,11 +99,7 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 		}
 	}
 
-	for (unsigned int i=0; i<motors.size(); ++i){
-		ioPair id = motors[i]->getId();
-		file << "// Branch " << id.first << " " << id.second  << " to " <<
-				arduino::digitalOrder[nTouch + (nServo++)] << std::endl;
-	}
+
 	file << std::endl;
 	file << "#define NB_LIGHTSENSORS " << nLight << std::endl;
 	file << "#define NB_TOUCH_SENSORS " << nTouch << std::endl;

@@ -3,9 +3,10 @@
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -36,6 +37,8 @@
 #include "Models.h"
 #include "Robot.h"
 #include "model/Connection.h"
+
+#include "arduino/ArduinoNNConfiguration.h"
 
 namespace robogen {
 
@@ -150,6 +153,9 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 	float z = 200;
 	float spacing = 200;
 	rootNode_ = -1;
+
+	int numDigitalPins = 0, numAnalogPins = 0;
+
 	for (int i = 0; i < robotBody.part_size(); ++i) {
 
 		const robogenMessage::BodyPart& bodyPart = robotBody.part(i);
@@ -177,6 +183,18 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 			sensors_.insert(sensors_.end(), sensors.begin(), sensors.end());
 
+
+			for(unsigned int s=0; s<sensors.size(); s++) {
+				if(boost::dynamic_pointer_cast<LightSensor>(sensors[s])) {
+					// light sensors need analog pins
+					numAnalogPins++;
+				} else if(boost::dynamic_pointer_cast<TouchSensor>(
+						sensors[s])) {
+					// touch sensors need digital pins
+					numDigitalPins++;
+				}
+			}
+
 		} else if (boost::dynamic_pointer_cast<ActuatedComponent>(model)) {
 			std::vector<boost::shared_ptr<Motor> > motors;
 			boost::dynamic_pointer_cast<ActuatedComponent>(model)->getMotors(
@@ -186,6 +204,9 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 							motors));
 
 			motors_.insert(motors_.end(), motors.begin(), motors.end());
+
+			// servos need digital pins
+			numDigitalPins += motors.size();
 		}
 
 		if (bodyPart.root()) {
@@ -203,6 +224,23 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 		x += spacing;
 		y += spacing;
 
+	}
+
+	if (numDigitalPins > MAX_DIGITAL_PINS) {
+
+		std::cout << "The number of digital pins required ("
+				<< numDigitalPins
+				<< ") is greater than the maximum allowed one ("
+				<< MAX_DIGITAL_PINS << ")" << std::endl;
+		return false;
+	}
+
+	if (numAnalogPins > MAX_ANALOG_PINS) {
+		std::cout << "The number of analog pins required ("
+				<< numAnalogPins
+				<< ") is greater than the maximum allowed one ("
+				<< MAX_ANALOG_PINS << ")" << std::endl;
+		return false;
 	}
 
 	// Look for the root node and modify its position to the origin
