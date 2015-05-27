@@ -87,6 +87,14 @@ bool CoreComponentRenderModel::initRenderModel() {
 	if (isDebugActive()) {
 		this->activateTransparency(brick->getOrCreateStateSet());
 	}
+
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
+				hasSensors() ) {
+		this->setColor(osg::Vec4(1,0,0,1));
+	} else {
+		this->setColor(osg::Vec4(1,1,1,1));
+	}
+
 	return true;
 
 }

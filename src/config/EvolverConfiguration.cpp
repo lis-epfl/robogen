@@ -529,74 +529,96 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 	evolutionaryAlgorithm = BASIC;
 	if ( vm.count("evolutionaryAlgorithm") > 0 ) {
-		if (vm["evolutionaryAlgorithm"].as<std::string>().compare("HyperNEAT")
-				== 0) {
-
+		if (vm["evolutionaryAlgorithm"].as<std::string>().compare(
+				"HyperNEAT") == 0) {
 			evolutionaryAlgorithm = HYPER_NEAT;
-			neatParams.PopulationSize = mu;
 
+		} else if (vm["evolutionaryAlgorithm"].as<std::string>().compare(
+				"NEAT") == 0) {
+			evolutionaryAlgorithm = NEAT;
+		} else if (vm["evolutionaryAlgorithm"].as<std::string>().compare(
+				"FT_NEAT") == 0) {
+			evolutionaryAlgorithm = FT_NEAT;
+		}
+	}
 
-			//defaults
-			neatParams.WeightDiffCoeff = 0.4;
-			neatParams.DynamicCompatibility = true;
-			neatParams.CompatTreshold = 3.0;
-			neatParams.YoungAgeTreshold = 15;
-			neatParams.SpeciesMaxStagnation = 15;
-			neatParams.OldAgeTreshold = 35;
-			neatParams.MinSpecies = 4; //5;
-			neatParams.MaxSpecies = 18; //25;
-			neatParams.RouletteWheelSelection = false;
-			neatParams.RecurrentProb = 0;
-			neatParams.OverallMutationRate = 0.8;
+	if (evolutionaryAlgorithm == HYPER_NEAT || evolutionaryAlgorithm == NEAT ||
+				evolutionaryAlgorithm == FT_NEAT) {
 
-			neatParams.MutateWeightsProb = 0.90;
+		neatParams.PopulationSize = mu;
 
-			neatParams.WeightMutationMaxPower = 2.5;
-			neatParams.WeightReplacementMaxPower = 5.0;
-			neatParams.MutateWeightsSevereProb = 0.5;
-			neatParams.WeightMutationRate = 0.25;
+		neatParams.WeightDiffCoeff = 0.4;
+		neatParams.DynamicCompatibility = true;
+		neatParams.CompatTreshold = 3.0;
+		neatParams.YoungAgeTreshold = 15;
+		neatParams.SpeciesMaxStagnation = 15;
+		neatParams.OldAgeTreshold = 35;
+		neatParams.MinSpecies = 4; //5;
+		neatParams.MaxSpecies = 18; //25;
+		neatParams.RouletteWheelSelection = false;
 
-			neatParams.MaxWeight = 8;
+		neatParams.OverallMutationRate = 0.8;
 
+		neatParams.MutateWeightsProb = 0.90;
+
+		neatParams.WeightMutationMaxPower = 2.5;
+		neatParams.WeightReplacementMaxPower = 5.0;
+		neatParams.MutateWeightsSevereProb = 0.5;
+		neatParams.WeightMutationRate = 0.25;
+
+		neatParams.CrossoverRate = 0.75;  // mutate only 0.25
+		neatParams.MultipointCrossoverRate = 0.4;
+		neatParams.SurvivalRate = 0.2;
+
+		neatParams.ActivationFunction_SignedSigmoid_Prob = 1.0;
+		neatParams.ActivationFunction_UnsignedSigmoid_Prob = 0.0;
+		neatParams.ActivationFunction_Tanh_Prob = 0.0;
+		neatParams.ActivationFunction_TanhCubic_Prob = 0.0;
+		neatParams.ActivationFunction_SignedStep_Prob = 0.0;
+		neatParams.ActivationFunction_UnsignedStep_Prob = 0.0;
+		neatParams.ActivationFunction_SignedGauss_Prob = 0.0;
+		neatParams.ActivationFunction_UnsignedGauss_Prob = 0.0;
+		neatParams.ActivationFunction_Abs_Prob = 0.0;
+		neatParams.ActivationFunction_SignedSine_Prob = 0.0;
+		neatParams.ActivationFunction_UnsignedSine_Prob = 0.0;
+		neatParams.ActivationFunction_Linear_Prob = 0.0;
+
+		if (evolutionaryAlgorithm == HYPER_NEAT ||
+				evolutionaryAlgorithm == NEAT) {
 			neatParams.MutateAddNeuronProb = 0.03;
 			neatParams.MutateAddLinkProb = 0.05;
 			neatParams.MutateRemLinkProb = 0.001;
+		} else { //FT
+			neatParams.MutateAddNeuronProb = 0.00;
+			neatParams.MutateAddLinkProb = 0.00;
+			neatParams.MutateRemLinkProb = 0.00;
+		}
+
+		if (evolutionaryAlgorithm == HYPER_NEAT) {
+			neatParams.RecurrentProb = 0;
+			neatParams.MaxWeight = 8;
 
 			neatParams.MinActivationA  = 1.0;
 			neatParams.MaxActivationA  = 6.0;
 
-			neatParams.ActivationFunction_SignedSigmoid_Prob = 1.0;
-			neatParams.ActivationFunction_UnsignedSigmoid_Prob = 0.0;
-			neatParams.ActivationFunction_Tanh_Prob = 1.0;
-			neatParams.ActivationFunction_TanhCubic_Prob = 0.0;
-			neatParams.ActivationFunction_SignedStep_Prob = 0.0;
-			neatParams.ActivationFunction_UnsignedStep_Prob = 0.0;
 			neatParams.ActivationFunction_SignedGauss_Prob = 1.0;
-			neatParams.ActivationFunction_UnsignedGauss_Prob = 0.0;
-			neatParams.ActivationFunction_Abs_Prob = 0.0;
 			neatParams.ActivationFunction_SignedSine_Prob = 1.0;
-			neatParams.ActivationFunction_UnsignedSine_Prob = 0.0;
-			neatParams.ActivationFunction_Linear_Prob = 1.0;
 
+		} else {
+			neatParams.RecurrentProb = 0.5;
+			neatParams.MaxWeight = maxBrainWeight;
 
-			if ( neatParamsFile.compare("") != 0 ) {
-				const boost::filesystem::path neatParamsFilePath(
-						neatParamsFile);
-				if (!neatParamsFilePath.is_absolute()) {
-					const boost::filesystem::path absolutePath =
-							boost::filesystem::absolute(neatParamsFilePath,
-									confFilePath.parent_path());
-					neatParamsFile = absolutePath.string();
-				}
-
-				if (neatParams.Load(neatParamsFile.c_str()) < 0) {
-					std::cout << "Problem parsing neatParams file." <<
-							std::endl;
-					return false;
-				}
-			}
+			neatParams.MinActivationA  = 1.0;
+			neatParams.MaxActivationA  = 1.0;  // not eolving gains for now
 		}
+
+
+
+
+
 	}
+
+
 
 
 

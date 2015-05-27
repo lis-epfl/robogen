@@ -68,7 +68,7 @@ typedef struct EvolverConfiguration {
 	 * TODO add other possibilities (e.g. CMA-ES)
 	 */
 	enum EvolutionaryAlgorithms {
-		BASIC, HYPER_NEAT
+		BASIC, HYPER_NEAT, NEAT, FT_NEAT
 	};
 
 
