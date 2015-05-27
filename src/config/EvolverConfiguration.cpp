@@ -603,6 +603,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 			neatParams.ActivationFunction_SignedGauss_Prob = 1.0;
 			neatParams.ActivationFunction_SignedSine_Prob = 1.0;
+			neatParams.ActivationFunction_Linear_Prob = 1.0;
 
 		} else {
 			neatParams.RecurrentProb = 0.5;
@@ -610,6 +611,23 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 			neatParams.MinActivationA  = 1.0;
 			neatParams.MaxActivationA  = 1.0;  // not eolving gains for now
+		}
+
+		if ( neatParamsFile.compare("") != 0 ) {
+			const boost::filesystem::path neatParamsFilePath(
+					neatParamsFile);
+			if (!neatParamsFilePath.is_absolute()) {
+				const boost::filesystem::path absolutePath =
+						boost::filesystem::absolute(neatParamsFilePath,
+								confFilePath.parent_path());
+				neatParamsFile = absolutePath.string();
+			}
+
+			if (neatParams.Load(neatParamsFile.c_str()) < 0) {
+				std::cout << "Problem parsing neatParams file." <<
+						std::endl;
+				return false;
+			}
 		}
 
 
