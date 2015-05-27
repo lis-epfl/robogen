@@ -28,6 +28,8 @@
 #include "evolution/engine/neat/NeatContainer.h"
 #include <algorithm>
 
+#define NEAT_DEBUG
+
 namespace robogen {
 
 NeatContainer::NeatContainer(boost::shared_ptr<EvolverConfiguration> &evoConf,
@@ -263,8 +265,9 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
 
     // For each body part, get its position then create an entry for every
     // neuron by adding a 4th coordinate that is the neurons ioID.
-
+#ifdef NEAT_DEBUG
     std::cout << "POSITIONS: " << std::endl;
+#endif
     for(RobotRepresentation::IdPartMap::iterator i = body.begin();
     		i != body.end(); i++) {
     	std::string id = i->first;
@@ -283,7 +286,7 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
     		position.push_back((io/10.0));
     		neuronToPositionMap[neurons[j].lock()->getId()] = position;
     		neuronMap[neurons[j].lock()->getId()] = neurons[j];
-
+#ifdef NEAT_DEBUG
     		for(unsigned int cv = 0; cv<position.size(); cv++) {
     			std::cout << position[cv] << " ";
     		}
@@ -291,6 +294,7 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
 
     	}
     	std::cout << std::endl;
+#endif
 
 
 
@@ -298,7 +302,9 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
 
     // Now go through all neurons and query for weights and params with
     // the obtained coordinates
+#ifdef NEAT_DEBUG
     std::cout << "**************************";
+#endif
     for(NeuronMap::iterator i = neuronMap.begin(); i != neuronMap.end(); i++) {
     	std::vector<double> positionI = neuronToPositionMap[i->first];
     	boost::shared_ptr<NeuronRepresentation> neuronI = i->second.lock();
@@ -319,23 +325,27 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
 				}
 				inputs.push_back(1.0); //bias
 
+#ifdef NEAT_DEBUG
 				std::cout << "INPUTS: ";
 				for (unsigned int cv = 0; cv < inputs.size(); cv++) {
 					std::cout << inputs[cv] << " ";
 				}
 				std::cout << std::endl;
+#endif
 
 				net.Input(inputs);
 				for(int t=0; t<10; t++) {
 					net.Activate();
 				}
 				std::vector<double> outputs = net.Output();
+
+#ifdef NEAT_DEBUG
 				std::cout << "OUTPUTS: ";
 				for (unsigned int cv = 0; cv < outputs.size(); cv++) {
 					std::cout << outputs[cv] << " ";
 				}
 				std::cout << std::endl;
-
+#endif
 
 				if (outputs[0] < 0.5) {
 					// if first output is under threshold,
