@@ -79,6 +79,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 		dWorldSetERP(odeWorld, 0.1);
 		dWorldSetCFM(odeWorld, 10e-6);
+		dWorldSetAutoDisableFlag(odeWorld, 1);
 
 		// Create collision world
 		dSpaceID odeSpace = dSimpleSpaceCreate(0);
