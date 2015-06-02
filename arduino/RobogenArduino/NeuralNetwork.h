@@ -29,7 +29,7 @@
 #ifndef ROBOGEN_NEURAL_NETWORK_H_
 #define ROBOGEN_NEURAL_NETWORK_H_
 
-#define MAX_INPUT_NEURONS 13
+#define MAX_INPUT_NEURONS 20
 #define MAX_OUTPUT_NEURONS 8
 
 /*
@@ -45,24 +45,45 @@
 
 
 
-// Branch Hip2 0 to D9
-// Branch Knee2 0 to D10
+// Branch Hip1 0 to D9
+// Branch Hip2 0 to D10
+// Branch Hip3 0 to D5
+// Branch Hip4 0 to D6
+// Branch Knee1 0 to D11
+// Branch Knee2 0 to D13
+// Branch Knee3 0 to ROLL
+// Branch Knee4 0 to PITCH
 
 #define NB_LIGHTSENSORS 0
 #define NB_TOUCH_SENSORS 0
-#define NB_SERVOS_MOTORS 2
+#define NB_SERVOS_MOTORS 8
 #define NB_ACC_GYRO_SENSORS 6
 
 #define ACTUATION_PERIOD 40
 
-int input[] = {2, 2, 2, 2, 2, 2};
-int motor[] = {0, 0};
+/* double dimension Tab
+* inputTab[i][0] is the value of the input port
+* inputTab[i][1] is the type of the input : 
+	0 for lightSensor,
+	1 for Touch sensor, and
+	2 for Accelerometer and Gyroscope
+*/
+const int inputTab[][2] = { {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2} };
+
+/* double dimension Tab
+* outputTab[i][0] is the value of the output port
+* outputTab[i][1] is the type of the output : 
+	0 for position control, and
+	1 for velocity control
+*/
+const int outputTab[][2] = { {9, 0}, {10, 0}, {5, 0}, {6, 0}, {11, 0}, {13, 0}, {16, 0}, {14, 0} };
+
 #define NB_INPUTS 6
-#define NB_OUTPUTS 2
+#define NB_OUTPUTS 8
 #define NB_HIDDEN 0
-PROGMEM const float EAWeight[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-PROGMEM const float EAParams[] = {4, 0, 1, 0, 1, 0};
-unsigned int EATypes[] = {3, 1};
+PROGMEM const float EAWeight[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+PROGMEM const float EAParams[] = {20, 0, 1, 20, 0, 1, 20, 0, 1, 20, 0, 1, 20, 0, 1, 20, 0, 1, 20, 0, 1, 20, 0, 1};
+unsigned int EATypes[] = {3, 3, 3, 3, 3, 3, 3, 3};
 
 
 /*
@@ -157,18 +178,6 @@ typedef struct {
 	 * The number of non-inputs (i.e. nOutputs + nHidden)
 	 */
 	unsigned int nNonInputs;
-
-#if 0
-	/**
-	 * Arrays for storing intermediary states for RungeKutta
-	 */
-	float ctrnnState[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
-	float currY[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
-	float kn1[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
-	float kn2[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
-	float kn3[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
-	float kn4[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
-#endif
 
 } NeuralNetwork;
 
