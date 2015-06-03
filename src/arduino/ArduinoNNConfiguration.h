@@ -48,11 +48,8 @@ namespace arduino {
 const std::string digitalOrder[] = {"D9", "D10", "D5", "D6", "D11", "D13",
 		"ROLL", "PITCH", "YAW", "AUX1", "D7", "D4"};
 
-const std::string digitalOrderIntegerCodes[] = {"9", "10", "5", "6", "11",
-		"13", "16", "14", "15", "8", "7", "4"};
-
 /**
- * Slots for analog signals: light sensors
+ * Slots for analog signals: light sensors, can also be used as digital
  */
 
 const std::string analogOrder[] = {"A0", "A1", "A2", "A3"};

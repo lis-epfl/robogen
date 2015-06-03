@@ -95,6 +95,20 @@ THE SOFTWARE.
 #include "I2Cdev.h"
 #include "MPU6050.h"
 
+
+#define D9 (9)
+#define D10 (10)
+#define D5 (5)
+#define D6 (6)
+#define D11 (11)
+#define D13 (13)
+#define ROLL (16)
+#define PITCH (14)
+#define YAW (15)
+#define AUX1 (8)
+#define D7 (7)
+#define D4 (4)
+
 //NeuralNetwork
 #include "NeuralNetwork.h"
 
@@ -330,8 +344,12 @@ void loop() {
       if(inputTab[i][1]==0)//Type lightSensor
       {
         //To comply with the simulator we cast this sensor output into a float between 0.0 and 1. with 1 = maxLight
+        analogRead(inputTab[i][0]);
+        //In order to properly read value need to delay 1 ms and read again
+        delay(1);
         lightInput = analogRead(inputTab[i][0]);
-
+        
+        
         //you can set a certain threshold 
         if(lightInput > (LIGHT_SENSOR_THRESHOLD))
           networkInput[i] = float(lightInput)/1000.0;
