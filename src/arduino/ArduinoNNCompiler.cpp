@@ -2,6 +2,7 @@
  * @(#) ArduinoNNCompiler.cpp   1.0   Sep 9, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  * based on previous work by:
  * Gregoire Heitz (gregoire.heitz@epfl.ch)
  *
@@ -63,36 +64,59 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 
 	int nLight = 0, nTouch = 0, nServo = 0;
 	std::vector<int> input;
+	std::vector<std::string> inputPins;
+	std::vector<std::string> outputPins;
 	std::vector<boost::shared_ptr<Sensor> > sensors = robot.getSensors();
 	std::vector<boost::shared_ptr<Motor> > motors = robot.getMotors();
+
+
+	// go through all motors first, so that they can use the "privileged"
+	// digital pins (i.e. those which will not require any soldering)
+
+	for (unsigned int i=0; i<motors.size(); ++i){
+		ioPair id = motors[i]->getId();
+		outputPins.push_back(arduino::digitalOrder[nServo]);
+		file << "// Branch " << id.first << " " << id.second  << " to " <<
+				arduino::digitalOrder[nServo++] << std::endl;
+	}
+
+
 
 	for (unsigned int i=0; i<sensors.size(); i++){
 		// light sensor
 		if (boost::dynamic_pointer_cast<LightSensor>(
 				sensors[i])){
 			input.push_back(arduino::LIGHT_SENSOR);
+			inputPins.push_back(arduino::analogOrder[nLight]);
 			file << "// Branch " << sensors[i]->getLabel() << " to " <<
-					arduino::lightOrder[nLight++] << std::endl;
+					arduino::analogOrder[nLight++] << std::endl;
 		}
 		// touch sensor
 		if (boost::dynamic_pointer_cast<TouchSensor>(
 				sensors[i])){
 			input.push_back(arduino::TOUCH_SENSOR);
+			std::string pin;
+			if ((nServo + nTouch) < MAX_DIGITAL_PINS) {
+				pin = arduino::digitalOrder[nServo + nTouch];
+			} else {
+				pin = arduino::analogOrder[nLight +
+				                           ((nServo + nTouch) -
+				                        		   MAX_DIGITAL_PINS )];
+			}
+			inputPins.push_back(pin);
 			file << "// Branch " << sensors[i]->getLabel() << " to " <<
-					arduino::touchOrder[nTouch++] << std::endl;
+					pin << std::endl;
+			nTouch++;
 		}
 		// IMU sensor
 		if (boost::dynamic_pointer_cast<SimpleSensor>(
 				sensors[i])){
 			input.push_back(arduino::IMU);
+			inputPins.push_back("0");
 		}
 	}
 
-	for (unsigned int i=0; i<motors.size(); ++i){
-		ioPair id = motors[i]->getId();
-		file << "// Branch " << id.first << " " << id.second  << " to " <<
-				arduino::servoOrder[nServo++] << std::endl;
-	}
+
 	file << std::endl;
 	file << "#define NB_LIGHTSENSORS " << nLight << std::endl;
 	file << "#define NB_TOUCH_SENSORS " << nTouch << std::endl;
@@ -106,25 +130,44 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 	file << "#define ACTUATION_PERIOD "  << ((int) actuation_period_ms)
 			<< std::endl << std::endl;
 
-	file << "int input[] = {";
-	for (unsigned int i=0; i<input.size(); ++i) file << (i?", ":"") << input[i];
-	file << "};" << std::endl;
+	file << "/* double dimension Tab" << std::endl;
+	file << "* inputTab[i][0] is the value of the input port" << std::endl;
+	file << "* inputTab[i][1] is the type of the input : " << std::endl;
+	file << "\t0 for lightSensor," << std::endl;
+	file << "\t1 for Touch sensor, and" << std::endl;
+	file << "\t2 for Accelerometer and Gyroscope" << std::endl;
+	file << "*/" << std::endl;
 
-	file << "int motor[] = {";
+	file << "const int inputTab[][2] = { ";
+	for (unsigned int i=0; i<input.size(); ++i) {
+		file << (i?", ":"") << "{" << inputPins[i] << ", " << input[i] << "}";
+	}
+	file << " };" << std::endl << std::endl;
+
+	file << "/* double dimension Tab" << std::endl;
+	file << "* outputTab[i][0] is the value of the output port" << std::endl;
+	file << "* outputTab[i][1] is the type of the output : " << std::endl;
+	file << "\t0 for position control, and" << std::endl;
+	file << "\t1 for velocity control" << std::endl;
+	file << "*/" << std::endl;
+
+	file << "const int outputTab[][2] = { ";
 	for (unsigned int i = 0; i < motors.size(); ++i) {
 		file << (i?", ":"");
 		if (boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
 
 			boost::shared_ptr<ServoMotor> motor =
 					boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
+			file << "{" << outputPins[i] << ", ";
 			file << (motor->isVelocityDriven() ?  arduino::VELOCITY_CONTROL :
 							arduino::POSITION_CONTROL);
+			file << "}";
 		} else {
 			std::cout << "Error: unsupported motor!!";
 			exit(EXIT_FAILURE);
 		}
 	}
-	file << "};" << std::endl;
+	file << " };" << std::endl << std::endl;
 
 	boost::shared_ptr<NeuralNetwork> brain = robot.getBrain();
 	file << "#define NB_INPUTS " << brain->nInputs << std::endl;

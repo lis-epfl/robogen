@@ -2,6 +2,7 @@
  * @(#) ArduinoNNConfiguration.h   1.0   Sep 10, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  * based on previous work by:
  * Gregoire Heitz (gregoire.heitz@epfl.ch)
  *
@@ -33,30 +34,27 @@
 
 #include <string>
 
+#define MAX_DIGITAL_PINS 12
+#define MAX_ANALOG_PINS 4
+
+
 namespace robogen {
 
 namespace arduino {
 
-/*
- * TODO make this more flexible, real limitation is number of analog and
- * digital pins
+/**
+ * Slots for digital signals: touch sensors and servos
  */
-
+const std::string digitalOrder[] = {"D9", "D10", "D5", "D6", "D11", "D13",
+		"ROLL", "PITCH", "YAW", "AUX1", "D7", "D4"};
 
 /**
- * Slots for light sensors
+ * Slots for analog signals: light sensors, can also be used as digital
  */
-std::string lightOrder[] = {"A0", "A1", "A2", "A3"};
 
-/**
- * Slots for touch sensors
- */
-std::string touchOrder[] = {"YAW", "AUX1", "D7", "D4"};
+const std::string analogOrder[] = {"A0", "A1", "A2", "A3"};
 
-/**
- * Slots for servos
- */
-std::string servoOrder[] = {"D9", "D10", "D5", "D6", "D11", "D13", "ROLL", "PITCH"};
+
 
 /**
  * Integer codes for input type tab
