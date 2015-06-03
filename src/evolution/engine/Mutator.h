@@ -126,6 +126,8 @@ private:
 	boost::random::bernoulli_distribution<double> nodeRemovalDist_;
 	boost::random::bernoulli_distribution<double> paramMutateDist_;
 
+	boost::random::bernoulli_distribution<double> oscillatorNeuronDist_;
+
 };
 
 }

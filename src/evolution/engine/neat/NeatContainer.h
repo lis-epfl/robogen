@@ -47,16 +47,23 @@ public:
 			boost::random::mt19937 &rng);
 	virtual ~NeatContainer();
 
-	bool fillPopulationWeights(boost::shared_ptr<Population> &population);
+	bool fillPopulation(boost::shared_ptr<Population> &population);
 
-	bool produceNextGeneration(boost::shared_ptr<Population> &population);
+	bool produceNextGeneration(boost::shared_ptr<Population> &population,
+			boost::shared_ptr<Mutator> &mutator);
+
+	inline bool hasErrors() {
+		return error_;
+	}
 
 private:
 
 	bool fillBrainHyperNEAT(NEAT::Genome *genome,
 			boost::shared_ptr<RobotRepresentation> &robotRepresentation);
 	bool fillBrainNEAT(NEAT::Genome *genome,
-				boost::shared_ptr<RobotRepresentation> &robotRepresentation);
+			boost::shared_ptr<RobotRepresentation> &robotRepresentation);
+	bool createBodyHyperNEAT(NEAT::Genome *genome,
+			boost::shared_ptr<RobotRepresentation> &robotRepresentation);
 
 	typedef std::map<unsigned int, NEAT::Genome*> NeatIdToGenomeMap;
 	typedef std::map<unsigned int, boost::shared_ptr<RobotRepresentation> >
@@ -67,6 +74,7 @@ private:
 	std::vector< boost::shared_ptr<RobotRepresentation> > unMappedRobots_;
 	boost::shared_ptr<EvolverConfiguration> evoConf_;
 	boost::random::mt19937 rng_;
+	bool error_;
 
 	void printCurrentIds();
 

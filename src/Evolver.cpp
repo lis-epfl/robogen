@@ -154,13 +154,16 @@ int main(int argc, char *argv[]) {
 			EvolverConfiguration::NEAT);
 
 	if (!population->init(referenceBot, conf->mu, mutator, growBodies,
-			(!(conf->useBrainSeed || neat)) ) ) {
+			(!(conf->useBrainSeed)) ) ) {
 		std::cout << "Error when initializing population!" << std::endl;
 		return exitRobogen(EXIT_FAILURE);
 	}
 
 	if (neat) {
 		neatContainer.reset(new NeatContainer(conf, population, seed, rng));
+		if(neatContainer->hasErrors()) {
+			return exitRobogen(EXIT_FAILURE);
+		}
 
 	}
 
@@ -189,8 +192,8 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 
 	if(neat) {
-		if(!neatContainer->fillPopulationWeights(population)) {
-			std::cout << "Filling weights from NEAT failed." << std::endl;
+		if(!neatContainer->fillPopulation(population)) {
+			std::cout << "Filling population from NEAT failed." << std::endl;
 			return exitRobogen(EXIT_FAILURE);
 		}
 	}
@@ -206,7 +209,7 @@ int main(int argc, char *argv[]) {
 		IndividualContainer children;
 		if (neat) {
 			//neatPopulation->Epoch();
-			if(!neatContainer->produceNextGeneration(population)) {
+			if(!neatContainer->produceNextGeneration(population, mutator)) {
 				std::cout << "Producing next generation from NEAT failed."
 						<< std::endl;
 				return exitRobogen(EXIT_FAILURE);

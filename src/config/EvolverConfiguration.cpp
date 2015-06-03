@@ -103,6 +103,9 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	maxBrainPeriod = 2.0;
 	brainPeriodSigma = 0.2;
 
+	minNumInitialParts = 2;
+	maxNumInitialParts = 10;
+
 
 
 
@@ -194,9 +197,16 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		("evolutionaryAlgorithm",
 				boost::program_options::value<std::string>(),
 				"EA: Basic or HyperNEAT")
+		("neatMode",
+				boost::program_options::value<std::string>(),
+				"If using HyperNEAT and full evolution, use HyperNEAT for full or brain")
 		("neatParamsFile",
 				boost::program_options::value<std::string>(&neatParamsFile),
-				"File for NEAT/HyperNEAT specific params");
+				"File for NEAT/HyperNEAT specific params")
+		("pOscillatorNeuron",
+				boost::program_options::value<double>(
+				&pOscillatorNeuron), "Probability of new neuron being oscillator"
+		);
 	// generate body operator probability options from contraptions in header
 	for (unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		desc.add_options()(
@@ -411,6 +421,17 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				<< " not between 0 and 1!" << std::endl;
 		return false;
 	}
+
+	if (vm.count("pOscillatorNeuron") == 0) {
+		pOscillatorNeuron = 0.0;
+	}
+
+	if (pOscillatorNeuron > 1. || pOscillatorNeuron < 0.) {
+		std::cout << "Oscillator neuron probability parameter " <<
+				pOscillatorNeuron << " not between 0 and 1!" << std::endl;
+		return false;
+	}
+
 	for(unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		if (bodyOperatorProbability[i] > 1. || bodyOperatorProbability[i] < 0.){
 			std::cout << BodyMutationOperatorsProbabilityCodes[i] <<
@@ -624,8 +645,20 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			}
 
 			if (neatParams.Load(neatParamsFile.c_str()) < 0) {
-				std::cout << "Problem parsing neatParams file." <<
+				std::cerr << "Problem parsing neatParams file." <<
 						std::endl;
+				return false;
+			}
+		}
+
+		neatMode = BRAIN_EVOLVER;
+		if (vm.count("neatMode") > 0 ) {
+			if (vm["neatMode"].as<std::string>().compare("full") == 0) {
+				neatMode = FULL_EVOLVER;
+			} else if (vm["neatMode"].as<std::string>().compare("brain") != 0) {
+				std::cerr << "Invalid neatMode: " <<
+						vm["neatMode"].as<std::string>() << ". " <<
+						"Valid values are 'full' and 'brain'." << std::endl;
 				return false;
 			}
 		}

@@ -277,6 +277,14 @@ typedef struct EvolverConfiguration {
 	 */
 	std::string neatParamsFile;
 
+	/**
+	 * Want to allow full evolution but just using HyperNEAT for brain,
+	 * so should set neatMode to be BRAIN_EVOLVER in that case
+	 */
+	unsigned int neatMode;
+
+	double pOscillatorNeuron;
+
 
 
 

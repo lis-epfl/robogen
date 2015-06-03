@@ -28,7 +28,7 @@
 #include "evolution/engine/neat/NeatContainer.h"
 #include <algorithm>
 
-#define NEAT_DEBUG
+//#define NEAT_DEBUG
 
 namespace robogen {
 
@@ -37,30 +37,55 @@ NeatContainer::NeatContainer(boost::shared_ptr<EvolverConfiguration> &evoConf,
 		boost::random::mt19937 &rng) :
 			evoConf_(evoConf), rng_(rng) {
 
-	if (evoConf_->evolutionaryAlgorithm == EvolverConfiguration::HYPER_NEAT) {
-		// create CPPN with 7 inputs (x1, y1, io1, x2, y2, io2, bias)
-		// and 5 outputs: connection exists, weight, params
-		neatPopulation_.reset(new NEAT::Population(NEAT::Genome(0, 7, 0, 5,
-								false, NEAT::UNSIGNED_SIGMOID,
-								NEAT::UNSIGNED_SIGMOID, 0, evoConf->neatParams),
-							  evoConf->neatParams, true, 1.0, seed));
-	} else {
-		//NEAT or FT_NEAT
+	if(evoConf_->neatMode == EvolverConfiguration::BRAIN_EVOLVER) {
 
-		boost::shared_ptr<NeuralNetworkRepresentation> brain =
-		    		population->at(0)->getBrain();
+		if (evoConf_->evolutionaryAlgorithm ==
+				EvolverConfiguration::HYPER_NEAT) {
+			// create CPPN with 7 inputs (x1, y1, io1, x2, y2, io2, bias)
+			// and 5 outputs: connection exists, weight, params
+			neatPopulation_.reset(new NEAT::Population(NEAT::Genome(0, 7, 0, 5,
+									false, NEAT::UNSIGNED_SIGMOID,
+									NEAT::UNSIGNED_SIGMOID, 0,
+									evoConf->neatParams),
+								  evoConf->neatParams, true, 1.0, seed));
+		} else {
+			//NEAT or FT_NEAT
 
-		std::cout << brain->getNumInputs() << " " << brain->getNumHidden() <<
-				" " << brain->getNumOutputs() << std::endl;
+			boost::shared_ptr<NeuralNetworkRepresentation> brain =
+						population->at(0)->getBrain();
 
-		// add 1 to inputs for bias
-		neatPopulation_.reset(new NEAT::Population(NEAT::Genome(0,
-				brain->getNumInputs() + 1, brain->getNumHidden(),
-				brain->getNumOutputs(), false, NEAT::UNSIGNED_SIGMOID,
-										NEAT::UNSIGNED_SIGMOID, 0,
-										evoConf->neatParams, true),
-									  evoConf->neatParams, true,
-									  evoConf_->maxBrainWeight, seed));
+			std::cout << brain->getNumInputs() << " " << brain->getNumHidden()
+					<< " " << brain->getNumOutputs() << std::endl;
+
+			// add 1 to inputs for bias
+			neatPopulation_.reset(new NEAT::Population(NEAT::Genome(0,
+					brain->getNumInputs() + 1, brain->getNumHidden(),
+					brain->getNumOutputs(), false, NEAT::UNSIGNED_SIGMOID,
+											NEAT::UNSIGNED_SIGMOID, 0,
+											evoConf->neatParams, true),
+										  evoConf->neatParams, true,
+										  evoConf_->maxBrainWeight, seed));
+		}
+	} else { // full evolution
+		if (evoConf_->evolutionaryAlgorithm ==
+				EvolverConfiguration::HYPER_NEAT) {
+			// create CPPN with 7 inputs (x1, y1, io1, x2, y2, io2, bias)
+			// and 5 outputs for connection exists, weight, params
+			// + one output per type of body part
+			neatPopulation_.reset(new NEAT::Population(NEAT::Genome(0, 7, 0,
+									5 + evoConf_->allowedBodyPartTypes.size(),
+									false, NEAT::UNSIGNED_SIGMOID,
+									NEAT::UNSIGNED_SIGMOID, 0,
+									evoConf->neatParams),
+								  evoConf->neatParams, true, 1.0, seed));
+
+		} else {
+			std::cerr << "Cannot use NEAT or FT_NEAT with full evolution" <<
+					std::endl;
+			error_ = true;
+			return;
+
+		}
 	}
 	unsigned int count = 0;
 	for(unsigned int i=0; i < neatPopulation_->m_Species.size(); i++) {
@@ -75,15 +100,16 @@ NeatContainer::NeatContainer(boost::shared_ptr<EvolverConfiguration> &evoConf,
 			count++;
 		}
 	}
+	error_ = false;
 
 }
 
 NeatContainer::~NeatContainer() {
 }
 
-bool NeatContainer::fillPopulationWeights(
-		boost::shared_ptr<Population> &population) {
+bool NeatContainer::fillPopulation(boost::shared_ptr<Population> &population) {
 
+	population->clear();
 	for(NeatIdToGenomeMap::iterator i = neatIdToGenomeMap_.begin();
 			i != neatIdToGenomeMap_.end(); i++) {
 		unsigned int id = i->first;
@@ -95,6 +121,11 @@ bool NeatContainer::fillPopulationWeights(
 		boost::shared_ptr<RobotRepresentation> robot = neatIdToRobotMap_[id];
 		if (evoConf_->evolutionaryAlgorithm ==
 				EvolverConfiguration::HYPER_NEAT) {
+			if(evoConf_->neatMode == EvolverConfiguration::FULL_EVOLVER) {
+				if(!this->createBodyHyperNEAT(genome,robot)) {
+					return false;
+				}
+			}
 			if(!this->fillBrainHyperNEAT(genome, robot)) {
 				return false;
 			}
@@ -107,6 +138,7 @@ bool NeatContainer::fillPopulationWeights(
 			std::cout << "ONLY HyperNEAT and FT-NEAT implemented!" << std::endl;
 			return false;
 		}
+		population->push_back(robot);
 
 	}
 	return true;
@@ -128,7 +160,7 @@ void NeatContainer::printCurrentIds() {
 }
 
 bool NeatContainer::produceNextGeneration(boost::shared_ptr<Population>
-		&population) {
+		&population, boost::shared_ptr<Mutator> &mutator) {
 
 	for(NeatIdToGenomeMap::iterator i = neatIdToGenomeMap_.begin();
 				i != neatIdToGenomeMap_.end(); i++) {
@@ -137,7 +169,7 @@ bool NeatContainer::produceNextGeneration(boost::shared_ptr<Population>
 		boost::shared_ptr<RobotRepresentation> robot = neatIdToRobotMap_[id];
 		if (!robot->isEvaluated()) {
 			std::cout << "Population contains non-evaluated individuals," <<
-					"cannot reproduce" << std::endl;
+					" cannot reproduce" << std::endl;
 			return false;
 		}
 		// use e^f so fitness is always positive
@@ -180,6 +212,7 @@ bool NeatContainer::produceNextGeneration(boost::shared_ptr<Population>
 
 		boost::random::uniform_int_distribution<> dist(0, newIds.size()-1);
 		int toRemove = dist(rng_);
+		std::cout << "To remove: "  << toRemove << " " << newIds.size() << std::endl;
 		unsigned int id = newIds[toRemove];
 		currentIds.erase(std::find(currentIds.begin(), currentIds.end(), id));
 		newIds.erase(newIds.begin() + toRemove);
@@ -218,16 +251,39 @@ bool NeatContainer::produceNextGeneration(boost::shared_ptr<Population>
 				<< std::endl;
 		return false;
 	}
+
 	for(unsigned int i=0; i < newIds.size(); i++) {
-		neatIdToRobotMap_[newIds[i]] = unMappedRobots_[i];
+		if(evoConf_->neatMode == EvolverConfiguration::BRAIN_EVOLVER &&
+				evoConf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
+
+			// if evolving full bodies, but just using NEAT for the brain,
+			// then mutate the body
+			neatIdToRobotMap_[newIds[i]] =
+					mutator->mutate(unMappedRobots_[i], unMappedRobots_[i]);
+
+		} else {
+			neatIdToRobotMap_[newIds[i]] = unMappedRobots_[i];
+		}
 		neatIdToRobotMap_[newIds[i]]->setDirty();
 	}
 	unMappedRobots_.erase(unMappedRobots_.begin(),
 			unMappedRobots_.begin() + newIds.size());
+
 	// missing individuals will stay evaluted and stay in unMapped array
 
 
-	return this->fillPopulationWeights(population);
+	return this->fillPopulation(population);
+}
+
+
+bool NeatContainer::createBodyHyperNEAT(NEAT::Genome *genome,
+		boost::shared_ptr<RobotRepresentation> &robotRepresentation) {
+
+	NEAT::NeuralNetwork net;
+    genome->BuildPhenotype(net);
+
+    return false;
+
 }
 
 bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
@@ -291,8 +347,9 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
     			std::cout << position[cv] << " ";
     		}
     		std::cout << std::endl;
-
+#endif
     	}
+#ifdef NEAT_DEBUG
     	std::cout << std::endl;
 #endif
 
