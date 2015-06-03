@@ -75,7 +75,7 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 
 	for (unsigned int i=0; i<motors.size(); ++i){
 		ioPair id = motors[i]->getId();
-		outputPins.push_back(arduino::digitalOrderIntegerCodes[nServo]);
+		outputPins.push_back(arduino::digitalOrder[nServo]);
 		file << "// Branch " << id.first << " " << id.second  << " to " <<
 				arduino::digitalOrder[nServo++] << std::endl;
 	}
@@ -95,10 +95,18 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 		if (boost::dynamic_pointer_cast<TouchSensor>(
 				sensors[i])){
 			input.push_back(arduino::TOUCH_SENSOR);
-			inputPins.push_back(arduino::digitalOrderIntegerCodes[nServo +
-			                                                      nTouch]);
+			std::string pin;
+			if ((nServo + nTouch) < MAX_DIGITAL_PINS) {
+				pin = arduino::digitalOrder[nServo + nTouch];
+			} else {
+				pin = arduino::analogOrder[nLight +
+				                           ((nServo + nTouch) -
+				                        		   MAX_DIGITAL_PINS )];
+			}
+			inputPins.push_back(pin);
 			file << "// Branch " << sensors[i]->getLabel() << " to " <<
-					arduino::digitalOrder[nServo + (nTouch++)] << std::endl;
+					pin << std::endl;
+			nTouch++;
 		}
 		// IMU sensor
 		if (boost::dynamic_pointer_cast<SimpleSensor>(

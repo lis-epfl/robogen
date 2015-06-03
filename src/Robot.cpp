@@ -226,15 +226,6 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 	}
 
-	if (numDigitalPins > MAX_DIGITAL_PINS) {
-
-		std::cout << "The number of digital pins required ("
-				<< numDigitalPins
-				<< ") is greater than the maximum allowed one ("
-				<< MAX_DIGITAL_PINS << ")" << std::endl;
-		return false;
-	}
-
 	if (numAnalogPins > MAX_ANALOG_PINS) {
 		std::cout << "The number of analog pins required ("
 				<< numAnalogPins
@@ -242,6 +233,19 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 				<< MAX_ANALOG_PINS << ")" << std::endl;
 		return false;
 	}
+
+
+	if (numDigitalPins > MAX_DIGITAL_PINS + (MAX_ANALOG_PINS - numAnalogPins)) {
+
+		std::cout << "The number of digital pins required ("
+				<< numDigitalPins
+				<< ") is greater than the number available ("
+				<< MAX_DIGITAL_PINS + (MAX_ANALOG_PINS - numAnalogPins)
+				<< ")" << std::endl;
+		return false;
+	}
+
+
 
 	// Look for the root node and modify its position to the origin
 	bodyParts_[rootNode_]->setRootPosition(osg::Vec3(0, 0, 0));
