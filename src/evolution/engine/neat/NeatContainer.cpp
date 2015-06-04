@@ -129,6 +129,8 @@ bool NeatContainer::fillPopulation(boost::shared_ptr<Population> &population) {
 				if(!this->createBodyHyperNEAT(genome,robot)) {
 					return false;
 				}
+				//robot is a new object now, so should update
+				neatIdToRobotMap_[id] = robot;
 			}
 			if(!this->fillBrainHyperNEAT(genome, robot)) {
 				return false;
