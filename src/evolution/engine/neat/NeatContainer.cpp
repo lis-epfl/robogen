@@ -317,7 +317,9 @@ std::vector<osg::Vec3> getNeighboringPositions(
 
 bool NeatContainer::createBodyHyperNEAT(NEAT::Genome *genome,
 		boost::shared_ptr<RobotRepresentation> &robotRepresentation) {
-
+#ifdef NEAT_DEBUG
+	std::cout << "creating body"<< std::endl;
+#endif
 	NEAT::NeuralNetwork net;
     genome->BuildPhenotype(net);
 
@@ -422,7 +424,7 @@ bool NeatContainer::createBodyHyperNEAT(NEAT::Genome *genome,
 
 					if (newPart->getArity() > 0) {
 						// Generate a random slot in the new node, if it has arity > 0
-						newPartSlot = (unsigned int) (outputs[6] *
+						newPartSlot = (unsigned int) (outputs[10] *
 								(newPart->getArity() - 1));
 						if (newPartSlot > (newPart->getArity() - 1)) {
 							std::cout << "newPartSlot greater than " <<
@@ -448,7 +450,6 @@ bool NeatContainer::createBodyHyperNEAT(NEAT::Genome *genome,
 									NeuronRepresentation::SIGMOID)) { //todo other types?
 						return false;
 					}
-					partQueue.push(newPart->getId());
 
 					int errorCode;
 					std::vector<std::pair<std::string, std::string> >
@@ -465,6 +466,7 @@ bool NeatContainer::createBodyHyperNEAT(NEAT::Genome *genome,
 
 						robotRepresentation = newBot;
 						robotRepresentation->setDirty();
+						partQueue.push(newPart->getId());
 
 					} // otherwise we just skip adding this part and continue
 
@@ -472,13 +474,19 @@ bool NeatContainer::createBodyHyperNEAT(NEAT::Genome *genome,
     		}
     	}
     }
-
+#ifdef NEAT_DEBUG
+	std::cout << "body created"<< std::endl;
+#endif
     return true;
 
 }
 
 bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
 		boost::shared_ptr<RobotRepresentation> &robotRepresentation) {
+#ifdef NEAT_DEBUG
+    std::cout << "Filling brain: " << std::endl;
+#endif
+
 
 	NEAT::NeuralNetwork net;
     genome->BuildPhenotype(net);
@@ -540,18 +548,12 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
     		std::cout << std::endl;
 #endif
     	}
-#ifdef NEAT_DEBUG
-    	std::cout << std::endl;
-#endif
-
-
-
     }
 
     // Now go through all neurons and query for weights and params with
     // the obtained coordinates
 #ifdef NEAT_DEBUG
-    std::cout << "**************************";
+    std::cout << "**************************" << std::endl;
 #endif
     for(NeuronMap::iterator i = neuronMap.begin(); i != neuronMap.end(); i++) {
     	std::vector<double> positionI = neuronToPositionMap[i->first];
@@ -612,7 +614,9 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
 				}
     		}
     	}
-
+#ifdef NEAT_DEBUG
+    	std::cout << "done getting weights; now get params"<< std::endl;
+#endif
     	// now query for parameters
     	if (neuronI->getLayer() != NeuronRepresentation::INPUT) {
 			// input neurons don't have params
@@ -660,6 +664,9 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
 			neuronI->setParams(params);
     	}
     }
+#ifdef NEAT_DEBUG
+    	std::cout << "done getting params"<< std::endl;
+#endif
     return true;
 
 }
