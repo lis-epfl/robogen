@@ -27,6 +27,8 @@
  */
 #include "evolution/engine/neat/NeatContainer.h"
 #include <algorithm>
+#include <queue>
+#include "PartList.h"
 
 //#define NEAT_DEBUG
 
@@ -71,9 +73,11 @@ NeatContainer::NeatContainer(boost::shared_ptr<EvolverConfiguration> &evoConf,
 				EvolverConfiguration::HYPER_NEAT) {
 			// create CPPN with 7 inputs (x1, y1, io1, x2, y2, io2, bias)
 			// and 5 outputs for connection exists, weight, params
+			// and 7 outputs for part exists, orientation, slot, params,
+			// motor neuron type
 			// + one output per type of body part
 			neatPopulation_.reset(new NEAT::Population(NEAT::Genome(0, 7, 0,
-									5 + evoConf_->allowedBodyPartTypes.size(),
+									12 + evoConf_->allowedBodyPartTypes.size(),
 									false, NEAT::UNSIGNED_SIGMOID,
 									NEAT::UNSIGNED_SIGMOID, 0,
 									evoConf->neatParams),
@@ -275,6 +279,41 @@ bool NeatContainer::produceNextGeneration(boost::shared_ptr<Population>
 	return this->fillPopulation(population);
 }
 
+//helper function to query neighbors
+// TODO don't duplicate code from brain stuff
+std::vector<osg::Vec3> getNeighboringPositions(
+		boost::shared_ptr<RobotRepresentation> &robotRepresentation,
+		std::string id) {
+
+	std::vector<osg::Vec3> positions;
+
+	// FIRST NEED TO CREATE PHYSICAL ROBOT REP TO DETERMINE POSITIONS
+
+	// parse robot message
+	robogenMessage::Robot robotMessage = robotRepresentation->serialize();
+	// parse robot
+	boost::shared_ptr<Robot> robot(new Robot);
+	// Initialize ODE
+	dInitODE();
+	dWorldID odeWorld = dWorldCreate();
+	dWorldSetGravity(odeWorld, 0, 0, 0);
+	dSpaceID odeSpace = dHashSpaceCreate(0);
+	if (!robot->init(odeWorld, odeSpace, robotMessage)) {
+		std::cout << "Problem when initializing robot in "
+				<< "NeatContainer::getNeighboringPositions" << std::endl;
+		return positions;
+	}
+
+	for (unsigned int i=0;
+			i<robotRepresentation->getBody().at(id).lock()->getArity();
+			i++) {
+		positions.push_back(robot->getBodyPart(id)->getSlotPosition(i));
+	}
+
+	return positions;
+
+}
+
 
 bool NeatContainer::createBodyHyperNEAT(NEAT::Genome *genome,
 		boost::shared_ptr<RobotRepresentation> &robotRepresentation) {
@@ -282,7 +321,159 @@ bool NeatContainer::createBodyHyperNEAT(NEAT::Genome *genome,
 	NEAT::NeuralNetwork net;
     genome->BuildPhenotype(net);
 
-    return false;
+    robotRepresentation.reset(new RobotRepresentation());
+    robotRepresentation->init();
+
+    std::queue<std::string> partQueue;
+    partQueue.push(robotRepresentation->getBodyRootId());
+
+
+    // will do a breadth first search, start by querying all neighboring
+    // locations of the core
+
+    while(!partQueue.empty()) {
+		if ( robotRepresentation->getBody().size() >= evoConf_->maxBodyParts ) {
+			break;
+		}
+
+		std::string currentId = partQueue.front();
+    	partQueue.pop();
+
+    	unsigned int arity = robotRepresentation->getBody().at(currentId
+    												  ).lock()->getArity();
+    	if( arity > 0 ) {
+    		std::vector<osg::Vec3> positions =
+    		    	    		getNeighboringPositions(robotRepresentation,
+    		    	    				currentId);
+    		if(positions.size() != arity) {
+    			// something went wrong
+    			return false;
+    		}
+
+    		for(unsigned int parentSlot = 0; parentSlot<positions.size();
+    				++parentSlot) {
+    			net.Flush();
+    			std::vector<double> inputs;
+    			// 7 inputs
+    			// first the x,y coords of this connection point
+    			inputs.push_back(positions[parentSlot].x() * 10.0);
+    			inputs.push_back(positions[parentSlot].y() * 10.0);
+    			// next 4 are 0
+    			for(unsigned j=0; j<4; j++) inputs.push_back(0.0);
+    			// finally, set bias
+    			inputs.push_back(1.0);
+
+    			net.Input(inputs);
+				for(int t=0; t<10; t++) {
+					net.Activate();
+				}
+				std::vector<double> outputs = net.Output();
+
+				// 5 is does part exist
+				if (outputs[5] >= 0.5) {
+					// if first output is under threshold, no part here
+					// so do nothing, otherwise we query for details
+
+					// first, what part type
+					unsigned int chosenPart = 0;
+					double chosenPartValue = outputs[12];
+
+					for(unsigned int j=1;
+							j< evoConf_->allowedBodyPartTypes.size(); ++j) {
+						if(outputs[12 + j] >= chosenPartValue) {
+							chosenPartValue = outputs[12 + j];
+							chosenPart = j;
+						}
+					}
+					char chosenPartType = evoConf_->allowedBodyPartTypes[
+					                                                chosenPart];
+
+					// already know parent slot, but...
+					// need to get orientation, parameters, and child slot
+
+					// orientation will come from output 6
+
+					unsigned int orientation = (unsigned int) (outputs[6] * 4);
+					// should truncate to be in [0,1,2,3]
+					if (orientation > 3) {
+						std::cout << "Orientation greater than 3: " <<
+								orientation << std::endl;
+						orientation = 3;
+					}
+
+					// params will come from outputs 7,8,9
+
+					unsigned int numParams = PART_TYPE_PARAM_COUNT_MAP.at(
+							PART_TYPE_MAP.at(chosenPartType));
+					std::vector<double> parameters;
+
+					for (unsigned int i = 0; i < numParams; ++i) {
+						// value in [0,1]
+						parameters.push_back(outputs[7 + i]);
+					}
+
+					boost::shared_ptr<PartRepresentation> newPart =
+							PartRepresentation::create(chosenPartType, "",
+									orientation, parameters);
+
+					// output 10 defines the slot on the new part
+
+					unsigned int newPartSlot = 0;
+
+					if (newPart->getArity() > 0) {
+						// Generate a random slot in the new node, if it has arity > 0
+						newPartSlot = (unsigned int) (outputs[6] *
+								(newPart->getArity() - 1));
+						if (newPartSlot > (newPart->getArity() - 1)) {
+							std::cout << "newPartSlot greater than " <<
+									(newPart->getArity() - 1) << ": " <<
+									newPartSlot << std::endl;
+							orientation = (newPart->getArity() - 1);
+						}
+					}
+
+					boost::shared_ptr<RobotRepresentation> newBot =
+							boost::shared_ptr<RobotRepresentation>(
+									new RobotRepresentation(
+											*robotRepresentation.get()
+											)
+							);
+
+					// output 11 defines motor neuron type
+
+					if (!newBot->insertPart(currentId, parentSlot,
+							newPart, newPartSlot,
+							(outputs[11] < evoConf_->pOscillatorNeuron)  ?
+									NeuronRepresentation::OSCILLATOR :
+									NeuronRepresentation::SIGMOID)) { //todo other types?
+						return false;
+					}
+					partQueue.push(newPart->getId());
+
+					int errorCode;
+					std::vector<std::pair<std::string, std::string> >
+														affectedBodyParts;
+
+					if (BodyVerifier::verify(*newBot.get(), errorCode,
+							affectedBodyParts)) {
+
+						if (!newBot->check()) {
+							std::cout << "Consistency check failed "
+									<< std::endl;
+							return false;
+						}
+
+						robotRepresentation = newBot;
+						robotRepresentation->setDirty();
+
+					} // otherwise we just skip adding this part and continue
+
+				}
+    		}
+    	}
+    }
+
+    return true;
 
 }
 
@@ -311,7 +502,7 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
 	dSpaceID odeSpace = dHashSpaceCreate(0);
 	if (!robot->init(odeWorld, odeSpace, robotMessage)) {
 		std::cout << "Problem when initializing robot in "
-				<< "NeatContainer::fillBrain!" << std::endl;
+				<< "NeatContainer::fillBrainHyperNEAT!" << std::endl;
 		return false;
 	}
 

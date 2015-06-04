@@ -153,6 +153,11 @@ int main(int argc, char *argv[]) {
 			EvolverConfiguration::FT_NEAT || conf->evolutionaryAlgorithm ==
 			EvolverConfiguration::NEAT);
 
+	// if using HyperNEAT for bodies, than no need to grow here
+	if (neat && conf->neatMode == EvolverConfiguration::FULL_EVOLVER) {
+		growBodies = false;
+	}
+
 	if (!population->init(referenceBot, conf->mu, mutator, growBodies,
 			(!(conf->useBrainSeed)) ) ) {
 		std::cout << "Error when initializing population!" << std::endl;
