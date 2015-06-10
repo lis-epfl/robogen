@@ -33,28 +33,29 @@
 namespace robogen {
 
 /**
- * A parametric brick is modelled with 3 boxes
+ * A parametric brick is modelled with 4 boxes and a cylinder
  */
 class ParametricBrickModel: public Model {
 
 public:
 
 	static const float MASS_SLOT;
-	static const float MASS_CONNECTION_PER_CM;
+	static const float MASS_CONNECTION_PER_M;
 	static const float SLOT_WIDTH;
 	static const float SLOT_THICKNESS;
-	static const float CAPSULE_HEIGHT;
-	static const float CAPSULE_LENGTH;
+	static const float CYLINDER_RADIUS;
 	static const float CONNECTION_PART_THICKNESS;
 	static const float CONNECTION_PART_WIDTH;
+	static const float FIXED_BAR_LENGTH;
 
 	static const unsigned int SLOT_A = 0;
 	static const unsigned int SLOT_B = 1;
 
 	static const unsigned int B_SLOT_A_ID = 0;
 	static const unsigned int B_SLOT_B_ID = 1;
-	static const unsigned int B_CONNECTION_ID = 2;
-	static const unsigned int B_CAPSULE_ID = 3;
+	static const unsigned int B_CONNECTION_PART_ID = 2; // variable bar
+	static const unsigned int B_FIXED_BAR__ID = 3;
+	static const unsigned int B_CYLINDER_ID = 4;
 
 	/**
 	 * Initialize a parametric brick model

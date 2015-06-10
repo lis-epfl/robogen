@@ -279,9 +279,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					}
 					// Add sensor noise: Gaussian with std dev of
 					// sensorNoiseLevel * actualValue
-					networkInput[i] += (normalDistribution(rng) *
-							configuration->getSensorNoiseLevel() *
-							networkInput[i]);
+					if (configuration->getSensorNoiseLevel() > 0.0) {
+						networkInput[i] += (normalDistribution(rng) *
+								configuration->getSensorNoiseLevel() *
+								networkInput[i]);
+					}
 				}
 				if (log) {
 					log->logSensors(networkInput, sensors.size());
@@ -303,12 +305,14 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 						// Add motor noise:
 						// uniform in range +/- motorNoiseLevel * actualValue
-						networkOutputs[i] += (
+						if(configuration->getMotorNoiseLevel() > 0.0) {
+							networkOutputs[i] += (
 										((uniformDistribution(rng) *
 										2.0 *
 										configuration->getMotorNoiseLevel())
 										- configuration->getMotorNoiseLevel())
 										* networkOutputs[i]);
+						}
 
 
 						boost::shared_ptr<ServoMotor> motor =

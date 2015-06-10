@@ -45,38 +45,20 @@ ParametricBrickRenderModel::~ParametricBrickRenderModel() {
 
 bool ParametricBrickRenderModel::initRenderModel() {
 
-	this->showDebugView();
+	if (isDebugActive()) {
+		this->showDebugView();
+	} else {
+		std::vector<osg::Vec4> colors;
+		colors.push_back(osg::Vec4(1,0,0,1));
+		this->attachGeoms(colors);
+	}
 
 	return true;
 
 }
 
 void ParametricBrickRenderModel::showDebugView() {
-
-	osg::ref_ptr<osg::PositionAttitudeTransform> patSlotA = this->attachBox(
-			ParametricBrickModel::B_SLOT_A_ID,
-			ParametricBrickModel::SLOT_THICKNESS,
-			ParametricBrickModel::SLOT_WIDTH, ParametricBrickModel::SLOT_WIDTH);
-
-	//this->attachAxis(patSlotA);
-
-	osg::ref_ptr<osg::PositionAttitudeTransform> patSlotB = this->attachBox(
-			ParametricBrickModel::B_SLOT_B_ID,
-			ParametricBrickModel::SLOT_THICKNESS,
-			ParametricBrickModel::SLOT_WIDTH, ParametricBrickModel::SLOT_WIDTH);
-
-	//this->attachAxis(patSlotB);
-
-	this->attachBox(ParametricBrickModel::B_CONNECTION_ID,
-			brickModel_->getConnectionLength(),
-			ParametricBrickModel::CONNECTION_PART_WIDTH,
-			ParametricBrickModel::CONNECTION_PART_THICKNESS);
-
-	/*this->attachBox(ParametricBrickModel::B_CAPSULE_ID,
-	 ParametricBrickModel::CAPSULE_LENGTH,
-	 ParametricBrickModel::CONNECTION_PART_WIDTH,
-	 ParametricBrickModel::CAPSULE_HEIGHT);*/
-
+	this->attachGeoms();
 }
 
 void ParametricBrickRenderModel::setColor(osg::Vec4 /*color*/) {
