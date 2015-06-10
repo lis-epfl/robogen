@@ -63,6 +63,9 @@ THE SOFTWARE.
 #define USE_SERIAL
 #define USE_SERIAL1
 
+//#define SENSOR_NOISE_LEVEL 0.1
+//#define MOTOR_NOISE_LEVEL 0.1
+
 // uncomment to check memory usage
 //#define CHECK_MEMORY
 
@@ -73,12 +76,12 @@ THE SOFTWARE.
 //#define CALIBRATE_SENSOR_OFFSET
 
 // put in values for your Arduino after doing calibration
-#define ACCEL_OFFSET_X (3249) 			
-#define ACCEL_OFFSET_Y (1629)
-#define ACCEL_OFFSET_Z (1698)
-#define GYRO_OFFSET_X (433) 			
-#define GYRO_OFFSET_Y (542)
-#define GYRO_OFFSET_Z (284)
+#define ACCEL_OFFSET_X (-1670) 			
+#define ACCEL_OFFSET_Y (642)
+#define ACCEL_OFFSET_Z (1484)
+#define GYRO_OFFSET_X (-76) 			
+#define GYRO_OFFSET_Y (-8)
+#define GYRO_OFFSET_Z (11)
 
 #define PI 3.14159265358979323846f
 
@@ -134,7 +137,7 @@ MPU6050 accelGyro;
 /* Define Servos Motors*/
 Servo myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7;
 Servo myservo[]={myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7};
-float servoOffsets[] = {0,0,0,0,0,0,0,0};
+float servoOffsets[] = {0,0,3,3,0,0,0,0};
 
 float servoPosition, servoSpeed;
 int lightInput;
@@ -324,7 +327,31 @@ void setup() {
   }
   #endif
   #endif
+
   
+}
+
+double rand01()
+{
+  return random(0,2147483647L)/double(2147483647L);
+}
+
+double randn (double mu, double sigma)
+{
+  double U1, U2, W, mult;
+
+  do
+    {
+      U1 = -1 + rand01() * 2;
+      U2 = -1 + rand01() * 2;
+      W = U1 * U1 + U2 * U2;
+    }
+  while (W >= 1 || W == 0);
+
+  mult = sqrt ((-2 * log (W)) / W);
+  double X1 = U1 * mult;
+
+  return (mu + sigma * (double) X1);
 }
 
 void loop() {
@@ -397,6 +424,15 @@ void loop() {
     #endif
     #endif
     
+    // add noise
+    #ifdef SENSOR_NOISE_LEVEL
+    // Add sensor noise: Gaussian with std dev of
+    // SENSOR_NOISE_LEVEL * actualValue
+    for(int i=0;i<NB_INPUTS;i++) {
+        networkInput[i] += (randn(0,1) * SENSOR_NOISE_LEVEL * networkInput[i]);
+    }    
+    #endif
+    
     #ifdef USE_SERIAL1
     Serial1.print((millis() - startTime)); Serial1.print(F("\t"));
     for(int i=0;i<NB_INPUTS;i++)
@@ -406,7 +442,7 @@ void loop() {
     } 
     #endif
     
-    
+
     
     
     /* Feed neural network with sensors values as input of the neural network*/
@@ -590,7 +626,13 @@ void fetch(const NeuralNetwork* network, float *output) {
 
 	unsigned int i = 0;
 	for (i = 0; i < network->nOutputs; ++i) {
-            output[i] = network->state[network->curStateStart + i] * 100 + 40;
+            float rawOutput = network->state[network->curStateStart + i];
+            #ifdef MOTOR_NOISE_LEVEL
+            // Add motor noise:
+            // uniform in range +/- MOTOR_NOISE_LEVEL * actualValue
+            rawOutput += ( ((rand01() * 2.0 * MOTOR_NOISE_LEVEL) - MOTOR_NOISE_LEVEL) * rawOutput);
+            #endif
+            output[i] = rawOutput * 100 + 40;
 	}
 
 }
