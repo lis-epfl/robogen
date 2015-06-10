@@ -295,7 +295,7 @@ std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > RenderModel::attachGe
 					osg::ref_ptr<osg::PositionAttitudeTransform> pat =
 							this->attachBox(
 									ids[i],lengths[0], lengths[1],
-									lengths[2], colors[count]);
+									lengths[2], colors[count % colors.size()]);
 					pats.push_back(pat);
 					break;
 				}
@@ -306,7 +306,7 @@ std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > RenderModel::attachGe
 					dGeomCylinderGetParams(g, &radius, &length);
 					osg::ref_ptr<osg::PositionAttitudeTransform> pat =
 							this->attachGeode(ids[i],this->getCylinder(fromOde(radius),
-									fromOde(length), colors[count]));
+									fromOde(length), colors[count % colors.size()]));
 					pats.push_back(pat);
 					break;
 				}
