@@ -72,7 +72,7 @@ bool RacingScenario::endSimulation() {
 		}
 	}
 
-	distances_.push_back(minDistance);
+	distances_.push_back(minDistance / pow((double) bodyParts.size(), 0.25));
 	curTrial_++;
 	// Set next starting position
 	this->setStartingPosition(curTrial_);
