@@ -122,14 +122,14 @@ void WebGLLogger::writeRobotStructure() {
 }
 
 void WebGLLogger::writeJSONHeaders() {
-	//json_object_set_new(this->jsonRoot, WebGLLogger::LOG_TAG, this->jsonLog);
-	//json_object_set_new(this->jsonRoot, WebGLLogger::STRUCTURE_TAG,
-	//this->jsonStructure);
-	//json_object_set_new(this->jsonRoot, WebGLLogger::MAP_TAG, this->jsonMap);
-	//json_object_set_new(this->jsonRoot, WebGLLogger::OBSTACLE_TAGS,
-			//this->jsonObstacles);
-	//json_object_set_new(this->jsonObstacles, WebGLLogger::OBSTACLE_DEF_TAG, this->jsonObstaclesDefinition);
-	//json_object_set_new(this->jsonObstacles, WebGLLogger::OBSTACLE_LOG_TAG, this->jsonObstaclesLog);
+	json_object_set_new(this->jsonRoot, WebGLLogger::LOG_TAG, this->jsonLog);
+	json_object_set_new(this->jsonRoot, WebGLLogger::STRUCTURE_TAG,
+	this->jsonStructure);
+	json_object_set_new(this->jsonRoot, WebGLLogger::MAP_TAG, this->jsonMap);
+	json_object_set_new(this->jsonRoot, WebGLLogger::OBSTACLE_TAGS,
+			this->jsonObstacles);
+	json_object_set_new(this->jsonObstacles, WebGLLogger::OBSTACLE_DEF_TAG, this->jsonObstaclesDefinition);
+	json_object_set_new(this->jsonObstacles, WebGLLogger::OBSTACLE_LOG_TAG, this->jsonObstaclesLog);
 	json_object_set_new(this->jsonRoot, WebGLLogger::LIGHT_TAGS,
 	this->jsonLights);
 }
