@@ -49,7 +49,8 @@ struct BodyDescriptor {
 class WebGLLogger {
 
 public :
-	WebGLLogger(std::string inFileName, boost::shared_ptr<Scenario> in_scenario, double targetFramerate = 120.0);
+	WebGLLogger(std::string inFileName, boost::shared_ptr<Scenario> in_scenario,
+			double targetFramerate = 120.0);
 	void log(double dt);
 	~ WebGLLogger();
 	static const char* STRUCTURE_TAG;
