@@ -170,8 +170,12 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		/***
          * Init the webGLLogger
          */
-        boost::shared_ptr<WebGLLogger> webGLlogger(
-        		new WebGLLogger("./hello.json", scenario));
+        boost::shared_ptr<WebGLLogger> webGLlogger;
+        if (log && log->isWriteWebGL()) {
+        	webGLlogger.reset(new WebGLLogger(log->getWebGLFileName(),
+        										scenario));
+        }
+
 
 
 		//setup vectors for keeping velocities
@@ -369,7 +373,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 							)->getCoreComponent()->getRootPosition());
 			}
 
-			webGLlogger->log(t);
+			if(webGLlogger) {
+				webGLlogger->log(t);
+			}
 
 			t += step;
 
@@ -386,7 +392,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// ---------------------------------------
 
 		// Destroy the WebGlLogger, since contains pointer to scenario
-		webGLlogger.reset();
+		if(webGLlogger) {
+			webGLlogger.reset();
+		}
 
 		// Destroy robot (because of associated ODE joint group)
 		robot.reset();
