@@ -201,14 +201,15 @@ bool Viewer::configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
 		root->addChild(lightSourceRender->getRootNode());
 	}
 
+	if(debugActive) {
+		// show global axis at origin
+		osg::ref_ptr<osg::PositionAttitudeTransform> pat(
+					new osg::PositionAttitudeTransform());
 
-	// show global axis at origin
-	osg::ref_ptr<osg::PositionAttitudeTransform> pat(
-				new osg::PositionAttitudeTransform());
 
-
-	root->addChild(pat);
-	RenderModel::attachAxis(pat);
+		root->addChild(pat);
+		RenderModel::attachAxis(pat);
+	}
 
 	// ---------------------------------------
 	// Setup OSG viewer
