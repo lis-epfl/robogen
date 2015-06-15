@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 				<< "      " << std::string(argv[0])
 				<< " <ROBOT_FILE, STRING> "
 				<< "<CONFIGURATION_FILE, STRING> "
-				<< "[<START_POSITION, INTEGER>]"
+				<< "[<START_POSITION, INTEGER>] [<OPTIONS>]"
 				<< std::endl << std::endl
 				<< "WHERE: " << std::endl
 				<< "      <ROBOT_FILE> is the name of a file containing "
