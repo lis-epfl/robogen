@@ -47,14 +47,18 @@ EvolverLog::EvolverLog(){
 
 bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::shared_ptr<RobogenConfig> robotConf,
-		const std::string& logDirectory) {
+		const std::string& logDirectory, bool overwrite) {
 
 	std::string tempPath = logDirectory;
 	int curIndex = 0;
-	while (boost::filesystem::is_directory(tempPath)) {
-		std::stringstream newPath;
-		newPath << logDirectory << "_" << ++curIndex;
-		tempPath = newPath.str();
+	if (overwrite) {
+			boost::filesystem::remove_all(tempPath);
+	} else {
+		while (boost::filesystem::is_directory(tempPath)) {
+			std::stringstream newPath;
+			newPath << logDirectory << "_" << ++curIndex;
+			tempPath = newPath.str();
+		}
 	}
 
 	logPath_ = tempPath;

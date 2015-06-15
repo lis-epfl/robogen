@@ -44,15 +44,37 @@ int exitRobogen(int exitCode) {
 	return exitCode;
 }
 
+void printUsage(char *argv[]) {
+	std::cout << std::endl << "USAGE: " << std::endl
+			<< "      " << std::string(argv[0])
+			<< " <SEED, INTEGER> <OUTPUT_DIRECTORY, STRING> "
+			<< "<CONFIGURATION_FILE, STRING> [--overwrite]"
+			<< std::endl << std::endl
+			<< "WHERE: " << std::endl
+			<< "      <SEED> is a number to seed "
+			<< "the pseudorandom number generator."
+			<< std::endl << std::endl
+			<< "      <OUTPUT_DIRECTORY> is the directory to write output "
+			<< "files to."
+			<< std::endl << std::endl
+			<< "      <CONFIGURATION_FILE> is the evolution"
+			<< " configuration file to use."
+			<< std::endl << std::endl
+			<< "      --overwrite optionally specifies overwriting the "
+			<< "existing output directory."<< std::endl
+			<< "          (Default is to keep creating new output "
+			<< "directories with incrementing suffixes)."
+			<< std::endl << std::endl;
+
+}
+
 int main(int argc, char *argv[]) {
 
 	// ---------------------------------------
 	// verify usage and load configuration
 	// ---------------------------------------
 	if (argc > 1 && std::string(argv[1]) == "--help") {
-		std::cout << " Usage: robogen-evolver "
-							"<seed, INTEGER>, <output directory, STRING>, "
-							"<configuration file, STRING>" << std::endl;
+		printUsage(argv);
 		boost::shared_ptr<EvolverConfiguration> conf =
 					boost::shared_ptr<EvolverConfiguration>(
 							new EvolverConfiguration());
@@ -63,12 +85,26 @@ int main(int argc, char *argv[]) {
 		return exitRobogen(EXIT_SUCCESS);
 	}
 
-	if (argc != 4) {
-		std::cout << "Incorrect number of arguments. " << std::endl
-				<< " Usage: robogen-evolver "
-						"<seed, INTEGER>, <output directory, STRING>, "
-						"<configuration file, STRING>" << std::endl;
+	if ((argc != 4) && (argc != 5)) {
+		printUsage(argv);
+		std::cout << "RUN: " << std::endl << std::endl
+				<< "      " << std::string(argv[0])
+				<< " --help to see all configuration options."
+				<< std::endl << std::endl;
 		return exitRobogen(EXIT_FAILURE);
+	}
+
+	bool overwrite = false;
+
+	if (argc == 5) {
+		if (std::string(argv[4]) == "--overwrite") {
+			overwrite = true;
+		} else {
+			std::cout << std::endl << "Invalid usage!"
+					<< std::endl << std::endl;
+			printUsage(argv);
+			return exitRobogen(EXIT_FAILURE);
+		}
 	}
 
 	unsigned int seed = atoi(argv[1]);
@@ -111,7 +147,7 @@ int main(int argc, char *argv[]) {
 	boost::shared_ptr<Mutator> mutator = boost::shared_ptr<Mutator>(
 			new Mutator(conf, rng));
 	boost::shared_ptr<EvolverLog> log(new EvolverLog());
-	if (!log->init(conf, robotConf, outputDirectory)) {
+	if (!log->init(conf, robotConf, outputDirectory, overwrite)) {
 		std::cout << "Error creating evolver log. Aborting." << std::endl;
 		return EXIT_FAILURE;
 	}

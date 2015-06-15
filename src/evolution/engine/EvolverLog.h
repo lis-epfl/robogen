@@ -54,7 +54,7 @@ public:
 	 */
 	bool init(boost::shared_ptr<EvolverConfiguration> conf,
 			boost::shared_ptr<RobogenConfig> robotConf,
-			const std::string& logDirectory);
+			const std::string& logDirectory, bool overwrite = false);
 
 	virtual ~EvolverLog();
 
