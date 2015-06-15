@@ -60,12 +60,14 @@ FileViewerLog::FileViewerLog(std::string robotFile,
 		std::string obstacleFile,
 		std::string startPosFile,
 		std::string logFolder,
+		bool overwrite,
 		bool writeWebGL) :
 			robotFile_(robotFile),
 			confFile_(confFile),
 			obstacleFile_(obstacleFile),
 			startPosFile_(startPosFile),
 			logFolder_(logFolder),
+			overwrite_(overwrite),
 			writeWebGL_(writeWebGL) {
 }
 
@@ -73,10 +75,15 @@ bool FileViewerLog::init(boost::shared_ptr<Robot> robot,
 		boost::shared_ptr<RobogenConfig> config) {
 	std::string tempPath = logFolder_;
 	int curIndex = 0;
-	while (boost::filesystem::is_directory(tempPath)) {
-		std::stringstream newPath;
-		newPath << logFolder_ << "_" << ++curIndex;
-		tempPath = newPath.str();
+
+	if (overwrite_) {
+		boost::filesystem::remove_all(tempPath);
+	} else {
+		while (boost::filesystem::is_directory(tempPath)) {
+			std::stringstream newPath;
+			newPath << logFolder_ << "_" << ++curIndex;
+			tempPath = newPath.str();
+		}
 	}
 
 	logPath_ = tempPath;

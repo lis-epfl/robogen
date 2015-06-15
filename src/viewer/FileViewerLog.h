@@ -59,6 +59,7 @@ public:
 		std::string obstacleFile,
 		std::string startPosFile,
 		std::string logFolder,
+		bool overwrite = false,
 		bool writeWebGL = false);
 
 	/**
@@ -108,6 +109,7 @@ private:
 	std::string startPosFile_;
 	std::string logFolder_;
 
+	bool overwrite_;
 	bool writeWebGL_;
 
 };

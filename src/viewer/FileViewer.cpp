@@ -62,72 +62,91 @@ dJointGroupID odeContactGroup;
 
 bool interrupted;
 
+void printUsage(char *argv[]) {
+	std::cout << std::endl
+			<< "USAGE: " << std::endl
+			<< "      " << std::string(argv[0])
+			<< " <ROBOT_FILE, STRING> "
+			<< "<CONFIGURATION_FILE, STRING> "
+			<< "[<START_POSITION, INTEGER>] [<OPTIONS>]"
+			<< std::endl << std::endl
+			<< "WHERE: " << std::endl
+			<< "      <ROBOT_FILE> is the name of a file containing "
+			<< "the robot description (either .json or .txt)."
+			<< std::endl << std::endl
+			<< "      <CONFIGURATION_FILE> is the name of the "
+			<< "corresponding simulation configuration file."
+			<< std::endl << std::endl
+			<< "      <START_POSITON> optionally specifies the starting "
+			<< "position 1..n"
+			<< std::endl
+			<< std::endl
+			<< "OPTIONS: " << std::endl
+			<< "      --debug" << std::endl
+			<< "          Run in debug visualization mode."
+			<< std::endl << std::endl
+			<< "      --help" << std::endl
+			<< "          Print these usage instructions."
+			<< std::endl << std::endl
+			<< "      --no-visualization" << std::endl
+			<< "          Evaluate an individual without visualization."
+			<< std::endl << std::endl
+			<< "      --pause" << std::endl
+			<< "          Starts the simulation paused." << std::endl
+			<< std::endl
+			<< "      --output <DIR, STRING>" << std::endl
+			<< "          Generates output files: sensor logs and "
+			<< "Arduino files." << std::endl << std::endl
+			<< "      --overwrite" << std::endl
+			<< "          Overwrite existing output file directory if it "
+			<< "exists." << std::endl
+			<< "          (Default is to keep creating new output "
+			<< "directories with incrementing suffixes)."
+			<< std::endl << std::endl
+			<< "      --record <N, INTEGER> <DIR, STRING>" << std::endl
+			<< "          Save frames to file (for video rendering)."
+			<< std::endl
+			<< "          Saves every <N>th simulation step in directory "
+			<< "<DIR>." << std::endl << std::endl
+			<< "      --seed <A, INTEGER> " << std::endl
+			<< "          Set the seed A for the random number generator "
+			<< "for noisy evaluations."
+			<< std::endl << std::endl
+			<< "      --speed <S, FLOAT>" << std::endl
+			<< "          Run visualization at S * real time "
+			<< "(default is 1)."
+			<< std::endl << std::endl
+			<< "      --webgl" << std::endl
+			<< "          Record json file for use with the WebGL "
+			<< "visualizer (only valid if --output is specified)."
+			<< std::endl << std::endl
+			<< "      Notes: " << std::endl
+			<< "        (a) Without visualization you cannot record frames,"
+			<< " and setting speed has no effect "
+			<< "(will always run as fast possible)."
+			<< std::endl
+			<< "        (b) Speed will be capped by the rate at which your"
+			<< " system is capable of running the simulation." << std::endl
+			<< "              For complex simulations this may be slower "
+			<< "than real time." << std::endl
+			<< "        (c) Recording frames may make simulation run slower"
+							<< " than requested speed."  << std::endl
+			<< std::endl << std::endl;
+}
+
+
 /**
  * Decodes a robot saved on file and visualize it
  */
 int main(int argc, char *argv[]) {
 
+	if (argc > 1 && std::string(argv[1]) == "--help") {
+		printUsage(argv);
+		return EXIT_SUCCESS;
+	}
+
 	if (argc < 3) {
-		std::cout << std::endl
-				<< "USAGE: " << std::endl
-				<< "      " << std::string(argv[0])
-				<< " <ROBOT_FILE, STRING> "
-				<< "<CONFIGURATION_FILE, STRING> "
-				<< "[<START_POSITION, INTEGER>] [<OPTIONS>]"
-				<< std::endl << std::endl
-				<< "WHERE: " << std::endl
-				<< "      <ROBOT_FILE> is the name of a file containing "
-				<< "the robot description (either .json or .txt)."
-				<< std::endl << std::endl
-				<< "      <CONFIGURATION_FILE> is the name of the "
-				<< "corresponding simulation configuration file."
-				<< std::endl << std::endl
-				<< "      <START_POSITON> optionally specifies the starting "
-				<< "position 1..n"
-				<< std::endl
-				<< std::endl
-				<< "OPTIONS: " << std::endl
-				<< "      --debug" << std::endl
-				<< "          Run in debug visualization mode."
-				<< std::endl << std::endl
-				<< "      --no-visualization" << std::endl
-				<< "          Evaluate an individual without visualization."
-				<< std::endl << std::endl
-				<< "      --pause" << std::endl
-				<< "          Starts the simulation paused." << std::endl
-				<< std::endl
-				<< "      --output <DIR, STRING>" << std::endl
-				<< "          Generates output files: sensor logs and "
-				<< "Arduino files." << std::endl << std::endl
-				<< "      --record <N, INTEGER> <DIR, STRING>" << std::endl
-				<< "          Save frames to file (for video rendering)."
-				<< std::endl
-				<< "          Saves every <N>th simulation step in directory "
-				<< "<DIR>." << std::endl << std::endl
-				<< "      --seed <A, INTEGER> " << std::endl
-				<< "          Set the seed A for the random number generator "
-				<< "for noisy evaluations."
-				<< std::endl << std::endl
-				<< "      --speed <S, FLOAT>" << std::endl
-				<< "          Run visualization at S * real time "
-				<< "(default is 1)."
-				<< std::endl << std::endl
-				<< "      --webgl" << std::endl
-				<< "          Record json file for use with the WebGL "
-				<< "visualizer (only valid if --output is specified)."
-				<< std::endl << std::endl
-				<< "      Notes: " << std::endl
-				<< "        (a) Without visualization you cannot record frames,"
-				<< " and setting speed has no effect "
-				<< "(will always run as fast possible)."
-				<< std::endl
-				<< "        (b) Speed will be capped by the rate at which your"
-				<< " system is capable of running the simulation." << std::endl
-				<< "              For complex simulations this may be slower "
-				<< "than real time." << std::endl
-				<< "        (c) Recording frames may make simulation run slower"
-								<< " than requested speed."  << std::endl
-				<< std::endl << std::endl;
+		printUsage(argv);
 		return EXIT_FAILURE;
 	}
 
@@ -150,6 +169,7 @@ int main(int argc, char *argv[]) {
 	char *outputDirectoryName;
 
 	bool writeWebGL = false;
+	bool overwrite = false;
 
 	int currentArg = 3;
 	if (argc >= 4 && !boost::starts_with(argv[3], "--")) {
@@ -176,7 +196,10 @@ int main(int argc, char *argv[]) {
 	bool debug = false;
 	int seed = -1;
 	for (; currentArg<argc; currentArg++) {
-		if (std::string("--record").compare(argv[currentArg]) == 0) {
+		if (std::string("--help").compare(argv[currentArg]) == 0) {
+			printUsage(argv);
+			return EXIT_SUCCESS;
+		} else if (std::string("--record").compare(argv[currentArg]) == 0) {
 			if (argc < (currentArg + 3)) {
 				std::cerr << "In order to record frames, must provide frame "
 						<< "frequency and target directory."
@@ -248,6 +271,8 @@ int main(int argc, char *argv[]) {
 			ss >> seed;
 		} else if (std::string("--webgl").compare(argv[currentArg]) == 0) {
 			writeWebGL = true;
+		} else if (std::string("--overwrite").compare(argv[currentArg]) == 0) {
+			overwrite = true;
 		}
 
 	}
@@ -270,6 +295,12 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 
+	if (overwrite && (!writeLog)) {
+		std::cerr << "No output directory was specified, so there is " <<
+				"nothing to overwrite." << std::endl;
+		return EXIT_FAILURE;
+	}
+
 
 	boost::random::mt19937 rng;
 	if (seed != -1)
@@ -281,7 +312,8 @@ int main(int argc, char *argv[]) {
 	robogenMessage::Robot robotMessage;
 	std::string robotFileString(argv[1]);
 
-	if (boost::filesystem::path(argv[1]).extension().string().compare(".dat") == 0) {
+	if (boost::filesystem::path(argv[1]).extension().string().compare(
+			".dat") == 0) {
 
 		std::ifstream robotFile(argv[1], std::ios::binary);
 		if (!robotFile.is_open()) {
@@ -302,7 +334,8 @@ int main(int argc, char *argv[]) {
 		robogenPacket.decodePayload(packetBuffer);
 		robotMessage = *robogenPacket.getMessage().get();
 
-	} else if (boost::filesystem::path(argv[1]).extension().string().compare(".txt") == 0) {
+	} else if (boost::filesystem::path(argv[1]).extension().string().compare(
+			".txt") == 0) {
 
 		RobotRepresentation robot;
 		if (!robot.init(argv[1])) {
@@ -311,7 +344,8 @@ int main(int argc, char *argv[]) {
 		}
 		robotMessage = robot.serialize();
 
-	} else if (boost::filesystem::path(argv[1]).extension().string().compare(".json") == 0) {
+	} else if (boost::filesystem::path(argv[1]).extension().string().compare(
+			".json") == 0) {
 
 		std::ifstream robotFile(argv[1], std::ios::in | std::ios::binary);
 		if (!robotFile.is_open()) {
@@ -360,6 +394,7 @@ int main(int argc, char *argv[]) {
 			std::string(argv[2]), configuration->getObstacleFile(),
 			configuration->getStartPosFile(),
 			std::string(outputDirectoryName),
+			overwrite,
 			writeWebGL));
 	}
 
