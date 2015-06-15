@@ -31,6 +31,7 @@
 #include "viewer/Viewer.h"
 #include "Models.h"
 #include "Robot.h"
+#include "viewer/WebGLLogger.h"
 
 
 // ODE World
@@ -103,6 +104,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			}
 		}
 
+
+
+
 		std::cout << "Evaluating individual " << robot->getId()
 				<< ", trial: " << scenario->getCurTrial()
 				<< std::endl;
@@ -163,6 +167,16 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					<< std::endl;
 			return SIMULATION_FAILURE;
 		}
+
+		/***
+         * Init the webGLLogger
+         */
+        boost::shared_ptr<WebGLLogger> webGLlogger;
+        if (log && log->isWriteWebGL()) {
+        	webGLlogger.reset(new WebGLLogger(log->getWebGLFileName(),
+        										scenario));
+        }
+
 
 
 		//setup vectors for keeping velocities
@@ -360,6 +374,10 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 							)->getCoreComponent()->getRootPosition());
 			}
 
+			if(webGLlogger) {
+				webGLlogger->log(t);
+			}
+
 			t += step;
 
 		}
@@ -373,6 +391,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// ---------------------------------------
 		// Simulator finalization
 		// ---------------------------------------
+
+		// Destroy the WebGlLogger, since contains pointer to scenario
+		if(webGLlogger) {
+			webGLlogger.reset();
+		}
 
 		// Destroy robot (because of associated ODE joint group)
 		robot.reset();

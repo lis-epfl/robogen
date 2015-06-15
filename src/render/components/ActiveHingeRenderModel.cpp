@@ -31,6 +31,8 @@
 #include "render/components/ActiveHingeRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 ActiveHingeRenderModel::ActiveHingeRenderModel(
@@ -46,7 +48,9 @@ ActiveHingeRenderModel::~ActiveHingeRenderModel() {
 
 bool ActiveHingeRenderModel::initRenderModel() {
 
-	bool meshLoadingA = this->partA_->loadMesh("../models/ActiveHinge_Frame.stl");
+	bool meshLoadingA = this->partA_->loadMesh(
+			RobogenUtils::getMeshFile(this->getModel(),
+			  ActiveHingeModel::B_SLOT_A_ID));
 
 	if (!meshLoadingA) {
 		std::cerr << "[ActiveHingeRenderModel] Error loading model"
@@ -55,7 +59,8 @@ bool ActiveHingeRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingB = this->partB_->loadMesh(
-			"../models/ActiveCardanHinge_Servo_Holder.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+			  ActiveHingeModel::B_SLOT_B_ID));
 
 	if (!meshLoadingB) {
 		std::cerr << "[ActiveHingeRenderModel] Error loading model"
@@ -75,17 +80,11 @@ bool ActiveHingeRenderModel::initRenderModel() {
 	partB_->setColor(osg::Vec4(0, 1, 0, 0.5));
 
 
-	// x = 0 is midpoint of slot, so  -SLOT_THICKNESS/2 is edge of frame
-	// and frame is (FRAME_LENGTH + SLOT_THICKNESS) long
-	// so (FRAME_LENGTH + SLOT_THICKNESS)/2 -SLOT_THICKNESS/2 =
-	// FRAME_LENGTH/2
-	frame->setPosition(
-			fromOde(
-					osg::Vec3(
-							ActiveHingeModel::FRAME_LENGTH / 2,
-							ActiveHingeModel::SERVO_POSITION_OFFSET,
-							0)));
-	frame->setAttitude(osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0)));
+	frame->setPosition(RobogenUtils::getRelativePosition(this->getModel(),
+			  ActiveHingeModel::B_SLOT_A_ID));
+
+	frame->setAttitude(RobogenUtils::getRelativeAttitude(this->getModel(),
+			  ActiveHingeModel::B_SLOT_A_ID));
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patFrame(
 			new osg::PositionAttitudeTransform());
@@ -96,21 +95,14 @@ bool ActiveHingeRenderModel::initRenderModel() {
 			new BodyCallback(this->getModel(), ActiveHingeModel::B_SLOT_A_ID));
 
 	// PART B
-	//float servoMeshCorrection = inMm(3.2);
 
-
-	// x = 0 is midpoint of slot so SLOT_THICKNESS/2 is edge of servo
-	// and servo is  SERVO_LENGTH + SLOT_THICKNESS  long
-	// so -(SERVO_LENGTH + SLOT_THICKNESS)/2 + SLOT_THICKNESS/2
-	// = -(SERVO_LENGTH)/2
 	osg::ref_ptr<osg::PositionAttitudeTransform> servo =
 			this->partB_->getMesh();
-	servo->setPosition(
-			fromOde(
-					osg::Vec3(-(ActiveHingeModel::SERVO_LENGTH) / 2, 0,
-							0)));
+	servo->setPosition(RobogenUtils::getRelativePosition(this->getModel(),
+			  ActiveHingeModel::B_SLOT_B_ID));
 
-	servo->setAttitude(osg::Quat(osg::inDegrees(270.0), osg::Vec3(1, 0, 0)));
+	servo->setAttitude(RobogenUtils::getRelativeAttitude(this->getModel(),
+			  ActiveHingeModel::B_SLOT_B_ID));
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patServo(
 			new osg::PositionAttitudeTransform());

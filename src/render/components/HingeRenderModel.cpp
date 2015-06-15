@@ -31,6 +31,8 @@
 #include "render/components/HingeRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 HingeRenderModel::HingeRenderModel(boost::shared_ptr<HingeModel> model) :
@@ -45,14 +47,18 @@ HingeRenderModel::~HingeRenderModel() {
 
 bool HingeRenderModel::initRenderModel() {
 
-	bool meshLoadingA = this->partA_->loadMesh("../models/PassiveHinge.stl");
+	bool meshLoadingA = this->partA_->loadMesh(
+			RobogenUtils::getMeshFile(this->getModel(),
+			  HingeModel::B_SLOT_A_ID));
 
 	if (!meshLoadingA) {
 		std::cerr << "[HingeRenderModel] Error loading model" << std::endl;
 		return false;
 	}
 
-	bool meshLoadingB = this->partB_->loadMesh("../models/PassiveHinge.stl");
+	bool meshLoadingB = this->partB_->loadMesh(
+			RobogenUtils::getMeshFile(this->getModel(),
+			  HingeModel::B_SLOT_B_ID));
 
 	if (!meshLoadingB) {
 		std::cerr << "[HingeRenderModel] Error loading model" << std::endl;
@@ -70,11 +76,8 @@ bool HingeRenderModel::initRenderModel() {
 	partA_->setColor(osg::Vec4(1, 0, 0, 0.5));
 	partB_->setColor(osg::Vec4(0, 1, 0, 0.5));
 
-	partA->setPosition(
-			fromOde(
-					osg::Vec3(
-							HingeModel::CONNNECTION_PART_LENGTH / 2,
-							0, 0)));
+	partA->setPosition(RobogenUtils::getRelativePosition(this->getModel(),
+			  HingeModel::B_SLOT_A_ID));
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patPartA(
 			new osg::PositionAttitudeTransform());
@@ -84,15 +87,14 @@ bool HingeRenderModel::initRenderModel() {
 	patPartA->setUpdateCallback(
 			new BodyCallback(this->getModel(), HingeModel::B_SLOT_A_ID));
 
+
 	// PART B
 	osg::ref_ptr<osg::PositionAttitudeTransform> partB =
 			this->partB_->getMesh();
-	partB->setPosition(
-			fromOde(
-					osg::Vec3(
-							-(HingeModel::CONNNECTION_PART_LENGTH / 2),
-							0, 0)));
-	partB->setAttitude(osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 1, 0)));
+	partB->setPosition(RobogenUtils::getRelativePosition(this->getModel(),
+			HingeModel::B_SLOT_B_ID));
+	partB->setAttitude(RobogenUtils::getRelativeAttitude(this->getModel(),
+			HingeModel::B_SLOT_B_ID));
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patPartB(
 			new osg::PositionAttitudeTransform());
@@ -101,6 +103,7 @@ bool HingeRenderModel::initRenderModel() {
 	this->getMeshes()->addChild(patPartB.get());
 	patPartB->setUpdateCallback(
 			new BodyCallback(this->getModel(), HingeModel::B_SLOT_B_ID));
+
 
 
 	if(isDebugActive()) {

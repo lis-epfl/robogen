@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 				<< "      " << std::string(argv[0])
 				<< " <ROBOT_FILE, STRING> "
 				<< "<CONFIGURATION_FILE, STRING> "
-				<< "[<START_POSITION, INTEGER>]"
+				<< "[<START_POSITION, INTEGER>] [<OPTIONS>]"
 				<< std::endl << std::endl
 				<< "WHERE: " << std::endl
 				<< "      <ROBOT_FILE> is the name of a file containing "
@@ -112,6 +112,10 @@ int main(int argc, char *argv[]) {
 				<< "          Run visualization at S * real time "
 				<< "(default is 1)."
 				<< std::endl << std::endl
+				<< "      --webgl" << std::endl
+				<< "          Record json file for use with the WebGL "
+				<< "visualizer (only valid if --output is specified)."
+				<< std::endl << std::endl
 				<< "      Notes: " << std::endl
 				<< "        (a) Without visualization you cannot record frames,"
 				<< " and setting speed has no effect "
@@ -145,6 +149,7 @@ int main(int argc, char *argv[]) {
 	bool writeLog = false;
 	char *outputDirectoryName;
 
+	bool writeWebGL = false;
 
 	int currentArg = 3;
 	if (argc >= 4 && !boost::starts_with(argv[3], "--")) {
@@ -241,6 +246,8 @@ int main(int argc, char *argv[]) {
 			currentArg++;
 			std::stringstream ss(argv[currentArg]);
 			ss >> seed;
+		} else if (std::string("--webgl").compare(argv[currentArg]) == 0) {
+			writeWebGL = true;
 		}
 
 	}
@@ -254,6 +261,12 @@ int main(int argc, char *argv[]) {
 	if (startPaused && !visualize) {
 		std::cerr << "Cannot start paused without visualization enabled." <<
 				std::endl;
+		return EXIT_FAILURE;
+	}
+
+	if (writeWebGL && (!writeLog)) {
+		std::cerr << "Cannot write json file for WebGL visualizer without " <<
+				"specifying output directory." << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -346,7 +359,8 @@ int main(int argc, char *argv[]) {
 		log.reset(new FileViewerLog(std::string(argv[1]),
 			std::string(argv[2]), configuration->getObstacleFile(),
 			configuration->getStartPosFile(),
-			std::string(outputDirectoryName)));
+			std::string(outputDirectoryName),
+			writeWebGL));
 	}
 
 	// ---------------------------------------

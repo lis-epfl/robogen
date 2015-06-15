@@ -31,6 +31,8 @@
 #include "render/components/LightSensorRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 LightSensorRenderModel::LightSensorRenderModel(
@@ -54,7 +56,8 @@ bool LightSensorRenderModel::initRenderModel() {
 		//		"../models/LightSensor_Internal.stl");
 	} else {
 		meshLoadingA = this->partA_->loadMesh(
-				"../models/LightSensor_External.stl");
+				   RobogenUtils::getMeshFile(this->getModel(),
+					  LightSensorModel::B_SENSOR_BASE_ID));
 	}
 
 	if (!meshLoadingA) {
@@ -73,24 +76,19 @@ bool LightSensorRenderModel::initRenderModel() {
 
 	partA_->setColor(osg::Vec4(1, 0, 0, 0.5));
 
-	// x = 0 is midpoint of base, so  -SENSOR_BASE_THICKNESS/2 is edge of base
-	// and frame is (SENSOR_BASE_THICKNESS + SENSOR_PLATFORM_THICKNESS +
-	// SENSOR_CYLINDER_HEIGHT) long
-	// so (SENSOR_BASE_THICKNESS + SENSOR_PLATFORM_THICKNESS +
-	// SENSOR_CYLINDER_HEIGHT)/2 -SENSOR_BASE_THICKNESS/2 =
-	// (SENSOR_PLATFORM_THICKNESS + SENSOR_CYLINDER_HEIGHT)/2
+
 
 	if (internalSensor_) {
 		std::cerr << "Internal light sensor has been deprecated" << std::endl;
 		return false;
 	} else {
 		partA->setPosition(
-				fromOde(osg::Vec3(
-						(LightSensorModel::SENSOR_PLATFORM_THICKNESS +
-								LightSensorModel::SENSOR_CYLINDER_HEIGHT)/2, 0,
-						0)));
+				RobogenUtils::getRelativePosition(this->getModel(),
+									  LightSensorModel::B_SENSOR_BASE_ID));
 
-		partA->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
+		partA->setAttitude(
+				RobogenUtils::getRelativeAttitude(this->getModel(),
+									  LightSensorModel::B_SENSOR_BASE_ID));
 	}
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patPartA(
