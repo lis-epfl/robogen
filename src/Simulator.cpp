@@ -33,6 +33,7 @@
 #include "Robot.h"
 #include "viewer/WebGLLogger.h"
 
+//#define DEBUG_MASSES
 
 // ODE World
 extern dWorldID odeWorld;
@@ -95,6 +96,27 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					<< std::endl;
 			return SIMULATION_FAILURE;
 		}
+
+#ifdef DEBUG_MASSES
+		float totalMass = 0;
+		for (unsigned int i = 0; i < robot->getBodyParts().size(); ++i) {
+			float partMass = 0;
+			for (unsigned int j = 0;
+					j < robot->getBodyParts()[i]->getBodies().size(); ++j) {
+
+				dMass mass;
+				dBodyGetMass(robot->getBodyParts()[i]->getBodies()[j], &mass);
+				partMass += mass.mass;
+
+			}
+			std::cout << robot->getBodyParts()[i]->getId() <<  " has mass: "
+					<< partMass * 1000. << "g" << std::endl;
+			totalMass += partMass;
+		}
+
+		std::cout << "total mass is " << totalMass * 1000. << "g" << std::endl;
+#endif
+
 
 
 		if (log) {

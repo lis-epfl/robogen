@@ -31,9 +31,9 @@
 namespace robogen {
 
 // mass of just the brick
-const float CoreComponentModel::BRICK_MASS = inGrams(11);//inGrams(14.9);
+const float CoreComponentModel::BRICK_MASS = inGrams(10.2);//inGrams(14.9);
 // mass of brick with electronics (including battery)
-const float CoreComponentModel::CORE_MASS = inGrams(11 + 40.5);//inGrams(14.9 + 40.5);
+const float CoreComponentModel::CORE_MASS = inGrams(10.2 + 34.3);//inGrams(14.9 + 40.5);
 const float CoreComponentModel::HEIGHT = inMm(35.5);
 const float CoreComponentModel::WIDTH = inMm(41);//inMm(46.5);
 

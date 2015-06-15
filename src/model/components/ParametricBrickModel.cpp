@@ -30,7 +30,7 @@
 namespace robogen {
 
 const float ParametricBrickModel::MASS_SLOT = inGrams(1);
-const float ParametricBrickModel::MASS_CONNECTION_PER_M = inGrams(1.64) * 100.;
+const float ParametricBrickModel::MASS_CONNECTION_PER_M = inGrams(1.37) * 100.;
 const float ParametricBrickModel::SLOT_WIDTH = inMm(34);
 const float ParametricBrickModel::SLOT_THICKNESS = inMm(1.5);
 const float ParametricBrickModel::CONNECTION_PART_WIDTH = inMm(20);
@@ -41,7 +41,8 @@ const float ParametricBrickModel::FIXED_BAR_LENGTH = inMm(6);
 ParametricBrickModel::ParametricBrickModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id, float connectionPartLength, float angleA, float angleB):
 		Model(odeWorld, odeSpace, id),
-		connectionPartLength_(connectionPartLength), angleA_(angleA),
+		connectionPartLength_(connectionPartLength + CYLINDER_RADIUS),
+		angleA_(angleA),
 		angleB_(angleB) {
 
 }
