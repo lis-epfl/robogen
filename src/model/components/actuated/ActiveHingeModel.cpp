@@ -30,7 +30,7 @@
 
 namespace robogen {
 
-const float ActiveHingeModel::MASS_SERVO = inGrams(4 + 6);//inGrams(9);
+const float ActiveHingeModel::MASS_SERVO = inGrams(13);//inGrams(9);
 const float ActiveHingeModel::MASS_SLOT = inGrams(2);//inGrams(7);
 const float ActiveHingeModel::MASS_FRAME = inGrams(1);////inGrams(1.2);
 
