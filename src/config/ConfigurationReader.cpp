@@ -362,7 +362,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 
 }
 
-const std::string getMatchNFloatPattern(int n) {
+const std::string getMatchNFloatPattern(unsigned int n) {
 	std::stringstream paternSS;
 	paternSS << "^";
 	for ( unsigned i=0; i<n; i++) {
