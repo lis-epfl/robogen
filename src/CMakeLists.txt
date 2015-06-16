@@ -34,13 +34,16 @@ endif()
 
 
 if(UNIX)
-
 	# Compiler options
-	add_definitions(-ansi -pedantic -Wno-long-long -Wall -Wextra -Wformat=2
-	                -Wredundant-decls -Wwrite-strings -Wmissing-include-dirs 
-	                -Wswitch-enum -Wuninitialized 
-	                -Wswitch-default -Winit-self -Wshadow -Wfloat-equal -fPIC )
-	
+	if (CMAKE_BUILD_TYPE STREQUAL "Release")
+		add_definitions(-ansi -pedantic -fPIC )
+	else()
+		# Turn on warnings in debug mode
+		add_definitions(-ansi -pedantic -Wno-long-long -Wall -Wextra -Wformat=2
+		                -Wredundant-decls -Wwrite-strings -Wmissing-include-dirs 
+		                -Wswitch-enum -Wuninitialized 
+		                -Wswitch-default -Winit-self -Wshadow -Wfloat-equal -fPIC )
+	endif()
 	# Debug Flags 
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb3 -DDEBUG")
 	
