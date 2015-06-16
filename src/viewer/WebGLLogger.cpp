@@ -17,6 +17,11 @@
 #include <osg/Vec3>
 #include "Robot.h"
 
+// if using an older version of jannson
+#ifndef JSON_REAL_PRECISION
+#define JSON_REAL_PRECISION(n)  (((n) & 0x1F) << 11)
+#endif
+
 namespace robogen {
 
 const char *WebGLLogger::STRUCTURE_TAG = "structure";
