@@ -237,8 +237,4 @@ osg::Vec3 ParametricBrickModel::getSlotOrientation(unsigned int i) {
 
 }
 
-float ParametricBrickModel::getConnectionLength() {
-	return connectionPartLength_;
-}
-
 }
