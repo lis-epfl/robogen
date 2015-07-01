@@ -83,7 +83,17 @@ public:
 
 	virtual osg::Vec3 getSlotAxis(unsigned int i);
 
-	float getConnectionLength();
+	inline float getConnectionLength() {
+		return connectionPartLength_;
+	}
+
+	inline float getAngleA() {
+		return angleA_;
+	}
+
+	inline float getAngleB() {
+		return angleB_;
+	}
 
 private:
 
