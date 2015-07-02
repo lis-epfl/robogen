@@ -212,6 +212,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		int count = 0;
 		double t = 0;
 
+		boost::shared_ptr<CollisionData> collisionData( new CollisionData() );
+		collisionData->config = configuration;
 
 		double step = configuration->getTimeStepLength();
 		while ((t < configuration->getSimulationTime())
@@ -230,7 +232,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			}
 
 			// Collision detection
-			dSpaceCollide(odeSpace, configuration.get(), odeCollisionCallback);
+			dSpaceCollide(odeSpace, collisionData.get(), odeCollisionCallback);
 
 			// Step the world by one timestep
 			dWorldStep(odeWorld, step);
@@ -247,6 +249,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				linVel = dBodyGetLinearVel(rootBody);
 
 				if(t > 0) {
+					// TODO make this use the step size and update default
+					// limits to account for this
 					double angAccel = dCalcPointsDistance3(
 							angVel, previousAngVel);
 					double linAccel = dCalcPointsDistance3(
