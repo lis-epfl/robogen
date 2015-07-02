@@ -28,7 +28,6 @@
  * @(#) $Id$
  */
 
-
 #ifndef WEBGLLOGGER_H_
 #define WEBGLLOGGER_H_
 
@@ -38,17 +37,19 @@
 #include <fstream>
 #include <scenario/Scenario.h>
 #include <jansson.h>
+#include <model/components/ParametricBrickModel.h>
 
 namespace robogen {
 
 struct BodyDescriptor {
 	boost::shared_ptr<Model> model;
+	std::string meshName;
 	int bodyId;
 };
 
 class WebGLLogger {
 
-public :
+public:
 	WebGLLogger(std::string inFileName, boost::shared_ptr<Scenario> in_scenario,
 			double targetFramerate = 120.0);
 	void log(double dt);
@@ -68,7 +69,7 @@ public :
 	static const char* OBSTACLE_LOG_TAG;
 	static const char* LIGHT_TAGS;
 
-private :
+private:
 	double frameRate;
 	double lastFrame;
 	boost::shared_ptr<Robot> robot;
@@ -82,7 +83,13 @@ private :
 	json_t *jsonObstaclesDefinition;
 	json_t *jsonObstaclesLog;
 	json_t *jsonLights;
+
 	std::vector<struct BodyDescriptor> bodies;
+
+	static std::string getFormatedStringForCuboid(double width, double height,
+			double thickness);
+	static std::string getFormatedStringForCylinder(double radius,
+			double height);
 
 	//disable copy constructor;
 	WebGLLogger(const WebGLLogger& that);

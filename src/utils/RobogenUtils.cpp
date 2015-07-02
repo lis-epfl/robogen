@@ -689,6 +689,10 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 				 = osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 1, 0));
 
 	// Parametric has no stl files for now
+	relativeAttitudeMap[std::make_pair(&typeid(ParametricBrickModel),
+			static_cast<unsigned int>(ParametricBrickModel::B_CYLINDER_ID))] =
+					osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
+
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	// TODO Passive Wheel
 

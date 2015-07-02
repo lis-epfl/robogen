@@ -52,11 +52,25 @@ WebGLLogger::WebGLLogger(std::string inFileName,
 	this->jsonLights = json_object();
 	this->jsonObstaclesLog = json_object();
 	this->jsonObstaclesDefinition = json_array();
+	this->bodies = std::vector<struct BodyDescriptor>();
 	this->writeObstaclesDefinition();
 	this->generateBodyCollection();
 	this->writeJSONHeaders();
 	this->writeRobotStructure();
 	this->generateMapInfo();
+}
+
+std::string WebGLLogger::getFormatedStringForCuboid(double width, double height,
+		double thickness) {
+	std::stringstream ss;
+	ss << "cuboid(" << width << ", " << height << ", " << thickness << ")";
+	return ss.str();
+}
+std::string WebGLLogger::getFormatedStringForCylinder(double radius,
+		double height) {
+	std::stringstream ss;
+	ss << "cylinder(" << radius << ", " << height << ")";
+	return ss.str();
 }
 
 void WebGLLogger::writeObstaclesDefinition() {
@@ -76,12 +90,47 @@ void WebGLLogger::writeObstaclesDefinition() {
 void WebGLLogger::generateBodyCollection() {
 	for (size_t i = 0; i < this->robot->getBodyParts().size(); ++i) {
 		boost::shared_ptr<Model> currentModel = this->robot->getBodyParts()[i];
+		boost::shared_ptr<ParametricBrickModel> brickModel =
+				boost::dynamic_pointer_cast<ParametricBrickModel>(currentModel);
 		std::vector<int> ids = currentModel->getIDs();
 		for (std::vector<int>::iterator it = ids.begin(); it != ids.end();
 				++it) {
-			std::string meshName = RobogenUtils::getMeshFile(currentModel, *it);
+			std::string meshName;
+			if (brickModel != 0) {
+				switch (*it) {
+				case ParametricBrickModel::B_CONNECTION_PART_ID:
+					meshName = WebGLLogger::getFormatedStringForCuboid(
+							brickModel->getConnectionLength(),
+							ParametricBrickModel::CONNECTION_PART_WIDTH,
+							ParametricBrickModel::CONNECTION_PART_THICKNESS);
+					break;
+				case ParametricBrickModel::B_CYLINDER_ID:
+					meshName = WebGLLogger::getFormatedStringForCylinder(
+							ParametricBrickModel::CYLINDER_RADIUS,
+							ParametricBrickModel::CONNECTION_PART_WIDTH);
+					break;
+				case ParametricBrickModel::B_FIXED_BAR__ID:
+					meshName = WebGLLogger::getFormatedStringForCuboid(
+							ParametricBrickModel::FIXED_BAR_LENGTH,
+							ParametricBrickModel::CONNECTION_PART_WIDTH,
+							ParametricBrickModel::CONNECTION_PART_THICKNESS);
+					break;
+				case ParametricBrickModel::B_SLOT_A_ID:
+				case ParametricBrickModel::B_SLOT_B_ID:
+					meshName = WebGLLogger::getFormatedStringForCuboid(
+							ParametricBrickModel::SLOT_THICKNESS,
+							ParametricBrickModel::SLOT_WIDTH,
+							ParametricBrickModel::SLOT_WIDTH);
+					break;
+				default:
+					meshName = "";
+				}
+			} else {
+				meshName = RobogenUtils::getMeshFile(currentModel, *it);
+			}
 			if (meshName.length() > 0) {
 				struct BodyDescriptor desc;
+				desc.meshName = meshName;
 				desc.model = currentModel;
 				desc.bodyId = *it;
 				this->bodies.push_back(desc);
@@ -106,8 +155,7 @@ void WebGLLogger::writeRobotStructure() {
 		json_t* relAttitude = json_array();
 		json_t* relPosition = json_array();
 		json_object_set_new(obDescriptor, WebGLLogger::MESH_PATH,
-				json_string(
-						RobogenUtils::getMeshFile(it->model, it->bodyId).c_str()));
+				json_string(it->meshName.c_str()));
 
 		json_array_append(relAttitude, json_real(relativeAttitude.x()));
 		json_array_append(relAttitude, json_real(relativeAttitude.y()));
@@ -129,14 +177,16 @@ void WebGLLogger::writeRobotStructure() {
 void WebGLLogger::writeJSONHeaders() {
 	json_object_set_new(this->jsonRoot, WebGLLogger::LOG_TAG, this->jsonLog);
 	json_object_set_new(this->jsonRoot, WebGLLogger::STRUCTURE_TAG,
-	this->jsonStructure);
+			this->jsonStructure);
 	json_object_set_new(this->jsonRoot, WebGLLogger::MAP_TAG, this->jsonMap);
 	json_object_set_new(this->jsonRoot, WebGLLogger::OBSTACLE_TAGS,
 			this->jsonObstacles);
-	json_object_set_new(this->jsonObstacles, WebGLLogger::OBSTACLE_DEF_TAG, this->jsonObstaclesDefinition);
-	json_object_set_new(this->jsonObstacles, WebGLLogger::OBSTACLE_LOG_TAG, this->jsonObstaclesLog);
+	json_object_set_new(this->jsonObstacles, WebGLLogger::OBSTACLE_DEF_TAG,
+			this->jsonObstaclesDefinition);
+	json_object_set_new(this->jsonObstacles, WebGLLogger::OBSTACLE_LOG_TAG,
+			this->jsonObstaclesLog);
 	json_object_set_new(this->jsonRoot, WebGLLogger::LIGHT_TAGS,
-	this->jsonLights);
+			this->jsonLights);
 }
 
 void WebGLLogger::generateMapInfo() {
