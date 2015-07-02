@@ -47,7 +47,9 @@ EvolverLog::EvolverLog(){
 
 bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::shared_ptr<RobogenConfig> robotConf,
-		const std::string& logDirectory, bool overwrite) {
+		const std::string& logDirectory, bool overwrite, bool saveAll) {
+
+	saveAll_ = saveAll;
 
 	std::string tempPath = logDirectory;
 	int curIndex = 0;
@@ -100,6 +102,13 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 EvolverLog::~EvolverLog() {
 }
 
+void saveRobotJson(boost::shared_ptr<RobotRepresentation> robot,
+		std::string fileName) {
+	std::ofstream curRobotFile(fileName.c_str(),std::ios::out|std::ios::trunc);
+	curRobotFile << pb2json(robot->serialize());
+	curRobotFile.close();
+}
+
 bool EvolverLog::logGeneration(int step, Population &population) {
 
 	if (!population.areEvaluated()){
@@ -121,16 +130,26 @@ bool EvolverLog::logGeneration(int step, Population &population) {
 
 	boost::shared_ptr<RobotRepresentation> bestRobot = population.best();
 
-	std::stringstream ss;
-	ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".json";
+	{
+		std::stringstream ss;
+		ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".json";
 
-	// De-comment to save protobuf binary file
-	// ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".dat
-	// bestRobot->serialize().SerializeToOstream(&curRobotFile);
+		// De-comment to save protobuf binary file
+		// ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".dat
+		// bestRobot->serialize().SerializeToOstream(&curRobotFile);
+		saveRobotJson(bestRobot, ss.str());
+	}
 
-	std::ofstream curRobotFile(ss.str().c_str(),std::ios::out|std::ios::trunc);
-	curRobotFile << pb2json(bestRobot->serialize());
-	curRobotFile.close();
+
+	if(saveAll_) {
+		for(unsigned int i = 0; i<population.size(); ++i) {
+			std::stringstream ss;
+			ss << logPath_ + "/Generation-" << step << "-Guy-" << (i+1)
+					<< ".json";
+			saveRobotJson(population[i], ss.str());
+		}
+	}
+
 
 	#endif /* FAKEROBOTREPRESENTATION_H */
 
