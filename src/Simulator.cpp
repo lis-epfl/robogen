@@ -377,6 +377,12 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 					}
 				}
+				//again co-opt the accel cap flag for something else :-)
+				if (motors.size() == 0) {
+					std::cout << "No motors, will return 0 fitness"
+							<< std::endl;
+					accelerationCapExceeded = true;
+				}
 
 				if(log) {
 					log->logMotors(networkOutputs, motors.size());
