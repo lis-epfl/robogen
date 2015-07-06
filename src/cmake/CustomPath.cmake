@@ -2,13 +2,9 @@
 # Uncomment and set appropriately the following paths
 
 # Set the path to your utils folder
-#if (CMAKE_BUILD_TYPE=Debug)
-#	set(UTILS_PATH "C:/Users/ilya/Desktop/Robogen/utils_debug")
-#elseif (CMAKE_BUILD_TYPE=Release)
-#	set(UTILS_PATH "C:/Users/ilya/Desktop/Robogen/utils_release")
-#else()
-#	set(UTILS_PATH "C:/Users/ilya/Desktop/Robogen/utils_release")
-#endif()
+if (WIN32)
+	set(UTILS_PATH "D:/robogen/utils")
+endif()
 
 ####################################################################
 # Do not edit under this line
