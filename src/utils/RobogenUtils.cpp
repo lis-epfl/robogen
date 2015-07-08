@@ -62,67 +62,67 @@ RobogenUtils::~RobogenUtils() {
 
 }
 
-
-
 void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 		boost::shared_ptr<Model> b, unsigned int slotB,
 		dJointGroupID connectionJointGroup, dWorldID odeWorld) {
 
 	// Mandatory debug output
-	#ifdef DEBUG_CONNECT
+#ifdef DEBUG_CONNECT
 	// TODO make debug output based on something else
 	std::cout << std::endl << "****************************" << std::endl;
 	std::cout << "Connecting " << a->getId() << " to " << b->getId()
-			<< std::endl;
+	<< std::endl;
 	std::cout << "slotA " << slotA << ", slotB " << slotB << std::endl;
-	#endif
+#endif
 
 	// before anything else, specify parent's orientation so can figure out
 	// orientation relative to root of part -- needed to enforce "planarity"
 	// e.g. all bricks should be in default orientation
-	#ifdef ENFORCE_PLANAR
+#ifdef ENFORCE_PLANAR
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(b)) {
 		// enforce root being in orientation 0
-		if(boost::dynamic_pointer_cast<CoreComponentModel>(b)->hasSensors()) {
+		if (boost::dynamic_pointer_cast<CoreComponentModel>(b)->hasSensors()) {
 			b->setOrientationToParentSlot(0);
 		}
-		if(slotB == CoreComponentModel::LEFT_FACE_SLOT) {
+		if (slotB == CoreComponentModel::LEFT_FACE_SLOT) {
 			a->setParentOrientation(modulo((b->getOrientationToRoot() + 2), 4));
-		} else if(slotB == CoreComponentModel::RIGHT_FACE_SLOT) {
+		} else if (slotB == CoreComponentModel::RIGHT_FACE_SLOT) {
 			a->setParentOrientation(b->getOrientationToRoot());
-		} else if(slotB == CoreComponentModel::FRONT_FACE_SLOT) {
+		} else if (slotB == CoreComponentModel::FRONT_FACE_SLOT) {
 			a->setParentOrientation(modulo((b->getOrientationToRoot() + 3), 4));
-		} else if(slotB == CoreComponentModel::BACK_FACE_SLOT) {
+		} else if (slotB == CoreComponentModel::BACK_FACE_SLOT) {
 			a->setParentOrientation(modulo((b->getOrientationToRoot() + 3), 4));
 		}
 
-	//} else if (boost::dynamic_pointer_cast<ParametricBrickModel>(b)) {
-	//	a->setParentOrientation(modulo((b->getOrientationToRoot() + 1), 4));
+		//} else if (boost::dynamic_pointer_cast<ParametricBrickModel>(b)) {
+		//	a->setParentOrientation(modulo((b->getOrientationToRoot() + 1), 4));
 	} else {
 		a->setParentOrientation(b->getOrientationToRoot());
 	}
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(a)) {
-		#ifdef DEBUG_CONNECT
+#ifdef DEBUG_CONNECT
 		std::cout << "Core Component with orientation to parent " <<
-				a->getOrientationToParentSlot() << " and orientation to root "
-				<< a->getOrientationToRoot() << std::endl;
-		#endif
+		a->getOrientationToParentSlot() << " and orientation to root "
+		<< a->getOrientationToRoot() << std::endl;
+#endif
 
-		a->setOrientationToParentSlot(modulo((a->getOrientationToParentSlot() +
-										(4 - a->getOrientationToRoot())), 4)
-									  );
-		#ifdef DEBUG_CONNECT
+		a->setOrientationToParentSlot(
+				modulo(
+						(a->getOrientationToParentSlot()
+								+ (4 - a->getOrientationToRoot())), 4));
+#ifdef DEBUG_CONNECT
 		std::cout << "After update: orientation to parent " <<
-				a->getOrientationToParentSlot() << " and orientation to root "
-				<< a->getOrientationToRoot() << std::endl;
-		#endif
+		a->getOrientationToParentSlot() << " and orientation to root "
+		<< a->getOrientationToRoot() << std::endl;
+#endif
 	} else if (boost::dynamic_pointer_cast<ParametricBrickModel>(a)) {
-		a->setOrientationToParentSlot(modulo((a->getOrientationToParentSlot() + 1 +
-									(4 - a->getOrientationToRoot())), 4));
+		a->setOrientationToParentSlot(
+				modulo(
+						(a->getOrientationToParentSlot() + 1
+								+ (4 - a->getOrientationToRoot())), 4));
 	}
-	#endif
+#endif
 	float orientation = 90. * a->getOrientationToParentSlot();
-
 
 	// 1) Rotate slotAxis of B such that we obtain a normal pointing inward the body
 	osg::Vec3 bSlotAxis = b->getSlotAxis(slotB);
@@ -144,14 +144,14 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 	osg::Vec3 aCenter = a->getRootPosition();
 	a->setRootPosition(aCenter + aTranslation);
 
-	#ifdef DEBUG_CONNECT
+#ifdef DEBUG_CONNECT
 	std::cout << a->getId() << " root position";
 	for (unsigned int i=0; i<3; i++) std::cout << " " << a->getRootPosition()[i];
 	std::cout << std::endl;
 	std::cout << b->getId() << " root position";
 	for (unsigned int i=0; i<3; i++) std::cout << " " << b->getRootPosition()[i];
-		std::cout << std::endl;
-	#endif
+	std::cout << std::endl;
+#endif
 
 	if (!RobogenUtils::areAxisParallel(a->getSlotAxis(slotA),
 			-b->getSlotAxis(slotB))) {
@@ -178,17 +178,17 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 	if (RobogenUtils::areAxisParallel(aSlotAxis, -rotAxis)) {
 		angle *= -1;
 	}
-	#ifdef DEBUG_CONNECT
+#ifdef DEBUG_CONNECT
 	std::cout << "Angle: " << angle * 180 / M_PI << std::endl;
-	#endif
+#endif
 	osg::Quat slotAlignRotation;
 	slotAlignRotation.makeRotate(angle, aSlotAxis);
 
-	#ifdef DEBUG_CONNECT
+#ifdef DEBUG_CONNECT
 	std::cout << "bSlotOrientation: " << bSlotOrientation << std::endl;
 	std::cout << "aSlotOrientation: " << aSlotOrientation << std::endl;
 	std::cout << "slotAlignRotation: " << slotAlignRotation << std::endl;
-	#endif
+#endif
 
 	// ...and has the correct orientation
 	if (abs(orientation) > 1e-6) {
@@ -273,8 +273,8 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 		// Read radius
 		if (bodyPart.evolvableparam_size() != 1) {
 			std::cerr
-					<< "The passive wheel does not encode 1 parameter. Exiting."
-					<< std::endl;
+			<< "The passive wheel does not encode 1 parameter. Exiting."
+			<< std::endl;
 			return boost::shared_ptr<Model>();
 		}
 
@@ -286,8 +286,8 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 
 		if (bodyPart.evolvableparam_size() != 1) {
 			std::cerr
-					<< "The active wheel does not encode 1 parameter. Exiting."
-					<< std::endl;
+			<< "The active wheel does not encode 1 parameter. Exiting."
+			<< std::endl;
 			return boost::shared_ptr<Model>();
 		}
 
@@ -299,7 +299,7 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 
 		if (bodyPart.evolvableparam_size() != 1) {
 			std::cerr << "The active wheg does not encode 1 parameter. Exiting."
-					<< std::endl;
+			<< std::endl;
 			return boost::shared_ptr<Model>();
 		}
 
@@ -474,92 +474,91 @@ ModelMeshMap initModelMeshMap() {
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	// ActiveCardan
 	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
-		static_cast<unsigned int>(ActiveCardanModel::B_SLOT_A_ID))]
-				= "ActiveCardanHinge_Servo_Holder.stl";
+			static_cast<unsigned int>(ActiveCardanModel::B_SLOT_A_ID))]
+	= "ActiveCardanHinge_Servo_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
-		static_cast<unsigned int>(ActiveCardanModel::B_SLOT_A_ID))]
-				= "ActiveCardanHinge_Servo_Holder.stl";
+			static_cast<unsigned int>(ActiveCardanModel::B_SLOT_A_ID))]
+	= "ActiveCardanHinge_Servo_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
-		static_cast<unsigned int>(ActiveCardanModel::B_CROSS_PART_A_ID))]
-				= "ActiveCardan_CrossShaft.stl";
+			static_cast<unsigned int>(ActiveCardanModel::B_CROSS_PART_A_ID))]
+	= "ActiveCardan_CrossShaft.stl";
 #endif
 	// ActiveHinge
 	modelMeshMap[std::make_pair(&typeid(ActiveHingeModel),
-		static_cast<unsigned int>(ActiveHingeModel::B_SLOT_A_ID))]
-				= "ActiveHinge_Frame.stl";
+			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_A_ID))] =
+			"ActiveHinge_Frame.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveHingeModel),
-		static_cast<unsigned int>(ActiveHingeModel::B_SLOT_B_ID))]
-				= "ActiveCardanHinge_Servo_Holder.stl";
+			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_B_ID))] =
+			"ActiveCardanHinge_Servo_Holder.stl";
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	// Active Wheel
 	modelMeshMap[std::make_pair(&typeid(ActiveWheelModel),
-		static_cast<unsigned int>(ActiveWheelModel::B_SLOT_ID))]
-				= "ActiveRotation_Motor_Holder.stl";
+			static_cast<unsigned int>(ActiveWheelModel::B_SLOT_ID))]
+	= "ActiveRotation_Motor_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveWheelModel),
-		static_cast<unsigned int>(ActiveWheelModel::B_WHEEL_ID))]
-				= "ActiveRotation_Wheel.stl";
+			static_cast<unsigned int>(ActiveWheelModel::B_WHEEL_ID))]
+	= "ActiveRotation_Wheel.stl";
 
 	// Active Wheg
 	modelMeshMap[std::make_pair(&typeid(ActiveWhegModel),
-		static_cast<unsigned int>(ActiveWhegModel::B_SLOT_ID))]
-				= "ActiveRotation_Motor_Holder.stl";
+			static_cast<unsigned int>(ActiveWhegModel::B_SLOT_ID))]
+	= "ActiveRotation_Motor_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveWhegModel),
-		static_cast<unsigned int>(ActiveWhegModel::B_WHEG_BASE))]
-				= "ActiveRotation_Wheg.stl";
+			static_cast<unsigned int>(ActiveWhegModel::B_WHEG_BASE))]
+	= "ActiveRotation_Wheg.stl";
 
 	// Cardan
 	modelMeshMap[std::make_pair(&typeid(CardanModel),
-		static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
-				= "PassiveCardan_Frame.stl";
+			static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
+	= "PassiveCardan_Frame.stl";
 	modelMeshMap[std::make_pair(&typeid(CardanModel),
-		static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
-				= "PassiveCardan_Frame.stl";
+			static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
+	= "PassiveCardan_Frame.stl";
 	// the callback for this works a little differently though!
 	modelMeshMap[std::make_pair(&typeid(CardanModel),
-		static_cast<unsigned int>(CardanModel::B_CONNECTION_A_ID))]
-				= "PassiveCardan_Cross.stl";
+			static_cast<unsigned int>(CardanModel::B_CONNECTION_A_ID))]
+	= "PassiveCardan_Cross.stl";
 #endif
 	// Core
 	modelMeshMap[std::make_pair(&typeid(CoreComponentModel),
-		static_cast<unsigned int>(CoreComponentModel::B_CORE_COMPONENT_ID))]
-	             = "CoreComponent.stl";
+			static_cast<unsigned int>(CoreComponentModel::B_CORE_COMPONENT_ID))] =
+			"CoreComponent.stl";
 
 	// Hinge
 	modelMeshMap[std::make_pair(&typeid(HingeModel),
-		static_cast<unsigned int>(HingeModel::B_SLOT_A_ID))]
-	             = "PassiveHinge.stl";
+			static_cast<unsigned int>(HingeModel::B_SLOT_A_ID))] =
+			"PassiveHinge.stl";
 	modelMeshMap[std::make_pair(&typeid(HingeModel),
-		static_cast<unsigned int>(HingeModel::B_SLOT_B_ID))]
-				 = "PassiveHinge.stl";
+			static_cast<unsigned int>(HingeModel::B_SLOT_B_ID))] =
+			"PassiveHinge.stl";
 
 	// Parametric has no stl files for now
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	// Passive Wheel
 	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
-		static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))]
-				= "PassiveRotation_Frame.stl";
+			static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))]
+	= "PassiveRotation_Frame.stl";
 	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
-		static_cast<unsigned int>(PassiveWheelModel::B_WHEEL_ID))]
-				= "PassiveRotation_Wheel.stl";
+			static_cast<unsigned int>(PassiveWheelModel::B_WHEEL_ID))]
+	= "PassiveRotation_Wheel.stl";
 
 	// Rotate Joint
 	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
-		static_cast<unsigned int>(RotateJointModel::B_SLOT_ID))]
-				= "ActiveRotation_Motor_Holder.stl";
+			static_cast<unsigned int>(RotateJointModel::B_SLOT_ID))]
+	= "ActiveRotation_Motor_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
-		static_cast<unsigned int>(RotateJointModel::B_JOINT_CONNECTION_ID))]
-				= "ActiveRotation_Connection.stl";
+			static_cast<unsigned int>(RotateJointModel::B_JOINT_CONNECTION_ID))]
+	= "ActiveRotation_Connection.stl";
 #endif
 	// Touch Sensor
 	modelMeshMap[std::make_pair(&typeid(TouchSensorModel),
-			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))]
-					= "TouchSensor.stl";
+			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))] =
+			"TouchSensor.stl";
 
 	// Light Sensor
 	modelMeshMap[std::make_pair(&typeid(LightSensorModel),
-			static_cast<unsigned int>(LightSensorModel::B_SENSOR_BASE_ID))]
-					= "LightSensor_External.stl";
-
+			static_cast<unsigned int>(LightSensorModel::B_SENSOR_BASE_ID))] =
+			"LightSensor_External.stl";
 
 	return modelMeshMap;
 }
@@ -576,21 +575,18 @@ RelativePositionMap initRelativePositionMap() {
 	// so (FRAME_LENGTH + SLOT_THICKNESS)/2 -SLOT_THICKNESS/2 =
 	// FRAME_LENGTH/2
 	relativePositionMap[std::make_pair(&typeid(ActiveHingeModel),
-		static_cast<unsigned int>(ActiveHingeModel::B_SLOT_A_ID))]
-				= 	fromOde(osg::Vec3(
-								ActiveHingeModel::FRAME_LENGTH / 2,
-								ActiveHingeModel::SERVO_POSITION_OFFSET,
-								0));
+			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_A_ID))] =
+			fromOde(
+					osg::Vec3(ActiveHingeModel::FRAME_LENGTH / 2,
+							ActiveHingeModel::SERVO_POSITION_OFFSET, 0));
 
 	// x = 0 is midpoint of slot so SLOT_THICKNESS/2 is edge of servo
 	// and servo is  SERVO_LENGTH + SLOT_THICKNESS  long
 	// so -(SERVO_LENGTH + SLOT_THICKNESS)/2 + SLOT_THICKNESS/2
 	// = -(SERVO_LENGTH)/2
 	relativePositionMap[std::make_pair(&typeid(ActiveHingeModel),
-			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_B_ID))]
-					= 	fromOde(
-							osg::Vec3(-(ActiveHingeModel::SERVO_LENGTH) / 2, 0,
-									0));
+			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_B_ID))] =
+			fromOde(osg::Vec3(-(ActiveHingeModel::SERVO_LENGTH) / 2, 0, 0));
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	// TODO Active Wheel
 
@@ -602,15 +598,11 @@ RelativePositionMap initRelativePositionMap() {
 
 	// Hinge
 	relativePositionMap[std::make_pair(&typeid(HingeModel),
-			static_cast<unsigned int>(HingeModel::B_SLOT_A_ID))] =
-					fromOde(
-						osg::Vec3( HingeModel::CONNNECTION_PART_LENGTH / 2,
-								0, 0));
+			static_cast<unsigned int>(HingeModel::B_SLOT_A_ID))] = fromOde(
+			osg::Vec3(HingeModel::CONNNECTION_PART_LENGTH / 2, 0, 0));
 	relativePositionMap[std::make_pair(&typeid(HingeModel),
-				static_cast<unsigned int>(HingeModel::B_SLOT_B_ID))] =
-					fromOde(
-						osg::Vec3( -(HingeModel::CONNNECTION_PART_LENGTH / 2),
-								0, 0));
+			static_cast<unsigned int>(HingeModel::B_SLOT_B_ID))] = fromOde(
+			osg::Vec3(-(HingeModel::CONNNECTION_PART_LENGTH / 2), 0, 0));
 
 	// Parametric has no stl files for now
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
@@ -626,9 +618,8 @@ RelativePositionMap initRelativePositionMap() {
 	// = SENSOR_THICKNESS/2
 
 	relativePositionMap[std::make_pair(&typeid(TouchSensorModel),
-			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))]
-					= fromOde(osg::Vec3(TouchSensorModel::SENSOR_THICKNESS / 2,
-							0, 0));
+			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))] =
+			fromOde(osg::Vec3(TouchSensorModel::SENSOR_THICKNESS / 2, 0, 0));
 
 	// Light Sensor
 
@@ -639,13 +630,12 @@ RelativePositionMap initRelativePositionMap() {
 	// SENSOR_CYLINDER_HEIGHT)/2 -SENSOR_BASE_THICKNESS/2 =
 	// (SENSOR_PLATFORM_THICKNESS + SENSOR_CYLINDER_HEIGHT)/2
 	relativePositionMap[std::make_pair(&typeid(LightSensorModel),
-			static_cast<unsigned int>(LightSensorModel::B_SENSOR_BASE_ID))]
-					= fromOde(
-						osg::Vec3(
-								(LightSensorModel::SENSOR_PLATFORM_THICKNESS +
-								 LightSensorModel::SENSOR_CYLINDER_HEIGHT)/2,
-								 0,0));
-
+			static_cast<unsigned int>(LightSensorModel::B_SENSOR_BASE_ID))] =
+			fromOde(
+					osg::Vec3(
+							(LightSensorModel::SENSOR_PLATFORM_THICKNESS
+									+ LightSensorModel::SENSOR_CYLINDER_HEIGHT)
+									/ 2, 0, 0));
 
 	return relativePositionMap;
 }
@@ -658,12 +648,12 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 	// ActiveHinge
 
 	relativeAttitudeMap[std::make_pair(&typeid(ActiveHingeModel),
-		static_cast<unsigned int>(ActiveHingeModel::B_SLOT_A_ID))]
-				= 	osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0));
+			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_A_ID))] =
+			osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0));
 
 	relativeAttitudeMap[std::make_pair(&typeid(ActiveHingeModel),
-			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_B_ID))]
-					= 	osg::Quat(osg::inDegrees(270.0), osg::Vec3(1, 0, 0));
+			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_B_ID))] =
+			osg::Quat(osg::inDegrees(270.0), osg::Vec3(1, 0, 0));
 
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	// TODO Active Wheel
@@ -678,20 +668,20 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 	// (we want the arduino to be on top so wires can come out)
 
 	relativeAttitudeMap[std::make_pair(&typeid(CoreComponentModel),
-		static_cast<unsigned int>(CoreComponentModel::B_CORE_COMPONENT_ID))]
-	             = osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
+			static_cast<unsigned int>(CoreComponentModel::B_CORE_COMPONENT_ID))] =
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
 
 	// Hinge
 	// Part A has no rotation
 
 	relativeAttitudeMap[std::make_pair(&typeid(HingeModel),
-		static_cast<unsigned int>(HingeModel::B_SLOT_B_ID))]
-				 = osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 1, 0));
+			static_cast<unsigned int>(HingeModel::B_SLOT_B_ID))] = osg::Quat(
+			osg::inDegrees(180.0), osg::Vec3(0, 1, 0));
 
 	// Parametric has no stl files for now
 	relativeAttitudeMap[std::make_pair(&typeid(ParametricBrickModel),
 			static_cast<unsigned int>(ParametricBrickModel::B_CYLINDER_ID))] =
-					osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
 
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	// TODO Passive Wheel
@@ -700,14 +690,14 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 #endif
 	// Touch Sensor
 	relativeAttitudeMap[std::make_pair(&typeid(TouchSensorModel),
-			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))]
-					= osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 0, 1));
+			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))] =
+			osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 0, 1));
 
 	// Light Sensor
 	relativeAttitudeMap[std::make_pair(&typeid(LightSensorModel),
-			static_cast<unsigned int>(LightSensorModel::B_SENSOR_BASE_ID))]
-					= osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
-
+			static_cast<unsigned int>(LightSensorModel::B_SENSOR_BASE_ID))] =
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0))
+					* osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 0, 1));
 
 	return relativeAttitudeMap;
 }
@@ -718,11 +708,10 @@ const RelativePositionMap MESH_RELATIVE_POSITION_MAP =
 const RelativeAttitudeMap MESH_RELATIVE_ATTITUDE_MAP =
 		initRelativeAttitudeMap();
 
-
 std::string RobogenUtils::getMeshFile(boost::shared_ptr<Model> model,
 		const unsigned int id) {
 	TypeAndId key = make_pair(&typeid(*model.get()), id);
-	if(MODEL_MESH_MAP.count(key) > 0) {
+	if (MODEL_MESH_MAP.count(key) > 0) {
 		return MESH_DIRECTORY + MODEL_MESH_MAP.at(key);
 	}
 
@@ -732,7 +721,7 @@ std::string RobogenUtils::getMeshFile(boost::shared_ptr<Model> model,
 osg::Vec3 RobogenUtils::getRelativePosition(boost::shared_ptr<Model> model,
 		const unsigned int id) {
 	TypeAndId key = make_pair(&typeid(*model.get()), id);
-	if(MESH_RELATIVE_POSITION_MAP.count(key) > 0) {
+	if (MESH_RELATIVE_POSITION_MAP.count(key) > 0) {
 		return MESH_RELATIVE_POSITION_MAP.at(key);
 	}
 	return osg::Vec3();
@@ -741,12 +730,10 @@ osg::Vec3 RobogenUtils::getRelativePosition(boost::shared_ptr<Model> model,
 osg::Quat RobogenUtils::getRelativeAttitude(boost::shared_ptr<Model> model,
 		const unsigned int id) {
 	TypeAndId key = make_pair(&typeid(*model.get()), id);
-	if(MESH_RELATIVE_ATTITUDE_MAP.count(key) > 0) {
+	if (MESH_RELATIVE_ATTITUDE_MAP.count(key) > 0) {
 		return MESH_RELATIVE_ATTITUDE_MAP.at(key);
 	}
 	return osg::Quat();
 }
-
-
 
 }

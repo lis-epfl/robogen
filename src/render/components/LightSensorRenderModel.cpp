@@ -56,8 +56,8 @@ bool LightSensorRenderModel::initRenderModel() {
 		//		"../models/LightSensor_Internal.stl");
 	} else {
 		meshLoadingA = this->partA_->loadMesh(
-				   RobogenUtils::getMeshFile(this->getModel(),
-					  LightSensorModel::B_SENSOR_BASE_ID));
+				RobogenUtils::getMeshFile(this->getModel(),
+						LightSensorModel::B_SENSOR_BASE_ID));
 	}
 
 	if (!meshLoadingA) {
@@ -76,19 +76,22 @@ bool LightSensorRenderModel::initRenderModel() {
 
 	partA_->setColor(osg::Vec4(1, 0, 0, 0.5));
 
-
-
 	if (internalSensor_) {
 		std::cerr << "Internal light sensor has been deprecated" << std::endl;
 		return false;
 	} else {
 		partA->setPosition(
 				RobogenUtils::getRelativePosition(this->getModel(),
-									  LightSensorModel::B_SENSOR_BASE_ID));
+						LightSensorModel::B_SENSOR_BASE_ID));
 
+		// NOTE : For un unknown reason the webgl STL loader and the C++ loader loads this model differently.
+		//        Since there is no specific code for each model in the webgl engine it is cleaner to
+		//        differentiate this behavior here
 		partA->setAttitude(
 				RobogenUtils::getRelativeAttitude(this->getModel(),
-									  LightSensorModel::B_SENSOR_BASE_ID));
+						LightSensorModel::B_SENSOR_BASE_ID)
+						* osg::Quat(osg::inDegrees(-180.0),
+								osg::Vec3(0, 0, 1)));
 	}
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patPartA(
@@ -100,7 +103,7 @@ bool LightSensorRenderModel::initRenderModel() {
 			new BodyCallback(this->getModel(),
 					LightSensorModel::B_SENSOR_BASE_ID));
 
-	if(isDebugActive()) {
+	if (isDebugActive()) {
 		this->activateTransparency(patPartA->getOrCreateStateSet());
 	}
 
