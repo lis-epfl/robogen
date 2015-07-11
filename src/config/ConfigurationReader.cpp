@@ -33,6 +33,7 @@
 #include <vector>
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
+#include <boost/math/special_functions/round.hpp>
 
 #include "config/ConfigurationReader.h"
 #include "config/ObstaclesConfig.h"
@@ -304,9 +305,9 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 				<< fileName << "'" << ", will actuate every timeStep."
 				<< std::endl;
 	} else {
-		int actuationFrequencyTmp = round (
+		int actuationFrequencyTmp = boost::math::iround (
 				(1.0/((float)vm["actuationFrequency"].as<int>())) * 100000);
-		int timeStepTmp = round (timeStep * 100000);
+		int timeStepTmp = boost::math::iround (timeStep * 100000);
 		if ((actuationFrequencyTmp % timeStepTmp) != 0) {
 			std::cout << "Inverse of 'actuationFrequency' must be a multiple "
 					<< "of 'timeStep'" << std::endl;

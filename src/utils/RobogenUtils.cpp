@@ -710,7 +710,7 @@ const RelativeAttitudeMap MESH_RELATIVE_ATTITUDE_MAP =
 
 std::string RobogenUtils::getMeshFile(boost::shared_ptr<Model> model,
 		const unsigned int id) {
-	TypeAndId key = make_pair(&typeid(*model.get()), id);
+	TypeAndId key = std::make_pair(&typeid(*model.get()), id);
 	if (MODEL_MESH_MAP.count(key) > 0) {
 		return MESH_DIRECTORY + MODEL_MESH_MAP.at(key);
 	}
@@ -720,7 +720,7 @@ std::string RobogenUtils::getMeshFile(boost::shared_ptr<Model> model,
 
 osg::Vec3 RobogenUtils::getRelativePosition(boost::shared_ptr<Model> model,
 		const unsigned int id) {
-	TypeAndId key = make_pair(&typeid(*model.get()), id);
+	TypeAndId key = std::make_pair(&typeid(*model.get()), id);
 	if (MESH_RELATIVE_POSITION_MAP.count(key) > 0) {
 		return MESH_RELATIVE_POSITION_MAP.at(key);
 	}
@@ -729,7 +729,7 @@ osg::Vec3 RobogenUtils::getRelativePosition(boost::shared_ptr<Model> model,
 
 osg::Quat RobogenUtils::getRelativeAttitude(boost::shared_ptr<Model> model,
 		const unsigned int id) {
-	TypeAndId key = make_pair(&typeid(*model.get()), id);
+	TypeAndId key = std::make_pair(&typeid(*model.get()), id);
 	if (MESH_RELATIVE_ATTITUDE_MAP.count(key) > 0) {
 		return MESH_RELATIVE_ATTITUDE_MAP.at(key);
 	}
