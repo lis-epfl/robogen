@@ -7,12 +7,7 @@
 #include <iostream>
 #include <jansson.h>
 #include <boost/lexical_cast.hpp>
-#include <osg/ref_ptr>
-#include <osg/Geode>
-#include <osg/Shape>
 #include <osg/ShapeDrawable>
-#include <osgTerrain/GeometryTechnique>
-#include <osgTerrain/Terrain>
 #include <osg/Quat>
 #include <osg/Vec3>
 #include "Robot.h"
