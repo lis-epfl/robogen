@@ -34,7 +34,7 @@ if(TARGET_JS)
 	ENDMACRO()
 
 	#list containing all the llvm-archives required to link the project
-	set (ROBOGEN_JS_REQUIRED_ARCHIVES "jansson" "ode" "osg" "boost_timer" "boost_system" "boost_chrono" "boost_regex" "boost_serialization" "boost_date_time" "boost_graph" "boost_program_options" "boost_wserialization")
+	set (ROBOGEN_JS_REQUIRED_ARCHIVES "jansson" "ode" "osg" "boost_timer" "boost_system" "boost_chrono" "boost_regex" "boost_serialization" "boost_date_time" "boost_graph" "boost_program_options" "boost_wserialization" "boost_filesystem")
 
 	#list required include path to compile the source files
 	set (ROBOGEN_JS_REQUIRED_INCLUDES "ode" "jansson" "osg" "boost")
