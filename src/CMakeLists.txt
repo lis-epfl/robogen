@@ -26,8 +26,7 @@ if(TARGET_JS)
 		SET(dirlist "")
 		FOREACH(child ${children})
 			IF(IS_DIRECTORY ${curdir}/${child})
-				get_filename_component(FULL_CHILD ${child} ABSOLUTE)
-				LIST(APPEND dirlist ${FULL_CHILD})
+				LIST(APPEND dirlist "${curdir}/${child}")
 			ENDIF()
 		ENDFOREACH()
 		SET(${result} ${dirlist})
@@ -79,6 +78,7 @@ if(TARGET_JS)
 	message(STATUS "Finding include paths")
 	set (ROBOGEN_JS_INCLUDES "")
 	SUBDIRLIST(AVAILABLE_INCLUDES_DIR "${ROBOGEN_JS_DEP_BUILD_DIR}/include")
+
 	foreach (INCLUDE_TO_FIND ${ROBOGEN_JS_REQUIRED_INCLUDES})
 		set (FOUND OFF)
 		foreach (CURRENT_INCLUDE ${AVAILABLE_INCLUDES_DIR})
@@ -95,17 +95,36 @@ if(TARGET_JS)
 	endforeach()
 	message (STATUS "All include path found")
 
-	include_directories (${ROBOGEN_JS_INCLUDES})
+	include_directories (${CMAKE_SOURCE_DIR} ${ROBOGEN_JS_INCLUDES})
 	add_definitions(-DTARGET_JS -DEMSCRIPTEN "-Wno-warn-absolute-paths")
 	set(CMAKE_CXX_FLAGS_RELEASE "-Wall -O3")
 	if (CMAKE_BUILD_TYPE STREQUAL "Release")
 		set(CMAKE_EXE_LINKER_FLAGS "-O3")
 	endif()
 
+	file(GLOB_RECURSE ROBOGEN_JS_SOURCES 
+		brain/*.c
+		evolution/engine/*.cpp
+		evolution/engine/neat/*.cpp
+		evolution/neat/*.cpp
+		evolution/representation/*.cpp
+		evolution/representation/parts/*.cpp
+	)
+
+
+get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+foreach(dir ${dirs})
+  message(STATUS "dir='${dir}'")
+endforeach()
+	
+
+	add_library(robogen-js ${ROBOGEN_JS_SOURCES})
+
 	add_executable(app testjs.cpp)
-	target_link_libraries(app ${ROBOGEN_JS_LIBRARIES})
+	target_link_libraries(app robogen-js ${ROBOGEN_JS_LIBRARIES})
+
 else()
-	message(FATAL_ERROR "Targeting the local architecture")
+	message(STATUS "Targeting the local architecture")
 
 	# Include Open Dynamics Engine (ODE)
 	if ("${ODE_INCLUDE_PATH}" STREQUAL "" OR "${ODE_LIBRARIES}" STREQUAL "")
@@ -195,7 +214,7 @@ else()
 	find_package(Protobuf REQUIRED)
 	find_package(ZLIB REQUIRED)
 	find_package(PNG REQUIRED)
-	find_package(OpenSceneGraph REQUIRED osg osgViewer osgDB osgGA osgUtil)
+	find_package(OpenSceneGraph REQUIRED osg osgViewer osgDB osgGA osgUtil osgTerrain)
 	find_package(Jansson REQUIRED)
 
 	include_directories(${CMAKE_SOURCE_DIR} ${ODE_INCLUDE_PATH} ${OPENSCENEGRAPH_INCLUDE_DIRS} ${PNG_INCLUDE_PATH} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${PROTOBUF_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS} ${JANSSON_INCLUDE_DIRS} )
@@ -209,7 +228,6 @@ else()
 	PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ROBOGEN_PROTO})
 
 	set(ROBOGEN_DEPENDENCIES ${ODE_LIBRARIES} ${OPENSCENEGRAPH_LIBRARIES} ${ZLIB_LIBRARIES} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${PNG_LIBRARIES} ${JANSSON_LIBRARIES})
-
 
 	message(STATUS ${ROBOGEN_DEPENDENCIES})
 
