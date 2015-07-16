@@ -9,8 +9,7 @@
 #define BODYVERIFIER_H_
 
 #include <boost/shared_ptr.hpp>
-#include <osgGA/TrackballManipulator>
-#include <osgViewer/Viewer>
+
 #include "Robogen.h"
 #include "config/ConfigurationReader.h"
 #include "config/RobogenConfig.h"
@@ -21,7 +20,6 @@
 #include "utils/network/TcpSocket.h"
 #include "utils/RobogenCollision.h"
 #include "utils/RobogenUtils.h"
-#include "viewer/KeyboardHandler.h"
 #include "Models.h"
 #include "RenderModels.h"
 #include "Robogen.h"
@@ -29,6 +27,12 @@
 #include "robogen.pb.h"
 #include "viewer/FileViewerLog.h"
 #include "evolution/representation/RobotRepresentation.h"
+
+#ifdef VISUAL_DEBUG
+#include <osgGA/TrackballManipulator>
+#include <osgViewer/Viewer>
+#include "viewer/KeyboardHandler.h"
+#endif
 
 #include <ode/ode.h>
 #include <vector>
