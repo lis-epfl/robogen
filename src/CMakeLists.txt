@@ -96,19 +96,48 @@ if(TARGET_JS)
 	message (STATUS "All include path found")
 
 	include_directories (${CMAKE_SOURCE_DIR} ${ROBOGEN_JS_INCLUDES})
-	add_definitions(-DTARGET_JS -DEMSCRIPTEN "-Wno-warn-absolute-paths")
-	set(CMAKE_CXX_FLAGS_RELEASE "-Wall -O3")
+	add_definitions(-DTARGET_JS -DEMSCRIPTEN -DDISABLE_HEIGHT_MAP "-Wno-warn-absolute-paths")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+	set(CMAKE_CXX_FLAGS_DEBUG "-Wall")
 	if (CMAKE_BUILD_TYPE STREQUAL "Release")
 		set(CMAKE_EXE_LINKER_FLAGS "-O3")
 	endif()
 
 	file(GLOB_RECURSE ROBOGEN_JS_SOURCES 
+		arduino/*.cpp
 		brain/*.c
 		evolution/engine/*.cpp
 		evolution/engine/neat/*.cpp
 		evolution/neat/*.cpp
 		evolution/representation/*.cpp
 		evolution/representation/parts/*.cpp
+		config/*.cpp
+		model/*.cpp
+		printing/*.cpp
+		utils/*.cpp
+		Robot.cpp
+		Robogen.cpp
+		PartList.cpp
+		Simulator.cpp
+		robogen.pb.cc
+
+		# I added a compilation flag to disable height map and then OsgDB is not needed anymore
+		scenario/*.cpp 
+
+		viewer/FileViewerLog.cpp
+		viewer/WebGLLogger.cpp
+
+		##########################################
+		#     FAILING :
+		##########################################
+		#
+		# render/*.cpp Requires
+		# => Requires OsgViewer
+		#
+		# viewer/*.cpp
+		# => Requires OsgGA
+		# 
+		##########################################
 	)
 
 
@@ -120,7 +149,7 @@ endforeach()
 
 	add_library(robogen-js ${ROBOGEN_JS_SOURCES})
 
-	add_executable(app testjs.cpp)
+	add_executable(app "viewer/NullFileViewer.cpp")
 	target_link_libraries(app robogen-js ${ROBOGEN_JS_LIBRARIES})
 
 else()
