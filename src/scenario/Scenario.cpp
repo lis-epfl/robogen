@@ -57,11 +57,15 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 			robogenConfig_->getTerrainConfig();
 
 	terrain_.reset(new Terrain(odeWorld_, odeSpace_));
+
+#ifndef DISABLE_HEIGHT_MAP
 	if (terrainConfig->isFlat()) {
+#endif
 		if(!terrain_->initFlat(terrainConfig->getLength(),
 				terrainConfig->getWidth())) {
 			return false;
 		}
+#ifndef DISABLE_HEIGHT_MAP
 	} else {
 		if(!terrain_->initRough(terrainConfig->getHeightFieldFileName(),
 				terrainConfig->getLength(), terrainConfig->getWidth(),
@@ -69,6 +73,7 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 			return false;
 		}
 	}
+#endif
 
 	// Setup robot position
 	double minX = 0;

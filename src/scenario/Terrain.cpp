@@ -25,9 +25,13 @@
  *
  * @(#) $Id$
  */
+#ifndef DISABLE_HEIGHT_MAP
 #include <osgDB/ReadFile>
+#endif
 #include <osg/Image>
 #include "scenario/Terrain.h"
+
+
 
 namespace robogen {
 
@@ -63,6 +67,7 @@ bool Terrain::initFlat(float width, float depth) {
 
 }
 
+#ifndef DISABLE_HEIGHT_MAP
 bool Terrain::initRough(const std::string& heightMapFileName, float width,
 		float depth, float height) {
 
@@ -122,6 +127,7 @@ bool Terrain::initRough(const std::string& heightMapFileName, float width,
 	return true;
 
 }
+#endif
 
 osg::ref_ptr<osg::Image> Terrain::getHeightFieldData() {
 	return heightFieldData_;
