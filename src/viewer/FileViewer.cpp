@@ -49,6 +49,7 @@
 #include "Robogen.h"
 #include "Robot.h"
 #include "robogen.pb.h"
+#include "viewer/Viewer.h"
 
 #include "Simulator.h"
 

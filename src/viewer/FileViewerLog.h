@@ -3,6 +3,7 @@
  *
  * Titus Cieslewski (dev@titus-c.ch)
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
+ * Guillaume Leclerc
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2014 Titus Cieslweski, Joshua Auerbach
