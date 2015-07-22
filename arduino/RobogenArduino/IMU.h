@@ -44,25 +44,31 @@
 #include "Arduino.h"
 #include "MPU6050.h"
 
-typedef struct
+class IMU
 {
-  float scaledAccel[3];
-  float scaledGyro[3];
-  bool initialized = false;
-  int counter = 0;
-  int16_t rawAccel[3];
-  int16_t rawGyro[3];
-  
-  int16_t gyroOffset[3];
-  
-}IMU;
+  public:  
+    IMU();
+    
+    
+    /**
+     * \brief 		update the imu
+     * 
+     * \param 	imu 	Pointer to the imu struct
+     * \param 	accelGyro 	Pointer to the MPU6050
+     */
+    void update(MPU6050* accelGyro);
+    
+    float scaledAccel[3];
+    float scaledGyro[3];
+    bool initialized;
+    int counter;
+    int16_t rawAccel[3];
+    int16_t rawGyro[3];
+    
+    int16_t gyroOffset[3];
 
-/**
- * \brief 		update the imu
- * 
- * \param 	imu 	Pointer to the imu struct
- * \param 	accelGyro 	Pointer to the MPU6050
- */
-void imuUpdate(IMU* imu, MPU6050* accelGyro);
+};
+
+
 
 #endif /* IMU_H_ */
