@@ -1,5 +1,5 @@
 /*
- * @(#) FileViewer.cpp   1.0   Nov 27, 2014
+ * @(#) Simulator.cpp   1.0   Nov 27, 2014
  *
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
