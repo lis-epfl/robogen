@@ -63,8 +63,8 @@ THE SOFTWARE.
 #define USE_SERIAL
 #define USE_SERIAL1
 
-//#define SENSOR_NOISE_LEVEL 0.1
-//#define MOTOR_NOISE_LEVEL 0.1
+#define SENSOR_NOISE_LEVEL 0.1
+//#define MOTOR_NOISE_LEVEL 0.0
 
 // uncomment to check memory usage
 //#define CHECK_MEMORY
@@ -76,12 +76,12 @@ THE SOFTWARE.
 //#define CALIBRATE_SENSOR_OFFSET
 
 // put in values for your Arduino after doing calibration
-#define ACCEL_OFFSET_X (-1670) 			
-#define ACCEL_OFFSET_Y (642)
-#define ACCEL_OFFSET_Z (1484)
-#define GYRO_OFFSET_X (-76) 			
-#define GYRO_OFFSET_Y (-8)
-#define GYRO_OFFSET_Z (11)
+#define ACCEL_OFFSET_X (1353) 			
+#define ACCEL_OFFSET_Y (895)
+#define ACCEL_OFFSET_Z (1596)
+#define GYRO_OFFSET_X (138) 					
+#define GYRO_OFFSET_Y (-110)
+#define GYRO_OFFSET_Z (133)
 
 #define PI 3.14159265358979323846f
 
@@ -137,7 +137,7 @@ MPU6050 accelGyro;
 /* Define Servos Motors*/
 Servo myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7;
 Servo myservo[]={myservo0,myservo1,myservo2,myservo3,myservo4,myservo5,myservo6,myservo7};
-float servoOffsets[] = {0,0,3,3,0,0,0,0};
+float servoOffsets[] = {0,5,3,3,0,0,0,0};
 
 float servoPosition, servoSpeed;
 int lightInput;
@@ -243,7 +243,7 @@ void setup() {
     for(int i= 0; i <100 ; i++)
     {
       delay(50);
-      imuUpdate(&imu, &accelGyro);
+      imu.update(&accelGyro);
       accelGyro.setXAccelOffset((int16_t)(accelGyro.getXAccelOffset() - imu.rawAccel[0]));
       accelGyro.setYAccelOffset((int16_t)(accelGyro.getYAccelOffset() - imu.rawAccel[1]));
       accelGyro.setZAccelOffset((int16_t)(accelGyro.getZAccelOffset() - (imu.rawAccel[2] - 2100)));
@@ -256,7 +256,7 @@ void setup() {
 
       #ifdef USE_SERIAL
       delay(50);
-      imuUpdate(&imu, &accelGyro);
+      imu.(&accelGyro);
       Serial.print(F("Accelero offsets\n"));
       Serial.print(accelGyro.getXAccelOffset()); Serial.print(F("\t"));
       Serial.print(accelGyro.getYAccelOffset()); Serial.print(F("\t"));
@@ -296,7 +296,7 @@ void setup() {
     delay(50);
     
     //update imu
-    imuUpdate(&imu, &accelGyro);
+    imu.update(&accelGyro);
   }
   float up[3] = {0.0, 0.0, 1.0};
   float out[3];
@@ -389,7 +389,7 @@ void loop() {
       else if(inputTab[i][1]==2)//Type is accelerometer and gyroscope
       {
         //update imu, scaling and low pass filtering
-        imuUpdate(&imu, &accelGyro);
+        imu.update(&accelGyro);
         quat_t temp = quaternions_create_from_vector(imu.scaledAccel);
         float norm = vectors_norm(imu.scaledAccel);
         temp = quaternions_multiply(quaternions_multiply(q_rot, temp),quaternions_inverse(q_rot));
@@ -407,23 +407,8 @@ void loop() {
         networkInput[i] = imu.scaledGyro[1]; i++; 
         networkInput[i] = imu.scaledGyro[2]; 
 
-        #ifdef USE_SERIAL
-        for(int j=0; j<NB_INPUTS; j++) {
-          Serial.print(networkInput[j]); Serial.print(F("\t"));
-        }
-        #endif
-        
       }
     }
-    #ifdef USE_SERIAL
-    Serial.print(elapsedTime);
-    Serial.print(F("\n"));
-    #ifdef CHECK_MEMORY
-      Serial.print(F("freeMemory()="));
-      Serial.print(freeMemory()); Serial.print(F("\n"));    
-    #endif
-    #endif
-    
     // add noise
     #ifdef SENSOR_NOISE_LEVEL
     // Add sensor noise: Gaussian with std dev of
@@ -432,6 +417,20 @@ void loop() {
         networkInput[i] += (randn(0,1) * SENSOR_NOISE_LEVEL * networkInput[i]);
     }    
     #endif
+
+    #ifdef USE_SERIAL
+    for(int j=0; j<NB_INPUTS; j++) {
+      Serial.print(networkInput[j]); Serial.print(F("\t"));
+    }
+    Serial.print(elapsedTime);
+    Serial.print(F("\n"));
+    #ifdef CHECK_MEMORY
+      Serial.print(F("freeMemory()="));
+      Serial.print(freeMemory()); Serial.print(F("\n"));    
+    #endif
+    #endif
+    
+
     
     #ifdef USE_SERIAL1
     Serial1.print((millis() - startTime)); Serial1.print(F("\t"));
