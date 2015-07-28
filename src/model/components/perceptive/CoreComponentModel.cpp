@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -103,17 +103,6 @@ osg::Vec3 CoreComponentModel::getSlotAxis(unsigned int i) {
 
 		// Right face
 		axis.set(1, 0, 0);
-	/*
-	} else if (i == TOP_FACE_SLOT) {
-
-		// Top face
-		axis.set(0, 0, 1);
-
-	} else if (i == BOTTOM_FACE_SLOT) {
-
-		// Bottom face
-		axis.set(0, 0, -1);
-	 */
 	} else if (i == FRONT_FACE_SLOT) {
 
 		// Front face
@@ -125,6 +114,19 @@ osg::Vec3 CoreComponentModel::getSlotAxis(unsigned int i) {
 		axis.set(0, 1, 0);
 
 	}
+#ifndef ENFORCE_PLANAR
+	else if (i == TOP_FACE_SLOT) {
+
+		// Top face
+		axis.set(0, 0, 1);
+
+	} else if (i == BOTTOM_FACE_SLOT) {
+
+		// Bottom face
+		axis.set(0, 0, -1);
+	}
+#endif
+
 
 	return quat * axis;
 
@@ -149,17 +151,6 @@ osg::Vec3 CoreComponentModel::getSlotOrientation(unsigned int i) {
 
 		// Right face
 		tangent.set(0, 1, 0);
-	/*
-	} else if (i == TOP_FACE_SLOT) {
-
-		// Top face
-		tangent.set(1, 0, 0);
-
-	} else if (i == BOTTOM_FACE_SLOT) {
-
-		// Bottom face
-		tangent.set(1, 0, 0);
-	*/
 	} else if (i == FRONT_FACE_SLOT) {
 
 		// Front face
@@ -171,6 +162,18 @@ osg::Vec3 CoreComponentModel::getSlotOrientation(unsigned int i) {
 		tangent.set(0, 0, 1);
 
 	}
+#ifndef ENFORCE_PLANAR
+	else if (i == TOP_FACE_SLOT) {
+
+		// Top face
+		tangent.set(1, 0, 0);
+
+	} else if (i == BOTTOM_FACE_SLOT) {
+
+		// Bottom face
+		tangent.set(1, 0, 0);
+	}
+#endif
 
 	return quat * tangent;
 

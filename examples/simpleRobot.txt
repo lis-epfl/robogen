@@ -3,7 +3,7 @@
 		0 FixedBrick UpperLeg1 1
 			0 ActiveHinge Knee1 0 
 				0 FixedBrick LowerLeg1 0 
-	1 ActiveHinge Hip2 1 
+	1 ActiveHinge Hip2 3 
 		0 FixedBrick UpperLeg2 1
 			0 ActiveHinge Knee2 0 
 				0 FixedBrick LowerLeg2 0 
