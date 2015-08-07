@@ -134,8 +134,7 @@ void WebGLLogger::generateBodyCollection() {
 	}
 }
 WebGLLogger::~WebGLLogger() {
-	json_dump_file(this->jsonRoot, this->fileName.c_str(),
-	JSON_REAL_PRECISION(10) | JSON_COMPACT);
+	json_dump_file(this->jsonRoot, this->fileName.c_str(), JSON_TAGS);
 	json_decref(this->jsonRoot);
 }
 
@@ -212,9 +211,51 @@ void WebGLLogger::generateMapInfo() {
 	}
 }
 
+std::string WebGLLogger::getStructureJSON() {
+	char * res = json_dumps(this->jsonRoot, JSON_TAGS);
+	std::string result(res);
+	free(res);
+	return result;
+}
+
+std::string WebGLLogger::getObstaclesDefinitionJSON() {
+	char * res = json_dumps(this->jsonObstaclesDefinition, JSON_TAGS);
+	std::string result(res);
+	free(res);
+	return result;
+}
+
+std::string WebGLLogger::getLastLogJSON() {
+	std::string obKey = boost::lexical_cast<std::string>(this->lastFrame);
+	json_t* lastRobotLog = json_object_get(this->jsonLog, obKey.c_str());
+	json_t* lastObstaclesLog = json_object_get(this->jsonObstaclesLog,
+			obKey.c_str());
+	json_t* res = json_object();
+	json_object_set_new(res, "time", json_real(this->lastFrame));
+	if (lastRobotLog != NULL) {
+		json_object_set(res, "robot", lastRobotLog);
+	}
+	if (lastObstaclesLog) {
+		json_object_set(res, "obstacles", lastObstaclesLog);
+	}
+
+	char * resChar = json_dumps(res, JSON_TAGS);
+	json_decref(res);
+	std::string result(resChar);
+	free(resChar);
+	return result;
+}
+
+std::string WebGLLogger::getLightsJSON() {
+	char * res = json_dumps(this->jsonLights, JSON_TAGS);
+	std::string result(res);
+	free(res);
+	return result;
+}
+
 void WebGLLogger::log(double dt) {
 	if (dt - lastFrame >= 1.0 / frameRate) {
-		std::string obKey = boost::lexical_cast<std::string>(dt);
+		std::string obKey = boost::lexical_cast < std::string > (dt);
 		json_t* positions = json_array();
 		json_object_set_new(this->jsonLog, obKey.c_str(), positions);
 
@@ -223,25 +264,25 @@ void WebGLLogger::log(double dt) {
 			json_t* bodyLog = json_array();
 			json_t* attitude = json_array();
 			json_t* position = json_array();
-			json_array_append(bodyLog, attitude);
-			json_array_append(bodyLog, position);
-			json_array_append(positions, bodyLog);
+			json_array_append_new(bodyLog, attitude);
+			json_array_append_new(bodyLog, position);
+			json_array_append_new(positions, bodyLog);
 
 			osg::Vec3 currentPosition = it->model->getBodyPosition(it->bodyId);
 			osg::Quat currentAttitude = it->model->getBodyAttitude(it->bodyId);
 
-			json_array_append(position, json_real(currentPosition.x()));
-			json_array_append(position, json_real(currentPosition.y()));
-			json_array_append(position, json_real(currentPosition.z()));
+			json_array_append_new(position, json_real(currentPosition.x()));
+			json_array_append_new(position, json_real(currentPosition.y()));
+			json_array_append_new(position, json_real(currentPosition.z()));
 
-			json_array_append(attitude, json_real(currentAttitude.x()));
-			json_array_append(attitude, json_real(currentAttitude.y()));
-			json_array_append(attitude, json_real(currentAttitude.z()));
-			json_array_append(attitude, json_real(currentAttitude.w()));
+			json_array_append_new(attitude, json_real(currentAttitude.x()));
+			json_array_append_new(attitude, json_real(currentAttitude.y()));
+			json_array_append_new(attitude, json_real(currentAttitude.z()));
+			json_array_append_new(attitude, json_real(currentAttitude.w()));
 
 		}
 
-		std::vector<boost::shared_ptr<BoxObstacle> > obstacles =
+		std::vector < boost::shared_ptr<BoxObstacle> > obstacles =
 				this->scenario->getObstacles();
 		json_t* obstacles_positions = json_array();
 		json_object_set_new(this->jsonObstaclesLog, obKey.c_str(),
@@ -251,26 +292,26 @@ void WebGLLogger::log(double dt) {
 			json_t* obstacleLog = json_array();
 			json_t* attitude = json_array();
 			json_t* position = json_array();
-			json_array_append(obstacleLog, attitude);
-			json_array_append(obstacleLog, position);
-			json_array_append(obstacles_positions, obstacleLog);
+			json_array_append_new(obstacleLog, attitude);
+			json_array_append_new(obstacleLog, position);
+			json_array_append_new(obstacles_positions, obstacleLog);
 
 			osg::Vec3 currentPosition = (*it)->getPosition();
 			osg::Quat currentAttitude = (*it)->getAttitude();
 
-			json_array_append(position, json_real(currentPosition.x()));
-			json_array_append(position, json_real(currentPosition.y()));
-			json_array_append(position, json_real(currentPosition.z()));
+			json_array_append_new(position, json_real(currentPosition.x()));
+			json_array_append_new(position, json_real(currentPosition.y()));
+			json_array_append_new(position, json_real(currentPosition.z()));
 
-			json_array_append(attitude, json_real(currentAttitude.x()));
-			json_array_append(attitude, json_real(currentAttitude.y()));
-			json_array_append(attitude, json_real(currentAttitude.z()));
-			json_array_append(attitude, json_real(currentAttitude.w()));
+			json_array_append_new(attitude, json_real(currentAttitude.x()));
+			json_array_append_new(attitude, json_real(currentAttitude.y()));
+			json_array_append_new(attitude, json_real(currentAttitude.z()));
+			json_array_append_new(attitude, json_real(currentAttitude.w()));
 		}
 
 		lastFrame = dt;
 
-		std::vector<boost::shared_ptr<LightSource> > lights =
+		std::vector < boost::shared_ptr<LightSource> > lights =
 				this->scenario->getEnvironment()->getLightSources();
 		json_t* jsonFrameLights = json_array();
 		json_object_set_new(this->jsonLights, obKey.c_str(), jsonFrameLights);
@@ -278,12 +319,15 @@ void WebGLLogger::log(double dt) {
 		for (std::vector<boost::shared_ptr<LightSource> >::iterator light =
 				lights.begin(); light != lights.end(); ++light) {
 			json_t* jsonLightCoordinates = json_array();
-			json_array_append(jsonFrameLights, jsonLightCoordinates);
+			json_array_append_new(jsonFrameLights, jsonLightCoordinates);
 			osg::Vec3 coordinates = (*light)->getPosition();
 
-			json_array_append(jsonLightCoordinates, json_real(coordinates.x()));
-			json_array_append(jsonLightCoordinates, json_real(coordinates.y()));
-			json_array_append(jsonLightCoordinates, json_real(coordinates.z()));
+			json_array_append_new(jsonLightCoordinates,
+					json_real(coordinates.x()));
+			json_array_append_new(jsonLightCoordinates,
+					json_real(coordinates.y()));
+			json_array_append_new(jsonLightCoordinates,
+					json_real(coordinates.z()));
 		}
 	}
 }

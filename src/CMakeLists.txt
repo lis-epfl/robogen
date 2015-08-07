@@ -95,12 +95,19 @@ if(TARGET_JS)
 	endforeach()
 	message (STATUS "All include path found")
 
+	set(RELEASE_OPT_FLAG "-O3")
+
 	include_directories (${CMAKE_SOURCE_DIR} ${ROBOGEN_JS_INCLUDES})
-	add_definitions(-DTARGET_JS -DEMSCRIPTEN -DDISABLE_HEIGHT_MAP "-Wno-warn-absolute-paths")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-	set(CMAKE_CXX_FLAGS_DEBUG "-Wall")
+	add_definitions(-DTARGET_JS -DEMSCRIPTEN -DDISABLE_HEIGHT_MAP "-Wno-warn-absolute-paths" --bind "-s DISABLE_EXCEPTION_CATCHING=0 " "--profiling")
+	set(CMAKE_EXE_LINKER_FLAGS "--bind -s NO_EXIT_RUNTIME=1 ${EXPORTED_FLAG}")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3" CACHE STRING "Robogen OPT") 
+	set(CMAKE_CXX_FLAGS_DEBUG "-Wall" CACHE STRING "Robogen Wall") 
 	if (CMAKE_BUILD_TYPE STREQUAL "Release")
-		set(CMAKE_EXE_LINKER_FLAGS "-O3")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${RELEASE_OPT_FLAG} -s DISABLE_EXCEPTION_CATCHING=0 -s TOTAL_MEMORY=33554432 --profiling")
+		message("${CMAKE_EXE_LINKER_FLAGS}")
+		add_definitions("${RELEASE_OPT_FLAG}")
+	else ()
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s DISABLE_EXCEPTION_CATCHING=0")
 	endif()
 
 	file(GLOB_RECURSE ROBOGEN_JS_SOURCES 
@@ -126,6 +133,7 @@ if(TARGET_JS)
 
 		viewer/FileViewerLog.cpp
 		viewer/WebGLLogger.cpp
+		viewer/JSViewer.cpp
 
 		##########################################
 		#     FAILING :
@@ -149,7 +157,7 @@ endforeach()
 
 	add_library(robogen-js ${ROBOGEN_JS_SOURCES})
 
-	add_executable(app "viewer/NullFileViewer.cpp")
+	add_executable(app "viewer/FileViewer.cpp")
 	target_link_libraries(app robogen-js ${ROBOGEN_JS_LIBRARIES})
 
 else()

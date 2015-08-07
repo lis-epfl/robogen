@@ -37,7 +37,7 @@
 #include "config/RobogenConfig.h"
 #include "scenario/Scenario.h"
 #include "viewer/FileViewerLog.h"
-#include "viewer/Viewer.h"
+#include "viewer/IViewer.h"
 
 #define MIN_FITNESS (-10000.0)
 
@@ -66,13 +66,13 @@ enum result{
  */
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
-		const robogenMessage::Robot &robotMessage, Viewer *viewer,
+		const robogenMessage::Robot &robotMessage, IViewer *viewer,
 		boost::random::mt19937 &rng);
 
 
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
-		const robogenMessage::Robot &robotMessage, Viewer *viewer,
+		const robogenMessage::Robot &robotMessage, IViewer *viewer,
 		boost::random::mt19937 &rng,
 		bool onlyOnce, boost::shared_ptr<FileViewerLog> log);
 
