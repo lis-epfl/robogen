@@ -60,7 +60,7 @@ void sendJSEvent(std::string name, std::string jsonData) {
 #ifdef EMSCRIPTEN
 	emscripten_run_script(command.c_str());
 #else
-	std::cout << command << endl;
+	std::cout << command << std::endl;
 #endif
 }
 
