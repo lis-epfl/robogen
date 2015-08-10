@@ -48,7 +48,7 @@ void printUsage(char *argv[]) {
 	std::cout << std::endl << "USAGE: " << std::endl
 			<< "      " << std::string(argv[0])
 			<< " <SEED, INTEGER> <OUTPUT_DIRECTORY, STRING> "
-			<< "<CONFIGURATION_FILE, STRING> [--overwrite]"
+			<< "<CONFIGURATION_FILE, STRING> [<OPTIONS>]"
 			<< std::endl << std::endl
 			<< "WHERE: " << std::endl
 			<< "      <SEED> is a number to seed "
@@ -60,12 +60,31 @@ void printUsage(char *argv[]) {
 			<< "      <CONFIGURATION_FILE> is the evolution"
 			<< " configuration file to use."
 			<< std::endl << std::endl
-			<< "      --overwrite optionally specifies overwriting the "
-			<< "existing output directory."<< std::endl
+			<< "OPTIONS: " << std::endl
+			<< "      --help" << std::endl
+			<< "          Print all configuration options and exit."
+			<< std::endl << std::endl
+			<< "      --overwrite" << std::endl
+			<< "          Overwrite existing output file directory if it "
+			<< "exists." << std::endl
 			<< "          (Default is to keep creating new output "
 			<< "directories with incrementing suffixes)."
+			<< std::endl << std::endl
+			<< "      --save-all" << std::endl
+			<< "          Save all individuals instead of just the generation"
+			<< "best."
 			<< std::endl << std::endl;
 
+}
+
+void printHelp() {
+	boost::shared_ptr<EvolverConfiguration> conf =
+				boost::shared_ptr<EvolverConfiguration>(
+						new EvolverConfiguration());
+	conf->init("help");
+	std::cout << std::endl;
+	boost::shared_ptr<RobogenConfig> robotConf =
+				ConfigurationReader::parseConfigurationFile("help");
 }
 
 int main(int argc, char *argv[]) {
@@ -75,17 +94,11 @@ int main(int argc, char *argv[]) {
 	// ---------------------------------------
 	if (argc > 1 && std::string(argv[1]) == "--help") {
 		printUsage(argv);
-		boost::shared_ptr<EvolverConfiguration> conf =
-					boost::shared_ptr<EvolverConfiguration>(
-							new EvolverConfiguration());
-		conf->init("help");
-		std::cout << std::endl;
-		boost::shared_ptr<RobogenConfig> robotConf =
-					ConfigurationReader::parseConfigurationFile("help");
+		printHelp();
 		return exitRobogen(EXIT_SUCCESS);
 	}
 
-	if ((argc != 4) && (argc != 5)) {
+	if ((argc < 4)) {
 		printUsage(argv);
 		std::cout << "RUN: " << std::endl << std::endl
 				<< "      " << std::string(argv[0])
@@ -94,22 +107,33 @@ int main(int argc, char *argv[]) {
 		return exitRobogen(EXIT_FAILURE);
 	}
 
-	bool overwrite = false;
-
-	if (argc == 5) {
-		if (std::string(argv[4]) == "--overwrite") {
-			overwrite = true;
-		} else {
-			std::cout << std::endl << "Invalid usage!"
-					<< std::endl << std::endl;
-			printUsage(argv);
-			return exitRobogen(EXIT_FAILURE);
-		}
-	}
 
 	unsigned int seed = atoi(argv[1]);
 	std::string outputDirectory = std::string(argv[2]);
 	std::string confFileName = std::string(argv[3]);
+
+	bool overwrite = false;
+	bool saveAll = false;
+	int currentArg = 4;
+	for (; currentArg<argc; currentArg++) {
+		if (std::string("--help").compare(argv[currentArg]) == 0) {
+			printUsage(argv);
+			printHelp();
+			return EXIT_SUCCESS;
+		} else if (std::string("--overwrite").compare(argv[currentArg]) == 0) {
+			overwrite = true;
+		} else if (std::string("--save-all").compare(argv[currentArg]) == 0) {
+			saveAll = true;
+		} else {
+			std::cout << std::endl << "Invalid option: " << argv[currentArg]
+							 << std::endl << std::endl;
+			printUsage(argv);
+			return exitRobogen(EXIT_FAILURE);
+		}
+
+
+	}
+
 
 	// Create random number generator
 	boost::random::mt19937 rng;
@@ -147,7 +171,7 @@ int main(int argc, char *argv[]) {
 	boost::shared_ptr<Mutator> mutator = boost::shared_ptr<Mutator>(
 			new Mutator(conf, rng));
 	boost::shared_ptr<EvolverLog> log(new EvolverLog());
-	if (!log->init(conf, robotConf, outputDirectory, overwrite)) {
+	if (!log->init(conf, robotConf, outputDirectory, overwrite, saveAll)) {
 		std::cout << "Error creating evolver log. Aborting." << std::endl;
 		return EXIT_FAILURE;
 	}

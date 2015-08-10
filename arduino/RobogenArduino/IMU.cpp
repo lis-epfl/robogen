@@ -44,22 +44,29 @@
 #define ACCEL_SCALE_FACTOR (9.81f/2100.0f)
 #define GYRO_SCALE_FACTOR ((1.0f/131.0f) * (PI/180.0f)) * 1.5  // 1.5 to scale up to match simulation, since amplitutde is reduced by LPF
 
-void imuUpdate(IMU* imu, MPU6050* accelGyro)
+IMU::IMU()
 {
-  accelGyro->getMotion6(&imu->rawAccel[0], &imu->rawAccel[1], &imu->rawAccel[2], 
-                      &imu->rawGyro[0], &imu->rawGyro[1], &imu->rawGyro[2]);
+    initialized = false;
+    counter = 0;
+}
+  
+
+void IMU::update(MPU6050* accelGyro)
+{
+  accelGyro->getMotion6(&this->rawAccel[0], &this->rawAccel[1], &this->rawAccel[2], 
+                      &this->rawGyro[0], &this->rawGyro[1], &this->rawGyro[2]);
   
   for(int i=0; i<3; i++) {
-    if (imu->initialized) {
-      imu->scaledGyro[i]   = (1-LPF_GYRO)  * imu->scaledGyro[i]      + LPF_GYRO * (imu->rawGyro[i] + imu->gyroOffset[i]) * GYRO_SCALE_FACTOR;
-      imu->scaledAccel[i]  = (1-LPF_ACC)   * imu->scaledAccel[i]     + LPF_ACC * imu->rawAccel[i] * ACCEL_SCALE_FACTOR;
+    if (this->initialized) {
+      this->scaledGyro[i]   = (1-LPF_GYRO)  * this->scaledGyro[i]      + LPF_GYRO * (this->rawGyro[i] + this->gyroOffset[i]) * GYRO_SCALE_FACTOR;
+      this->scaledAccel[i]  = (1-LPF_ACC)   * this->scaledAccel[i]     + LPF_ACC * this->rawAccel[i] * ACCEL_SCALE_FACTOR;
     } else {
-      imu->scaledGyro[i]     = (imu->rawGyro[i] + imu->gyroOffset[i]) * GYRO_SCALE_FACTOR;
-      imu->scaledAccel[i]     = imu->rawAccel[i] * ACCEL_SCALE_FACTOR;
+      this->scaledGyro[i]     = (this->rawGyro[i] + this->gyroOffset[i]) * GYRO_SCALE_FACTOR;
+      this->scaledAccel[i]     = this->rawAccel[i] * ACCEL_SCALE_FACTOR;
     }
   }
   
-  if(!imu->initialized && ((imu->counter++)>10))
-    imu->initialized = true;
+  if(!this->initialized && ((this->counter++)>10))
+    this->initialized = true;
 }
 

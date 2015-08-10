@@ -259,7 +259,7 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 	} else if (bodyPart.type().compare(PART_TYPE_ACTIVE_HINGE) == 0) {
 
 		model.reset(new ActiveHingeModel(odeWorld, odeSpace, id));
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
+#ifdef ALLOW_CARDANS
 	} else if (bodyPart.type().compare(PART_TYPE_PASSIVE_CARDAN) == 0) {
 
 		model.reset(new CardanModel(odeWorld, odeSpace, id));
@@ -267,7 +267,8 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 	} else if (bodyPart.type().compare(PART_TYPE_ACTIVE_CARDAN) == 0) {
 
 		model.reset(new ActiveCardanModel(odeWorld, odeSpace, id));
-
+#endif
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	} else if (bodyPart.type().compare(PART_TYPE_PASSIVE_WHEEL) == 0) {
 
 		// Read radius

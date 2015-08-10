@@ -41,7 +41,7 @@ const int MAX_CONTACTS = 32; // maximum number of contact points per body
 
 void odeCollisionCallback(void *data, dGeomID o1, dGeomID o2) {
 
-	RobogenConfig *config = static_cast<RobogenConfig*>(data);
+	CollisionData *collisionData = static_cast<CollisionData*>(data);
 
 	// exit without doing anything if the two bodies are connected by a joint
 	dBodyID b1 = dGeomGetBody(o1);
@@ -60,7 +60,7 @@ void odeCollisionCallback(void *data, dGeomID o1, dGeomID o2) {
 					dContactApprox1 |
 					dContactSlip1 | dContactSlip2;
 
-		contact[i].surface.mu = config->getTerrainConfig()->getFriction();
+		contact[i].surface.mu = collisionData->config->getTerrainConfig()->getFriction();
 		contact[i].surface.soft_erp = 0.96;
 		contact[i].surface.soft_cfm = 0.01;
 
@@ -72,7 +72,6 @@ void odeCollisionCallback(void *data, dGeomID o1, dGeomID o2) {
 			sizeof(dContact));
 
 	if (collisionCounts != 0) {
-
 		for (int i = 0; i < collisionCounts; i++) {
 
 			dJointID c = dJointCreateContact(odeWorld, odeContactGroup,

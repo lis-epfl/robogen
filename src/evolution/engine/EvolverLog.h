@@ -50,11 +50,16 @@ public:
 	 * @param conf evolution configuration pointer
 	 * @param robot configuration pointer
 	 * @param logDirectory name of directory to write logs to
+	 * @param overwrite set true to overwrite output directory instead of
+	 * 			creating new one with incrementing suffix
+	 * @param saveAll set true to save all individuals instead of just the
+	 * 			best of each generation
 	 * @return true if successful
 	 */
 	bool init(boost::shared_ptr<EvolverConfiguration> conf,
 			boost::shared_ptr<RobogenConfig> robotConf,
-			const std::string& logDirectory, bool overwrite = false);
+			const std::string& logDirectory, bool overwrite = false,
+			bool saveAll = false);
 
 	virtual ~EvolverLog();
 
@@ -76,6 +81,11 @@ private:
 	 * File stream to BestAvgStd.txt
 	 */
 	std::ofstream bestAvgStd_;
+	/**
+	 * Flag to specify whether to save all individuals (default is just to save
+	 * the best of each generation).
+	 */
+	bool saveAll_;
 
 	/**
 	 * Helper utility to back up the various configuration files
