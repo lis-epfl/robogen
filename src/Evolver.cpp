@@ -98,6 +98,8 @@ bool hyperNEAT;
 boost::shared_ptr<Selector> selector;
 boost::shared_ptr<Mutator> mutator;
 int generation;
+
+
 std::vector<Socket*> sockets;
 
 void init(int argc, char *argv[]) {
@@ -213,7 +215,7 @@ void init(int argc, char *argv[]) {
 			exitRobogen(EXIT_FAILURE);
 		}
 	}
-	
+
 
 
 
@@ -237,8 +239,8 @@ void init(int argc, char *argv[]) {
 	// ---------------------------------------
 	// open sockets for communication with simulator processes
 	// ---------------------------------------
-	sockets.resize(conf->sockets.size());
 #ifndef EMSCRIPTEN
+	sockets.resize(conf->sockets.size());
 	for (unsigned int i = 0; i < conf->sockets.size(); i++) {
 		sockets[i] = new TcpSocket;
 #ifndef FAKEROBOTREPRESENTATION_H // do not bother with sockets when using
@@ -290,6 +292,14 @@ void postEvaluateStd() {
 	mainEvolutionLoop();
 }
 
+void triggerPostEvaluate() {
+	if (hyperNEAT) {
+		postEvaluateNEAT();
+	} else {
+		postEvaluateStd();
+	}
+}
+
 void mainEvolutionLoop() {
 	if (!log->logGeneration(generation, *population.get())) {
 		exitRobogen(EXIT_FAILURE);
@@ -308,10 +318,6 @@ void mainEvolutionLoop() {
 						<< std::endl;
 				exitRobogen(EXIT_FAILURE);
 			}
-#ifndef EMSCRIPTEN
-			population->evaluate(robotConf, sockets);
-			postEvaluateNEAT();
-#endif
 
 		} else {
 			selector->initPopulation(population);
@@ -326,11 +332,9 @@ void mainEvolutionLoop() {
 						mutator->mutate(selection.first, selection.second));
 			}
 
-
+        children.evaluate(robotConf, sockets);
 #ifndef EMSCRIPTEN
-			// evaluate children
-			children.evaluate(robotConf, sockets);
-			postEvaluateStd();
+        triggerPostEvaluate();
 #endif
 
 		}

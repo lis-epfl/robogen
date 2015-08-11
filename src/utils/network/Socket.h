@@ -1,7 +1,8 @@
 /*
- * @(#) TcpSocket.h   1.0   Feb 25, 2013
+ * @(#) Socket.h   1.0   Aug 11 2015
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Guillaume Leclerc (guillaume.leclerc@epfl.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2013 Andrea Maesani
