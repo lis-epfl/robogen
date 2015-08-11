@@ -51,7 +51,7 @@ public:
 	 * @param robotConfig the robot configuration
 	 * @param sockets a vector of Socket pointers. On each should be a simulator
 	 */
-	void evaluate(boost::shared_ptr<RobogenConfig> robotConfig, std::vector<TcpSocket*> &sockets);
+	void evaluate(boost::shared_ptr<RobogenConfig> robotConfig, std::vector<Socket*> &sockets);
 
 	/**
 	 * Sorts individuals from best to worst.

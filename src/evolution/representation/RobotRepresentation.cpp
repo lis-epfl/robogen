@@ -557,7 +557,7 @@ const std::string& RobotRepresentation::getBodyRootId() {
 	return bodyTree_->getId();
 }
 
-void RobotRepresentation::evaluate(TcpSocket *socket,
+void RobotRepresentation::evaluate(Socket *socket,
 		boost::shared_ptr<RobogenConfig> robotConf) {
 
 	// 1. Prepare message to simulator

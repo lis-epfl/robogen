@@ -51,7 +51,7 @@ IndividualContainer::~IndividualContainer() {
  */
 void evaluationThread(
 		std::queue<boost::shared_ptr<RobotRepresentation> >& indiQueue,
-		boost::mutex& queueMutex, TcpSocket& socket,
+		boost::mutex& queueMutex, Socket& socket,
 		boost::shared_ptr<RobogenConfig> robotConf) {
 
 	while (true) {
@@ -73,7 +73,7 @@ void evaluationThread(
 }
 
 void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
-		std::vector<TcpSocket*> &sockets) {
+		std::vector<Socket*> &sockets) {
 
 	// 1. Create mutexed queue of Individual pointers
 	std::queue<boost::shared_ptr<RobotRepresentation> > indiQueue;

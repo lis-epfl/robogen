@@ -98,11 +98,7 @@ bool hyperNEAT;
 boost::shared_ptr<Selector> selector;
 boost::shared_ptr<Mutator> mutator;
 int generation;
-
-
-#ifndef EMSCRIPTEN
-std::vector<TcpSocket*> sockets;
-#endif
+std::vector<Socket*> sockets;
 
 void init(int argc, char *argv[]) {
 
@@ -241,8 +237,8 @@ void init(int argc, char *argv[]) {
 	// ---------------------------------------
 	// open sockets for communication with simulator processes
 	// ---------------------------------------
-#ifndef EMSCRIPTEN
 	sockets.resize(conf->sockets.size());
+#ifndef EMSCRIPTEN
 	for (unsigned int i = 0; i < conf->sockets.size(); i++) {
 		sockets[i] = new TcpSocket;
 #ifndef FAKEROBOTREPRESENTATION_H // do not bother with sockets when using

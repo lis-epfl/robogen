@@ -122,7 +122,7 @@ public:
 	 * @param socket
 	 * @param robotConf
 	 */
-	void evaluate(TcpSocket *socket,
+	void evaluate(Socket *socket,
 			boost::shared_ptr<RobogenConfig> robotConf);
 
 	/**
