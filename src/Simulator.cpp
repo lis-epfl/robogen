@@ -359,26 +359,41 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 										ServoMotor>(motors[i]);
 
 						if (motor->isVelocityDriven()) {
-							motor->setVelocity(networkOutputs[i], step *
+							motor->setDesiredVelocity(networkOutputs[i], step *
 									configuration->getActuationPeriod());
+							//motor->setVelocity(networkOutputs[i], step *
+							//		configuration->getActuationPeriod());
 						} else {
-							motor->setPosition(networkOutputs[i], step *
+							motor->setDesiredPosition(networkOutputs[i], step *
 									configuration->getActuationPeriod());
+							//motor->setPosition(networkOutputs[i], step *
+							//		configuration->getActuationPeriod());
 						}
-
-						// TODO find a cleaner way to do this
-						// for now will reuse accel cap infrastructure
-						if (motor->isBurntOut()) {
-							std::cout << "Motor burnt out, will return 0 "
-									<< "fitness" << std::endl;
-							accelerationCapExceeded = true;
-						}
-
 					}
 				}
 
 				if(log) {
 					log->logMotors(networkOutputs, motors.size());
+				}
+			}
+
+			for (unsigned int i = 0; i < motors.size(); ++i) {
+				if (boost::dynamic_pointer_cast<ServoMotor>(
+						motors[i])) {
+
+					boost::shared_ptr<ServoMotor> motor =
+							boost::dynamic_pointer_cast<
+									ServoMotor>(motors[i]);
+
+					motor->step( step ) ; //* configuration->getActuationPeriod() );
+
+					// TODO find a cleaner way to do this
+					// for now will reuse accel cap infrastructure
+					if (motor->isBurntOut()) {
+						std::cout << "Motor burnt out, will return 0 "
+								<< "fitness" << std::endl;
+						accelerationCapExceeded = true;
+					}
 				}
 			}
 
