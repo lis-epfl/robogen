@@ -155,10 +155,8 @@ foreach(dir ${dirs})
 endforeach()
 	
 
-	add_library(robogen-js ${ROBOGEN_JS_SOURCES})
-
-	add_executable(app "viewer/FileViewer.cpp")
-	target_link_libraries(app robogen-js ${ROBOGEN_JS_LIBRARIES})
+	add_executable(app "Evolver.cpp" ${ROBOGEN_JS_SOURCES})
+	target_link_libraries(app ${ROBOGEN_JS_LIBRARIES})
 
 else()
 	message(STATUS "Targeting the local architecture")
