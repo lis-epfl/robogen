@@ -59,12 +59,9 @@ using namespace robogen;
 #include <vector>
 #include <boost/lexical_cast.hpp>
 #include "emscripten.h"
-#include <emscripten/bind.h>
 #include <viewer/JSViewer.h>
 
 int fakeMain(int argc, char *argv[]);
-
-using namespace emscripten;
 
 std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFileString,
 		std::string configFile, int startPosition, std::string outputDirectory,
@@ -208,9 +205,6 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFile
 	return "{\"fitness\" : \"" + boost::lexical_cast<std::string>(fitness) + "\"}";
 }
 
-EMSCRIPTEN_BINDINGS(my_module) {
-	function("simulationViewer", &simulationViewer);
-}
 
 #else
 #include "viewer/Viewer.h"
@@ -282,16 +276,8 @@ void printUsage(char *argv[]) {
 /**
  * Decodes a robot saved on file and visualize it
  */
+#ifndef EMSCRIPTEN
 int main(int argc, char *argv[]) {
-#ifdef EMSCRIPTEN
-	std::cout << "main has run" << std::endl;
-	printUsage(argv);
-}
-
-int fakeMain(int argc, char *argv[]) {
-
-#endif
-
 	if (argc > 1 && std::string(argv[1]) == "--help") {
 		printUsage(argv);
 		return EXIT_SUCCESS;
@@ -550,13 +536,9 @@ int fakeMain(int argc, char *argv[]) {
 	// ---------------------------------------
 	IViewer *viewer = NULL;
 	if (visualize) {
-#ifdef EMSCRIPTEN
-		viewer = NULL;
-#else
 		viewer = new Viewer(startPaused, debug,
 				speed, recording, recordFrequency,
 				recordDirectoryName);
-#endif
 	}
 
 	unsigned int simulationResult = runSimulations(scenario, configuration,
@@ -584,3 +566,5 @@ int fakeMain(int argc, char *argv[]) {
 
 	return EXIT_SUCCESS;
 }
+
+#endif

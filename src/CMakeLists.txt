@@ -95,15 +95,15 @@ if(TARGET_JS)
 	endforeach()
 	message (STATUS "All include path found")
 
-	set(RELEASE_OPT_FLAG "-O3")
+	set(RELEASE_OPT_FLAG "-Oz")
 
 	include_directories (${CMAKE_SOURCE_DIR} ${ROBOGEN_JS_INCLUDES})
-	add_definitions(-DTARGET_JS -DEMSCRIPTEN -DDISABLE_HEIGHT_MAP "-Wno-warn-absolute-paths" --bind "-s DISABLE_EXCEPTION_CATCHING=0 " "--profiling")
+	add_definitions(-DTARGET_JS -DEMSCRIPTEN -DDISABLE_HEIGHT_MAP "-Wno-warn-absolute-paths" --bind "-s DISABLE_EXCEPTION_CATCHING=0 ")
 	set(CMAKE_EXE_LINKER_FLAGS "--bind -s NO_EXIT_RUNTIME=1 ${EXPORTED_FLAG}")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3" CACHE STRING "Robogen OPT") 
+	set(CMAKE_CXX_FLAGS_RELEASE "-Oz" CACHE STRING "Robogen OPT") 
 	set(CMAKE_CXX_FLAGS_DEBUG "-Wall" CACHE STRING "Robogen Wall") 
 	if (CMAKE_BUILD_TYPE STREQUAL "Release")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${RELEASE_OPT_FLAG} -s DISABLE_EXCEPTION_CATCHING=0 -s TOTAL_MEMORY=33554432 --profiling")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${RELEASE_OPT_FLAG} -s DISABLE_EXCEPTION_CATCHING=0 -s TOTAL_MEMORY=33554432")
 		message("${CMAKE_EXE_LINKER_FLAGS}")
 		add_definitions("${RELEASE_OPT_FLAG}")
 	else ()
@@ -155,7 +155,7 @@ foreach(dir ${dirs})
 endforeach()
 	
 
-	add_executable(app "Evolver.cpp" ${ROBOGEN_JS_SOURCES})
+add_executable(app "robogen_js.cpp" ${ROBOGEN_JS_SOURCES})
 	target_link_libraries(app ${ROBOGEN_JS_LIBRARIES})
 
 else()

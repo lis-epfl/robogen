@@ -38,7 +38,14 @@
 
 #include "evolution/engine/neat/NeatContainer.h"
 
+#ifdef EMSCRIPTEN
+#include <emscripten/bind.h>
+#include "emscripten.h"
+#endif
+
 namespace robogen {
+void init(unsigned int seed, std::string outputDirectory, std::string confFileName,
+		bool overwrite, bool saveAll);
 
 void exitRobogen(int exitCode) {
 	google::protobuf::ShutdownProtobufLibrary();
@@ -102,7 +109,7 @@ int generation;
 
 std::vector<Socket*> sockets;
 
-void init(int argc, char *argv[]) {
+void parseArgsThenInit(int argc, char* argv[]) {
 
 	// ---------------------------------------
 	// verify usage and load configuration
@@ -122,8 +129,8 @@ void init(int argc, char *argv[]) {
 		exitRobogen(EXIT_FAILURE);
 	}
 
-
 	unsigned int seed = atoi(argv[1]);
+
 	std::string outputDirectory = std::string(argv[2]);
 	std::string confFileName = std::string(argv[3]);
 
@@ -149,6 +156,17 @@ void init(int argc, char *argv[]) {
 
 	}
 
+	init(seed, outputDirectory, confFileName, overwrite, saveAll);
+
+}
+
+#ifndef EMSCRIPTEN
+void init(unsigned int seed, std::string outputDirectory, std::string confFileName, bool overwrite, bool saveAll) {
+#else
+std::string EMSCRIPTEN_KEEPALIVE runEvolution(unsigned int seed, std::string outputDirectory, std::string confFileName,
+		bool overwrite, bool saveAll) {
+#endif
+	return "function called";
 
 	// Create random number generator
 	boost::random::mt19937 rng;
@@ -251,8 +269,8 @@ void init(int argc, char *argv[]) {
 			exitRobogen(EXIT_FAILURE);
 		}
 #endif
-#endif
 	}
+#endif
 
 	// ---------------------------------------
 	// run evolution TODO stopping criterion
@@ -300,6 +318,17 @@ void triggerPostEvaluate() {
 	}
 }
 
+#ifdef EMSCRIPTEN
+void JSEvolve() {
+	sockets.resize(population->size());
+	for (size_t i = 0 ; i < population->size(); ++i) {
+		population.get()->at(i)->evaluate(sockets[i], robotConf);
+
+	}
+
+}
+#endif
+
 void mainEvolutionLoop() {
 	if (!log->logGeneration(generation, *population.get())) {
 		exitRobogen(EXIT_FAILURE);
@@ -332,11 +361,12 @@ void mainEvolutionLoop() {
 						mutator->mutate(selection.first, selection.second));
 			}
 
-        children.evaluate(robotConf, sockets);
 #ifndef EMSCRIPTEN
+        children.evaluate(robotConf, sockets);
         triggerPostEvaluate();
+#else
+        JSEvolve();
 #endif
-
 		}
 	}
 }
@@ -345,11 +375,13 @@ void mainEvolutionLoop() {
 
 using namespace robogen;
 
-int main(int argc, char *argv[]) {
 
-	init(argc, argv);
+
 
 #ifndef EMSCRIPTEN
+int main(int argc, char *argv[]) {
+
+	parseArgsThenInit(argc, argv);
 	population->evaluate(robotConf, sockets);
 	mainEvolutionLoop();
 	// Clean up sockets
@@ -357,9 +389,9 @@ int main(int argc, char *argv[]) {
 		delete sockets[i];
 	}
 	exitRobogen(EXIT_SUCCESS);
+}
 #endif
 
 
-}
 
 
