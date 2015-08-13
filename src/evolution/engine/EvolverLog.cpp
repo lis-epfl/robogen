@@ -43,6 +43,16 @@ namespace robogen {
 EvolverLog::EvolverLog(){
 }
 
+bool fixed_is_directory(std::string path) {
+	boost::system::error_code errorCode;
+	bool result = boost::filesystem::is_directory(path, errorCode);
+	if (errorCode.value() != 0) {
+		//this second call will fire the correct exception
+		boost::filesystem::is_directory(path);
+	} else {
+		return result;
+	}
+}
 
 
 bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
@@ -56,12 +66,13 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 	if (overwrite) {
 			boost::filesystem::remove_all(tempPath);
 	} else {
-		while (boost::filesystem::is_directory(tempPath)) {
+		while (fixed_is_directory(tempPath)) {
 			std::stringstream newPath;
 			newPath << logDirectory << "_" << ++curIndex;
 			tempPath = newPath.str();
 		}
 	}
+
 
 	logPath_ = tempPath;
 	boost::filesystem::path logPath(logPath_);

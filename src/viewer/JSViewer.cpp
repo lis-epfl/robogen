@@ -50,19 +50,7 @@
 using namespace emscripten;
 #endif
 
-void sendJSEvent(std::string name, std::string jsonData) {
-
-	std::string command = "self.cppEvent(\"";
-	command += name;
-	command += "\", ";
-	command += jsonData;
-	command += ")";
-#ifdef EMSCRIPTEN
-	emscripten_run_script(command.c_str());
-#else
-	std::cout << command << std::endl;
-#endif
-}
+void sendJSEvent(std::string name, std::string jsonData);
 
 namespace robogen {
 

@@ -218,6 +218,17 @@ dJointGroupID odeContactGroup;
 
 bool interrupted;
 
+bool fixed_is_directory(std::string path) {
+	boost::system::error_code errorCode;
+	bool result = boost::filesystem::is_directory(path, errorCode);
+	if (errorCode.value() != 0) {
+		//this second call will fire the correct exception
+		boost::filesystem::is_directory(path);
+	} else {
+		return result;
+	}
+}
+
 void printUsage(char *argv[]) {
 	std::cout << std::endl << "USAGE: " << std::endl << "      "
 			<< std::string(argv[0]) << " <ROBOT_FILE, STRING> "
@@ -357,7 +368,7 @@ int main(int argc, char *argv[]) {
 			recordDirectoryName = std::string(argv[currentArg]);
 			int curIndex = 0;
 			std::string tempPath = recordDirectoryName;
-			while (boost::filesystem::is_directory(tempPath)) {
+			while (fixed_is_directory(tempPath)) {
 				std::stringstream newPath;
 				newPath << recordDirectoryName << "_" << ++curIndex;
 				tempPath = newPath.str();
@@ -369,7 +380,7 @@ int main(int argc, char *argv[]) {
 					recordDirectoryName.c_str());
 
 			if (recording
-					&& !boost::filesystem::is_directory(recordDirectory)) {
+					&& !fixed_is_directory(recordDirectory)) {
 				boost::filesystem::create_directories(recordDirectory);
 			}
 

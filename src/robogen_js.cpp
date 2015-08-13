@@ -17,6 +17,20 @@
 
 using namespace robogen;
 
+void sendJSEvent(std::string name, std::string jsonData) {
+
+	std::string command = "self.cppEvent(\"";
+	command += name;
+	command += "\", ";
+	command += jsonData;
+	command += ")";
+#ifdef EMSCRIPTEN
+	emscripten_run_script(command.c_str());
+#else
+	std::cout << command << std::endl;
+#endif
+}
+
 int main(int argc, char** argv) {
 	std::cout << "A robogenJS worker has started, he is waiting for any task" << std::endl;
 	return 0;
