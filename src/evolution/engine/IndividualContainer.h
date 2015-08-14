@@ -69,6 +69,12 @@ public:
 	 */
 	bool areEvaluated() const;
 
+	/**
+	 * Set the _evaluated field to true for asny evaluation
+	 */
+	void asyncEvaluated();
+
+
 protected:
 
 	bool evaluated_;

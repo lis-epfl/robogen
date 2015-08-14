@@ -208,6 +208,12 @@ public:
 	bool check();
 
 	/**
+	 * Set the fiteness and evaluated field when doing an asynchronous evaluation
+	 * @param fitness the fitness to set
+	 */
+	void asyncEvaluateResult(double fitness);
+
+	/**
 	 * @return a string representation of the robot
 	 */
 	std::string toString();

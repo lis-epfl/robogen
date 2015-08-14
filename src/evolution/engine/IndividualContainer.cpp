@@ -72,6 +72,9 @@ void evaluationThread(
 
 }
 
+void IndividualContainer::asyncEvaluated() {
+	evaluated_ = true;
+}
 void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 		std::vector<Socket*> &sockets) {
 

@@ -13,6 +13,10 @@ FakeJSSocket::FakeJSSocket() {
 	// TODO Auto-generated constructor stub
 
 }
+bool FakeJSSocket::open(const std::string& ip, int port) {
+	// a fake socket is always opend
+	return true;
+}
 
 FakeJSSocket::~FakeJSSocket() {
 	// TODO Auto-generated destructor stub
@@ -50,5 +54,8 @@ bool FakeJSSocket::close() {
 void FakeJSSocket::interrupt() {
 	//there are no blocking calls so the socket just return
 	return;
+}
+std::vector<unsigned char> FakeJSSocket::getContent() {
+	return this->innerBuffer;
 }
 } /* namespace robogen */

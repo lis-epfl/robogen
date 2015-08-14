@@ -334,6 +334,11 @@ RobotRepresentation &RobotRepresentation::operator=(
 	return *this;
 }
 
+void RobotRepresentation::asyncEvaluateResult(double fitness) {
+	fitness_ = fitness;
+	evaluated_ = true;
+}
+
 bool RobotRepresentation::init() {
 
 	// Generate a core component
@@ -565,6 +570,7 @@ void RobotRepresentation::evaluate(Socket *socket,
 			new robogenMessage::EvaluationRequest());
 	robogenMessage::Robot* evalRobot = evalReq->mutable_robot();
 	robogenMessage::SimulatorConf* evalConf = evalReq->mutable_configuration();
+	std::cout << "evalConf ptr " << robotConf.get() << std::endl;
 	*evalRobot = serialize();
 	*evalConf = robotConf->serialize();
 
@@ -575,6 +581,7 @@ void RobotRepresentation::evaluate(Socket *socket,
 	// 2. send message to simulator
 	socket->write(forgedMessagePacket);
 
+#ifndef EMSCRIPTEN // we will do it later with javascript
 	// 3. receive message from simulator
 	ProtobufPacket<robogenMessage::EvaluationResult> resultPacket(
 			boost::shared_ptr<robogenMessage::EvaluationResult>(
@@ -601,6 +608,7 @@ void RobotRepresentation::evaluate(Socket *socket,
 		fitness_ = resultPacket.getMessage()->fitness();
 		evaluated_ = true;
 	}
+#endif
 
 }
 

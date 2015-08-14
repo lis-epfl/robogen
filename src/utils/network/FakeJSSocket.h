@@ -38,11 +38,12 @@ public:
 	virtual ~FakeJSSocket();
 	virtual bool create(int port);
 	virtual bool accept();
-	virtual bool open(const std::string ip, int port);
+	virtual bool open(const std::string& ip, int port);
 	virtual bool read(std::vector<unsigned char>& buffer, size_t bytesToRead);
 	virtual bool write(std::vector<unsigned char>& buffer);
 	virtual bool close();
 	virtual void interrupt();
+	std::vector<unsigned char> getContent();
 private :
 	std::vector<unsigned char> innerBuffer;
 };
