@@ -570,7 +570,6 @@ void RobotRepresentation::evaluate(Socket *socket,
 			new robogenMessage::EvaluationRequest());
 	robogenMessage::Robot* evalRobot = evalReq->mutable_robot();
 	robogenMessage::SimulatorConf* evalConf = evalReq->mutable_configuration();
-	std::cout << "evalConf ptr " << robotConf.get() << std::endl;
 	*evalRobot = serialize();
 	*evalConf = robotConf->serialize();
 

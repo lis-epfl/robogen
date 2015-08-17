@@ -7,6 +7,7 @@
 #include <iostream>
 #include <emscripten/bind.h>
 #include <emscripten.h>
+#include <viewer/JSViewer.h>
 
 /***** WARNING ******
  * WE ARE INCLUDING .cpp files !!
@@ -78,9 +79,13 @@ double EMSCRIPTEN_KEEPALIVE evaluate(int ptr, int length) {
 	// Run simulations
 	// ---------------------------------------
 
+	JSViewer* viewer = new JSViewer();
+
 	unsigned int simulationResult = runSimulations(scenario,
 			configuration, packet.getMessage()->robot(),
-			NULL, rng);
+			viewer, rng);
+
+	delete viewer;
 
 	if (simulationResult == SIMULATION_FAILURE) {
 		return -1;

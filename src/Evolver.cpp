@@ -301,7 +301,6 @@ void mainEvolutionLoop() {
 	if (!log->logGeneration(generation, *population.get())) {
 		exitRobogen(EXIT_FAILURE);
 	}
-	 std::cout << "Main evolution Loop" << std::endl;
 
 	generation++;
 	 std::cout << "Generation " << generation << std::endl;
@@ -352,12 +351,10 @@ void evolve() {
 	std::string message = "[";
 	bool firstMessage = true;
 	for (size_t i = 0; i < population->size(); ++i) {
-		std::cout << "Start copying individual : " << i << std::endl;
 		FakeJSSocket* jsSocket = new FakeJSSocket();
 		sockets[i] = jsSocket;
 		population.get()->at(i)->evaluate(sockets[i], robotConf);
 		// we are sure this is a FakeJSSocket
-		std::cout << "done copying printing it now" << std::endl;
 		// but we still check :)
 		if (jsSocket == NULL) {
 			std::cerr << "Impossible to cast to JSSocket" << std::endl;
@@ -395,7 +392,6 @@ void EMSCRIPTEN_KEEPALIVE evaluationResultAvailable(int ptr, int length) {
 	double* data = (double *) ptr;
 	for(int i = 0 ; i < length; ++i) {
 		(*population)[i]->asyncEvaluateResult(data[i]);
-		std::cout << data[i] << std::endl;
 	}
 	population->asyncEvaluated();
 	triggerPostEvaluate();
