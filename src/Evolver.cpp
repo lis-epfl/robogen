@@ -102,6 +102,7 @@ bool hyperNEAT;
 boost::shared_ptr<Selector> selector;
 boost::shared_ptr<Mutator> mutator;
 int generation;
+boost::random::mt19937 rng;
 
 std::vector<Socket*> sockets;
 
@@ -158,8 +159,8 @@ void parseArgsThenInit(int argc, char* argv[]) {
 void init(unsigned int seed, std::string outputDirectory,
 		std::string confFileName, bool overwrite, bool saveAll) {
 
-	// Create random number generator
-	boost::random::mt19937 rng;
+	// Seed random number generator
+
 	rng.seed(seed);
 
 	conf.reset(new EvolverConfiguration());
