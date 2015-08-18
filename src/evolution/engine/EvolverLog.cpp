@@ -49,7 +49,6 @@ bool fixed_is_directory(std::string path) {
 	if (errorCode.value() == 2 ){
 		return false;
 	} else if (errorCode.value() != 0) {
-                std::cout << "isdir : " << __LINE__ << std::endl;
 		//this second call will fire the correct exception
                 std::cout << errorCode.value() << std::endl << errorCode.message() << std::endl;
 		boost::filesystem::is_directory(path);
@@ -63,30 +62,23 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::shared_ptr<RobogenConfig> robotConf,
 		const std::string& logDirectory, bool overwrite, bool saveAll) {
 
-	std::cout << "INIT START" << std::endl;
 
-	std::cout << "init " << __LINE__ << std::endl;
 
 	saveAll_ = saveAll;
 
 	std::string tempPath = logDirectory;
-	std::cout << "init " << __LINE__ << std::endl;
 	int curIndex = 0;
-	std::cout << "init " << __LINE__ << std::endl;
 	if (overwrite) {
 			boost::filesystem::remove_all(tempPath);
 	} else {
-	std::cout << "init " << __LINE__ << std::endl;
 		while (fixed_is_directory(tempPath)) {
 			std::stringstream newPath;
 			newPath << logDirectory << "_" << ++curIndex;
-	std::cout << "init " << __LINE__ << std::endl;
 			tempPath = newPath.str();
 		}
 	}
 
 
-	std::cout << "init " << __LINE__ << std::endl;
 	logPath_ = tempPath;
 	boost::filesystem::path logPath(logPath_);
 
@@ -98,7 +90,6 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 		return false;
 	}
 
-	std::cout << "init " << __LINE__ << std::endl;
 	// open trajectory log
 	std::string basLogPath = logPath_ + "/" + BAS_LOG_FILE;
 	bestAvgStd_.open(basLogPath.c_str());
@@ -107,7 +98,6 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 		return false;
 	}
 
-	std::cout << "init " << __LINE__ << std::endl;
 	// copy evolution configuration file
 	copyConfFile(conf->confFileName);
 	// copy simulator configuration file
@@ -117,14 +107,9 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 	// copy start pos configuration file
 	copyConfFile(robotConf->getStartPosFile());
 	// copy robot file if doing just brain evolution
-	std::cout << "init " << __LINE__ << std::endl;
 	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER) {
 		copyConfFile(conf->referenceRobotFile);
 	}
-
-	std::cout << "init " << __LINE__ << std::endl;
-	std::cout << "INIT END" << std::endl;
-
 
 	return true;
 }

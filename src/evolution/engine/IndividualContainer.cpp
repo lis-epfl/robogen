@@ -31,6 +31,11 @@
 #include <queue>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
+#ifdef EMSCRIPTEN
+#include <utils/network/FakeJSSocket.h>
+#include <boost/lexical_cast.hpp>
+void sendJSEvent(std::string name, std::string jsonData);
+#endif
 
 namespace robogen {
 
@@ -72,9 +77,6 @@ void evaluationThread(
 
 }
 
-void IndividualContainer::asyncEvaluated() {
-	evaluated_ = true;
-}
 void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 		std::vector<Socket*> &sockets) {
 
@@ -88,6 +90,43 @@ void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 	}
 	std::cout << indiQueue.size() << " individuals queued for evaluation."
 			<< " Progress:" << std::endl;
+
+#ifdef EMSCRIPTEN
+	std::string message = "[";
+	bool firstIndividual = true;
+	int sent = 0;
+	while (!indiQueue.empty()){
+		++sent;
+		FakeJSSocket socket;
+		boost::shared_ptr<RobotRepresentation> currentRobot = indiQueue.front();
+		indiQueue.pop();
+		currentRobot->evaluate(&socket, robotConf);
+		int ptrToIndividual = (int) currentRobot.get();
+		if (!firstIndividual) {
+			message += ",";
+		} else {
+			firstIndividual = false;
+		}
+		message += "{ptr:";
+		message += boost::lexical_cast<std::string>(ptrToIndividual);
+		message += ", packet : [";
+		bool firstByte = true;
+		std::vector<unsigned char> content = socket.getContent();
+		for (size_t k = 0 ; k < content.size(); ++k) {
+			if (!firstByte) {
+				message += ",";
+			} else {
+				firstByte = false;
+			}
+			message += boost::lexical_cast<std::string>((int) content[k]);
+		}
+		message += "]}";
+	}
+	message += "]";
+	sendJSEvent("needsEvaluation", message);
+	std::cout << sent << " inidividual sent to the javascript scheduler" << std::endl;
+
+#else
 
 	// 2. Prepare thread structure
 	boost::thread_group evaluators;
@@ -104,6 +143,7 @@ void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 
 	// newline after per-individual dots
 	std::cout << std::endl;
+#endif
 
 	evaluated_ = true;
 }

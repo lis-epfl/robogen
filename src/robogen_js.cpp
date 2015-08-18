@@ -110,5 +110,6 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::function("runEvolution", &runEvolution);
 	emscripten::function("evaluate", &evaluate);
 	emscripten::function("evaluationResultAvailable", &evaluationResultAvailable);
+	emscripten::function("evaluationIsDone", &evaluationIsDone);
 }
 

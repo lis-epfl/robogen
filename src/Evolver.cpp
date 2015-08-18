@@ -43,6 +43,7 @@
 #include <emscripten/bind.h>
 #include "emscripten.h"
 #include <utils/network/FakeJSSocket.h>
+#include <sstream>
 #endif
 
 #define EXIT_ROBOGEN(code, message) std::cerr << message << std::endl;exitRobogen(code)
@@ -264,6 +265,7 @@ void init(unsigned int seed, std::string outputDirectory,
 	}
 
 	generation = 0;
+	population->evaluate(robotConf, sockets);
 }
 
 void mainEvolutionLoop();
@@ -290,20 +292,32 @@ void postEvaluateStd() {
 }
 
 void triggerPostEvaluate() {
-	if (hyperNEAT) {
-		postEvaluateNEAT();
+	if (generation == 0) {
+		mainEvolutionLoop();
 	} else {
-		postEvaluateStd();
+		if (hyperNEAT) {
+			postEvaluateNEAT();
+		} else {
+			postEvaluateStd();
+		}
 	}
 }
 
 void mainEvolutionLoop() {
+	std::stringstream ss;
+	double best, average, stddev;
+	population->getStat(best, average, stddev);
+	ss << "{best : " << best << ", average : " << average << ", stddev : "
+			<< stddev << ", generation : " << generation << "}";
+	sendJSEvent("stats", ss.str());
+
+	std::cout << "mainEvolutionLoop" << std::endl;
 	if (!log->logGeneration(generation, *population.get())) {
 		exitRobogen(EXIT_FAILURE);
 	}
 
 	generation++;
-	 std::cout << "Generation " << generation << std::endl;
+	std::cout << "Generation " << generation << std::endl;
 
 	if (generation <= conf->numGenerations) {
 		children.clear();
@@ -316,6 +330,7 @@ void mainEvolutionLoop() {
 						<< std::endl;
 				exitRobogen(EXIT_FAILURE);
 			}
+			population->evaluate(robotConf, sockets);
 
 		} else {
 			selector->initPopulation(population);
@@ -329,8 +344,11 @@ void mainEvolutionLoop() {
 				children.push_back(
 						mutator->mutate(selection.first, selection.second));
 			}
+			children.evaluate(robotConf, sockets);
 		}
-		evolve();
+#ifndef EMSCRIPTEN
+		triggerPostEvaluate();
+#endif
 	} else {
 #ifdef EMSCRIPTEN
 		sendJSEvent("evolutionTerminated", "{}");
@@ -339,61 +357,12 @@ void mainEvolutionLoop() {
 	}
 }
 
-void evolve() {
-#ifndef EMSCRIPTEN
-	children.evaluate(robotConf, sockets);
-	triggerPostEvaluate();
-#else
-	size_t populationSize = population->size();
-	std::cout << "Pop size = " << populationSize << std::endl;
-	sockets.resize(populationSize);
-	std::cout << "socket resized : " << sockets.size() << std::endl;
-	std::string message = "[";
-	bool firstMessage = true;
-	for (size_t i = 0; i < population->size(); ++i) {
-		FakeJSSocket* jsSocket = new FakeJSSocket();
-		sockets[i] = jsSocket;
-		population.get()->at(i)->evaluate(sockets[i], robotConf);
-		// we are sure this is a FakeJSSocket
-		// but we still check :)
-		if (jsSocket == NULL) {
-			std::cerr << "Impossible to cast to JSSocket" << std::endl;
-		} else {
-			if (!firstMessage) {
-				message += ",";
-			} else {
-				firstMessage = false;
-			}
-			message += "[";
-			bool first = true;
-			std::vector<unsigned char> content = jsSocket->getContent();
-			for (size_t k = 0 ; k < content.size(); ++k) {
-				if (!first) {
-					message += ",";
-				} else {
-					first = false;
-				}
-				message += boost::lexical_cast<std::string>((int) content[k]);
-			}
-			message += "]";
-		}
-	}
-	message += "]";
-	sendJSEvent("needsEvaluation", message);
-#endif
-
+void EMSCRIPTEN_KEEPALIVE evaluationResultAvailable(int ptr, double fitness) {
+	RobotRepresentation* robot = (RobotRepresentation*) ptr;
+	robot->asyncEvaluateResult(fitness);
 }
 
-void EMSCRIPTEN_KEEPALIVE evaluationResultAvailable(int ptr, int length) {
-	if (length != population->size()) {
-		throw "Assertion failed in the Evolver";
-	}
-
-	double* data = (double *) ptr;
-	for(int i = 0 ; i < length; ++i) {
-		(*population)[i]->asyncEvaluateResult(data[i]);
-	}
-	population->asyncEvaluated();
+void EMSCRIPTEN_KEEPALIVE evaluationIsDone() {
 	triggerPostEvaluate();
 }
 
@@ -403,19 +372,18 @@ using namespace robogen;
 
 #ifndef EMSCRIPTEN
 int main(int argc, char *argv[]) {
-	parseArgsThenInit(argc, argv);
-	evolve();
-	// Clean up sockets
-	for (unsigned int i = 0; i < conf->sockets.size(); i++) {
-		delete sockets[i];
-	}
-	exitRobogen(EXIT_SUCCESS);
+parseArgsThenInit(argc, argv);
+triggerPostEvaluate();
+// Clean up sockets
+for (unsigned int i = 0; i < conf->sockets.size(); i++) {
+	delete sockets[i];
+}
+exitRobogen(EXIT_SUCCESS);
 }
 #else
 void EMSCRIPTEN_KEEPALIVE runEvolution(unsigned int seed, std::string outputDirectory, std::string confFileName,
-		bool overwrite, bool saveAll) {
-	init(seed, outputDirectory, confFileName, overwrite, saveAll);
-	evolve();
+	bool overwrite, bool saveAll) {
+init(seed, outputDirectory, confFileName, overwrite, saveAll);
 }
 #endif
 
