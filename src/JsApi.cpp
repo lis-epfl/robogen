@@ -49,166 +49,10 @@
 #include "Robogen.h"
 #include "Robot.h"
 #include "robogen.pb.h"
-#include "viewer/IViewer.h"
 
 #include "Simulator.h"
 
 using namespace robogen;
-
-#ifdef EMSCRIPTEN
-#include <vector>
-#include <boost/lexical_cast.hpp>
-#include "emscripten.h"
-#include <viewer/JSViewer.h>
-
-int fakeMain(int argc, char *argv[]);
-
-std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFileString,
-		std::string configFile, int startPosition, std::string outputDirectory,
-		int seed, bool enableWebGLLog, bool overwriteLogs) {
-
-
-
-	boost::shared_ptr<RobogenConfig> configuration = NULL;
-	try {
-		configuration = ConfigurationReader::parseConfigurationFile(configFile);
-	} catch (std::exception e) { }
-	if (configuration == NULL) {
-		std::cerr << "Problems parsing the configuration file. Quit."
-		<< std::endl;
-		return "{\"error\" : \"ConfError\"}";
-		return "ConfError";
-	}
-
-	robogenMessage::Robot robotMessage;
-	const char * robotFileChars = robotFileString.c_str();
-
-	if (boost::filesystem::path(robotFileString).extension().string().compare(
-					".dat") == 0) {
-
-		std::ifstream robotFile(robotFileChars, std::ios::binary);
-		if (!robotFile.is_open()) {
-			std::cout << "Cannot open " << robotFileString << ". Quit."
-			<< std::endl;
-			return "{\"error\" : \"RobotError\"}";
-		}
-
-		ProtobufPacket<robogenMessage::Robot> robogenPacket;
-
-		robotFile.seekg(0, robotFile.end);
-		unsigned int packetSize = robotFile.tellg();
-		robotFile.seekg(0, robotFile.beg);
-
-		std::vector<unsigned char> packetBuffer;
-		packetBuffer.resize(packetSize);
-		robotFile.read((char*) &packetBuffer[0], packetSize);
-		robogenPacket.decodePayload(packetBuffer);
-		robotMessage = *robogenPacket.getMessage().get();
-
-	} else if (boost::filesystem::path(robotFileChars).extension().string().compare(
-					".txt") == 0) {
-
-		RobotRepresentation robot;
-		if (!robot.init(robotFileChars)) {
-			std::cerr << "Failed interpreting robot text file!"
-			<< std::endl;
-			return "{\"error\" : \"RobotError\"}";
-		}
-		robotMessage = robot.serialize();
-
-	} else if (boost::filesystem::path(robotFileChars).extension().string().compare(
-					".json") == 0) {
-
-		std::ifstream robotFile(robotFileChars,
-				std::ios::in | std::ios::binary);
-		if (!robotFile.is_open()) {
-			std::cout << "Cannot open " << robotFileString << ". Quit."
-			<< std::endl;
-			return "{\"error\" : \"RobotError\"}";
-		}
-
-		robotFile.seekg(0, robotFile.end);
-		unsigned int packetSize = robotFile.tellg();
-		robotFile.seekg(0, robotFile.beg);
-
-		std::vector<unsigned char> packetBuffer;
-		packetBuffer.resize(packetSize);
-		robotFile.read((char*) &packetBuffer[0], packetSize);
-
-		json2pb(robotMessage, (char*) &packetBuffer[0], packetSize);
-
-	} else {
-		std::cerr << "File extension of provided robot file could not be "
-		"resolved. Use .dat or .json for robot messages and .txt for "
-		"robot text files" << std::endl;
-		return "{\"error\" : \"RobotError\"}";
-	}
-
-	// ---------------------------------------
-	// Setup environment
-	// ---------------------------------------
-	boost::shared_ptr<Scenario> scenario = NULL;
-	try {
-		scenario = ScenarioFactory::createScenario(
-				configuration);
-	}
-	catch (...) {}
-	if (scenario == NULL) {
-		return "{\"error\" : \"ScenarioError\"}";
-	}
-	scenario->setStartingPosition(startPosition);
-
-	// ---------------------------------------
-	// Set up log files
-	// ---------------------------------------
-
-	boost::shared_ptr<FileViewerLog> log;
-
-	if (outputDirectory != "") {
-		log.reset(
-				new FileViewerLog(robotFileString, configFile,
-						configuration->getObstacleFile(),
-						configuration->getStartPosFile(),
-						std::string(outputDirectory), overwriteLogs,
-						enableWebGLLog));
-	}
-
-	boost::random::mt19937 rng;
-	if (seed != -1)
-	rng.seed(seed);
-
-	// ---------------------------------------
-	// Run simulations
-	// ---------------------------------------
-	IViewer *viewer = new JSViewer();
-
-	unsigned int simulationResult = runSimulations(scenario, configuration,
-			robotMessage, viewer, rng, true, log);
-
-	if (viewer != NULL) {
-		delete viewer;
-	}
-
-	if (simulationResult == SIMULATION_FAILURE) {
-		return "{\"error\" : \"SimulationError\"}";
-	}
-
-	// ---------------------------------------
-	// Compute fitness
-	// ---------------------------------------
-	double fitness;
-	if (simulationResult == ACCELERATION_CAP_EXCEEDED) {
-		fitness = MIN_FITNESS;
-	} else {
-		fitness = scenario->getFitness();
-	}
-	return "{\"fitness\" : \"" + boost::lexical_cast<std::string>(fitness) + "\"}";
-}
-
-
-#else
-#include "viewer/Viewer.h"
-#endif
 
 // ODE World
 dWorldID odeWorld;
@@ -218,77 +62,84 @@ dJointGroupID odeContactGroup;
 
 bool interrupted;
 
-bool fixed_is_directory(std::string path) {
-	boost::system::error_code errorCode;
-	bool result = boost::filesystem::is_directory(path, errorCode);
-	if (errorCode.value() != 0) {
-		//this second call will fire the correct exception
-		boost::filesystem::is_directory(path);
-	} else {
-		return result;
-	}
-}
-
 void printUsage(char *argv[]) {
-	std::cout << std::endl << "USAGE: " << std::endl << "      "
-			<< std::string(argv[0]) << " <ROBOT_FILE, STRING> "
+	std::cout << std::endl
+			<< "USAGE: " << std::endl
+			<< "      " << std::string(argv[0])
+			<< " <ROBOT_FILE, STRING> "
 			<< "<CONFIGURATION_FILE, STRING> "
-			<< "[<START_POSITION, INTEGER>] [<OPTIONS>]" << std::endl
-			<< std::endl << "WHERE: " << std::endl
+			<< "[<START_POSITION, INTEGER>] [<OPTIONS>]"
+			<< std::endl << std::endl
+			<< "WHERE: " << std::endl
 			<< "      <ROBOT_FILE> is the name of a file containing "
-			<< "the robot description (either .json or .txt)." << std::endl
-			<< std::endl << "      <CONFIGURATION_FILE> is the name of the "
-			<< "corresponding simulation configuration file." << std::endl
-			<< std::endl
+			<< "the robot description (either .json or .txt)."
+			<< std::endl << std::endl
+			<< "      <CONFIGURATION_FILE> is the name of the "
+			<< "corresponding simulation configuration file."
+			<< std::endl << std::endl
 			<< "      <START_POSITON> optionally specifies the starting "
-			<< "position 1..n" << std::endl << std::endl << "OPTIONS: "
-			<< std::endl << "      --debug" << std::endl
-			<< "          Run in debug visualization mode." << std::endl
-			<< std::endl << "      --help" << std::endl
-			<< "          Print these usage instructions." << std::endl
-			<< std::endl << "      --no-visualization" << std::endl
-			<< "          Evaluate an individual without visualization."
-			<< std::endl << std::endl << "      --pause" << std::endl
-			<< "          Starts the simulation paused." << std::endl
-			<< std::endl << "      --output <DIR, STRING>" << std::endl
-			<< "          Generates output files: sensor logs and "
-			<< "Arduino files." << std::endl << std::endl << "      --overwrite"
+			<< "position 1..n"
 			<< std::endl
+			<< std::endl
+			<< "OPTIONS: " << std::endl
+			<< "      --debug" << std::endl
+			<< "          Run in debug visualization mode."
+			<< std::endl << std::endl
+			<< "      --help" << std::endl
+			<< "          Print these usage instructions."
+			<< std::endl << std::endl
+			<< "      --no-visualization" << std::endl
+			<< "          Evaluate an individual without visualization."
+			<< std::endl << std::endl
+			<< "      --pause" << std::endl
+			<< "          Starts the simulation paused." << std::endl
+			<< std::endl
+			<< "      --output <DIR, STRING>" << std::endl
+			<< "          Generates output files: sensor logs and "
+			<< "Arduino files." << std::endl << std::endl
+			<< "      --overwrite" << std::endl
 			<< "          Overwrite existing output file directory if it "
 			<< "exists." << std::endl
 			<< "          (Default is to keep creating new output "
-			<< "directories with incrementing suffixes)." << std::endl
-			<< std::endl << "      --record <N, INTEGER> <DIR, STRING>"
-			<< std::endl
+			<< "directories with incrementing suffixes)."
+			<< std::endl << std::endl
+			<< "      --record <N, INTEGER> <DIR, STRING>" << std::endl
 			<< "          Save frames to file (for video rendering)."
 			<< std::endl
 			<< "          Saves every <N>th simulation step in directory "
 			<< "<DIR>." << std::endl << std::endl
 			<< "      --seed <A, INTEGER> " << std::endl
 			<< "          Set the seed A for the random number generator "
-			<< "for noisy evaluations." << std::endl << std::endl
+			<< "for noisy evaluations."
+			<< std::endl << std::endl
 			<< "      --speed <S, FLOAT>" << std::endl
 			<< "          Run visualization at S * real time "
-			<< "(default is 1)." << std::endl << std::endl << "      --webgl"
-			<< std::endl << "          Record json file for use with the WebGL "
-			<< "visualizer (only valid if --output is specified)." << std::endl
-			<< std::endl << "      Notes: " << std::endl
+			<< "(default is 1)."
+			<< std::endl << std::endl
+			<< "      --webgl" << std::endl
+			<< "          Record json file for use with the WebGL "
+			<< "visualizer (only valid if --output is specified)."
+			<< std::endl << std::endl
+			<< "      Notes: " << std::endl
 			<< "        (a) Without visualization you cannot record frames,"
 			<< " and setting speed has no effect "
-			<< "(will always run as fast possible)." << std::endl
+			<< "(will always run as fast possible)."
+			<< std::endl
 			<< "        (b) Speed will be capped by the rate at which your"
 			<< " system is capable of running the simulation." << std::endl
 			<< "              For complex simulations this may be slower "
 			<< "than real time." << std::endl
 			<< "        (c) Recording frames may make simulation run slower"
-			<< " than requested speed." << std::endl << std::endl << std::endl;
+							<< " than requested speed."  << std::endl
+			<< std::endl << std::endl;
 }
+
 
 /**
  * Decodes a robot saved on file and visualize it
  */
-#ifndef EMSCRIPTEN
 int main(int argc, char *argv[]) {
+
 	if (argc > 1 && std::string(argv[1]) == "--help") {
 		printUsage(argv);
 		return EXIT_SUCCESS;
@@ -344,15 +195,16 @@ int main(int argc, char *argv[]) {
 	double speed = 1.0;
 	bool debug = false;
 	int seed = -1;
-	for (; currentArg < argc; currentArg++) {
+	for (; currentArg<argc; currentArg++) {
 		if (std::string("--help").compare(argv[currentArg]) == 0) {
 			printUsage(argv);
 			return EXIT_SUCCESS;
 		} else if (std::string("--record").compare(argv[currentArg]) == 0) {
 			if (argc < (currentArg + 3)) {
 				std::cerr << "In order to record frames, must provide frame "
-						<< "frequency and target directory." << std::endl;
-				return EXIT_FAILURE;
+						<< "frequency and target directory."
+						<< std::endl;
+						return EXIT_FAILURE;
 			}
 			recording = true;
 			currentArg++;
@@ -368,7 +220,7 @@ int main(int argc, char *argv[]) {
 			recordDirectoryName = std::string(argv[currentArg]);
 			int curIndex = 0;
 			std::string tempPath = recordDirectoryName;
-			while (fixed_is_directory(tempPath)) {
+			while (boost::filesystem::is_directory(tempPath)) {
 				std::stringstream newPath;
 				newPath << recordDirectoryName << "_" << ++curIndex;
 				tempPath = newPath.str();
@@ -376,19 +228,21 @@ int main(int argc, char *argv[]) {
 
 			recordDirectoryName = tempPath;
 
+
 			boost::filesystem::path recordDirectory(
 					recordDirectoryName.c_str());
 
-			if (recording
-					&& !boost::filesystem::is_directory(recordDirectory)) {
+			if (recording &&
+					!boost::filesystem::is_directory(recordDirectory) ) {
 				boost::filesystem::create_directories(recordDirectory);
 			}
 
 		} else if (std::string("--output").compare(argv[currentArg]) == 0) {
 			if (argc < (currentArg + 2)) {
 				std::cerr << "In order to write output files, must provide "
-						<< "directory." << std::endl;
-				return EXIT_FAILURE;
+										<< "directory."
+										<< std::endl;
+										return EXIT_FAILURE;
 
 			}
 			writeLog = true;
@@ -424,28 +278,29 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (recording && !visualize) {
-		std::cerr << "Cannot record without visualization enabled!"
-				<< std::endl;
+		std::cerr << "Cannot record without visualization enabled!" <<
+				std::endl;
 		return EXIT_FAILURE;
 	}
 
 	if (startPaused && !visualize) {
-		std::cerr << "Cannot start paused without visualization enabled."
-				<< std::endl;
+		std::cerr << "Cannot start paused without visualization enabled." <<
+				std::endl;
 		return EXIT_FAILURE;
 	}
 
 	if (writeWebGL && (!writeLog)) {
-		std::cerr << "Cannot write json file for WebGL visualizer without "
-				<< "specifying output directory." << std::endl;
+		std::cerr << "Cannot write json file for WebGL visualizer without " <<
+				"specifying output directory." << std::endl;
 		return EXIT_FAILURE;
 	}
 
 	if (overwrite && (!writeLog)) {
-		std::cerr << "No output directory was specified, so there is "
-				<< "nothing to overwrite." << std::endl;
+		std::cerr << "No output directory was specified, so there is " <<
+				"nothing to overwrite." << std::endl;
 		return EXIT_FAILURE;
 	}
+
 
 	boost::random::mt19937 rng;
 	if (seed != -1)
@@ -457,8 +312,8 @@ int main(int argc, char *argv[]) {
 	robogenMessage::Robot robotMessage;
 	std::string robotFileString(argv[1]);
 
-	if (boost::filesystem::path(argv[1]).extension().string().compare(".dat")
-			== 0) {
+	if (boost::filesystem::path(argv[1]).extension().string().compare(
+			".dat") == 0) {
 
 		std::ifstream robotFile(argv[1], std::ios::binary);
 		if (!robotFile.is_open()) {
@@ -527,6 +382,7 @@ int main(int argc, char *argv[]) {
 	}
 	scenario->setStartingPosition(desiredStart);
 
+
 	// ---------------------------------------
 	// Set up log files
 	// ---------------------------------------
@@ -534,28 +390,28 @@ int main(int argc, char *argv[]) {
 	boost::shared_ptr<FileViewerLog> log;
 
 	if (writeLog) {
-		log.reset(
-				new FileViewerLog(std::string(argv[1]), std::string(argv[2]),
-						configuration->getObstacleFile(),
-						configuration->getStartPosFile(),
-						std::string(outputDirectoryName), overwrite,
-						writeWebGL));
+		log.reset(new FileViewerLog(std::string(argv[1]),
+			std::string(argv[2]), configuration->getObstacleFile(),
+			configuration->getStartPosFile(),
+			std::string(outputDirectoryName),
+			overwrite,
+			writeWebGL));
 	}
 
 	// ---------------------------------------
 	// Run simulations
 	// ---------------------------------------
-	IViewer *viewer = NULL;
-	if (visualize) {
+	Viewer *viewer = NULL;
+	if(visualize) {
 		viewer = new Viewer(startPaused, debug,
 				speed, recording, recordFrequency,
 				recordDirectoryName);
 	}
 
-	unsigned int simulationResult = runSimulations(scenario, configuration,
-			robotMessage, viewer, rng, true, log);
+	unsigned int simulationResult = runSimulations(scenario,
+			configuration, robotMessage, viewer, rng, true, log);
 
-	if (viewer != NULL) {
+	if(viewer != NULL) {
 		delete viewer;
 	}
 
@@ -572,10 +428,8 @@ int main(int argc, char *argv[]) {
 	} else {
 		fitness = scenario->getFitness();
 	}
-	std::cout << "Fitness for the current solution: " << fitness << std::endl
-			<< std::endl;
+	std::cout << "Fitness for the current solution: " << fitness
+			<< std::endl << std::endl;
 
 	return EXIT_SUCCESS;
 }
-
-#endif

@@ -304,12 +304,14 @@ void triggerPostEvaluate() {
 }
 
 void mainEvolutionLoop() {
+#ifdef EMSCRIPTEN
 	std::stringstream ss;
 	double best, average, stddev;
 	population->getStat(best, average, stddev);
 	ss << "{best : " << best << ", average : " << average << ", stddev : "
 			<< stddev << ", generation : " << generation << "}";
 	sendJSEvent("stats", ss.str());
+#endif
 
 	std::cout << "mainEvolutionLoop" << std::endl;
 	if (!log->logGeneration(generation, *population.get())) {
@@ -357,6 +359,7 @@ void mainEvolutionLoop() {
 	}
 }
 
+#ifdef EMSCRIPTEN
 void EMSCRIPTEN_KEEPALIVE evaluationResultAvailable(int ptr, double fitness) {
 	RobotRepresentation* robot = (RobotRepresentation*) ptr;
 	robot->asyncEvaluateResult(fitness);
@@ -365,6 +368,7 @@ void EMSCRIPTEN_KEEPALIVE evaluationResultAvailable(int ptr, double fitness) {
 void EMSCRIPTEN_KEEPALIVE evaluationIsDone() {
 	triggerPostEvaluate();
 }
+#endif
 
 }
 
