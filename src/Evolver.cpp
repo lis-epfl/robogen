@@ -50,11 +50,6 @@ namespace robogen {
 void init(unsigned int seed, std::string outputDirectory,
 		std::string confFileName, bool overwrite, bool saveAll);
 
-void exitRobogen(int exitCode) {
-	google::protobuf::ShutdownProtobufLibrary();
-	exit(exitCode);
-}
-
 void printUsage(char *argv[]) {
 	std::cout << std::endl << "USAGE: " << std::endl << "      "
 			<< std::string(argv[0])
@@ -274,7 +269,7 @@ void init(unsigned int seed, std::string outputDirectory,
 		}
 	}
 
-	generation = 0;
+	generation = 1;
 	population->evaluate(robotConf, sockets);
 }
 
@@ -302,7 +297,7 @@ void postEvaluateStd() {
 }
 
 void triggerPostEvaluate() {
-	if (generation == 0) {
+	if (generation == 1) {
 		mainEvolutionLoop();
 	} else {
 		if (hyperNEAT) {
