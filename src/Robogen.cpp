@@ -27,6 +27,7 @@
  * @(#) $Id$
  */
 #include "Robogen.h"
+#include "robogen.pb.h"
 
 float fromOde(float x) {
 	return x*1000.0;
@@ -46,3 +47,13 @@ int modulo(int x, int y) {
 	}
 	return (x % y);
 }
+
+void startRobogen() {
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+}
+
+void exitRobogen(int exitCode) {
+	google::protobuf::ShutdownProtobufLibrary();
+	exit(exitCode);
+}
+

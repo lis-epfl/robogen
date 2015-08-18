@@ -46,12 +46,9 @@
 #include <sstream>
 #endif
 
-#define EXIT_ROBOGEN(code, message) std::cerr << message << std::endl;exitRobogen(code)
-
 namespace robogen {
 void init(unsigned int seed, std::string outputDirectory,
 		std::string confFileName, bool overwrite, bool saveAll);
-void evolve();
 
 void exitRobogen(int exitCode) {
 	google::protobuf::ShutdownProtobufLibrary();
@@ -108,6 +105,8 @@ std::vector<Socket*> sockets;
 
 void parseArgsThenInit(int argc, char* argv[]) {
 
+	startRobogen();
+
 	// ---------------------------------------
 	// verify usage and load configuration
 	// ---------------------------------------
@@ -119,10 +118,10 @@ void parseArgsThenInit(int argc, char* argv[]) {
 
 	if ((argc < 4)) {
 		printUsage(argv);
-		std::cout << "RUN: " << std::endl << std::endl << "      "
-				<< std::string(argv[0])
-				<< " --help to see all configuration options." << std::endl
-				<< std::endl;
+		std::cout << "RUN: " << std::endl << std::endl
+				<< "      " << std::string(argv[0])
+				<< " --help to see all configuration options."
+				<< std::endl << std::endl;
 		exitRobogen(EXIT_FAILURE);
 	}
 
@@ -144,8 +143,8 @@ void parseArgsThenInit(int argc, char* argv[]) {
 		} else if (std::string("--save-all").compare(argv[currentArg]) == 0) {
 			saveAll = true;
 		} else {
-			std::cout << std::endl << "Invalid option: " << argv[currentArg]
-					<< std::endl << std::endl;
+			std::cerr << std::endl << "Invalid option: " << argv[currentArg]
+							 << std::endl << std::endl;
 			printUsage(argv);
 			exitRobogen(EXIT_FAILURE);
 		}
@@ -165,15 +164,17 @@ void init(unsigned int seed, std::string outputDirectory,
 
 	conf.reset(new EvolverConfiguration());
 	if (!conf->init(confFileName)) {
-		EXIT_ROBOGEN(EXIT_FAILURE,
-				"Problems parsing the evolution configuration file. Quit.");
+		std::cerr << "Problems parsing the evolution configuration file. Quit."
+				<< std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	robotConf = ConfigurationReader::parseConfigurationFile(
 			conf->simulatorConfFile);
 	if (robotConf == NULL) {
-		EXIT_ROBOGEN(EXIT_FAILURE,
-				"Problems parsing the robot configuration file. Quit.");
+		std::cerr << "Problems parsing the robot configuration file. Quit."
+				<< std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	// ---------------------------------------
@@ -183,22 +184,24 @@ void init(unsigned int seed, std::string outputDirectory,
 	if (conf->selection == conf->DETERMINISTIC_TOURNAMENT) {
 		selector.reset(new DeterministicTournament(conf->tournamentSize, rng));
 	} else {
-		EXIT_ROBOGEN(EXIT_FAILURE,
-				"Selection type id "
-						+ boost::lexical_cast<std::string>(conf->selection)
-						+ " unknown.");
+		std::cerr << "Selection type id " << conf->selection << " unknown."
+				<< std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	mutator.reset(new Mutator(conf, rng));
 	log.reset(new EvolverLog());
 	try {
 		if (!log->init(conf, robotConf, outputDirectory, overwrite, saveAll)) {
-			EXIT_ROBOGEN(EXIT_FAILURE, "Error creating evolver log. Aborting.");
+			std::cerr << "Error creating evolver log. Aborting." << std::endl;
+			exitRobogen(EXIT_FAILURE);
 		}
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
+		exitRobogen(EXIT_FAILURE);
 	} catch (...) {
 		std::cerr << "non standard exception " << std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	// ---------------------------------------
@@ -210,19 +213,22 @@ void init(unsigned int seed, std::string outputDirectory,
 	bool growBodies = false;
 	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
 			&& conf->referenceRobotFile.compare("") == 0) {
-		EXIT_ROBOGEN(EXIT_FAILURE,
-				"Trying to evolve brain, but no robot file provided.");
+		std::cerr << "Trying to evolve brain, but no robot file provided."
+				<< std::endl;
+		exitRobogen(EXIT_FAILURE);
 	} else if (conf->referenceRobotFile.compare("") != 0) {
 		if (!referenceBot->init(conf->referenceRobotFile)) {
-			EXIT_ROBOGEN(EXIT_FAILURE,
-					"Failed interpreting robot from text file");
+			std::cerr << "Failed interpreting robot from text file"
+					<< std::endl;
+			exitRobogen(EXIT_FAILURE);
 		}
 	} else { //doing body evolution and don't have a reference robot
 		if (referenceBot->init()) {
 			growBodies = true;
 		} else {
-			EXIT_ROBOGEN(EXIT_FAILURE,
-					"Failed creating base robot for body evolution");
+			std::cerr << "Failed creating base robot for body evolution"
+					<< std::endl;
+			exitRobogen(EXIT_FAILURE);
 		}
 	}
 
@@ -230,8 +236,9 @@ void init(unsigned int seed, std::string outputDirectory,
 			(conf->evolutionaryAlgorithm == EvolverConfiguration::HYPER_NEAT);
 	population.reset(new Population());
 	if (!population->init(referenceBot, conf->mu, mutator, growBodies,
-			(!(conf->useBrainSeed || hyperNEAT)))) {
-		EXIT_ROBOGEN(EXIT_FAILURE, "Error when initializing population!");
+			(!(conf->useBrainSeed || hyperNEAT)) ) ) {
+		std::cerr << "Error when initializing population!" << std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	if (hyperNEAT) {
@@ -248,8 +255,9 @@ void init(unsigned int seed, std::string outputDirectory,
 #ifndef FAKEROBOTREPRESENTATION_H // do not bother with sockets when using
 		// benchmark
 		if (!sockets[i]->open(conf->sockets[i].first,
-						conf->sockets[i].second)) {
-			EXIT_ROBOGEN(EXIT_FAILURE, "Could not open connection to simulator" );
+				conf->sockets[i].second)) {
+			std::cerr << "Could not open connection to simulator" << std::endl;
+			exitRobogen(EXIT_FAILURE);
 		}
 #endif
 	}
@@ -259,9 +267,10 @@ void init(unsigned int seed, std::string outputDirectory,
 	// run evolution TODO stopping criterion
 	// ---------------------------------------
 
-	if (hyperNEAT) {
-		if (!neatContainer->fillPopulationWeights(population)) {
-			EXIT_ROBOGEN(EXIT_FAILURE, "Filling weights from NEAT failed.");
+	if(hyperNEAT) {
+		if(!neatContainer->fillPopulationWeights(population)) {
+			std::cerr << "Filling weights from NEAT failed." << std::endl;
+			exitRobogen(EXIT_FAILURE);
 		}
 	}
 
@@ -328,8 +337,8 @@ void mainEvolutionLoop() {
 		// create children
 		if (hyperNEAT) {
 			//neatPopulation->Epoch();
-			if (!neatContainer->produceNextGeneration(population)) {
-				std::cout << "Producing next generation from NEAT failed."
+			if(!neatContainer->produceNextGeneration(population)) {
+				std::cerr << "Producing next generation from NEAT failed."
 						<< std::endl;
 				exitRobogen(EXIT_FAILURE);
 			}
@@ -341,7 +350,7 @@ void mainEvolutionLoop() {
 				std::pair<boost::shared_ptr<RobotRepresentation>,
 						boost::shared_ptr<RobotRepresentation> > selection;
 				if (!selector->select(selection)) {
-					std::cout << "Selector::select() failed." << std::endl;
+					std::cerr << "Selector::select() failed." << std::endl;
 					exitRobogen(EXIT_FAILURE);
 				}
 				children.push_back(
@@ -389,6 +398,7 @@ exitRobogen(EXIT_SUCCESS);
 void EMSCRIPTEN_KEEPALIVE runEvolution(unsigned int seed, std::string outputDirectory, std::string confFileName,
 	bool overwrite, bool saveAll) {
 init(seed, outputDirectory, confFileName, overwrite, saveAll);
+
 }
 #endif
 

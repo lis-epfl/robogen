@@ -40,7 +40,6 @@
 #include "scenario/ScenarioFactory.h"
 #include "utils/network/ProtobufPacket.h"
 #include "utils/network/TcpSocket.h"
-#include "utils/json2pb/json2pb.h"
 #include "utils/RobogenCollision.h"
 #include "utils/RobogenUtils.h"
 #include "viewer/FileViewerLog.h"
@@ -223,7 +222,7 @@ bool fixed_is_directory(std::string path) {
 	bool result = boost::filesystem::is_directory(path, errorCode);
 	if (errorCode.value() != 0) {
 		//this second call will fire the correct exception
-		boost::filesystem::is_directory(path);
+		return boost::filesystem::is_directory(path);
 	} else {
 		return result;
 	}
@@ -289,14 +288,16 @@ void printUsage(char *argv[]) {
  */
 #ifndef EMSCRIPTEN
 int main(int argc, char *argv[]) {
+	startRobogen();
+
 	if (argc > 1 && std::string(argv[1]) == "--help") {
 		printUsage(argv);
-		return EXIT_SUCCESS;
+		exitRobogen(EXIT_SUCCESS);
 	}
 
 	if (argc < 3) {
 		printUsage(argv);
-		return EXIT_FAILURE;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	// Decode configuration file
@@ -305,7 +306,7 @@ int main(int argc, char *argv[]) {
 	if (configuration == NULL) {
 		std::cerr << "Problems parsing the configuration file. Quit."
 				<< std::endl;
-		return EXIT_FAILURE;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	// verify desired start position is specified in configuration
@@ -329,14 +330,14 @@ int main(int argc, char *argv[]) {
 		if (ss.fail()) {
 			std::cerr << "Specified desired starting position \"" << argv[3]
 					<< "\" is not an integer. Aborting..." << std::endl;
-			return EXIT_FAILURE;
+			exitRobogen(EXIT_FAILURE);
 		}
 		if (desiredStart
 				>= configuration->getStartingPos()->getStartPosition().size()) {
 			std::cout << "Specified desired starting position " << argv[3]
 					<< " does not index a starting position. Aborting..."
 					<< std::endl;
-			return EXIT_FAILURE;
+			exitRobogen(EXIT_FAILURE);
 		}
 	}
 	bool visualize = true;
@@ -347,21 +348,22 @@ int main(int argc, char *argv[]) {
 	for (; currentArg < argc; currentArg++) {
 		if (std::string("--help").compare(argv[currentArg]) == 0) {
 			printUsage(argv);
-			return EXIT_SUCCESS;
+			exitRobogen(EXIT_FAILURE);
 		} else if (std::string("--record").compare(argv[currentArg]) == 0) {
 			if (argc < (currentArg + 3)) {
 				std::cerr << "In order to record frames, must provide frame "
-						<< "frequency and target directory." << std::endl;
-				return EXIT_FAILURE;
+						<< "frequency and target directory."
+						<< std::endl;
+				exitRobogen(EXIT_FAILURE);
 			}
 			recording = true;
 			currentArg++;
 			std::stringstream ss(argv[currentArg]);
 			ss >> recordFrequency;
 			if (ss.fail()) {
-				std::cout << "Specified record frequency \"" << argv[currentArg]
+				std::cerr << "Specified record frequency \"" << argv[currentArg]
 						<< "\" is not an integer. Aborting..." << std::endl;
-				return EXIT_FAILURE;
+				exitRobogen(EXIT_FAILURE);
 			}
 			currentArg++;
 
@@ -387,8 +389,9 @@ int main(int argc, char *argv[]) {
 		} else if (std::string("--output").compare(argv[currentArg]) == 0) {
 			if (argc < (currentArg + 2)) {
 				std::cerr << "In order to write output files, must provide "
-						<< "directory." << std::endl;
-				return EXIT_FAILURE;
+										<< "directory."
+										<< std::endl;
+				exitRobogen(EXIT_FAILURE);
 
 			}
 			writeLog = true;
@@ -404,7 +407,7 @@ int main(int argc, char *argv[]) {
 			if (argc < (currentArg + 2)) {
 				std::cerr << "Must specify a speed factor with option --speed."
 						<< std::endl;
-				return EXIT_FAILURE;
+				exitRobogen(EXIT_FAILURE);
 			}
 			currentArg++;
 			std::stringstream ss(argv[currentArg]);
@@ -412,6 +415,11 @@ int main(int argc, char *argv[]) {
 		} else if (std::string("--debug").compare(argv[currentArg]) == 0) {
 			debug = true;
 		} else if (std::string("--seed").compare(argv[currentArg]) == 0) {
+			if (argc < (currentArg + 2)) {
+				std::cerr << "Must specify a seed value with option --seed."
+						<< std::endl;
+				exitRobogen(EXIT_FAILURE);
+			}
 			currentArg++;
 			std::stringstream ss(argv[currentArg]);
 			ss >> seed;
@@ -424,27 +432,27 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (recording && !visualize) {
-		std::cerr << "Cannot record without visualization enabled!"
-				<< std::endl;
-		return EXIT_FAILURE;
+		std::cerr << "Cannot record without visualization enabled!" <<
+				std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	if (startPaused && !visualize) {
-		std::cerr << "Cannot start paused without visualization enabled."
-				<< std::endl;
-		return EXIT_FAILURE;
+		std::cerr << "Cannot start paused without visualization enabled." <<
+				std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	if (writeWebGL && (!writeLog)) {
-		std::cerr << "Cannot write json file for WebGL visualizer without "
-				<< "specifying output directory." << std::endl;
-		return EXIT_FAILURE;
+		std::cerr << "Cannot write json file for WebGL visualizer without " <<
+				"specifying output directory." << std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	if (overwrite && (!writeLog)) {
-		std::cerr << "No output directory was specified, so there is "
-				<< "nothing to overwrite." << std::endl;
-		return EXIT_FAILURE;
+		std::cerr << "No output directory was specified, so there is " <<
+				"nothing to overwrite." << std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	boost::random::mt19937 rng;
@@ -457,63 +465,9 @@ int main(int argc, char *argv[]) {
 	robogenMessage::Robot robotMessage;
 	std::string robotFileString(argv[1]);
 
-	if (boost::filesystem::path(argv[1]).extension().string().compare(".dat")
-			== 0) {
-
-		std::ifstream robotFile(argv[1], std::ios::binary);
-		if (!robotFile.is_open()) {
-			std::cout << "Cannot open " << std::string(argv[1]) << ". Quit."
-					<< std::endl;
-			return EXIT_FAILURE;
-		}
-
-		ProtobufPacket<robogenMessage::Robot> robogenPacket;
-
-		robotFile.seekg(0, robotFile.end);
-		unsigned int packetSize = robotFile.tellg();
-		robotFile.seekg(0, robotFile.beg);
-
-		std::vector<unsigned char> packetBuffer;
-		packetBuffer.resize(packetSize);
-		robotFile.read((char*) &packetBuffer[0], packetSize);
-		robogenPacket.decodePayload(packetBuffer);
-		robotMessage = *robogenPacket.getMessage().get();
-
-	} else if (boost::filesystem::path(argv[1]).extension().string().compare(
-			".txt") == 0) {
-
-		RobotRepresentation robot;
-		if (!robot.init(argv[1])) {
-			std::cerr << "Failed interpreting robot text file!" << std::endl;
-			return EXIT_FAILURE;
-		}
-		robotMessage = robot.serialize();
-
-	} else if (boost::filesystem::path(argv[1]).extension().string().compare(
-			".json") == 0) {
-
-		std::ifstream robotFile(argv[1], std::ios::in | std::ios::binary);
-		if (!robotFile.is_open()) {
-			std::cerr << "Cannot open " << std::string(argv[1]) << ". Quit."
-					<< std::endl;
-			return EXIT_FAILURE;
-		}
-
-		robotFile.seekg(0, robotFile.end);
-		unsigned int packetSize = robotFile.tellg();
-		robotFile.seekg(0, robotFile.beg);
-
-		std::vector<unsigned char> packetBuffer;
-		packetBuffer.resize(packetSize);
-		robotFile.read((char*) &packetBuffer[0], packetSize);
-
-		json2pb(robotMessage, (char*) &packetBuffer[0], packetSize);
-
-	} else {
-		std::cerr << "File extension of provided robot file could not be "
-				"resolved. Use .dat or .json for robot messages and .txt for "
-				"robot text files" << std::endl;
-		return EXIT_FAILURE;
+	if(!RobotRepresentation::createRobotMessageFromFile(robotMessage,
+			robotFileString)) {
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	// ---------------------------------------
@@ -523,7 +477,7 @@ int main(int argc, char *argv[]) {
 	boost::shared_ptr<Scenario> scenario = ScenarioFactory::createScenario(
 			configuration);
 	if (scenario == NULL) {
-		return EXIT_FAILURE;
+		exitRobogen(EXIT_FAILURE);
 	}
 	scenario->setStartingPosition(desiredStart);
 
@@ -560,7 +514,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (simulationResult == SIMULATION_FAILURE) {
-		return EXIT_FAILURE;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	// ---------------------------------------
@@ -575,7 +529,7 @@ int main(int argc, char *argv[]) {
 	std::cout << "Fitness for the current solution: " << fitness << std::endl
 			<< std::endl;
 
-	return EXIT_SUCCESS;
+	exitRobogen(EXIT_SUCCESS);
 }
 
 #endif
