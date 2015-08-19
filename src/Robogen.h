@@ -32,6 +32,7 @@
 // In case of inertia/mass problems with ODE on 64bits machines it's necessary
 // to enble dDOUBLE
 #define dDOUBLE
+#include <limits>
 #include <ode/ode.h>
 #include <osg/Vec3>
 
