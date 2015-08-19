@@ -103,6 +103,9 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	maxBrainPeriod = 2.0;
 	brainPeriodSigma = 0.2;
 
+	minNumInitialParts = 2;
+	maxNumInitialParts = 10;
+
 
 
 

@@ -180,12 +180,14 @@ public:
 	 * @param newPart the new part to insert
 	 * @param newPartSlot the slot of the new part where the subtree of parentPartId
 	 *        connected to parentPartSlot will be connected to
+	 * @param motorNeuronType the type of the motor neurn (if applicable)
 	 * @return true if the operation completed successfully, false otherwise
 	 */
 	bool insertPart(const std::string& parentPartId,
 			unsigned int parentPartSlot,
 			boost::shared_ptr<PartRepresentation> newPart,
-			unsigned int newPartSlot);
+			unsigned int newPartSlot,
+			unsigned int motorNeuronType);
 
 	/**
 	 * Remove a part from the body tree
