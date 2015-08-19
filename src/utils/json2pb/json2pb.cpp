@@ -7,6 +7,7 @@
 
 #include <errno.h>
 #include <jansson.h>
+#include <iostream>
 
 #include <google/protobuf/message.h>
 #include <google/protobuf/descriptor.h>
@@ -309,6 +310,14 @@ std::string pb2json(const Message &msg) {
 
 
 	json_t *root = _pb2json(msg);
+
+	const char* key;
+	json_t *value;
+	json_object_foreach(root, key, value) {
+		if(json_is_object(value))
+			std::cout << key << " " << json_object_size(value) << std::endl;
+
+	}
 
 	char * res = json_dumps(root, JSON_INDENT(1) | JSON_PRESERVE_ORDER);
 	std::string result(res);
