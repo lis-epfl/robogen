@@ -59,7 +59,6 @@ using namespace robogen;
 #include <boost/lexical_cast.hpp>
 #include "emscripten.h"
 #include <viewer/JSViewer.h>
-#include "utils/json2pb/json2pb.h"
 
 
 int fakeMain(int argc, char *argv[]);
@@ -82,66 +81,10 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFile
 	}
 
 	robogenMessage::Robot robotMessage;
-	const char * robotFileChars = robotFileString.c_str();
 
-	if (boost::filesystem::path(robotFileString).extension().string().compare(
-					".dat") == 0) {
 
-		std::ifstream robotFile(robotFileChars, std::ios::binary);
-		if (!robotFile.is_open()) {
-			std::cout << "Cannot open " << robotFileString << ". Quit."
-			<< std::endl;
-			return "{\"error\" : \"RobotError\"}";
-		}
-
-		ProtobufPacket<robogenMessage::Robot> robogenPacket;
-
-		robotFile.seekg(0, robotFile.end);
-		unsigned int packetSize = robotFile.tellg();
-		robotFile.seekg(0, robotFile.beg);
-
-		std::vector<unsigned char> packetBuffer;
-		packetBuffer.resize(packetSize);
-		robotFile.read((char*) &packetBuffer[0], packetSize);
-		robogenPacket.decodePayload(packetBuffer);
-		robotMessage = *robogenPacket.getMessage().get();
-
-	} else if (boost::filesystem::path(robotFileChars).extension().string().compare(
-					".txt") == 0) {
-
-		RobotRepresentation robot;
-		if (!robot.init(robotFileChars)) {
-			std::cerr << "Failed interpreting robot text file!"
-			<< std::endl;
-			return "{\"error\" : \"RobotError\"}";
-		}
-		robotMessage = robot.serialize();
-
-	} else if (boost::filesystem::path(robotFileChars).extension().string().compare(
-					".json") == 0) {
-
-		std::ifstream robotFile(robotFileChars,
-				std::ios::in | std::ios::binary);
-		if (!robotFile.is_open()) {
-			std::cout << "Cannot open " << robotFileString << ". Quit."
-			<< std::endl;
-			return "{\"error\" : \"RobotError\"}";
-		}
-
-		robotFile.seekg(0, robotFile.end);
-		unsigned int packetSize = robotFile.tellg();
-		robotFile.seekg(0, robotFile.beg);
-
-		std::vector<unsigned char> packetBuffer;
-		packetBuffer.resize(packetSize);
-		robotFile.read((char*) &packetBuffer[0], packetSize);
-
-		json2pb(robotMessage, (char*) &packetBuffer[0], packetSize);
-
-	} else {
-		std::cerr << "File extension of provided robot file could not be "
-		"resolved. Use .dat or .json for robot messages and .txt for "
-		"robot text files" << std::endl;
+	if(!RobotRepresentation::createRobotMessageFromFile(robotMessage,
+			robotFileString)) {
 		return "{\"error\" : \"RobotError\"}";
 	}
 
