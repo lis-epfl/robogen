@@ -36,6 +36,7 @@
 namespace robogen {
 
 Scenario::Scenario(boost::shared_ptr<RobogenConfig> robogenConfig) :
+		odeWorld_(NULL), odeSpace_(NULL),
 		robogenConfig_(robogenConfig), startPositionId_(0) {
 
 }

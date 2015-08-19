@@ -2,9 +2,10 @@
  * @(#) PartList.cpp   1.0   Nov 5, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -67,8 +68,13 @@ std::map<std::string, unsigned int> initPartTypeArityMap() {
 	partTypeArityMap[PART_TYPE_ACTIVE_WHEEL] = 0;
 	partTypeArityMap[PART_TYPE_ACTIVE_WHEG] = 0;
 #endif
+#ifdef ENFORCE_PLANAR
 	partTypeArityMap[PART_TYPE_CORE_COMPONENT] = 4;
 	partTypeArityMap[PART_TYPE_FIXED_BRICK] = 3;
+#else
+	partTypeArityMap[PART_TYPE_CORE_COMPONENT] = 6;
+	partTypeArityMap[PART_TYPE_FIXED_BRICK] = 5;
+#endif
 	partTypeArityMap[PART_TYPE_LIGHT_SENSOR] = 0;
 	partTypeArityMap[PART_TYPE_PARAM_JOINT] = 1;
 #ifdef ALLOW_CARDANS

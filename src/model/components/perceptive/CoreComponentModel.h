@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -31,6 +31,7 @@
 
 #include "model/PerceptiveComponent.h"
 #include "model/sensors/ImuSensor.h"
+#include "PartList.h"
 
 namespace robogen {
 
@@ -50,6 +51,10 @@ public:
 		RIGHT_FACE_SLOT,
 		FRONT_FACE_SLOT,
 		BACK_FACE_SLOT,
+#ifndef ENFORCE_PLANAR
+		TOP_FACE_SLOT,
+		BOTTOM_FACE_SLOT,
+#endif
 		NUM_SLOTS
 	};
 

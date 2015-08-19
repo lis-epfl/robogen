@@ -80,9 +80,9 @@ bool CoreComponentRenderModel::initRenderModel() {
 
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
 					hasSensors() ) {
-		this->setColor(osg::Vec4(1,1,1,0.7));
+		this->setColor(osg::Vec4(1,0,0,0.7));
 	} else {
-		this->setColor(osg::Vec4(0,1,0,0.7));
+		this->setColor(osg::Vec4(1,1,1,0.7));
 	}
 
 
@@ -106,9 +106,9 @@ void CoreComponentRenderModel::showDebugView() {
 	std::vector<osg::Vec4> colors;
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
 				hasSensors() ) {
-		colors.push_back(osg::Vec4(0,1,1,0.7));
-	} else {
 		colors.push_back(osg::Vec4(1,0,0,0.7));
+	} else {
+		colors.push_back(osg::Vec4(1,1,1,0.7));
 	}
 
 

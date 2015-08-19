@@ -39,11 +39,6 @@
 
 using namespace robogen;
 
-int exitRobogen(int exitCode) {
-	google::protobuf::ShutdownProtobufLibrary();
-	return exitCode;
-}
-
 void printUsage(char *argv[]) {
 	std::cout << std::endl << "USAGE: " << std::endl
 			<< "      " << std::string(argv[0])
@@ -89,13 +84,15 @@ void printHelp() {
 
 int main(int argc, char *argv[]) {
 
+	startRobogen();
+
 	// ---------------------------------------
 	// verify usage and load configuration
 	// ---------------------------------------
 	if (argc > 1 && std::string(argv[1]) == "--help") {
 		printUsage(argv);
 		printHelp();
-		return exitRobogen(EXIT_SUCCESS);
+		exitRobogen(EXIT_SUCCESS);
 	}
 
 	if ((argc < 4)) {
@@ -104,7 +101,7 @@ int main(int argc, char *argv[]) {
 				<< "      " << std::string(argv[0])
 				<< " --help to see all configuration options."
 				<< std::endl << std::endl;
-		return exitRobogen(EXIT_FAILURE);
+		exitRobogen(EXIT_FAILURE);
 	}
 
 
@@ -125,10 +122,10 @@ int main(int argc, char *argv[]) {
 		} else if (std::string("--save-all").compare(argv[currentArg]) == 0) {
 			saveAll = true;
 		} else {
-			std::cout << std::endl << "Invalid option: " << argv[currentArg]
+			std::cerr << std::endl << "Invalid option: " << argv[currentArg]
 							 << std::endl << std::endl;
 			printUsage(argv);
-			return exitRobogen(EXIT_FAILURE);
+			exitRobogen(EXIT_FAILURE);
 		}
 
 
@@ -142,18 +139,18 @@ int main(int argc, char *argv[]) {
 	boost::shared_ptr<EvolverConfiguration> conf =
 			boost::shared_ptr<EvolverConfiguration>(new EvolverConfiguration());
 	if (!conf->init(confFileName)) {
-		std::cout << "Problems parsing the evolution configuration file. Quit."
+		std::cerr << "Problems parsing the evolution configuration file. Quit."
 				<< std::endl;
-		return exitRobogen(EXIT_FAILURE);
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	boost::shared_ptr<RobogenConfig> robotConf =
 			ConfigurationReader::parseConfigurationFile(
 					conf->simulatorConfFile);
 	if (robotConf == NULL) {
-		std::cout << "Problems parsing the robot configuration file. Quit."
+		std::cerr << "Problems parsing the robot configuration file. Quit."
 				<< std::endl;
-		return exitRobogen(EXIT_FAILURE);
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	// ---------------------------------------
@@ -164,9 +161,9 @@ int main(int argc, char *argv[]) {
 	if (conf->selection == conf->DETERMINISTIC_TOURNAMENT) {
 		selector.reset(new DeterministicTournament(conf->tournamentSize, rng));
 	} else {
-		std::cout << "Selection type id " << conf->selection << " unknown."
+		std::cerr << "Selection type id " << conf->selection << " unknown."
 				<< std::endl;
-		return exitRobogen(EXIT_FAILURE);
+		exitRobogen(EXIT_FAILURE);
 	}
 	boost::shared_ptr<Mutator> mutator = boost::shared_ptr<Mutator>(
 			new Mutator(conf, rng));
@@ -185,22 +182,22 @@ int main(int argc, char *argv[]) {
 	bool growBodies = false;
 	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
 			&& conf->referenceRobotFile.compare("") == 0) {
-		std::cout << "Trying to evolve brain, but no robot file provided."
+		std::cerr << "Trying to evolve brain, but no robot file provided."
 				<< std::endl;
-		return exitRobogen(EXIT_FAILURE);
+		exitRobogen(EXIT_FAILURE);
 	} else if (conf->referenceRobotFile.compare("") != 0) {
 		if (!referenceBot->init(conf->referenceRobotFile)) {
-			std::cout << "Failed interpreting robot from text file"
+			std::cerr << "Failed interpreting robot from text file"
 					<< std::endl;
-			return exitRobogen(EXIT_FAILURE);
+			exitRobogen(EXIT_FAILURE);
 		}
 	} else { //doing body evolution and don't have a reference robot
 		if (referenceBot->init()) {
 			growBodies = true;
 		} else {
-			std::cout << "Failed creating base robot for body evolution"
+			std::cerr << "Failed creating base robot for body evolution"
 					<< std::endl;
-			return exitRobogen(EXIT_FAILURE);
+			exitRobogen(EXIT_FAILURE);
 		}
 	}
 	
@@ -219,15 +216,15 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (!population->init(referenceBot, conf->mu, mutator, growBodies,
-			(!(conf->useBrainSeed)) ) ) {
-		std::cout << "Error when initializing population!" << std::endl;
-		return exitRobogen(EXIT_FAILURE);
+			(!(conf->useBrainSeed || neat)) ) ) {
+		std::cerr << "Error when initializing population!" << std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	if (neat) {
 		neatContainer.reset(new NeatContainer(conf, population, seed, rng));
 		if(neatContainer->hasErrors()) {
-			return exitRobogen(EXIT_FAILURE);
+			exitRobogen(EXIT_FAILURE);
 		}
 
 	}
@@ -246,8 +243,8 @@ int main(int argc, char *argv[]) {
 		// benchmark
 		if (!sockets[i]->open(conf->sockets[i].first,
 				conf->sockets[i].second)) {
-			std::cout << "Could not open connection to simulator" << std::endl;
-			return exitRobogen(EXIT_FAILURE);
+			std::cerr << "Could not open connection to simulator" << std::endl;
+			exitRobogen(EXIT_FAILURE);
 		}
 #endif
 	}
@@ -258,14 +255,14 @@ int main(int argc, char *argv[]) {
 
 	if(neat) {
 		if(!neatContainer->fillPopulation(population)) {
-			std::cout << "Filling population from NEAT failed." << std::endl;
-			return exitRobogen(EXIT_FAILURE);
+			std::cerr << "Filling population from NEAT failed." << std::endl;
+			exitRobogen(EXIT_FAILURE);
 		}
 	}
 
 	population->evaluate(robotConf, sockets);
 	if (!log->logGeneration(1, *population.get())) {
-		return exitRobogen(EXIT_FAILURE);
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	for (unsigned int generation = 2; generation <= conf->numGenerations;
@@ -275,9 +272,9 @@ int main(int argc, char *argv[]) {
 		if (neat) {
 			//neatPopulation->Epoch();
 			if(!neatContainer->produceNextGeneration(population, mutator)) {
-				std::cout << "Producing next generation from NEAT failed."
+				std::cerr << "Producing next generation from NEAT failed."
 						<< std::endl;
-				return exitRobogen(EXIT_FAILURE);
+				exitRobogen(EXIT_FAILURE);
 			}
 			population->evaluate(robotConf, sockets);
 			population->sort(true);
@@ -287,8 +284,8 @@ int main(int argc, char *argv[]) {
 				std::pair<boost::shared_ptr<RobotRepresentation>,
 						boost::shared_ptr<RobotRepresentation> > selection;
 				if (!selector->select(selection)) {
-					std::cout << "Selector::select() failed." << std::endl;
-					return exitRobogen(EXIT_FAILURE);
+					std::cerr << "Selector::select() failed." << std::endl;
+					exitRobogen(EXIT_FAILURE);
 				}
 				children.push_back(
 						mutator->mutate(selection.first, selection.second));
@@ -305,14 +302,14 @@ int main(int argc, char *argv[]) {
 			// replace
 			population.reset(new Population());
 			if (!population->init(children, conf->mu)) {
-				std::cout << "Error when initializing population!" << std::endl;
-				return exitRobogen(EXIT_FAILURE);
+				std::cerr << "Error when initializing population!" << std::endl;
+				exitRobogen(EXIT_FAILURE);
 			}
 		}
 
 
 		if (!log->logGeneration(generation, *population.get())) {
-			return exitRobogen(EXIT_FAILURE);
+			exitRobogen(EXIT_FAILURE);
 		}
 	}
 
@@ -321,5 +318,5 @@ int main(int argc, char *argv[]) {
 		delete sockets[i];
 	}
 
-	return exitRobogen(EXIT_SUCCESS);
+	exitRobogen(EXIT_SUCCESS);
 }

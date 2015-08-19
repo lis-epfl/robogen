@@ -32,6 +32,8 @@
 
 //#define NEAT_DEBUG
 
+//#define NEAT_DEBUG
+
 namespace robogen {
 
 NeatContainer::NeatContainer(boost::shared_ptr<EvolverConfiguration> &evoConf,
@@ -522,6 +524,7 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
 
     // For each body part, get its position then create an entry for every
     // neuron by adding a 4th coordinate that is the neurons ioID.
+
 #ifdef NEAT_DEBUG
     std::cout << "POSITIONS: " << std::endl;
 #endif
@@ -550,12 +553,15 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
     		std::cout << std::endl;
 #endif
     	}
+#ifdef NEAT_DEBUG
+    	std::cout << std::endl;
+#endif
     }
 
     // Now go through all neurons and query for weights and params with
     // the obtained coordinates
 #ifdef NEAT_DEBUG
-    std::cout << "**************************" << std::endl;
+    std::cout << "**************************";
 #endif
     for(NeuronMap::iterator i = neuronMap.begin(); i != neuronMap.end(); i++) {
     	std::vector<double> positionI = neuronToPositionMap[i->first];
@@ -584,7 +590,6 @@ bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
 				}
 				std::cout << std::endl;
 #endif
-
 				net.Input(inputs);
 				for(int t=0; t<10; t++) {
 					net.Activate();
