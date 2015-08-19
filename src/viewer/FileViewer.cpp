@@ -59,6 +59,8 @@ using namespace robogen;
 #include <boost/lexical_cast.hpp>
 #include "emscripten.h"
 #include <viewer/JSViewer.h>
+#include "utils/json2pb/json2pb.h"
+
 
 int fakeMain(int argc, char *argv[]);
 
