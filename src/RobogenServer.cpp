@@ -55,24 +55,23 @@ dJointGroupID odeContactGroup;
 
 bool interrupted;
 
-int exitRobogen(int exitCode) {
-	google::protobuf::ShutdownProtobufLibrary();
-	return exitCode;
-}
-
 int main(int argc, char* argv[]) {
 
-	GOOGLE_PROTOBUF_VERIFY_VERSION;
+	startRobogen();
 
 	interrupted = false;
 
 	if (argc < 2) {
 		std::cerr << "Please, provide server port." << std::endl;
-		return exitRobogen(EXIT_FAILURE);
+		exitRobogen(EXIT_FAILURE);
 	} 
 
 	// Parameters: <PORT>
 	int port = std::atoi(argv[1]);
+	if (!port) {
+		std::cerr << "The first argument must be a server port." << std::endl;
+		exitRobogen(EXIT_FAILURE);
+	}
 
 	bool visualize = false;	
 	bool startPaused = false;
@@ -87,7 +86,7 @@ int main(int argc, char* argv[]) {
 	if (startPaused && !visualize) {
 		std::cerr << "Cannot start paused without visualization enabled." <<
 				std::endl;
-		return exitRobogen(EXIT_FAILURE);
+		exitRobogen(EXIT_FAILURE);
 	}
 
 
@@ -96,7 +95,7 @@ int main(int argc, char* argv[]) {
 	if (!rc) {
 		std::cerr << "Cannot listen for incoming connections on port " << port
 				<< std::endl;
-		return exitRobogen(EXIT_FAILURE);
+		exitRobogen(EXIT_FAILURE);
 	}
 
 
@@ -146,7 +145,7 @@ int main(int argc, char* argv[]) {
 						std::cerr
 								<< "Problems parsing the configuration file. Quit."
 								<< std::endl;
-						return exitRobogen(EXIT_FAILURE);
+						exitRobogen(EXIT_FAILURE);
 					}
 
 					// ---------------------------------------
@@ -156,7 +155,7 @@ int main(int argc, char* argv[]) {
 					boost::shared_ptr<Scenario> scenario =
 							ScenarioFactory::createScenario(configuration);
 					if (scenario == NULL) {
-						return exitRobogen(EXIT_FAILURE);
+						exitRobogen(EXIT_FAILURE);
 					}
 
 					std::cout
@@ -181,7 +180,7 @@ int main(int argc, char* argv[]) {
 
 
 					if (simulationResult == SIMULATION_FAILURE) {
-						return exitRobogen(EXIT_FAILURE);
+						exitRobogen(EXIT_FAILURE);
 					}
 
 					// ---------------------------------------
@@ -213,7 +212,7 @@ int main(int argc, char* argv[]) {
 
 				} catch (boost::system::system_error& e) {
 					socket.close();
-					return exitRobogen(EXIT_FAILURE);
+					exitRobogen(EXIT_FAILURE);
 				}
 
 			}
@@ -221,10 +220,10 @@ int main(int argc, char* argv[]) {
 		} else {
 			std::cerr << "Cannot connect to client. Exiting." << std::endl;
 			socket.close();
-			return exitRobogen(EXIT_FAILURE);
+			exitRobogen(EXIT_FAILURE);
 		}
 
 	}
 
-	return exitRobogen(EXIT_SUCCESS);
+	exitRobogen(EXIT_SUCCESS);
 }
