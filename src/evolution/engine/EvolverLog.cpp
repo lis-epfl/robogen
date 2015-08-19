@@ -47,14 +47,20 @@ EvolverLog::EvolverLog(){
 
 bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::shared_ptr<RobogenConfig> robotConf,
-		const std::string& logDirectory) {
+		const std::string& logDirectory, bool overwrite, bool saveAll) {
+
+	saveAll_ = saveAll;
 
 	std::string tempPath = logDirectory;
 	int curIndex = 0;
-	while (boost::filesystem::is_directory(tempPath)) {
-		std::stringstream newPath;
-		newPath << logDirectory << "_" << ++curIndex;
-		tempPath = newPath.str();
+	if (overwrite) {
+			boost::filesystem::remove_all(tempPath);
+	} else {
+		while (boost::filesystem::is_directory(tempPath)) {
+			std::stringstream newPath;
+			newPath << logDirectory << "_" << ++curIndex;
+			tempPath = newPath.str();
+		}
 	}
 
 	logPath_ = tempPath;
@@ -96,7 +102,14 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 EvolverLog::~EvolverLog() {
 }
 
-bool EvolverLog::logGeneration(int step, Population &population) {
+void saveRobotJson(boost::shared_ptr<RobotRepresentation> robot,
+		std::string fileName) {
+	std::ofstream curRobotFile(fileName.c_str(),std::ios::out|std::ios::trunc);
+	curRobotFile << pb2json(robot->serialize());
+	curRobotFile.close();
+}
+
+bool EvolverLog::logGeneration(int generation, Population &population) {
 
 	if (!population.areEvaluated()){
 		std::cout << "EvolverLog::logGeneration(): Trying to log non-evaluated"\
@@ -107,26 +120,42 @@ bool EvolverLog::logGeneration(int step, Population &population) {
 	// log best, avg, stddev
 	double best,average,stdev;
 	population.getStat(best,average,stdev);
-	std::cout << "Best: " << best << " Average: " << average << " STD: " <<
-				stdev << std::endl;
-	bestAvgStd_ << step << " " << best << " " <<
+	std::cout << "Generation " << generation <<
+				 ", Best: " << best << " Average: " << average << " STD: " <<
+				 	 stdev << std::endl;
+	bestAvgStd_ << generation << " " << best << " " <<
 			average << " "  << stdev << std::endl;
+
+	for(unsigned int i = 0; i<population.size(); ++i) {
+		std::cout << population[i]->getFitness() << " ";
+	}
+	std::cout << std::endl;
 
 	// save robot file of best robot (don't do with fake robot representation)
 	#ifndef FAKEROBOTREPRESENTATION_H
 
 	boost::shared_ptr<RobotRepresentation> bestRobot = population.best();
 
-	std::stringstream ss;
-	ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".json";
+	{
+		std::stringstream ss;
+		ss << logPath_ + "/" + GENERATION_BEST_PREFIX << generation << ".json";
 
-	// De-comment to save protobuf binary file
-	// ss << logPath_ + "/" + GENERATION_BEST_PREFIX << step << ".dat
-	// bestRobot->serialize().SerializeToOstream(&curRobotFile);
+		// De-comment to save protobuf binary file
+		// ss << logPath_ + "/" + GENERATION_BEST_PREFIX << generation << ".dat
+		// bestRobot->serialize().SerializeToOstream(&curRobotFile);
+		saveRobotJson(bestRobot, ss.str());
+	}
 
-	std::ofstream curRobotFile(ss.str().c_str(),std::ios::out|std::ios::trunc);
-	curRobotFile << pb2json(bestRobot->serialize());
-	curRobotFile.close();
+
+	if(saveAll_) {
+		for(unsigned int i = 0; i<population.size(); ++i) {
+			std::stringstream ss;
+			ss << logPath_ + "/Generation-" << generation << "-Guy-" << (i+1)
+					<< ".json";
+			saveRobotJson(population[i], ss.str());
+		}
+	}
+
 
 	#endif /* FAKEROBOTREPRESENTATION_H */
 

@@ -2,9 +2,10 @@
  * @(#) RobogenOde.h   1.0   Mar 22, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -26,6 +27,7 @@
  * @(#) $Id$
  */
 #include "Robogen.h"
+#include "robogen.pb.h"
 
 float fromOde(float x) {
 	return x*1000.0;
@@ -38,3 +40,20 @@ double fromOde(double x) {
 osg::Vec3 fromOde(osg::Vec3 x) {
 	return x*1000.0;
 }
+
+int modulo(int x, int y) {
+	while(x < 0) {
+		x += y;
+	}
+	return (x % y);
+}
+
+void startRobogen() {
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+}
+
+void exitRobogen(int exitCode) {
+	google::protobuf::ShutdownProtobufLibrary();
+	exit(exitCode);
+}
+

@@ -31,6 +31,8 @@
 #include "render/components/ActiveWhegRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 ActiveWhegRenderModel::ActiveWhegRenderModel(
@@ -47,7 +49,8 @@ ActiveWhegRenderModel::~ActiveWhegRenderModel() {
 bool ActiveWhegRenderModel::initRenderModel() {
 
    bool meshLoadingA = this->partA_->loadMesh(
-         "../models/ActiveRotation_Motor_Holder.stl");
+		   RobogenUtils::getMeshFile(this->getModel(),
+			  ActiveWhegModel::B_SLOT_ID));
 
    if (!meshLoadingA) {
       std::cerr << "[ActiveWhegRenderModel] Error loading model" << std::endl;
@@ -55,7 +58,8 @@ bool ActiveWhegRenderModel::initRenderModel() {
    }
 
    bool meshLoadingB = this->partB_->loadMesh(
-		 "../models/ActiveRotation_Wheg.stl");
+		   RobogenUtils::getMeshFile(this->getModel(),
+			  ActiveWhegModel::B_WHEG_BASE));
 
    if (!meshLoadingB) {
       std::cerr << "[ActiveWhegRenderModel] Error loading model" << std::endl;
@@ -150,7 +154,8 @@ void ActiveWhegRenderModel::showDebugView() {
 
    osg::ref_ptr<osg::Geode> wheel = this->getCylinder(
          fromOde(ActiveWhegModel::WHEG_BASE_RADIUS),
-         fromOde(ActiveWhegModel::WHEG_THICKNESS));
+         fromOde(ActiveWhegModel::WHEG_THICKNESS),
+         osg::Vec4(1,0,0,1));
 
    // Wheel rotation
    osg::ref_ptr<osg::PositionAttitudeTransform> wheelRotation(

@@ -306,7 +306,7 @@ void NeuralNetworkRepresentation::removeIncomingConnections(
 	WeightMap::iterator it = weights_.begin();
 	while (it != weights_.end()) {
 	   if (it->first.second.compare(neuron->getId()) == 0) {
-		   std::cout << it->first.first << " -> " << it->first.second << std::endl;
+		   //std::cout << it->first.first << " -> " << it->first.second << std::endl;
 		   weights_.erase(it++);
 	   } else {
 		  it++;
@@ -319,7 +319,7 @@ void NeuralNetworkRepresentation::removeOutgoingConnections(
 	WeightMap::iterator it = weights_.begin();
 	while (it != weights_.end()) {
 	   if (it->first.first.compare(neuron->getId()) == 0) {
-		   std::cout << it->first.first << " -> " << it->first.second << std::endl;
+		   //std::cout << it->first.first << " -> " << it->first.second << std::endl;
 		   weights_.erase(it++);
 	   } else {
 		  it++;
@@ -338,7 +338,11 @@ void NeuralNetworkRepresentation::removeNeurons(std::string bodyPartId) {
 		removeIncomingConnections(neuron);
 		removeOutgoingConnections(neuron);
 		// remove the neuron itself
-		neurons_.erase(neurons_.find(neuron->getIoPair()));
+		NeuronMap::iterator toErase = neurons_.find(neuron->getIoPair());
+		if( toErase == neurons_.end()) {
+			std::cout << "no neurons to remove for " << neuron->getIoPair().first << "-" << neuron->getIoPair().second;
+		}
+		neurons_.erase(toErase);
 	}
 
 }

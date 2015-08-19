@@ -2,9 +2,10 @@
  * @(#) PartList.cpp   1.0   Nov 5, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -33,90 +34,132 @@ namespace robogen {
 
 std::map<char, std::string> initPartTypeMap() {
 	std::map<char, std::string> partTypeMap;
+#ifdef ALLOW_CARDANS
 	partTypeMap['K'] = PART_TYPE_ACTIVE_CARDAN;
+#endif
 	partTypeMap['I'] = PART_TYPE_ACTIVE_HINGE;
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeMap['J'] = PART_TYPE_ACTIVE_WHEEL;
 	partTypeMap['G'] = PART_TYPE_ACTIVE_WHEG;
+#endif
 	partTypeMap['E'] = PART_TYPE_CORE_COMPONENT;
 	partTypeMap['F'] = PART_TYPE_FIXED_BRICK;
 	partTypeMap['L'] = PART_TYPE_LIGHT_SENSOR;
 	partTypeMap['B'] = PART_TYPE_PARAM_JOINT;
+#ifdef ALLOW_CARDANS
 	partTypeMap['C'] = PART_TYPE_PASSIVE_CARDAN;
+#endif
 	partTypeMap['H'] = PART_TYPE_PASSIVE_HINGE;
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeMap['W'] = PART_TYPE_PASSIVE_WHEEL;
 	partTypeMap['R'] = PART_TYPE_ROTATOR;
+#endif
 	partTypeMap['T'] = PART_TYPE_TOUCH_SENSOR;
 	return partTypeMap;
 }
 
 std::map<std::string, unsigned int> initPartTypeArityMap() {
 	std::map<std::string, unsigned int> partTypeArityMap;
+#ifdef ALLOW_CARDANS
 	partTypeArityMap[PART_TYPE_ACTIVE_CARDAN] = 1;
+#endif
 	partTypeArityMap[PART_TYPE_ACTIVE_HINGE] = 1;
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeArityMap[PART_TYPE_ACTIVE_WHEEL] = 0;
 	partTypeArityMap[PART_TYPE_ACTIVE_WHEG] = 0;
+#endif
+#ifdef ENFORCE_PLANAR
+	partTypeArityMap[PART_TYPE_CORE_COMPONENT] = 4;
+	partTypeArityMap[PART_TYPE_FIXED_BRICK] = 3;
+#else
 	partTypeArityMap[PART_TYPE_CORE_COMPONENT] = 6;
 	partTypeArityMap[PART_TYPE_FIXED_BRICK] = 5;
+#endif
 	partTypeArityMap[PART_TYPE_LIGHT_SENSOR] = 0;
 	partTypeArityMap[PART_TYPE_PARAM_JOINT] = 1;
+#ifdef ALLOW_CARDANS
 	partTypeArityMap[PART_TYPE_PASSIVE_CARDAN] = 1;
+#endif
 	partTypeArityMap[PART_TYPE_PASSIVE_HINGE] = 1;
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeArityMap[PART_TYPE_PASSIVE_WHEEL] = 1;
 	partTypeArityMap[PART_TYPE_ROTATOR] = 1;
+#endif
 	partTypeArityMap[PART_TYPE_TOUCH_SENSOR] = 0;
 	return partTypeArityMap;
 }
 
 std::map<std::string, unsigned int> initPartTypeParamCountMap() {
 	std::map<std::string, unsigned int> partTypeParamCountMap;
+#ifdef ALLOW_CARDANS
 	partTypeParamCountMap[PART_TYPE_ACTIVE_CARDAN] = 0;
+#endif
 	partTypeParamCountMap[PART_TYPE_ACTIVE_HINGE] = 0;
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeParamCountMap[PART_TYPE_ACTIVE_WHEEL] = 1;
 	partTypeParamCountMap[PART_TYPE_ACTIVE_WHEG] = 1;
+#endif
 	partTypeParamCountMap[PART_TYPE_CORE_COMPONENT] = 0;
 	partTypeParamCountMap[PART_TYPE_FIXED_BRICK] = 0;
 	partTypeParamCountMap[PART_TYPE_LIGHT_SENSOR] = 0;
 	partTypeParamCountMap[PART_TYPE_PARAM_JOINT] = 3;
+#ifdef ALLOW_CARDANS
 	partTypeParamCountMap[PART_TYPE_PASSIVE_CARDAN] = 0;
+#endif
 	partTypeParamCountMap[PART_TYPE_PASSIVE_HINGE] = 0;
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeParamCountMap[PART_TYPE_PASSIVE_WHEEL] = 1;
 	partTypeParamCountMap[PART_TYPE_ROTATOR] = 0;
+#endif
 	partTypeParamCountMap[PART_TYPE_TOUCH_SENSOR] = 0;
 	return partTypeParamCountMap;
 }
 
 std::map<std::pair<std::string, unsigned int>, std::pair<double, double> > initPartTypeParamRangeMap() {
 	std::map<std::pair<std::string, unsigned int>, std::pair<double, double> > partTypeParamRangeMap;
-
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_ACTIVE_WHEEL, 0)] =
 			std::make_pair(0.03, 0.08); // radius in m   --- TODO update wiki
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_ACTIVE_WHEG, 0)] =
 			std::make_pair(0.03, 0.08); // radius in m
+#endif
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_JOINT, 0)] =
 			std::make_pair(0.02, 0.1); // length in m
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_JOINT, 1)] =
 			std::make_pair(-90.0, 90.0); // tilt (alpha) in degrees
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_JOINT, 2)] =
+#ifdef ENFORCE_PLANAR
+			std::make_pair(0.0, 0.0); // rotation (beta) in degrees
+#else
 			std::make_pair(0.0, 180.0); // rotation (beta) in degrees
+#endif
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PASSIVE_WHEEL, 0)] =
 			std::make_pair(0.03, 0.08); // radius in m
+#endif
 	return partTypeParamRangeMap;
 }
 
 std::map<std::string, std::vector<std::string> > initPartTypeMotorsMap() {
 	std::map<std::string, std::vector<std::string> > partTypeMotorsMap;
+#ifdef ALLOW_CARDANS
 	{
 		std::vector<std::string> motors;
 		motors.push_back(PART_TYPE_ACTIVE_CARDAN + std::string("-tilt-1"));
 		motors.push_back(PART_TYPE_ACTIVE_CARDAN + std::string("-tilt-2"));
 		partTypeMotorsMap[PART_TYPE_ACTIVE_CARDAN] = motors;
 	}
-
+#endif
 	{
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
 		std::string singleMotorParts[] = { PART_TYPE_ACTIVE_HINGE,
 				PART_TYPE_ACTIVE_WHEEL, PART_TYPE_ACTIVE_WHEG,
 				PART_TYPE_ROTATOR };
 		int numSingleMotorParts = 4;
+#else
+		std::string singleMotorParts[] = { PART_TYPE_ACTIVE_HINGE };
+		int numSingleMotorParts = 1;
+#endif
 		for (int i = 0; i < numSingleMotorParts; i++) {
 			std::vector<std::string> motors;
 			motors.push_back(singleMotorParts[i]);

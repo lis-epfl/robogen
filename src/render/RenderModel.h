@@ -42,7 +42,7 @@ class RenderModel {
 
 public:
 
-	RenderModel(boost::shared_ptr<Model> model, bool debugActive = false);
+	RenderModel(boost::shared_ptr<Model> model);
 
 	virtual ~RenderModel();
 
@@ -59,7 +59,8 @@ public:
 	osg::ref_ptr<osg::Geode> getBox(float lengthX, float lengthY,
 				float lengthZ, const osg::Vec4& color);
 
-	osg::ref_ptr<osg::Geode> getCylinder(float radius, float height);
+	osg::ref_ptr<osg::Geode> getCylinder(float radius, float height,
+			const osg::Vec4& color);
 
 	osg::ref_ptr<osg::Geode> getCapsule(float radius, float height);
 
@@ -67,9 +68,13 @@ public:
 
 	virtual void setColor(osg::Vec4 color) = 0;
 
-	inline void setDebugActive(bool debugActive) {
-		debugActive_ = debugActive;
-	}
+	void setDebugActive(bool debugActive);
+
+	void togglePrimitives(bool primitives);
+
+	void toggleMeshes(bool meshes);
+
+	//void toggleTransparency(bool transparency);
 
 protected:
 
@@ -80,6 +85,16 @@ protected:
 	osg::ref_ptr<osg::PositionAttitudeTransform> attachBox(int label, float lengthX, float lengthY, float lengthZ);
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> attachGeode(int label, osg::ref_ptr<osg::Geode> geode);
+
+
+	std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > attachGeoms();
+	std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > attachGeoms(std::vector<osg::Vec4> colors);
+
+	void activateTransparency(osg::StateSet*);
+
+	inline osg::ref_ptr<osg::Group> getMeshes() {
+		return meshes_;
+	}
 
 private:
 
@@ -98,6 +113,9 @@ private:
 	 * Debug mode
 	 */
 	bool debugActive_;
+
+	osg::ref_ptr<osg::Group> primitives_;
+	osg::ref_ptr<osg::Group> meshes_;
 
 };
 

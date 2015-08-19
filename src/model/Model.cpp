@@ -32,7 +32,8 @@
 namespace robogen {
 
 Model::Model(dWorldID odeWorld, dSpaceID odeSpace, std::string id) :
-		odeWorld_(odeWorld), odeSpace_(odeSpace), id_(id) {
+		odeWorld_(odeWorld), odeSpace_(odeSpace), id_(id),
+		orientationToParentSlot_(0), orientationToRoot_(0) {
 }
 
 Model::~Model() {
@@ -135,8 +136,8 @@ dBodyID Model::getBody(int id) {
 	std::map<int, dBodyID>::iterator it = this->bodies_.find(id);
 	if (it == this->bodies_.end()) {
 		std::cout
-				<< "[Model] Error: The specified body does not exists in this model"
-				<< std::endl;
+				<< "[Model] Error: The specified body does not exists in this "
+				<< " model" << std::endl;
 		assert(it != this->bodies_.end());
 		return NULL;
 	}
@@ -149,6 +150,16 @@ std::vector<dBodyID> Model::getBodies() {
 	std::map<int, dBodyID>::iterator it = this->bodies_.begin();
 	for (; it != this->bodies_.end(); ++it) {
 		bodies.push_back(it->second);
+	}
+	return bodies;
+
+}
+
+std::vector<int> Model::getIDs() {
+	std::vector<int> bodies;
+	std::map<int, dBodyID>::iterator it = this->bodies_.begin();
+	for (; it != this->bodies_.end(); ++it) {
+		bodies.push_back(it->first);
 	}
 	return bodies;
 
@@ -279,12 +290,30 @@ bool Model::setOrientationToParentSlot(int orientation){
 				" between 0 and 3." << std::endl;
 		return false;
 	}
+	int deltaOrientation = orientation - this->orientationToParentSlot_ ;
 	this->orientationToParentSlot_ = orientation;
+	this->orientationToRoot_ = modulo(this->orientationToRoot_ +
+										deltaOrientation, 4);
 	return true;
 }
 
 int Model::getOrientationToParentSlot(){
 	return this->orientationToParentSlot_;
+}
+
+bool Model::setParentOrientation(int orientation) {
+	if (orientation < 0 || orientation > 3){
+		std::cout << "Specified parent orientation is not"\
+				" between 0 and 3." << std::endl;
+		return false;
+	}
+	this->orientationToRoot_ = modulo(this->getOrientationToParentSlot() +
+								orientation, 4);
+	return true;
+}
+
+int Model::getOrientationToRoot() {
+	return this->orientationToRoot_;
 }
 
 }

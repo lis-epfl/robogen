@@ -30,18 +30,19 @@
 namespace robogen {
 
 const float ParametricBrickModel::MASS_SLOT = inGrams(1);
-const float ParametricBrickModel::MASS_CONNECTION_PER_CM = inGrams(2);
+const float ParametricBrickModel::MASS_CONNECTION_PER_M = inGrams(1.37) * 100.;
 const float ParametricBrickModel::SLOT_WIDTH = inMm(34);
 const float ParametricBrickModel::SLOT_THICKNESS = inMm(1.5);
 const float ParametricBrickModel::CONNECTION_PART_WIDTH = inMm(20);
-const float ParametricBrickModel::CONNECTION_PART_THICKNESS = inMm(2);
-const float ParametricBrickModel::CAPSULE_HEIGHT = inMm(10);
-const float ParametricBrickModel::CAPSULE_LENGTH = inMm(10);
+const float ParametricBrickModel::CONNECTION_PART_THICKNESS = inMm(10);
+const float ParametricBrickModel::CYLINDER_RADIUS = inMm(5);
+const float ParametricBrickModel::FIXED_BAR_LENGTH = inMm(6);
 
 ParametricBrickModel::ParametricBrickModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id, float connectionPartLength, float angleA, float angleB):
 		Model(odeWorld, odeSpace, id),
-		connectionPartLength_(connectionPartLength), angleA_(angleA),
+		connectionPartLength_(connectionPartLength + CYLINDER_RADIUS),
+		angleA_(angleA),
 		angleB_(angleB) {
 
 }
@@ -54,32 +55,44 @@ bool ParametricBrickModel::initModel() {
 
 	// Create the 4 components of the hinge
 	brickRoot_ = this->createBody(B_SLOT_A_ID);
-	//dBodyID capsule = this->createBody(B_CAPSULE_ID);
-	dBodyID connectionPart = this->createBody(B_CONNECTION_ID);
-	brickTail_ = this->createBody(B_SLOT_B_ID);
-
-	// Create the geometries
-	float separation = inMm(0.1);
 
 	this->createBoxGeom(brickRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
-			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+				SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
 
-	dReal xConnection = SLOT_THICKNESS / 2 + connectionPartLength_ / 2;
-	osg::Vec3 connectionPartPos(xConnection, 0, 0);
+	dBodyID fixedBar = this->createBody(B_FIXED_BAR__ID);
+	osg::Vec3 fixedBarPosition(SLOT_THICKNESS / 2. + FIXED_BAR_LENGTH/2., 0, 0);
+	this->createBoxGeom(fixedBar, MASS_CONNECTION_PER_M * FIXED_BAR_LENGTH,
+			fixedBarPosition,
+			FIXED_BAR_LENGTH, CONNECTION_PART_WIDTH, CONNECTION_PART_THICKNESS);
+
+	this->fixBodies(brickRoot_, fixedBar,  osg::Vec3(1, 0, 0) );
+
+	dBodyID cylinder = this->createBody(B_CYLINDER_ID);
+
+
+	osg::Vec3 cylinderPosition(fixedBarPosition.x() + FIXED_BAR_LENGTH/2.,
+			0, 0);
+	// mass uses length of radius, since only half cylinder outside of box
+	this->createCylinderGeom(cylinder, MASS_CONNECTION_PER_M * CYLINDER_RADIUS,
+			cylinderPosition, 2,
+			CYLINDER_RADIUS, CONNECTION_PART_WIDTH);
+
+	this->fixBodies(fixedBar, cylinder,  osg::Vec3(1, 0, 0) );
+
+
+	dBodyID connectionPart = this->createBody(B_CONNECTION_PART_ID);
+
+	// here we just place the box at origin since we will correctly
+	// position it after applying the rotation.
 	this->createBoxGeom(connectionPart,
-			MASS_CONNECTION_PER_CM * CONNECTION_PART_WIDTH / 10,
-			connectionPartPos, connectionPartLength_, CONNECTION_PART_WIDTH,
-			CONNECTION_PART_THICKNESS);
+			MASS_CONNECTION_PER_M * connectionPartLength_,
+			osg::Vec3(0,0,0), connectionPartLength_,
+			CONNECTION_PART_WIDTH, CONNECTION_PART_THICKNESS);
 
-	dReal xSlotB = xConnection + connectionPartLength_ / 2 + separation
-			+ SLOT_THICKNESS / 2;
-	osg::Vec3 posSlotB(xSlotB, 0, 0);
-	this->createBoxGeom(brickTail_, MASS_SLOT, posSlotB, SLOT_THICKNESS,
-			SLOT_WIDTH, SLOT_WIDTH);
 
-	// Rotating the connection should be enough before fixing it
+	// Now create the rotation
 	osg::Quat rotationA;
-	rotationA.makeRotate(angleA_, osg::Vec3(0, 1, 0));
+	rotationA.makeRotate(osg::DegreesToRadians(angleA_), osg::Vec3(0, 1, 0));
 
 	dQuaternion quatOde;
 	quatOde[0] = rotationA.w();
@@ -87,17 +100,31 @@ bool ParametricBrickModel::initModel() {
 	quatOde[2] = rotationA.y();
 	quatOde[3] = rotationA.z();
 
-	connectionPartPos = rotationA * connectionPartPos;
+	// the piece will be positioned at the cylinder's position
+	// + the rotated offset
+	osg::Vec3 connectionPartPosition = cylinderPosition + rotationA *
+							osg::Vec3(connectionPartLength_ / 2., 0, 0);
+
 	dBodySetQuaternion(connectionPart, quatOde);
-	dBodySetPosition(connectionPart, connectionPartPos.x(),
-			connectionPartPos.y(), connectionPartPos.z());
+	dBodySetPosition(connectionPart, connectionPartPosition.x(),
+			connectionPartPosition.y(), connectionPartPosition.z());
 
 	// Create joints to hold pieces in position
-	this->fixBodies(brickRoot_, connectionPart, osg::Vec3(1, 0, 0));
+	this->fixBodies(cylinder, connectionPart, osg::Vec3(1, 0, 0));
 
-	// Rotate slot B
+
+	brickTail_ = this->createBody(B_SLOT_B_ID);
+
+	// do something similar with the slot piece
+	// first place it at origin
+	this->createBoxGeom(brickTail_, MASS_SLOT, osg::Vec3(0,0,0),
+			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+
+
+	// Create rotation, which will actually be combined rotation of the
+	// two angles
 	osg::Quat rotationB;
-	rotationB.makeRotate(angleB_, osg::Vec3(1, 0, 0));
+	rotationB.makeRotate(osg::DegreesToRadians(angleB_), osg::Vec3(1, 0, 0));
 
 	rotationB = rotationB * rotationA;
 
@@ -105,10 +132,15 @@ bool ParametricBrickModel::initModel() {
 	quatOde[1] = rotationB.x();
 	quatOde[2] = rotationB.y();
 	quatOde[3] = rotationB.z();
-	dBodySetQuaternion(brickTail_, quatOde);
 
-	posSlotB = rotationB * posSlotB;
-	dBodySetPosition(brickTail_, posSlotB.x(), posSlotB.y(), posSlotB.z());
+	// the piece will be positioned at the connection part's position +
+	// the roatated offset
+	osg::Vec3 slotBPosition = connectionPartPosition + rotationB *
+				osg::Vec3(connectionPartLength_ / 2 + SLOT_THICKNESS / 2, 0, 0);
+
+	dBodySetQuaternion(brickTail_, quatOde);
+	dBodySetPosition(brickTail_, slotBPosition.x(), slotBPosition.y(),
+			slotBPosition.z());
 
 	// Fix slot B
 	this->fixBodies(connectionPart, brickTail_, osg::Vec3(1, 0, 0));
@@ -135,21 +167,20 @@ osg::Vec3 ParametricBrickModel::getSlotPosition(unsigned int i) {
 		std::cout << "[ParametricBrickModel] Invalid slot: " << i << std::endl;
 		assert(i <= 2);
 	}
-
 	osg::Vec3 slotPos;
 	if (i == SLOT_A) {
 
 		osg::Vec3 curPos = this->getPosition(brickRoot_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		return curPos + slotAxis * (SLOT_THICKNESS / 2);
+		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
 
 	} else {
 
 		osg::Vec3 curPos = this->getPosition(brickTail_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		return curPos + slotAxis * (SLOT_THICKNESS / 2);
-	}
+		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
 
+	}
 	return slotPos;
 
 }
@@ -204,10 +235,6 @@ osg::Vec3 ParametricBrickModel::getSlotOrientation(unsigned int i) {
 
 	return quat * axis;
 
-}
-
-float ParametricBrickModel::getConnectionLength() {
-	return connectionPartLength_;
 }
 
 }

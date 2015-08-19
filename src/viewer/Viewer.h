@@ -103,6 +103,8 @@ private:
 
 	bool debugActive;
 
+	std::vector<boost::shared_ptr<RenderModel> > renderModels;
+
 };
 
 }

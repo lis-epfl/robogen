@@ -3,9 +3,10 @@
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -37,6 +38,8 @@
 #include "Robot.h"
 #include "model/Connection.h"
 
+#include "arduino/ArduinoNNConfiguration.h"
+
 namespace robogen {
 
 /**
@@ -67,9 +70,7 @@ public:
 
 		// This is the gist of the bfs visitor
 		RobogenUtils::connect(c->getTo(), c->getToSlot(), c->getFrom(),
-				c->getFromSlot(),
-				c->getTo()->getOrientationToParentSlot() * 90.,
-				connectionJointGroup_, odeWorld_);
+				c->getFromSlot(), connectionJointGroup_, odeWorld_);
 
 		return;
 	}
@@ -105,13 +106,13 @@ bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
 	const robogenMessage::Body& body = robotSpec.body();
 	const robogenMessage::Brain& brain = robotSpec.brain();
 	if (!this->decodeBody(body)) {
-		std::cout << "Cannot decode the body of the robot. Exiting."
+		std::cout << "Cannot decode the body of the robot."
 				<< std::endl;
 		return false;
 	}
 	// decode brain needs to come after decode body, as IO reordering
 	if (!this->decodeBrain(brain)) {
-		std::cout << "Cannot decode the brain of the robot. Exiting."
+		std::cout << "Cannot decode the brain of the robot."
 				<< std::endl;
 		return false;
 	}
@@ -152,6 +153,9 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 	float z = 200;
 	float spacing = 200;
 	rootNode_ = -1;
+
+	int numDigitalPins = 0, numAnalogPins = 0;
+
 	for (int i = 0; i < robotBody.part_size(); ++i) {
 
 		const robogenMessage::BodyPart& bodyPart = robotBody.part(i);
@@ -160,7 +164,7 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 		if (model == NULL) {
 			std::cerr << "Unrecognized body part: " << bodyPart.id()
-					<< ". Exiting." << std::endl;
+					<< "." << std::endl;
 			return false;
 		}
 
@@ -179,6 +183,18 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 			sensors_.insert(sensors_.end(), sensors.begin(), sensors.end());
 
+
+			for(unsigned int s=0; s<sensors.size(); s++) {
+				if(boost::dynamic_pointer_cast<LightSensor>(sensors[s])) {
+					// light sensors need analog pins
+					numAnalogPins++;
+				} else if(boost::dynamic_pointer_cast<TouchSensor>(
+						sensors[s])) {
+					// touch sensors need digital pins
+					numDigitalPins++;
+				}
+			}
+
 		} else if (boost::dynamic_pointer_cast<ActuatedComponent>(model)) {
 			std::vector<boost::shared_ptr<Motor> > motors;
 			boost::dynamic_pointer_cast<ActuatedComponent>(model)->getMotors(
@@ -188,6 +204,9 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 							motors));
 
 			motors_.insert(motors_.end(), motors.begin(), motors.end());
+
+			// servos need digital pins
+			numDigitalPins += motors.size();
 		}
 
 		if (bodyPart.root()) {
@@ -206,6 +225,27 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 		y += spacing;
 
 	}
+
+	if (numAnalogPins > MAX_ANALOG_PINS) {
+		std::cout << "The number of analog pins required ("
+				<< numAnalogPins
+				<< ") is greater than the maximum allowed one ("
+				<< MAX_ANALOG_PINS << ")" << std::endl;
+		return false;
+	}
+
+
+	if (numDigitalPins > MAX_DIGITAL_PINS + (MAX_ANALOG_PINS - numAnalogPins)) {
+
+		std::cout << "The number of digital pins required ("
+				<< numDigitalPins
+				<< ") is greater than the number available ("
+				<< MAX_DIGITAL_PINS + (MAX_ANALOG_PINS - numAnalogPins)
+				<< ")" << std::endl;
+		return false;
+	}
+
+
 
 	// Look for the root node and modify its position to the origin
 	bodyParts_[rootNode_]->setRootPosition(osg::Vec3(0, 0, 0));
@@ -305,19 +345,21 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 						<< "' to be associated with neuron " << i << std::endl;
 				return false;
 			}
+
+			// // +1 because we have not incremented the counter yet
+			if ((nInputs + 1) > MAX_INPUT_NEURONS) {
+				std::cout << "The number of input neurons (" << (nInputs + 1)
+						<< ") is greater than the maximum allowed one ("
+						<< MAX_INPUT_NEURONS << ")" << std::endl;
+				return false;
+			}
+
 			brainInputToBodyPart.push_back(bodyPartId->second);
 			brainInputToIoId.push_back(neuron.ioid());
 			inputNeuronIds.insert(
 					std::pair<std::string, unsigned int>(neuron.id(), nInputs));
 			isNeuronInput.insert(
 					std::pair<std::string, bool>(neuron.id(), true));
-
-			if (nInputs >= MAX_INPUT_NEURONS) {
-				std::cout << "The number of input neurons(" << nInputs
-						<< ") is greater than the maximum allowed one ("
-						<< MAX_INPUT_NEURONS << ")" << std::endl;
-				return false;
-			}
 
 			nInputs++;
 
@@ -333,6 +375,15 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 						<< "' to be associated with neuron " << i << std::endl;
 				return false;
 			}
+
+			// +1 because we have not incremented the counter yet
+			if ((nOutputs + 1) > MAX_OUTPUT_NEURONS) {
+				std::cout << "The number of output neurons (" << (nOutputs + 1)
+						<< ") is greater than the maximum allowed one ("
+						<< MAX_OUTPUT_NEURONS << ")" << std::endl;
+				return false;
+			}
+
 			brainOutputToBodyPart.push_back(bodyPartId->second);
 			brainOutputToIoId.push_back(neuron.ioid());
 			outputNeuronIds.insert(
@@ -341,12 +392,7 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			isNeuronInput.insert(
 					std::pair<std::string, bool>(neuron.id(), false));
 
-			if (nOutputs >= MAX_OUTPUT_NEURONS) {
-				std::cout << "The number of output neurons(" << nOutputs
-						<< ") is greater than the maximum allowed one ("
-						<< MAX_OUTPUT_NEURONS << ")" << std::endl;
-				return false;
-			}
+
 
 			if (neuron.type().compare("sigmoid") == 0) {
 				params[nOutputs * MAX_PARAMS] = neuron.bias();
@@ -383,18 +429,22 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 						<< "' to be associated with neuron " << i << std::endl;
 				return false;
 			}
-			//brainHiddenToBodyPart.push_back(bodyPartId->second);
-			//brainHiddenToIoId.push_back(neuron.ioid());
-			hiddenNeuronIds.insert(ioPair(neuron.id(),nOutputs));
-			isNeuronInput.insert(
-					std::pair<std::string, bool>(neuron.id(), false));
 
-			if (nHidden >= MAX_HIDDEN_NEURONS) {
-				std::cout << "The number of hidden neurons(" << nHidden
+			// +1 because we have not incremented the counter yet
+			if ((nHidden + 1) > MAX_HIDDEN_NEURONS) {
+				std::cout << "The number of hidden neurons (" << (nHidden + 1)
 						<< ") is greater than the maximum allowed one ("
 						<< MAX_HIDDEN_NEURONS << ")" << std::endl;
 				return false;
 			}
+
+			//brainHiddenToBodyPart.push_back(bodyPartId->second);
+			//brainHiddenToIoId.push_back(neuron.ioid());
+			hiddenNeuronIds.insert(ioPair(neuron.id(),nHidden));
+			isNeuronInput.insert(
+					std::pair<std::string, bool>(neuron.id(), false));
+
+
 
 			if (neuron.type().compare("sigmoid") == 0) {
 				hidden_params[nHidden * MAX_PARAMS] = neuron.bias();

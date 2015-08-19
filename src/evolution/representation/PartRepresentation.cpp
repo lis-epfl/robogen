@@ -7,9 +7,11 @@
 
 #include <iostream>
 #include <sstream>
+#include <math.h>
 
 #include "evolution/representation/PartRepresentation.h"
 #include "PartList.h"
+
 
 namespace robogen {
 
@@ -164,8 +166,10 @@ void PartRepresentation::addSubtreeToBodyMessage(
 		//convert parameters from [0,1] back to valid range
 		std::pair<double, double> ranges = PART_TYPE_PARAM_RANGE_MAP.at(
 				std::make_pair(this->getType(), i));
-		double paramValue = (params_[i] * (ranges.second - ranges.first)) +
-				ranges.first;
+		double paramValue = (fabs(ranges.first - ranges.second) < 1e-6)
+								? ranges.first
+								: (params_[i] * (ranges.second - ranges.first))
+								  + ranges.first;
 		param->set_paramvalue(paramValue);
 	}
 

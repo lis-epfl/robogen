@@ -46,11 +46,14 @@ public:
 	static const float SLOT_THICKNESS;
 	static const float FRAME_LENGTH;
 	static const float FRAME_HEIGHT;
+	static const float FRAME_WIDTH;
 	static const float FRAME_ROTATION_OFFSET;
 
 	static const float SERVO_LENGTH;
 	static const float SERVO_HEIGHT;
+	static const float SERVO_WIDTH;
 	static const float SERVO_ROTATION_OFFSET;
+	static const float SERVO_POSITION_OFFSET;
 
 	static const unsigned int SLOT_A = 0;
 	static const unsigned int SLOT_B = 1;

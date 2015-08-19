@@ -1,5 +1,5 @@
 /*
- * @(#) FileViewer.cpp   1.0   Nov 27, 2014
+ * @(#) Simulator.cpp   1.0   Nov 27, 2014
  *
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
@@ -31,7 +31,9 @@
 #include "viewer/Viewer.h"
 #include "Models.h"
 #include "Robot.h"
+#include "viewer/WebGLLogger.h"
 
+//#define DEBUG_MASSES
 
 // ODE World
 extern dWorldID odeWorld;
@@ -44,18 +46,22 @@ namespace robogen{
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
 		const robogenMessage::Robot &robotMessage,
-		Viewer *viewer) {
+		Viewer *viewer, boost::random::mt19937 &rng) {
 	boost::shared_ptr<FileViewerLog> log;
 	return runSimulations(scenario, configuration,
-			robotMessage, viewer, false, log);
+			robotMessage, viewer, rng, false, log);
 }
 
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
 		const robogenMessage::Robot &robotMessage, Viewer *viewer,
+		boost::random::mt19937 &rng,
 		bool onlyOnce, boost::shared_ptr<FileViewerLog> log) {
 
 	bool accelerationCapExceeded = false;
+
+	boost::random::normal_distribution<float> normalDistribution;
+	boost::random::uniform_01<float> uniformDistribution;
 
 	while (scenario->remainingTrials() && (!accelerationCapExceeded)) {
 
@@ -73,6 +79,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 		dWorldSetERP(odeWorld, 0.1);
 		dWorldSetCFM(odeWorld, 10e-6);
+		dWorldSetAutoDisableFlag(odeWorld, 1);
 
 		// Create collision world
 		dSpaceID odeSpace = dSimpleSpaceCreate(0);
@@ -90,6 +97,27 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			return SIMULATION_FAILURE;
 		}
 
+#ifdef DEBUG_MASSES
+		float totalMass = 0;
+		for (unsigned int i = 0; i < robot->getBodyParts().size(); ++i) {
+			float partMass = 0;
+			for (unsigned int j = 0;
+					j < robot->getBodyParts()[i]->getBodies().size(); ++j) {
+
+				dMass mass;
+				dBodyGetMass(robot->getBodyParts()[i]->getBodies()[j], &mass);
+				partMass += mass.mass;
+
+			}
+			std::cout << robot->getBodyParts()[i]->getId() <<  " has mass: "
+					<< partMass * 1000. << "g" << std::endl;
+			totalMass += partMass;
+		}
+
+		std::cout << "total mass is " << totalMass * 1000. << "g" << std::endl;
+#endif
+
+
 
 		if (log) {
 			if (!log->init(robot, configuration)) {
@@ -97,6 +125,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				return SIMULATION_FAILURE;
 			}
 		}
+
+
+
 
 		std::cout << "Evaluating individual " << robot->getId()
 				<< ", trial: " << scenario->getCurTrial()
@@ -118,6 +149,16 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// Register robot motors
 		std::vector<boost::shared_ptr<Motor> > motors =
 				robot->getMotors();
+
+		// set cap for checking motor burnout
+		for(unsigned int i=0; i< motors.size(); i++) {
+			if (boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
+				boost::shared_ptr<ServoMotor> motor =
+						boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
+				motor->setMaxDirectionShiftsPerSecond(
+						configuration->getMaxDirectionShiftsPerSecond());
+			}
+		}
 
 		// Register brain and body parts
 		boost::shared_ptr<NeuralNetwork> neuralNetwork =
@@ -149,12 +190,20 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			return SIMULATION_FAILURE;
 		}
 
+		/***
+         * Init the webGLLogger
+         */
+        boost::shared_ptr<WebGLLogger> webGLlogger;
+        if (log && log->isWriteWebGL()) {
+        	webGLlogger.reset(new WebGLLogger(log->getWebGLFileName(),
+        										scenario));
+        }
 
-#ifdef CAP_ACCELERATION
+
+
 		//setup vectors for keeping velocities
 		dReal previousLinVel[3];
 		dReal previousAngVel[3];
-#endif
 
 		// ---------------------------------------
 		// Main Loop
@@ -163,7 +212,10 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		int count = 0;
 		double t = 0;
 
+
 		bool ctrnn = (neuralNetwork->types[0] == CTRNN_SIGMOID);
+		boost::shared_ptr<CollisionData> collisionData( new CollisionData() );
+		collisionData->config = configuration;
 
 		double step = configuration->getTimeStepLength();
 		while ((t < configuration->getSimulationTime())
@@ -182,7 +234,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			}
 
 			// Collision detection
-			dSpaceCollide(odeSpace, configuration.get(), odeCollisionCallback);
+			dSpaceCollide(odeSpace, collisionData.get(), odeCollisionCallback);
 
 			// Step the world by one timestep
 			dWorldStep(odeWorld, step);
@@ -190,36 +242,42 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			// Empty contact groups used for collisions handling
 			dJointGroupEmpty(odeContactGroup);
 
-#ifdef CAP_ACCELERATION
-			dBodyID rootBody =
-					robot->getCoreComponent()->getRoot();
-			const dReal *angVel, *linVel;
+			if (configuration->isCapAlleration()) {
+				dBodyID rootBody =
+						robot->getCoreComponent()->getRoot();
+				const dReal *angVel, *linVel;
 
-			angVel = dBodyGetAngularVel(rootBody);
-			linVel = dBodyGetLinearVel(rootBody);
+				angVel = dBodyGetAngularVel(rootBody);
+				linVel = dBodyGetLinearVel(rootBody);
 
-			if(t > 0) {
-				double angAccel = dCalcPointsDistance3(
-						angVel, previousAngVel);
-				double linAccel = dCalcPointsDistance3(
-						linVel, previousLinVel);
+				if(t > 0) {
+					// TODO make this use the step size and update default
+					// limits to account for this
+					double angAccel = dCalcPointsDistance3(
+							angVel, previousAngVel);
+					double linAccel = dCalcPointsDistance3(
+							linVel, previousLinVel);
 
-				if(angAccel > MAX_ACCELERATION || linAccel > MAX_ACCELERATION) {
-					printf("EVALUATION CANCELED: max accel");
-					printf(" exceeded at time %f,", t);
-					printf("  will give 0 fitness.\n");
-					accelerationCapExceeded = true;
-					break;
+					if(angAccel > configuration->getMaxAngularAcceleration() ||
+					   linAccel > configuration->getMaxLinearAcceleration()) {
+
+						printf("EVALUATION CANCELED: max accel");
+						printf(" exceeded at time %f.", t);
+						printf(" Angular accel: %f, Linear accel: %f.\n",
+								angAccel, linAccel);
+						printf("Will give %f fitness.\n", MIN_FITNESS);
+						accelerationCapExceeded = true;
+						break;
+					}
+
 				}
 
+				// save current velocities as previous
+				for(unsigned int j=0; j<3; j++) {
+					previousAngVel[j] = angVel[j];
+					previousLinVel[j] = linVel[j];
+				}
 			}
-
-			// save current velocities as previous
-			for(unsigned int j=0; j<3; j++) {
-				previousAngVel[j] = angVel[j];
-				previousLinVel[j] = linVel[j];
-			}
-#endif
 
 
 			float networkInput[MAX_INPUT_NEURONS];
@@ -265,6 +323,13 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 								boost::dynamic_pointer_cast<
 										SimpleSensor>(sensors[i])->read();
 					}
+					// Add sensor noise: Gaussian with std dev of
+					// sensorNoiseLevel * actualValue
+					if (configuration->getSensorNoiseLevel() > 0.0) {
+						networkInput[i] += (normalDistribution(rng) *
+								configuration->getSensorNoiseLevel() *
+								networkInput[i]);
+					}
 				}
 				if (log) {
 					log->logSensors(networkInput, sensors.size());
@@ -291,31 +356,58 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					if (boost::dynamic_pointer_cast<ServoMotor>(
 							motors[i])) {
 
+						// Add motor noise:
+						// uniform in range +/- motorNoiseLevel * actualValue
+						if(configuration->getMotorNoiseLevel() > 0.0) {
+							networkOutputs[i] += (
+										((uniformDistribution(rng) *
+										2.0 *
+										configuration->getMotorNoiseLevel())
+										- configuration->getMotorNoiseLevel())
+										* networkOutputs[i]);
+						}
+
+
 						boost::shared_ptr<ServoMotor> motor =
 								boost::dynamic_pointer_cast<
 										ServoMotor>(motors[i]);
 
 						if (motor->isVelocityDriven()) {
-							motor->setVelocity(networkOutputs[i], step *
+							motor->setDesiredVelocity(networkOutputs[i], step *
 									configuration->getActuationPeriod());
+							//motor->setVelocity(networkOutputs[i], step *
+							//		configuration->getActuationPeriod());
 						} else {
-							motor->setPosition(networkOutputs[i], step *
+							motor->setDesiredPosition(networkOutputs[i], step *
 									configuration->getActuationPeriod());
+							//motor->setPosition(networkOutputs[i], step *
+							//		configuration->getActuationPeriod());
 						}
-
-						// TODO find a cleaner way to do this
-						// for now will reuse accel cap infrastructure
-						if (motor->isBurntOut()) {
-							std::cout << "Motor burnt out, will return 0 "
-									<< "fitness" << std::endl;
-							accelerationCapExceeded = true;
-						}
-
 					}
 				}
 
 				if(log) {
 					log->logMotors(networkOutputs, motors.size());
+				}
+			}
+
+			for (unsigned int i = 0; i < motors.size(); ++i) {
+				if (boost::dynamic_pointer_cast<ServoMotor>(
+						motors[i])) {
+
+					boost::shared_ptr<ServoMotor> motor =
+							boost::dynamic_pointer_cast<
+									ServoMotor>(motors[i]);
+
+					motor->step( step ) ; //* configuration->getActuationPeriod() );
+
+					// TODO find a cleaner way to do this
+					// for now will reuse accel cap infrastructure
+					if (motor->isBurntOut()) {
+						std::cout << "Motor burnt out, will return 0 "
+								<< "fitness" << std::endl;
+						accelerationCapExceeded = true;
+					}
 				}
 			}
 
@@ -336,6 +428,10 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 							)->getCoreComponent()->getRootPosition());
 			}
 
+			if(webGLlogger) {
+				webGLlogger->log(t);
+			}
+
 			t += step;
 
 		}
@@ -349,6 +445,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// ---------------------------------------
 		// Simulator finalization
 		// ---------------------------------------
+
+		// Destroy the WebGlLogger, since contains pointer to scenario
+		if(webGLlogger) {
+			webGLlogger.reset();
+		}
 
 		// Destroy robot (because of associated ODE joint group)
 		robot.reset();

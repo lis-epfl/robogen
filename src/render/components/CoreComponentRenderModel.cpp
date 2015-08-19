@@ -33,6 +33,8 @@
 #include "render/components/CoreComponentRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 CoreComponentRenderModel::CoreComponentRenderModel(
@@ -47,7 +49,8 @@ CoreComponentRenderModel::~CoreComponentRenderModel() {
 
 bool CoreComponentRenderModel::initRenderModel() {
 
-	bool meshLoading = this->mesh_->loadMesh("../models/CoreComponent.stl");
+	bool meshLoading = this->mesh_->loadMesh(RobogenUtils::getMeshFile(
+			this->getModel(),CoreComponentModel::B_CORE_COMPONENT_ID));
 
 	if (!meshLoading) {
 		std::cerr << "[CoreComponentRenderModel] Error loading model"
@@ -57,35 +60,56 @@ bool CoreComponentRenderModel::initRenderModel() {
 
 	if (isDebugActive()) {
 		this->showDebugView();
-		return true;
 	}
 
-	// display with plate down, as this is how will be in reality
-	// (we want the arduino to be on top so wires can come out)
+	osg::ref_ptr<osg::PositionAttitudeTransform> brick = this->mesh_->getMesh();
+
+
 	this->mesh_->getMesh()->setAttitude(
-			osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0)));
+			RobogenUtils::getRelativeAttitude(this->getModel(),
+					CoreComponentModel::B_CORE_COMPONENT_ID));
 
+	osg::ref_ptr<osg::PositionAttitudeTransform> brickFrame(
+			new osg::PositionAttitudeTransform());
+	brickFrame->addChild(brick);
 
-	this->getRootNode()->addChild(this->mesh_->getMesh());
-	this->getRootNode()->setUpdateCallback(
+	this->getMeshes()->addChild(brickFrame.get());
+	brickFrame->setUpdateCallback(
 			new BodyCallback(this->getModel(),
 					CoreComponentModel::B_CORE_COMPONENT_ID));
 
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
+					hasSensors() ) {
+		this->setColor(osg::Vec4(1,0,0,0.7));
+	} else {
+		this->setColor(osg::Vec4(1,1,1,0.7));
+	}
+
+
+	if (isDebugActive()) {
+		this->activateTransparency(brick->getOrCreateStateSet());
+	}
 	return true;
 
 }
 
+
 void CoreComponentRenderModel::showDebugView() {
+	std::vector<osg::Vec4> colors;
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
+				hasSensors() ) {
+		colors.push_back(osg::Vec4(1,0,0,0.7));
+	} else {
+		colors.push_back(osg::Vec4(1,1,1,0.7));
+	}
 
-	osg::ref_ptr<osg::PositionAttitudeTransform> pat = this->attachBox(
-			CoreComponentModel::B_CORE_COMPONENT_ID,
-			CoreComponentModel::WIDTH, CoreComponentModel::WIDTH,
-			CoreComponentModel::WIDTH);
 
+	std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > pats = this->attachGeoms(colors);
 	// show the axis for the root node
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
-			hasSensors() )
-		attachAxis(pat);
+			hasSensors() ) {
+		attachAxis(pats[0]);
+	}
 
 }
 

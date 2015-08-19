@@ -80,7 +80,7 @@ TerrainRender::TerrainRender(boost::shared_ptr<Terrain> terrain) {
 			for (unsigned int j = 0; j < yPointsCount; ++j) {
 				heightField->setHeight(i, j,
 						((*terrain->getHeightFieldData()->data(i, j)) / 255.0)
-								* fromOde(terrain->getHeightFieldHeight())/2);
+								* fromOde(terrain->getHeightFieldHeight()));
 			}
 		}
 

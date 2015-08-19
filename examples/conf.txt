@@ -1,10 +1,13 @@
 scenario=racing
-timeStep=0.002
+obstaclesConfigFile=no-obstacles.txt
+startPositionConfigFile=startPos.txt
+timeStep=0.005
 actuationFrequency=25
-nTimeSteps=4000
+nTimeSteps=1600
 terrainType=flat
 terrainLength=2
 terrainWidth=2
 terrainFriction=1.0
-obstaclesConfigFile=no-obstacles.txt
-startPositionConfigFile=startPos.txt
+sensorNoiseLevel=0.0
+motorNoiseLevel=0.0
+capAcceleration=false

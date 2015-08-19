@@ -28,7 +28,7 @@
 
 #include "evolution/representation/NeuronRepresentation.h"
 #include <sstream>
-
+#include <iostream>
 namespace robogen {
 
 void NeuronRepresentation::init(ioPair identification, unsigned int layer,

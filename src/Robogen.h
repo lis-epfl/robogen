@@ -2,9 +2,10 @@
  * @(#) Robogen.h   1.0   Feb 8, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -31,14 +32,20 @@
 // In case of inertia/mass problems with ODE on 64bits machines it's necessary
 // to enble dDOUBLE
 #define dDOUBLE
+#include <limits>
 #include <ode/ode.h>
 #include <osg/Vec3>
 
-#define inMm(x) (x/1000.0)
-#define inGrams(x) (x/1000.0)
+#define inMm(x) ((x)/1000.0)
+#define inGrams(x) ((x)/1000.0)
 
 float fromOde(float x);
 double fromOde(double x);
 osg::Vec3 fromOde(osg::Vec3 x);
+
+int modulo(int x, int y);
+
+void startRobogen();
+void exitRobogen(int exitCode);
 
 #endif /* ROBOGEN_H_ */

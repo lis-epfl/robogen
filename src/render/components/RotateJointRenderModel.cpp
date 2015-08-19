@@ -31,6 +31,8 @@
 #include "render/Mesh.h"
 #include "render/components/RotateJointRenderModel.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 RotateJointRenderModel::RotateJointRenderModel(
@@ -47,7 +49,8 @@ RotateJointRenderModel::~RotateJointRenderModel() {
 bool RotateJointRenderModel::initRenderModel() {
 
 	bool meshLoadingA = this->partA_->loadMesh(
-			"../models/ActiveRotation_Motor_Holder.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+			  RotateJointModel::B_SLOT_ID));
 
 	if (!meshLoadingA) {
 		std::cerr << "[RotateJointModel] Error loading model" << std::endl;
@@ -55,7 +58,8 @@ bool RotateJointRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingB = this->partB_->loadMesh(
-			"../models/ActiveRotation_Connection.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+			  RotateJointModel::B_JOINT_CONNECTION_ID));
 
 	if (!meshLoadingB) {
 		std::cerr << "[RotateJointModel] Error loading model" << std::endl;

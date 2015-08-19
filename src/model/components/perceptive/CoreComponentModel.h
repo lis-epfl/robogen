@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -31,6 +31,7 @@
 
 #include "model/PerceptiveComponent.h"
 #include "model/sensors/ImuSensor.h"
+#include "PartList.h"
 
 namespace robogen {
 
@@ -40,16 +41,22 @@ public:
 
 	static const float BRICK_MASS;
 	static const float CORE_MASS;
+	static const float HEIGHT;
 	static const float WIDTH;
 
 	static const unsigned int B_CORE_COMPONENT_ID = 0;
 
-	static const unsigned int LEFT_FACE_SLOT = 0;
-	static const unsigned int RIGHT_FACE_SLOT = 1;
-	static const unsigned int TOP_FACE_SLOT = 2;
-	static const unsigned int BOTTOM_FACE_SLOT = 3;
-	static const unsigned int FRONT_FACE_SLOT = 4;
-	static const unsigned int BACK_FACE_SLOT = 5;
+	enum neuronType{
+		LEFT_FACE_SLOT, /* corresponds to inputs */
+		RIGHT_FACE_SLOT,
+		FRONT_FACE_SLOT,
+		BACK_FACE_SLOT,
+#ifndef ENFORCE_PLANAR
+		TOP_FACE_SLOT,
+		BOTTOM_FACE_SLOT,
+#endif
+		NUM_SLOTS
+	};
 
 	/**
 	 * Initializes a CoreComponentModel

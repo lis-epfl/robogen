@@ -33,9 +33,10 @@ namespace robogen {
 const float TouchSensorModel::MASS = inGrams(3);
 const float TouchSensorModel::SENSOR_BASE_WIDTH = inMm(34);
 const float TouchSensorModel::SENSOR_BASE_THICKNESS = inMm(1.5);
-const float TouchSensorModel::SENSOR_THICKNESS = inMm(9);
-const float TouchSensorModel::SENSOR_WIDTH = inMm(18.5); // Of each left/right sensors
+const float TouchSensorModel::SENSOR_THICKNESS = inMm(8.5);
+const float TouchSensorModel::SENSOR_WIDTH = inMm(16.0); // Of each left/right sensors
 const float TouchSensorModel::SENSOR_HEIGHT = inMm(16);
+const float TouchSensorModel::SENSOR_SEPARATION = inMm(1.0);
 
 TouchSensorModel::TouchSensorModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id) :
@@ -49,24 +50,23 @@ TouchSensorModel::~TouchSensorModel() {
 
 bool TouchSensorModel::initModel() {
 
-	// Create the 4 components of the hinge
 	sensorRoot_ = this->createBody(B_SENSOR_BASE_ID);
 	dBodyID leftSensor = this->createBody(B_SENSOR_LEFT);
 	dBodyID rightSensor = this->createBody(B_SENSOR_RIGHT);
 
-	this->createBoxGeom(sensorRoot_, MASS, osg::Vec3(0, 0, 0),
+	this->createBoxGeom(sensorRoot_, MASS / 3., osg::Vec3(0, 0, 0),
 			SENSOR_BASE_THICKNESS, SENSOR_BASE_WIDTH, SENSOR_BASE_WIDTH);
 
 	dReal xSensors = SENSOR_BASE_THICKNESS / 2 + SENSOR_THICKNESS / 2;
-	dReal yLeftSensor = -SENSOR_WIDTH / 2 - inMm(1);
-	dReal yRightSensor = SENSOR_WIDTH / 2 + inMm(1);
+	dReal yLeftSensor = -SENSOR_WIDTH / 2 - SENSOR_SEPARATION / 2;
+	dReal yRightSensor = SENSOR_WIDTH / 2 + SENSOR_SEPARATION / 2;
 
 	this->sensorLeft_.reset(
-			new TouchSensor(this->getCollisionSpace(), leftSensor, MASS,
+			new TouchSensor(this->getCollisionSpace(), leftSensor, MASS / 3.,
 					osg::Vec3(xSensors, yLeftSensor, 0), SENSOR_THICKNESS,
 					SENSOR_WIDTH, SENSOR_HEIGHT, this->getId() + "-left"));
 	this->sensorRight_.reset(
-			new TouchSensor(this->getCollisionSpace(), rightSensor, MASS,
+			new TouchSensor(this->getCollisionSpace(), rightSensor, MASS / 3.,
 					osg::Vec3(xSensors, yRightSensor, 0), SENSOR_THICKNESS,
 					SENSOR_WIDTH, SENSOR_HEIGHT, this->getId() + "-right"));
 
@@ -98,7 +98,7 @@ osg::Vec3 TouchSensorModel::getSlotPosition(unsigned int i) {
 
 		osg::Vec3 curPos = this->getPosition(sensorRoot_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		slotPos = curPos + slotAxis * (SENSOR_BASE_THICKNESS / 2);
+		slotPos = curPos - slotAxis * (SENSOR_BASE_THICKNESS / 2);
 
 	}
 

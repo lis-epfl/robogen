@@ -31,6 +31,8 @@
 #include "render/components/PassiveWheelRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 PassiveWheelRenderModel::PassiveWheelRenderModel(
@@ -47,7 +49,8 @@ PassiveWheelRenderModel::~PassiveWheelRenderModel() {
 bool PassiveWheelRenderModel::initRenderModel() {
 
    bool meshLoadingA = this->partA_->loadMesh(
-         "../models/PassiveRotation_Frame.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+			  PassiveWheelModel::B_SLOT_ID));
 
    if (!meshLoadingA) {
       std::cerr << "[PassiveWheelRenderModel] Error loading model" << std::endl;
@@ -55,7 +58,8 @@ bool PassiveWheelRenderModel::initRenderModel() {
    }
 
    bool meshLoadingB = this->partB_->loadMesh(
-         "../models/PassiveRotation_Wheel.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+			  PassiveWheelModel::B_WHEEL_ID));
 
    if (!meshLoadingB) {
       std::cerr << "[PassiveWheelRenderModel] Error loading model" << std::endl;
@@ -120,7 +124,8 @@ void PassiveWheelRenderModel::showDebugView() {
          fromOde(
                boost::dynamic_pointer_cast < PassiveWheelModel
                      > (this->getModel())->getRadius()),
-         fromOde(PassiveWheelModel::WHEEL_THICKNESS));
+         fromOde(PassiveWheelModel::WHEEL_THICKNESS),
+         osg::Vec4(1,0,0,1));
 
    // Wheel rotation
    osg::ref_ptr<osg::PositionAttitudeTransform> wheelRotation(

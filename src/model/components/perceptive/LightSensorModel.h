@@ -45,10 +45,16 @@ public:
 	static const float SENSOR_BASE_WIDTH;
 	static const float SENSOR_BASE_THICKNESS;
 	static const float SENSOR_DISPLACEMENT;
+	static const float SENSOR_CYLINDER_HEIGHT;
+	static const float SENSOR_CYLINDER_RADIUS;
+	static const float SENSOR_PLATFORM_THICKNESS;
+	static const float SENSOR_PLATFORM_WIDTH;
 
 	static const unsigned int SLOT_A = 0;
 
 	static const unsigned int B_SENSOR_BASE_ID = 0;
+	static const unsigned int B_SENSOR_PLATFORM_ID = 1;
+	static const unsigned int B_SENSOR_CYLINDER_ID = 2;
 
 	LightSensorModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id,
 			bool internalSensor);

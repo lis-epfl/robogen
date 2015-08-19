@@ -29,6 +29,7 @@
 #include <osg/MatrixTransform>
 #include <osg/Geode>
 #include <osg/ShapeDrawable>
+#include <osg/BlendFunc>
 
 #include "model/Model.h"
 
@@ -37,11 +38,17 @@
 
 namespace robogen {
 
-RenderModel::RenderModel(boost::shared_ptr<Model> model,
-		bool debugActive) :
-		model_(model), debugActive_(debugActive) {
+RenderModel::RenderModel(boost::shared_ptr<Model> model) :
+		model_(model), debugActive_(false) {
 	this->rootNode_ = osg::ref_ptr<osg::PositionAttitudeTransform>(
 			new osg::PositionAttitudeTransform());
+	this->primitives_ = osg::ref_ptr<osg::Group>(
+			new osg::Group());
+	this->meshes_ = osg::ref_ptr<osg::Group>(
+				new osg::Group());
+	this->rootNode_->addChild(this->primitives_);
+	this->rootNode_->addChild(this->meshes_);
+
 }
 
 RenderModel::~RenderModel() {
@@ -56,13 +63,51 @@ bool RenderModel::isDebugActive() {
 	return debugActive_;
 }
 
+void RenderModel::setDebugActive(bool debugActive) {
+	this->debugActive_ = debugActive;
+
+}
+
+void RenderModel::togglePrimitives(bool primitives) {
+	if(primitives) {
+			this->primitives_->setNodeMask(0xffffffff);
+	} else {
+		this->primitives_->setNodeMask(0x0);
+	}
+}
+
+void RenderModel::toggleMeshes(bool meshes) {
+	if(meshes) {
+		this->meshes_->setNodeMask(0xffffffff);
+	} else {
+		this->meshes_->setNodeMask(0x0);
+	}
+}
+
+//toggle transparency on/off was encountering difficulties,
+// so commenting out for now
+
+/*void RenderModel::toggleTransparency(bool transparency) {
+	std::cout << transparency << std::endl;
+	osg::StateSet* set = this->getRootNode()->getOrCreateStateSet();
+	if(transparency) {
+		set->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+		//set->setMode(GL_BLEND,osg::StateAttribute::OVERRIDE);
+		set->setAttributeAndModes(new osg::BlendFunc(GL_SRC_ALPHA ,GL_ONE_MINUS_SRC_ALPHA),
+				osg::StateAttribute::OVERRIDE);
+	} else {
+		set->setRenderingHint(osg::StateSet::OPAQUE_BIN);
+		set->removeAttribute(osg::StateAttribute::BLENDFUNC);
+	}
+}*/
+
 boost::shared_ptr<Model> RenderModel::getModel() {
 	return model_;
 }
 
 /**
  * Function taken from James Moliere, Open Scene Graph examples
- * x is red, y is blue, z is green
+ * x is red, y is green, z is blue
  */
 void RenderModel::attachAxis(osg::Transform* transform) {
 
@@ -145,12 +190,14 @@ osg::ref_ptr<osg::Geode> RenderModel::getBox(float lengthX, float lengthY,
 
 }
 
-osg::ref_ptr<osg::Geode> RenderModel::getCylinder(float radius, float height) {
+osg::ref_ptr<osg::Geode> RenderModel::getCylinder(float radius, float height,
+		const osg::Vec4& color) {
 
 	osg::ref_ptr<osg::Cylinder> cylinder(
 			new osg::Cylinder(osg::Vec3(0, 0, 0), radius, height));
 	osg::ref_ptr<osg::ShapeDrawable> cylinderDrawable(
 			new osg::ShapeDrawable(cylinder.get()));
+	cylinderDrawable->setColor(color);
 	osg::ref_ptr<osg::Geode> geode(new osg::Geode());
 	geode->addDrawable(cylinderDrawable.get());
 
@@ -167,7 +214,7 @@ osg::ref_ptr<osg::Geode> RenderModel::getCapsule(float radius, float height) {
 	osg::ref_ptr<osg::Geode> geode(new osg::Geode());
 	geode->addDrawable(capsuleDrawable.get());
 
-	return geode;
+		return geode;
 
 }
 
@@ -176,6 +223,12 @@ osg::ref_ptr<osg::PositionAttitudeTransform> RenderModel::attachBox(int label, f
 
 	return attachBox(label, lengthX, lengthY, lengthZ, osg::Vec4(1, 0, 0, 1));
 
+}
+
+void RenderModel::activateTransparency(osg::StateSet* set) {
+	set->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	//set->setAttributeAndModes(new osg::BlendFunc(GL_SRC_ALPHA ,GL_ONE_MINUS_SRC_ALPHA), osg::StateAttribute::ON);
+	set->setMode(GL_BLEND,osg::StateAttribute::ON);
 }
 
 osg::ref_ptr<osg::PositionAttitudeTransform> RenderModel::attachBox(int label, float lengthX, float lengthY,
@@ -187,11 +240,10 @@ osg::ref_ptr<osg::PositionAttitudeTransform> RenderModel::attachBox(int label, f
 			new osg::PositionAttitudeTransform());
 	pat->addChild(box);
 
-	//this->attachAxis(pat);
-
-	this->getRootNode()->addChild(pat.get());
+	this->primitives_->addChild(pat.get());
 	pat->setUpdateCallback(new BodyCallback(this->getModel(), label));
 
+	activateTransparency(box->getOrCreateStateSet());
 	return pat;
 
 }
@@ -202,11 +254,78 @@ osg::ref_ptr<osg::PositionAttitudeTransform> RenderModel::attachGeode(int label,
 			new osg::PositionAttitudeTransform());
 	pat->addChild(geode);
 
-	this->getRootNode()->addChild(pat.get());
+	this->primitives_->addChild(pat.get());
 	pat->setUpdateCallback(new BodyCallback(this->getModel(), label));
-
+	activateTransparency(geode->getOrCreateStateSet());
 	return pat;
 
 }
+
+std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > RenderModel::attachGeoms() {
+	std::vector<osg::Vec4> colors;
+	colors.push_back(osg::Vec4(1, 1, 1, 0.5));
+	colors.push_back(osg::Vec4(0, 1, 0, 0.5));
+	colors.push_back(osg::Vec4(0, 0, 1, 0.5));
+	colors.push_back(osg::Vec4(1, 0, 0, 0.5));
+	return this->attachGeoms(colors);
+}
+
+
+std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > RenderModel::attachGeoms(std::vector<osg::Vec4> colors) {
+	std::vector<int> ids = this->getModel()->getIDs();
+	std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > pats;
+
+	int count = 0;
+
+
+	for (unsigned int i=0; i<ids.size(); i++) {
+		dGeomID g = dBodyGetFirstGeom(this->getModel()->getBody(ids[i]));
+
+		while(g != 0) {
+			int gclass = dGeomGetClass(g);
+			//const dReal *pos = dGeomGetPosition(g);
+			//const dReal *rot = dGeomGetRotation(g);
+
+
+			switch (gclass) {
+				case dBoxClass:
+				{
+					dVector3 lengths;
+					dGeomBoxGetLengths(g, lengths);
+					osg::ref_ptr<osg::PositionAttitudeTransform> pat =
+							this->attachBox(
+									ids[i],lengths[0], lengths[1],
+									lengths[2], colors[count % colors.size()]);
+					pats.push_back(pat);
+					break;
+				}
+
+				case dCylinderClass :
+				{
+					dReal radius, length;
+					dGeomCylinderGetParams(g, &radius, &length);
+					osg::ref_ptr<osg::PositionAttitudeTransform> pat =
+							this->attachGeode(ids[i],this->getCylinder(fromOde(radius),
+									fromOde(length), colors[count % colors.size()]));
+					pats.push_back(pat);
+					break;
+				}
+
+				default:
+				{
+					std::cout << "not a box or cylinder," <<
+							" not yet configured to draw!" << std::endl;
+				}
+			}
+			g = dBodyGetNextGeom(g);
+			count++;
+		}
+
+	}
+	return pats;
+
+
+}
+
 
 }

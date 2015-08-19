@@ -36,6 +36,8 @@
 #include "RenderModels.h"
 #include "robogen.pb.h"
 
+#define MESH_DIRECTORY "../models/"
+
 namespace robogen {
 
 class RobogenUtils {
@@ -57,7 +59,7 @@ public:
 	 * It is b that remains fixed!!
 	 */
 	static void connect(boost::shared_ptr<Model> a, unsigned int slotA,
-			boost::shared_ptr<Model> b, unsigned int slotB, float orientation,
+			boost::shared_ptr<Model> b, unsigned int slotB,
 			dJointGroupID connectionJointGroup, dWorldID odeWorld);
 
 	static boost::shared_ptr<Model> createModel(
@@ -66,6 +68,13 @@ public:
 
 	static boost::shared_ptr<RenderModel> createRenderModel(
 			boost::shared_ptr<Model> model);
+
+	static std::string getMeshFile(boost::shared_ptr<Model> model,
+								const unsigned int id);
+	static osg::Vec3 getRelativePosition(boost::shared_ptr<Model> model,
+								const unsigned int id);
+	static osg::Quat getRelativeAttitude(boost::shared_ptr<Model> model,
+								const unsigned int id);
 
 private:
 

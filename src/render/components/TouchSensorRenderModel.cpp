@@ -31,6 +31,8 @@
 #include "render/components/TouchSensorRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 TouchSensorRenderModel::TouchSensorRenderModel(
@@ -45,7 +47,9 @@ TouchSensorRenderModel::~TouchSensorRenderModel() {
 
 bool TouchSensorRenderModel::initRenderModel() {
 
-	bool meshLoadingA = this->partA_->loadMesh("../models/TouchSensor.stl");
+	bool meshLoadingA = this->partA_->loadMesh(
+			   RobogenUtils::getMeshFile(this->getModel(),
+				  TouchSensorModel::B_SENSOR_BASE_ID));
 
 	if (!meshLoadingA) {
 		std::cerr << "[TouchSensorRenderModel] Error loading model"
@@ -55,30 +59,30 @@ bool TouchSensorRenderModel::initRenderModel() {
 
 	if (isDebugActive()) {
 		this->showDebugView();
-		return true;
 	}
 
 	// PART A
 	osg::ref_ptr<osg::PositionAttitudeTransform> partA =
 			this->partA_->getMesh();
-	partA->setAttitude(osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 0, 1)));
-	partA->setPosition(
-			fromOde(
-					osg::Vec3(
-							TouchSensorModel::SENSOR_BASE_THICKNESS / 2
-									+ TouchSensorModel::SENSOR_THICKNESS / 2
-									- 0.001, 0, 0)));
+	partA->setAttitude(RobogenUtils::getRelativeAttitude(this->getModel(),
+			  TouchSensorModel::B_SENSOR_BASE_ID));
+	partA->setPosition(RobogenUtils::getRelativePosition(this->getModel(),
+			  TouchSensorModel::B_SENSOR_BASE_ID));
 
-	partA_->setColor(osg::Vec4(1, 0, 0, 1));
+	partA_->setColor(osg::Vec4(1, 0, 0, 0.5));
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patPartA(
 			new osg::PositionAttitudeTransform());
 	patPartA->addChild(partA);
 
-	this->getRootNode()->addChild(patPartA.get());
+	this->getMeshes()->addChild(patPartA.get());
 	patPartA->setUpdateCallback(
 			new BodyCallback(this->getModel(),
 					TouchSensorModel::B_SENSOR_BASE_ID));
+
+	if(isDebugActive()) {
+		this->activateTransparency(patPartA->getOrCreateStateSet());
+	}
 
 	return true;
 

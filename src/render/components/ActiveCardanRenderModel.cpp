@@ -32,6 +32,8 @@
 #include "render/components/ActiveCardanRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 ActiveCardanRenderModel::ActiveCardanRenderModel(
@@ -49,7 +51,8 @@ ActiveCardanRenderModel::~ActiveCardanRenderModel() {
 bool ActiveCardanRenderModel::initRenderModel() {
 
 	bool meshLoadingA = this->partA_->loadMesh(
-			"../models/ActiveCardanHinge_Servo_Holder.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+									  ActiveCardanModel::B_SLOT_A_ID));
 
 	if (!meshLoadingA) {
 		std::cerr << "[ActiveCardanRenderModel] Error loading model"
@@ -58,7 +61,9 @@ bool ActiveCardanRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingB = this->partB_->loadMesh(
-			"../models/ActiveCardanHinge_Servo_Holder.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+									  ActiveCardanModel::B_SLOT_B_ID));
+
 
 	if (!meshLoadingB) {
 		std::cerr << "[ActiveCardanRenderModel] Error loading model"
@@ -67,7 +72,8 @@ bool ActiveCardanRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingC = this->patCross_->loadMesh(
-			"../models/ActiveCardan_CrossShaft.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+									  ActiveCardanModel::B_CROSS_PART_A_ID));
 
 	if (!meshLoadingC) {
 		std::cerr << "[ActiveCardanRenderModel] Error loading model"
@@ -77,7 +83,6 @@ bool ActiveCardanRenderModel::initRenderModel() {
 
 	if (isDebugActive()) {
 		this->showDebugView();
-		return true;
 	}
 
 	float meshCorrection = inMm(0.5);
@@ -153,48 +158,7 @@ bool ActiveCardanRenderModel::initRenderModel() {
 }
 
 void ActiveCardanRenderModel::showDebugView() {
-
-	this->attachBox(ActiveCardanModel::B_SLOT_A_ID,
-			ActiveCardanModel::SLOT_THICKNESS, ActiveCardanModel::SLOT_WIDTH,
-			ActiveCardanModel::SLOT_WIDTH);
-
-	this->attachBox(ActiveCardanModel::B_SLOT_B_ID,
-			ActiveCardanModel::SLOT_THICKNESS, ActiveCardanModel::SLOT_WIDTH,
-			ActiveCardanModel::SLOT_WIDTH);
-
-	this->attachBox(ActiveCardanModel::B_CONNECTION_A_ID,
-			ActiveCardanModel::CONNNECTION_PART_LENGTH,
-			ActiveCardanModel::CONNNECTION_PART_WIDTH,
-			ActiveCardanModel::CONNECTION_PART_HEIGHT);
-
-	this->attachBox(ActiveCardanModel::B_CONNECTION_B_ID,
-			ActiveCardanModel::CONNNECTION_PART_LENGTH,
-			ActiveCardanModel::CONNECTION_PART_HEIGHT,
-			ActiveCardanModel::CONNNECTION_PART_WIDTH);
-
-	this->attachBox(ActiveCardanModel::B_CROSS_PART_A_ID,
-			ActiveCardanModel::CROSS_THICKNESS, ActiveCardanModel::CROSS_WIDTH,
-			ActiveCardanModel::CROSS_HEIGHT);
-
-	this->attachBox(ActiveCardanModel::B_CROSS_PART_B_ID,
-			ActiveCardanModel::CROSS_THICKNESS, ActiveCardanModel::CROSS_HEIGHT,
-			ActiveCardanModel::CROSS_WIDTH);
-
-	this->attachBox(ActiveCardanModel::B_CROSS_PART_A_EDGE_1_ID,
-			ActiveCardanModel::CROSS_CENTER_OFFSET,
-			ActiveCardanModel::CROSS_WIDTH, ActiveCardanModel::CROSS_THICKNESS);
-
-	this->attachBox(ActiveCardanModel::B_CROSS_PART_A_EDGE_2_ID,
-			ActiveCardanModel::CROSS_CENTER_OFFSET,
-			ActiveCardanModel::CROSS_WIDTH, ActiveCardanModel::CROSS_THICKNESS);
-
-	this->attachBox(ActiveCardanModel::B_CROSS_PART_B_EDGE_1_ID,
-			ActiveCardanModel::CROSS_CENTER_OFFSET,
-			ActiveCardanModel::CROSS_THICKNESS, ActiveCardanModel::CROSS_WIDTH);
-
-	this->attachBox(ActiveCardanModel::B_CROSS_PART_B_EDGE_2_ID,
-			ActiveCardanModel::CROSS_CENTER_OFFSET,
-			ActiveCardanModel::CROSS_THICKNESS, ActiveCardanModel::CROSS_WIDTH);
+	this->attachGeoms();
 
 }
 

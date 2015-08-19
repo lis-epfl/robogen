@@ -31,6 +31,8 @@
 #include "render/components/ActiveWheelRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 ActiveWheelRenderModel::ActiveWheelRenderModel(
@@ -47,7 +49,8 @@ ActiveWheelRenderModel::~ActiveWheelRenderModel() {
 bool ActiveWheelRenderModel::initRenderModel() {
 
    bool meshLoadingA = this->partA_->loadMesh(
-         "../models/ActiveRotation_Motor_Holder.stl");
+		   RobogenUtils::getMeshFile(this->getModel(),
+			  ActiveWheelModel::B_SLOT_ID));
 
    if (!meshLoadingA) {
       std::cerr << "[ActiveWheelRenderModel] Error loading model" << std::endl;
@@ -55,7 +58,8 @@ bool ActiveWheelRenderModel::initRenderModel() {
    }
 
    bool meshLoadingB = this->partB_->loadMesh(
-         "../models/ActiveRotation_Wheel.stl");
+		   RobogenUtils::getMeshFile(this->getModel(),
+			  ActiveWheelModel::B_WHEEL_ID));
 
    if (!meshLoadingB) {
       std::cerr << "[ActiveWheelRenderModel] Error loading model" << std::endl;
@@ -131,7 +135,8 @@ void ActiveWheelRenderModel::showDebugView() {
          fromOde(
                boost::dynamic_pointer_cast < ActiveWheelModel
                      > (this->getModel())->getRadius()),
-         fromOde(ActiveWheelModel::WHEEL_THICKNESS));
+         fromOde(ActiveWheelModel::WHEEL_THICKNESS),
+         osg::Vec4(1,0,0,1));
 
    // Wheel rotation
    osg::ref_ptr<osg::PositionAttitudeTransform> wheelRotation(

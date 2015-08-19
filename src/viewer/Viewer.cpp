@@ -91,7 +91,7 @@ void Viewer::init(bool startPaused, bool debugActive, double speedFactor,
 	this->viewer = new osgViewer::Viewer();
 	this->viewer->setUpViewInWindow(200, 200, 800, 600);
 	this->keyboardEvent = osg::ref_ptr<KeyboardHandler>(
-			new KeyboardHandler(startPaused));
+			new KeyboardHandler(startPaused, debugActive, true));
 
 	this->viewer->addEventHandler(keyboardEvent.get());
 
@@ -150,7 +150,6 @@ Viewer::~Viewer() {
 bool Viewer::configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
 		boost::shared_ptr<Scenario> scenario) {
 
-	std::vector<boost::shared_ptr<RenderModel> > renderModels;
 
 	for (unsigned int i = 0; i < bodyParts.size(); ++i) {
 		boost::shared_ptr<RenderModel> renderModel =
@@ -190,6 +189,28 @@ bool Viewer::configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
 		this->root->addChild(obstacleRender->getRootNode());
 	}
 
+
+	for(unsigned int i = 0;
+			i < scenario->getEnvironment()->getLightSources().size(); i++) {
+
+		boost::shared_ptr<LightSourceRender> lightSourceRender(
+				new LightSourceRender(
+						scenario->getEnvironment()->getLightSources()[i],
+						root));
+
+		root->addChild(lightSourceRender->getRootNode());
+	}
+
+	if(debugActive) {
+		// show global axis at origin
+		osg::ref_ptr<osg::PositionAttitudeTransform> pat(
+					new osg::PositionAttitudeTransform());
+
+
+		root->addChild(pat);
+		RenderModel::attachAxis(pat);
+	}
+
 	// ---------------------------------------
 	// Setup OSG viewer
 	// ---------------------------------------
@@ -206,8 +227,13 @@ bool Viewer::configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
 
 	this->viewer->setReleaseContextAtEndOfFrameHint(false);
 
+	if(this->debugActive) {
+		std::cout << "Press M to show/hide meshes." << std::endl;
+		std::cout << "Press G to show/hide geoms." << std::endl;
+	}
 	std::cout << "Press P to pause/unpause the simulation." << std::endl;
 	std::cout << "Press Q to quit the visualizer." << std::endl;
+
 
 	return true;
 
@@ -224,8 +250,16 @@ bool Viewer::frame(double simulatedTime, unsigned int numTimeSteps) {
 		double frameTime = diff.total_milliseconds()/1000.0;
 		this->elapsedWallTime += frameTime;
 		this->timeSinceLastFrame += frameTime;
-
 	}
+
+	if(this->debugActive) {
+		for(unsigned int i=0; i<renderModels.size(); i++) {
+			renderModels[i]->togglePrimitives(keyboardEvent->showGeoms());
+			renderModels[i]->toggleMeshes(keyboardEvent->showMeshes());
+			//renderModels[i]->toggleTransparency(keyboardEvent->isTransparent());
+		}
+	}
+
 
 	this->tick1 = boost::posix_time::microsec_clock::universal_time();
 

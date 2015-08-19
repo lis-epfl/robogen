@@ -33,6 +33,7 @@
 #include <vector>
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
+#include <boost/math/special_functions/round.hpp>
 
 #include "config/ConfigurationReader.h"
 #include "config/ObstaclesConfig.h"
@@ -43,6 +44,8 @@
 
 #define DEFAULT_LIGHT_SOURCE_HEIGHT (0.1)
 #define DEFAULT_OBSTACLE_DENSITY (0.)
+#define DEFAULT_MAX_LINEAR_ACCELERATION (15.0)
+#define DEFAULT_MAX_ANGULAR_ACCELERATION (25.0)
 
 namespace robogen {
 
@@ -51,30 +54,61 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 
 	boost::program_options::options_description desc(
 			"Allowed options for Simulation Config File");
-	desc.add_options()("terrainType",
-			boost::program_options::value<std::string>(),
-			"Terrain type: flat or rough")("terrainHeightField",
-			boost::program_options::value<std::string>(),
-			"Height Field for terrain generation")("terrainWidth",
-			boost::program_options::value<float>(), "Terrain width")(
-			"terrainHeight", boost::program_options::value<float>(),
-			"Terrain height")("terrainLength",
-			boost::program_options::value<float>(), "Terrain length")(
-			"terrainFriction",boost::program_options::value<float>(),
-			"Terrain Friction Coefficient")(
-			"obstaclesConfigFile", boost::program_options::value<std::string>(),
-			"Obstacles configuration file")("scenario",
-			boost::program_options::value<std::string>(), "Experiment scenario")(
-			"lightSourceHeight", boost::program_options::value<float>(),
-			"Height of light source")("timeStep",
-			boost::program_options::value<float>(), "Time step duration (s)")(
-			"nTimeSteps", boost::program_options::value<unsigned int>(),
-			"Number of timesteps")
+	desc.add_options()
+			("terrainType",
+					boost::program_options::value<std::string>(),
+					"Terrain type: flat or rugged")
+			("terrainHeightField",
+					boost::program_options::value<std::string>(),
+					"Height Field for terrain generation")
+			("terrainWidth",
+					boost::program_options::value<float>(), "Terrain width")
+			("terrainHeight", boost::program_options::value<float>(),
+					"Terrain height")
+			("terrainLength", boost::program_options::value<float>(),
+					"Terrain length")
+			("terrainFriction",boost::program_options::value<float>(),
+					"Terrain Friction Coefficient")
+			("obstaclesConfigFile", boost::program_options::value<std::string>(),
+					"Obstacles configuration file")
+			("scenario", boost::program_options::value<std::string>(),
+					"Experiment scenario")
+			("lightSourceHeight", boost::program_options::value<float>(),
+					"Height of light source")
+			("timeStep", boost::program_options::value<float>(),
+					"Time step duration (s)")
+			("nTimeSteps", boost::program_options::value<unsigned int>(),
+					"Number of timesteps")
 			("actuationFrequency",boost::program_options::value<int>(),
-			"Actuation Frequency (Hz)")
+					"Actuation Frequency (Hz)")
+			("sensorNoiseLevel",boost::program_options::value<float>(),
+					"Sensor Noise Level:\n "\
+					"Sensor noise is Gaussian with std dev of "\
+					"sensorNoiseLevel * actualValue.\n"\
+					"i.e. value given to Neural Network is "\
+					"N(a, a * s)\n"\
+					"where a is actual value and s is sensorNoiseLevel")
+			("motorNoiseLevel",boost::program_options::value<float>(),
+					"Motor noise level:\n"\
+					"Motor noise is uniform in range +/-"\
+					"(motorNoiseLevel * actualValue)")
+			("capAcceleration",boost::program_options::value<bool>(),
+					"Flag to enforce acceleration cap."\
+					"Useful for preventing unrealistic  behaviors "\
+					"/ simulator exploits")
+			("maxLinearAcceleration",boost::program_options::value<float>(),
+					"Maximum linear acceleration (if capAcceleration."\
+					" is true")
+			("maxAngularAcceleration",boost::program_options::value<float>(),
+					"Maximum angular acceleration (if capAcceleration."\
+					" is true")
+			("maxDirectionShiftsPerSecond",boost::program_options::value<int>(),
+					"Maximum number of direction shifts per second"\
+					"for testing motor burnout.  If not set, then there is no"\
+					"cap")
 			("startPositionConfigFile",
-			boost::program_options::value<std::string>(),
-			"Start Positions Configuration File");
+					boost::program_options::value<std::string>(),
+					"Start Positions Configuration File");
 
 	if (fileName == "help") {
 		desc.print(std::cout);
@@ -117,6 +151,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		return boost::shared_ptr<RobogenConfig>();
 	}
 
+	const boost::filesystem::path filePath(fileName);
+
 	terrainType = vm["terrainType"].as<std::string>();
 	terrainLength = vm["terrainLength"].as<float>();
 	terrainWidth = vm["terrainWidth"].as<float>();
@@ -146,6 +182,17 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		}
 
 		terrainHeightField = vm["terrainHeightField"].as<std::string>();
+		const boost::filesystem::path terrainHeightFieldFilePath(
+				terrainHeightField);
+		if (!terrainHeightFieldFilePath.is_absolute()) {
+			const boost::filesystem::path absolutePath =
+					boost::filesystem::absolute(terrainHeightFieldFilePath,
+							filePath.parent_path());
+			terrainHeightField = absolutePath.string();
+		}
+
+
+
 		terrainHeight = vm["terrainHeight"].as<float>();
 
 		terrain.reset(
@@ -166,7 +213,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	}
 
 
-	const boost::filesystem::path filePath(fileName);
+
 
 	std::string obstaclesConfigFile =
 			vm["obstaclesConfigFile"].as<std::string>();
@@ -258,9 +305,9 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 				<< fileName << "'" << ", will actuate every timeStep."
 				<< std::endl;
 	} else {
-		int actuationFrequencyTmp = (int) (
+		int actuationFrequencyTmp = boost::math::iround (
 				(1.0/((float)vm["actuationFrequency"].as<int>())) * 100000);
-		int timeStepTmp = (int) (timeStep * 100000);
+		int timeStepTmp = boost::math::iround (timeStep * 100000);
 		if ((actuationFrequencyTmp % timeStepTmp) != 0) {
 			std::cout << "Inverse of 'actuationFrequency' must be a multiple "
 					<< "of 'timeStep'" << std::endl;
@@ -269,15 +316,54 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		actuationPeriod = actuationFrequencyTmp / timeStepTmp;
 	}
 
+	// noise
+
+	float sensorNoiseLevel = 0;
+	float motorNoiseLevel = 0;
+
+
+
+	if(vm.count("sensorNoiseLevel")) {
+		sensorNoiseLevel = vm["sensorNoiseLevel"].as<float>();
+	}
+
+	if(vm.count("motorNoiseLevel")) {
+		motorNoiseLevel = vm["motorNoiseLevel"].as<float>();
+	}
+
+	bool capAcceleration = false;
+	float maxLinearAcceleration = DEFAULT_MAX_LINEAR_ACCELERATION;
+	float maxAngularAcceleration = DEFAULT_MAX_ANGULAR_ACCELERATION;
+
+	if(vm.count("capAcceleration")) {
+		capAcceleration = vm["capAcceleration"].as<bool>();
+	}
+
+	if(vm.count("maxLinearAcceleration")) {
+		maxLinearAcceleration = vm["maxLinearAcceleration"].as<float>();
+	}
+
+	if(vm.count("maxAngularAcceleration")) {
+		maxAngularAcceleration = vm["maxAngularAcceleration"].as<float>();
+	}
+
+	int maxDirectionShiftsPerSecond = -1;
+	if(vm.count("maxDirectionShiftsPerSecond")) {
+		maxDirectionShiftsPerSecond = vm["maxDirectionShiftsPerSecond"
+		                                 ].as<int>();
+	}
+
 	return boost::shared_ptr<RobogenConfig>(
 			new RobogenConfig(simulationScenario, nTimesteps,
 					timeStep, actuationPeriod, terrain,
 					obstacles, obstaclesConfigFile, startPositions,
-					startPositionFile, lightSourceHeight));
+					startPositionFile, lightSourceHeight, sensorNoiseLevel,
+					motorNoiseLevel, capAcceleration, maxLinearAcceleration,
+					maxAngularAcceleration, maxDirectionShiftsPerSecond));
 
 }
 
-const std::string getMatchNFloatPattern(int n) {
+const std::string getMatchNFloatPattern(unsigned int n) {
 	std::stringstream paternSS;
 	paternSS << "^";
 	for ( unsigned i=0; i<n; i++) {
@@ -475,8 +561,12 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 					actuationPeriod, terrain, obstacles, "",
 					boost::shared_ptr<StartPositionConfig>(
 							new StartPositionConfig(startPositions)), "",
-					lightSourceHeight
-
+					lightSourceHeight, simulatorConf.sensornoiselevel(),
+					simulatorConf.motornoiselevel(),
+					simulatorConf.capacceleration(),
+					simulatorConf.maxlinearacceleration(),
+					simulatorConf.maxangularacceleration(),
+					simulatorConf.maxdirectionshiftspersecond()
 					));
 
 }

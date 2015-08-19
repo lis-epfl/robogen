@@ -31,6 +31,8 @@
 #include "render/components/ActiveHingeRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 ActiveHingeRenderModel::ActiveHingeRenderModel(
@@ -46,7 +48,9 @@ ActiveHingeRenderModel::~ActiveHingeRenderModel() {
 
 bool ActiveHingeRenderModel::initRenderModel() {
 
-	bool meshLoadingA = this->partA_->loadMesh("../models/ActiveHinge_Frame.stl");
+	bool meshLoadingA = this->partA_->loadMesh(
+			RobogenUtils::getMeshFile(this->getModel(),
+			  ActiveHingeModel::B_SLOT_A_ID));
 
 	if (!meshLoadingA) {
 		std::cerr << "[ActiveHingeRenderModel] Error loading model"
@@ -55,7 +59,8 @@ bool ActiveHingeRenderModel::initRenderModel() {
 	}
 
 	bool meshLoadingB = this->partB_->loadMesh(
-			"../models/ActiveCardanHinge_Servo_Holder.stl");
+			RobogenUtils::getMeshFile(this->getModel(),
+			  ActiveHingeModel::B_SLOT_B_ID));
 
 	if (!meshLoadingB) {
 		std::cerr << "[ActiveHingeRenderModel] Error loading model"
@@ -65,71 +70,60 @@ bool ActiveHingeRenderModel::initRenderModel() {
 
 	if (isDebugActive()) {
 		this->showDebugView();
-		return true;
 	}
 
 	// PART A
 	osg::ref_ptr<osg::PositionAttitudeTransform> frame =
 			this->partA_->getMesh();
 
-	partA_->setColor(osg::Vec4(1, 0, 0, 1));
-	partB_->setColor(osg::Vec4(0, 1, 0, 1));
+	partA_->setColor(osg::Vec4(1, 0, 0, 0.5));
+	partB_->setColor(osg::Vec4(0, 1, 0, 0.5));
 
-	frame->setPosition(
-			fromOde(
-					osg::Vec3(
-							ActiveHingeModel::FRAME_LENGTH / 2 -
-							ActiveHingeModel::SLOT_THICKNESS, 0,
-							0)));
-	frame->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0)));
+
+	frame->setPosition(RobogenUtils::getRelativePosition(this->getModel(),
+			  ActiveHingeModel::B_SLOT_A_ID));
+
+	frame->setAttitude(RobogenUtils::getRelativeAttitude(this->getModel(),
+			  ActiveHingeModel::B_SLOT_A_ID));
+
 	osg::ref_ptr<osg::PositionAttitudeTransform> patFrame(
 			new osg::PositionAttitudeTransform());
 	patFrame->addChild(frame);
 
-	this->getRootNode()->addChild(patFrame.get());
+	this->getMeshes()->addChild(patFrame.get());
 	patFrame->setUpdateCallback(
 			new BodyCallback(this->getModel(), ActiveHingeModel::B_SLOT_A_ID));
 
 	// PART B
-	float servoMeshCorrection = inMm(2.2);
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> servo =
 			this->partB_->getMesh();
-	servo->setPosition(
-			fromOde(
-					osg::Vec3(
-							-(ActiveHingeModel::SERVO_LENGTH / 2) - servoMeshCorrection, 0,
-							0)));
+	servo->setPosition(RobogenUtils::getRelativePosition(this->getModel(),
+			  ActiveHingeModel::B_SLOT_B_ID));
 
-	servo->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 0, 1)) *
-			osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 1, 0)));
+	servo->setAttitude(RobogenUtils::getRelativeAttitude(this->getModel(),
+			  ActiveHingeModel::B_SLOT_B_ID));
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patServo(
 			new osg::PositionAttitudeTransform());
 	patServo->addChild(servo.get());
 
-	this->getRootNode()->addChild(patServo.get());
+	this->getMeshes()->addChild(patServo.get());
 	patServo->setUpdateCallback(
 			new BodyCallback(this->getModel(), ActiveHingeModel::B_SLOT_B_ID));
 
-	return true;
 
+	if(isDebugActive()) {
+		this->activateTransparency(patFrame->getOrCreateStateSet());
+		this->activateTransparency(patServo->getOrCreateStateSet());
+	}
+
+	return true;
 }
 
 void ActiveHingeRenderModel::showDebugView() {
+	std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > pats = this->attachGeoms();
 
-	this->attachBox(ActiveHingeModel::B_SLOT_A_ID,
-			ActiveHingeModel::SLOT_THICKNESS, ActiveHingeModel::SLOT_WIDTH,
-			ActiveHingeModel::SLOT_WIDTH);
-	this->attachBox(ActiveHingeModel::B_SLOT_B_ID,
-			ActiveHingeModel::SLOT_THICKNESS, ActiveHingeModel::SLOT_WIDTH,
-			ActiveHingeModel::SLOT_WIDTH);
-	this->attachBox(ActiveHingeModel::B_FRAME_ID,
-			ActiveHingeModel::FRAME_LENGTH, ActiveHingeModel::SLOT_WIDTH,
-			ActiveHingeModel::FRAME_HEIGHT);
-	this->attachBox(ActiveHingeModel::B_SERVO_ID,
-			ActiveHingeModel::SERVO_LENGTH, ActiveHingeModel::SLOT_WIDTH,
-			ActiveHingeModel::SERVO_HEIGHT);
 
 }
 

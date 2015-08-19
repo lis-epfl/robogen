@@ -30,8 +30,18 @@
 #define ROBOGEN_COLLISION_H_
 
 #include "Robogen.h"
+#include <boost/shared_ptr.hpp>
+#include "config/RobogenConfig.h"
 
 namespace robogen {
+
+//useful container in case we want to have access to other data
+//within the callback
+struct CollisionData {
+	boost::shared_ptr<RobogenConfig> config;
+};
+
+
 
 /**
  * Handles collisions between two ODE geometries.

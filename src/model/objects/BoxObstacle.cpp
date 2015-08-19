@@ -36,7 +36,7 @@ BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
 		size_(size) {
 
 
-	if (density >= RobogenUtils::OSG_EPSILON){
+	if (density >= RobogenUtils::OSG_EPSILON_2){
 		// if not fixed, create body
 		box_ = dBodyCreate(odeWorld);
 		dMass massOde;
@@ -56,7 +56,7 @@ BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
 	if (box_ != 0)
 		dBodySetPosition(box_, pos.x(), pos.y(), pos.z());
 
-	if (rotationAngle >= RobogenUtils::OSG_EPSILON){
+	if (rotationAngle >= RobogenUtils::OSG_EPSILON_2){
 		osg::Quat rotation;
 		rotation.makeRotate(rotationAngle,rotationAxis);
 		dQuaternion quatOde;

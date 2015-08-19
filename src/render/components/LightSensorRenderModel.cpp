@@ -31,6 +31,8 @@
 #include "render/components/LightSensorRenderModel.h"
 #include "render/Mesh.h"
 
+#include "utils/RobogenUtils.h"
+
 namespace robogen {
 
 LightSensorRenderModel::LightSensorRenderModel(
@@ -48,11 +50,14 @@ bool LightSensorRenderModel::initRenderModel() {
 	bool meshLoadingA;
 
 	if (internalSensor_) {
-		meshLoadingA = this->partA_->loadMesh(
-				"../models/LightSensor_Internal.stl");
+		std::cerr << "Internal light sensor has been deprecated" << std::endl;
+		return false;
+		//meshLoadingA = this->partA_->loadMesh(
+		//		"../models/LightSensor_Internal.stl");
 	} else {
 		meshLoadingA = this->partA_->loadMesh(
-				"../models/LightSensor_External.stl");
+				RobogenUtils::getMeshFile(this->getModel(),
+						LightSensorModel::B_SENSOR_BASE_ID));
 	}
 
 	if (!meshLoadingA) {
@@ -63,31 +68,44 @@ bool LightSensorRenderModel::initRenderModel() {
 
 	if (isDebugActive()) {
 		this->showDebugView();
-		return true;
 	}
 
 	// PART A
 	osg::ref_ptr<osg::PositionAttitudeTransform> partA =
 			this->partA_->getMesh();
 
-	partA_->setColor(osg::Vec4(1, 0, 0, 1));
+	partA_->setColor(osg::Vec4(1, 0, 0, 0.5));
 
 	if (internalSensor_) {
-		partA->setPosition(osg::Vec3(-7, 0, 0));
-		partA->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
+		std::cerr << "Internal light sensor has been deprecated" << std::endl;
+		return false;
 	} else {
-		partA->setPosition(osg::Vec3(7, 0, 0));
-		partA->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
+		partA->setPosition(
+				RobogenUtils::getRelativePosition(this->getModel(),
+						LightSensorModel::B_SENSOR_BASE_ID));
+
+		// NOTE : For un unknown reason the webgl STL loader and the C++ loader loads this model differently.
+		//        Since there is no specific code for each model in the webgl engine it is cleaner to
+		//        differentiate this behavior here
+		partA->setAttitude(
+				RobogenUtils::getRelativeAttitude(this->getModel(),
+						LightSensorModel::B_SENSOR_BASE_ID)
+						* osg::Quat(osg::inDegrees(-180.0),
+								osg::Vec3(0, 0, 1)));
 	}
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patPartA(
 			new osg::PositionAttitudeTransform());
 	patPartA->addChild(partA);
 
-	this->getRootNode()->addChild(patPartA.get());
+	this->getMeshes()->addChild(patPartA.get());
 	patPartA->setUpdateCallback(
 			new BodyCallback(this->getModel(),
 					LightSensorModel::B_SENSOR_BASE_ID));
+
+	if (isDebugActive()) {
+		this->activateTransparency(patPartA->getOrCreateStateSet());
+	}
 
 	return true;
 
@@ -95,12 +113,7 @@ bool LightSensorRenderModel::initRenderModel() {
 
 void LightSensorRenderModel::showDebugView() {
 
-	this->attachBox(LightSensorModel::B_SENSOR_BASE_ID,
-			LightSensorModel::SENSOR_BASE_THICKNESS,
-			LightSensorModel::SENSOR_BASE_WIDTH,
-			LightSensorModel::SENSOR_BASE_WIDTH);
-	this->attachAxis(this->getRootNode());
-
+	this->attachGeoms();
 }
 
 void LightSensorRenderModel::setColor(osg::Vec4 color) {

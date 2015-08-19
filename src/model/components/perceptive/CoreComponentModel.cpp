@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -31,10 +31,11 @@
 namespace robogen {
 
 // mass of just the brick
-const float CoreComponentModel::BRICK_MASS = inGrams(14.9);
+const float CoreComponentModel::BRICK_MASS = inGrams(10.2);//inGrams(14.9);
 // mass of brick with electronics (including battery)
-const float CoreComponentModel::CORE_MASS = inGrams(55.4);
-const float CoreComponentModel::WIDTH = inMm(46.5);
+const float CoreComponentModel::CORE_MASS = inGrams(10.2 + 34.3);//inGrams(14.9 + 40.5);
+const float CoreComponentModel::HEIGHT = inMm(35.5);
+const float CoreComponentModel::WIDTH = inMm(41);//inMm(46.5);
 
 CoreComponentModel::CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id, bool hasSensors) :
@@ -55,7 +56,7 @@ bool CoreComponentModel::initModel() {
 	coreComponent_ = this->createBody(B_CORE_COMPONENT_ID);
 	this->createBoxGeom(coreComponent_, hasSensors_ ? CORE_MASS : BRICK_MASS,
 			osg::Vec3(0, 0, 0), WIDTH, WIDTH,
-			WIDTH);
+			HEIGHT);
 
 	return true;
 }
@@ -70,9 +71,9 @@ dBodyID CoreComponentModel::getSlot(unsigned int /*i*/) {
 
 osg::Vec3 CoreComponentModel::getSlotPosition(unsigned int i) {
 
-	if (i > 5) {
+	if (i >= NUM_SLOTS) {
 		std::cout << "[CoreComponentModel] Invalid slot: " << i << std::endl;
-		assert(i <= 5);
+		assert(i < NUM_SLOTS);
 	}
 
 	osg::Vec3 curPos = this->getRootPosition();
@@ -85,9 +86,9 @@ osg::Vec3 CoreComponentModel::getSlotPosition(unsigned int i) {
 
 osg::Vec3 CoreComponentModel::getSlotAxis(unsigned int i) {
 
-	if (i > 5) {
+	if (i >= NUM_SLOTS) {
 		std::cout << "[CoreComponentModel] Invalid slot: " << i << std::endl;
-		assert(i <= 5);
+		assert(i < NUM_SLOTS);
 	}
 
 	osg::Quat quat = this->getRootAttitude();
@@ -102,17 +103,6 @@ osg::Vec3 CoreComponentModel::getSlotAxis(unsigned int i) {
 
 		// Right face
 		axis.set(1, 0, 0);
-
-	} else if (i == TOP_FACE_SLOT) {
-
-		// Top face
-		axis.set(0, 0, 1);
-
-	} else if (i == BOTTOM_FACE_SLOT) {
-
-		// Bottom face
-		axis.set(0, 0, -1);
-
 	} else if (i == FRONT_FACE_SLOT) {
 
 		// Front face
@@ -124,6 +114,19 @@ osg::Vec3 CoreComponentModel::getSlotAxis(unsigned int i) {
 		axis.set(0, 1, 0);
 
 	}
+#ifndef ENFORCE_PLANAR
+	else if (i == TOP_FACE_SLOT) {
+
+		// Top face
+		axis.set(0, 0, 1);
+
+	} else if (i == BOTTOM_FACE_SLOT) {
+
+		// Bottom face
+		axis.set(0, 0, -1);
+	}
+#endif
+
 
 	return quat * axis;
 
@@ -131,9 +134,9 @@ osg::Vec3 CoreComponentModel::getSlotAxis(unsigned int i) {
 
 osg::Vec3 CoreComponentModel::getSlotOrientation(unsigned int i) {
 
-	if (i > 5) {
+	if (i >= NUM_SLOTS) {
 		std::cout << "[CoreComponentModel] Invalid slot: " << i << std::endl;
-		assert(i <= 5);
+		assert(i < NUM_SLOTS);
 	}
 
 	osg::Quat quat = this->getRootAttitude();
@@ -148,17 +151,6 @@ osg::Vec3 CoreComponentModel::getSlotOrientation(unsigned int i) {
 
 		// Right face
 		tangent.set(0, 1, 0);
-
-	} else if (i == TOP_FACE_SLOT) {
-
-		// Top face
-		tangent.set(1, 0, 0);
-
-	} else if (i == BOTTOM_FACE_SLOT) {
-
-		// Bottom face
-		tangent.set(1, 0, 0);
-
 	} else if (i == FRONT_FACE_SLOT) {
 
 		// Front face
@@ -170,6 +162,18 @@ osg::Vec3 CoreComponentModel::getSlotOrientation(unsigned int i) {
 		tangent.set(0, 0, 1);
 
 	}
+#ifndef ENFORCE_PLANAR
+	else if (i == TOP_FACE_SLOT) {
+
+		// Top face
+		tangent.set(1, 0, 0);
+
+	} else if (i == BOTTOM_FACE_SLOT) {
+
+		// Bottom face
+		tangent.set(1, 0, 0);
+	}
+#endif
 
 	return quat * tangent;
 

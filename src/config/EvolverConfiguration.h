@@ -270,7 +270,16 @@ typedef struct EvolverConfiguration {
 	bool continuousTime;
 
 
+	/**
+	 * NEAT/HyperNEAT parameters
+	 */
 	NEAT::Parameters neatParams;
+
+	/**
+	 * File for NEAT/HyperNEAT parameters
+	 */
+	std::string neatParamsFile;
+
 
 
 

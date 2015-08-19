@@ -160,6 +160,11 @@ public:
 	std::vector<dBodyID> getBodies();
 
 	/**
+	 * @return all the bodies belonging to this model
+	 */
+	std::vector<int> getIDs();
+
+	/**
 	 * Create the specified body
 	 * @param body label. If the label is negative, does not register the body in the list of bodies of this model.
 	 */
@@ -225,6 +230,17 @@ public:
 	 */
 	int getOrientationToParentSlot();
 
+	/**
+	 * Specify parent's orientation relative to root (increments of 90 degrees)
+	 * @param orientation integer between 0 and 3, specifying the amount of
+	 * 90 degree increments of parent relative to root
+	 * Needed to enforce "planarity" of bricks
+	 */
+	bool setParentOrientation(int orientation);
+
+
+	int getOrientationToRoot();
+
 protected:
 
 	/**
@@ -260,6 +276,8 @@ private:
 	 * increments of 90 degrees when attaching to the parent part.
 	 */
 	int orientationToParentSlot_;
+
+	int orientationToRoot_;
 
 };
 

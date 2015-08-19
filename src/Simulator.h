@@ -31,6 +31,7 @@
 #define SIMULATOR_H_
 
 #include <boost/shared_ptr.hpp>
+#include <boost/random.hpp>
 
 #include "Robogen.h"
 #include "config/RobogenConfig.h"
@@ -38,8 +39,6 @@
 #include "viewer/FileViewerLog.h"
 #include "viewer/Viewer.h"
 
-#define CAP_ACCELERATION
-#define MAX_ACCELERATION (15.0)
 #define MIN_FITNESS (-10000.0)
 
 namespace robogen{
@@ -67,12 +66,14 @@ enum result{
  */
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
-		const robogenMessage::Robot &robotMessage, Viewer *viewer);
+		const robogenMessage::Robot &robotMessage, Viewer *viewer,
+		boost::random::mt19937 &rng);
 
 
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
 		const robogenMessage::Robot &robotMessage, Viewer *viewer,
+		boost::random::mt19937 &rng,
 		bool onlyOnce, boost::shared_ptr<FileViewerLog> log);
 
 

@@ -2,9 +2,10 @@
  * @(#) LightSensor.cpp   1.0   Feb 25, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2013 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -33,25 +34,44 @@
 
 namespace robogen {
 
+//TODO - Are these used at all?  Remove
 const float LightSensor::MIN_INTENSITY_VALUE = 0;
 const float LightSensor::MAX_INTENSITY_VALUE = 1;
 const double LightSensor::MIN_INTENSITY = 0;
 const double LightSensor::MAX_INTENSITY = 100;
 const double LightSensor::HALF_APERTURE = 15;
 
-double LightSensor::lightIntensity(double angle, double distance){
-	double intensity = 1;
+double LightSensor::getIntensity(double angle, double lightIntensity,
+		double distance){
+	double intensity = lightIntensity;
 	// first, angular dependency
 	// Compare to VISHAY BPW85B data sheet: 0->1, 10->.9, 20->.7, 30->.4, 40->.1
 	// in octave: polyfit([0 10 20 30 40], [1 .9 .7 .4 .1], 2)
 	// returns: -3.5714e-04  -8.7143e-03   1.0086e+00
 	angle *= 180./M_PI;
-	intensity *= (1. - 0.0087143*angle - 0.00035714*angle*angle);
+	//intensity *= (1.0086 - 0.0087143*angle - 0.00035714*angle*angle);
+
+	// hardware tests showed a different response pattern, possibly due to the
+	// plastic cylinder around the sensor?  TODO: more tests to verify
+	// this response patter appears much more logistic
+	// fit a logistic function to data
+	// measured at .5 meter: 0->0.72, 10->0.66, 20->0.26, 30->0.06, 40->0.05
+	// 1.0 / (1.0 + exp(0.26530016 * angle - 4.80599073))
+	intensity *= (1.0 / (1.0 + exp(0.26530016 * angle - 4.80599073)));
+
+
+
 	// then, distance dependency
-	// currently arbitrarily 1/r^2, saturation for r<1m
-	if (distance > 1.){
-		intensity /= (distance*distance);
-	}
+	// based on fitted inverse square to hardware test
+	// [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 2]
+	// -> [.98, .7, .53, .4, .3, .25, .2, .17, .15, .13, .11, .08]
+	//
+	// 0.15634027 / (distance^2)
+
+	double distanceFactor = 0.15634027 / (distance * distance);
+	// threshold at 1, so won't saturate sensor if at an angle
+	if (distanceFactor < 1.0)
+		intensity *= distanceFactor;
 	return intensity;
 }
 
@@ -106,9 +126,7 @@ float LightSensor::read(
 		double ambientLight) {
 
 	// add ambient light anyways
-	ambientLight = 0; //TODO temporary
 	float totalLight = ambientLight;
-
 	// For each light source, we trace a ray to the given sensor
 	for (unsigned int i=0; i<lightSources.size(); i++){
 		// calculations
@@ -123,7 +141,7 @@ float LightSensor::read(
 		osg::Vec3 sensorRel = attitude_.inverse() * sensorToLight;
 		sensorRel.normalize();
 		double angle = acos(sensorRel.x());
-		if (angle*180/M_PI < 40){
+		if (angle*180/M_PI < 42){
 			// prepare collision data structure
 			RayTrace data;
 			data.visible = true;
@@ -136,7 +154,9 @@ float LightSensor::read(
 					LightSensor::collisionCallback);
 			// calculate intensity from angle if visible
 			if (data.visible){
-				totalLight += lightIntensity(angle, sensorToLight.length());
+				totalLight += getIntensity(angle,
+						lightSources[i]->getIntensity(),
+						sensorToLight.length());
 			}
 		}
 		dGeomDestroy(ray);

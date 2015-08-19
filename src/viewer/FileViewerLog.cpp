@@ -51,6 +51,7 @@
 #define BODY_FILE "bodyRepresentation.txt"
 #define LOG_COL_WIDTH 12
 #define OCTAVE_SCRIPT "robogenPlot.m"
+#define WEBGL_FILE "webGL.json"
 
 namespace robogen{
 
@@ -58,22 +59,31 @@ FileViewerLog::FileViewerLog(std::string robotFile,
 		std::string confFile,
 		std::string obstacleFile,
 		std::string startPosFile,
-		std::string logFolder) :
+		std::string logFolder,
+		bool overwrite,
+		bool writeWebGL) :
 			robotFile_(robotFile),
 			confFile_(confFile),
 			obstacleFile_(obstacleFile),
 			startPosFile_(startPosFile),
-			logFolder_(logFolder) {
+			logFolder_(logFolder),
+			overwrite_(overwrite),
+			writeWebGL_(writeWebGL) {
 }
 
 bool FileViewerLog::init(boost::shared_ptr<Robot> robot,
 		boost::shared_ptr<RobogenConfig> config) {
 	std::string tempPath = logFolder_;
 	int curIndex = 0;
-	while (boost::filesystem::is_directory(tempPath)) {
-		std::stringstream newPath;
-		newPath << logFolder_ << "_" << ++curIndex;
-		tempPath = newPath.str();
+
+	if (overwrite_) {
+		boost::filesystem::remove_all(tempPath);
+	} else {
+		while (boost::filesystem::is_directory(tempPath)) {
+			std::stringstream newPath;
+			newPath << logFolder_ << "_" << ++curIndex;
+			tempPath = newPath.str();
+		}
 	}
 
 	logPath_ = tempPath;
@@ -233,6 +243,10 @@ void FileViewerLog::logMotors(float motorValues[], int n){
 	for (int i=0; i<n; i++)
 		motorLog_ << std::setw(LOG_COL_WIDTH) << motorValues[i] << " ";
 	motorLog_ << std::endl;
+}
+
+std::string FileViewerLog::getWebGLFileName() {
+	return logPath_ + "/" + WEBGL_FILE;
 }
 
 }

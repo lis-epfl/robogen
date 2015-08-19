@@ -58,7 +58,9 @@ public:
 		std::string confFile,
 		std::string obstacleFile,
 		std::string startPosFile,
-		std::string logFolder);
+		std::string logFolder,
+		bool overwrite = false,
+		bool writeWebGL = false);
 
 	/**
 	 * Initializes the directory, copies the inputs and opens the log files for
@@ -88,6 +90,10 @@ public:
 	 */
 	void logMotors(float motorValues[], int n);
 
+	inline bool isWriteWebGL() { return writeWebGL_; }
+
+	std::string getWebGLFileName();
+
 private:
 	std::ofstream trajectoryLog_;
 	std::ofstream sensorLog_;
@@ -102,6 +108,9 @@ private:
 	std::string obstacleFile_;
 	std::string startPosFile_;
 	std::string logFolder_;
+
+	bool overwrite_;
+	bool writeWebGL_;
 
 };
 

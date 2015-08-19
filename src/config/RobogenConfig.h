@@ -58,7 +58,10 @@ public:
 			boost::shared_ptr<ObstaclesConfig> obstacles,
 			std::string obstacleFile,
 			boost::shared_ptr<StartPositionConfig> startPositions,
-			std::string startPosFile, float lightSourceHeight) :
+			std::string startPosFile, float lightSourceHeight,
+			float sensorNoiseLevel, float motorNoiseLevel,
+			bool capAcceleration, float maxLinearAcceleration,
+			float maxAngularAcceleration, int maxDirectionShiftsPerSecond) :
 				scenario_(scenario), timeSteps_(timeSteps),
 				timeStepLength_(timeStepLength),
 				actuationPeriod_(actuationPeriod),
@@ -66,7 +69,13 @@ public:
 				obstacleFile_(obstacleFile),
 				startPositions_(startPositions),
 				startPosFile_(startPosFile),
-				lightSourceHeight_(lightSourceHeight) {
+				lightSourceHeight_(lightSourceHeight),
+				sensorNoiseLevel_(sensorNoiseLevel),
+				motorNoiseLevel_(motorNoiseLevel),
+				capAcceleration_(capAcceleration),
+				maxLinearAcceleration_(maxLinearAcceleration),
+				maxAngularAcceleration_(maxAngularAcceleration),
+				maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -162,6 +171,53 @@ public:
 	}
 
 	/**
+	 * @return sensor noise level
+	 * Sensor noise is Gaussian with std dev of sensorNoiseLevel * actualValue
+	 * i.e. value given to Neural Network is N(a, a * s)
+	 * where a is actual value and s is sensorNoiseLevel
+	 */
+	float getSensorNoiseLevel() {
+		return sensorNoiseLevel_;
+	}
+
+	/**
+	 * @return motor noise level
+	 * Motor noise is uniform in range +/- motorNoiseLevel * actualValue
+	 */
+	float getMotorNoiseLevel() {
+		return motorNoiseLevel_;
+	}
+
+	/**
+	 * @return if acceleration is capped
+	 */
+	bool isCapAlleration() {
+		return capAcceleration_;
+	}
+
+	/**
+	 * @return max linear acceleration (if capped)
+	 */
+	float getMaxLinearAcceleration() {
+		return maxLinearAcceleration_;
+	}
+
+	/**
+	 * @return max angular acceleration (if capped)
+	 */
+	float getMaxAngularAcceleration() {
+		return maxAngularAcceleration_;
+	}
+
+	/**
+	 * @return max direction shifts per second for testing motor burnout
+	 * 		if -1, then do not check burnout
+	 */
+	int getMaxDirectionShiftsPerSecond() {
+		return maxDirectionShiftsPerSecond_;
+	}
+
+	/**
 	 * Convert configuration into configuration message.
 	 */
 	robogenMessage::SimulatorConf serialize() const{
@@ -178,6 +234,13 @@ public:
 		ret.set_timestep(timeStepLength_);
 		ret.set_actuationperiod(actuationPeriod_);
 		ret.set_terrainfriction(terrain_->getFriction());
+		ret.set_sensornoiselevel(sensorNoiseLevel_);
+		ret.set_motornoiselevel(motorNoiseLevel_);
+		ret.set_capacceleration(capAcceleration_);
+		ret.set_maxlinearacceleration(maxLinearAcceleration_);
+		ret.set_maxangularacceleration(maxAngularAcceleration_);
+		ret.set_maxdirectionshiftspersecond(maxDirectionShiftsPerSecond_);
+
 		obstacles_->serialize(ret);
 		startPositions_->serialize(ret);
 		return ret;
@@ -240,7 +303,37 @@ private:
 	 */
 	float simulationTime_;
 
+	/**
+	 * Sensor noise level (see getter for details)
+	 */
+	float sensorNoiseLevel_;
 
+	/**
+	 * Motor noise level (see getter for details)
+	 */
+	float motorNoiseLevel_;
+
+
+	/**
+	 *  Flag to enforce acceleration cap.  Useful for preventing unrealistic
+	 *  behaviors / simulator exploits
+	 */
+	bool capAcceleration_;
+
+	/**
+	 *  Maximum allowed linear acceleration if acceleration is capped
+	 */
+	float maxLinearAcceleration_;
+
+	/**
+	 *  Maximum allowed angular acceleration if acceleration is capped
+	 */
+	float maxAngularAcceleration_;
+
+	/**
+	 *  Maximum allowed direction shifts per second (if specified)
+	 */
+	int maxDirectionShiftsPerSecond_;
 };
 
 }

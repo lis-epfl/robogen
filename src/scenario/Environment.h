@@ -30,13 +30,15 @@
 
 #include "model/objects/LightSource.h"
 
+#define DEFAULT_AMBIENT_LIGHT (0.04)
+
 namespace robogen {
 
 class Environment {
 
 public:
 
-	Environment() : timeElapsed_(0) {
+	Environment() : timeElapsed_(0), ambientLight_(DEFAULT_AMBIENT_LIGHT) {
 
 	}
 

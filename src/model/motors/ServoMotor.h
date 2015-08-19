@@ -48,16 +48,17 @@ public:
 	static const float MAX_POS_RAD;
 	static const float MIN_VELOCITY;
 	static const float MAX_VELOCITY;
-	static const int MAX_DIRECTION_SHIFTS_PER_SECOND;
 
 	/**
 	 * Apply the motor to the provided joint. Initializes a servo controlled in velocity.
 	 *
 	 * @param joint ODE joint
 	 * @param maxForce maximum force the motor can produce
+	 * @param maxDirectionShiftsPerSecond, used for testing motor burn out
+	 * 			default is -1, which means no motor burnout is tested
 	 */
 	ServoMotor(dJointID joint, float maxForce,
-			ioPair id);
+			ioPair id, int maxDirectionShiftsPerSecond=-1);
 
 	/**
 	 * Apply the motor to the provided joint. Initializes a servo controlled in position.
@@ -65,9 +66,11 @@ public:
 	 * @param joint ODE joint
 	 * @param maxForce maximum force the motor can produce
 	 * @param proportional control gain
+	 * @param maxDirectionShiftsPerSecond, used for testing motor burn out
+	 * 			default is -1, which means no motor burnout is tested
 	 */
 	ServoMotor(dJointID joint, float maxForce, float gain,
-			ioPair id);
+			ioPair id, int maxDirectionShiftsPerSecond=-1);
 
 	/**
 	 * Destructor
@@ -81,13 +84,37 @@ public:
 
 	/**
 	 * Apply PI control to the motor to reach the desired position in [0,1]
+	 *
+	 * @param position desired position of motor in [0,1]
+	 * @param stepSize the stepSize of actuation
+	 * 			(NOTE: not the physics stepSize)
 	 */
-	void setPosition(float position, float step);
+	void setDesiredPosition(float position, float stepSize);
 
 	/**
 	 * Set the velocity of the motor in [0,1]
+	 *
+	 * @param velocity desired velocity of motor in [0,1]
+	 * @param stepSize the stepSize of actuation
+	 * 			(NOTE: not the physics stepSize)
 	 */
-	void setVelocity(float velocity, float step);
+	void setDesiredVelocity(float velocity, float stepSize);
+
+	/**
+	 * step the motor using the set desired position or velocity
+	 *
+	 * @param stepSize the physics stepSize
+	*/
+	void step(float stepSize);
+
+	/**
+	 * Set the maxDirectionShifts per second for testing motor burn out
+	 * without an argument, will be set to -1 = disabled
+	 *
+	 * @param maxDirectionShiftsPerSecond max number of direction shifts to
+	 * 			tolerate per second of simulated time
+	 */
+	void setMaxDirectionShiftsPerSecond(int maxDirectionShiftsPerSecond=-1);
 
 	/**
 	 * @return true if the motor is driven in velocity
@@ -98,6 +125,15 @@ public:
 	 * @return whether the motor is burnt out or not
 	 */
 	bool isBurntOut();
+
+	dReal getTorque();
+	dReal getVelocity();
+	dReal getPosition();
+
+	inline void setGain(float gain) {
+		gain_ = gain;
+
+	}
 
 private:
 
@@ -126,16 +162,26 @@ private:
 	 */
 	unsigned int internalCounter_;
 
+	float desiredPosition_;
+	float desiredVelocity_;
+
 
 	/**
-	 * Keep track of previous velocities,
+	 * Keep track of previous motor signals,
 	 * to be used for preventing burnout
 	 */
-	std::vector<float> previousVelocities_;
+	std::vector<float> previousSignals_;
 
 	bool isBurntOut_;
 
-	void testBurnout(float velocity, float step);
+	int maxDirectionShiftsPerSecond_;
+
+	dJointFeedback  fback_;
+
+	bool shouldStep_;
+
+	void testBurnout(float stepSize);
+	void init();
 
 };
 
