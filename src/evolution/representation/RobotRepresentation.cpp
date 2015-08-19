@@ -786,7 +786,8 @@ bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
 bool RobotRepresentation::insertPart(const std::string& parentPartId,
 		unsigned int parentPartSlot,
 		boost::shared_ptr<PartRepresentation> newPart,
-		unsigned int newPartSlot) {
+		unsigned int newPartSlot,
+		unsigned int motorNeuronType) {
 
 	// Set new ID for the inserted node
 	std::string newUniqueId = this->generateUniqueIdFromSomeId();
@@ -802,7 +803,7 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId,
 	for (unsigned int i = 0; i < motors.size(); ++i) {
 		neuralNetwork_->insertNeuron(
 				ioPair(newPart->getId(), sensors.size() + i),
-				NeuronRepresentation::OUTPUT, NeuronRepresentation::SIGMOID);
+				NeuronRepresentation::OUTPUT, motorNeuronType);
 	}
 
 	// find dst part by id

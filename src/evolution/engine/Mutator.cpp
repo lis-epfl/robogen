@@ -576,7 +576,8 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	// otherwise just keep it at 0... inserting part will fail if arity is 0 and
 	// there were previously parts attached to the parent's chosen slot
 
-	return robot->insertPart(parent->first, parentSlot, newPart, newPartSlot);
+	return robot->insertPart(parent->first, parentSlot, newPart, newPartSlot,
+							 NeuronRepresentation::SIGMOID);
 
 }
 

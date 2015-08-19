@@ -90,7 +90,7 @@ boost::shared_ptr<NeatContainer> neatContainer;
 boost::shared_ptr<RobogenConfig> robotConf;
 boost::shared_ptr<EvolverConfiguration> conf;
 boost::shared_ptr<EvolverLog> log;
-bool hyperNEAT;
+bool neat;
 boost::shared_ptr<Selector> selector;
 boost::shared_ptr<Mutator> mutator;
 int generation;
@@ -227,16 +227,15 @@ void init(unsigned int seed, std::string outputDirectory,
 		}
 	}
 
-	hyperNEAT =
-			(conf->evolutionaryAlgorithm == EvolverConfiguration::HYPER_NEAT);
+	neat = (conf->evolutionaryAlgorithm == EvolverConfiguration::HYPER_NEAT);
 	population.reset(new Population());
 	if (!population->init(referenceBot, conf->mu, mutator, growBodies,
-			(!(conf->useBrainSeed || hyperNEAT)) ) ) {
+			(!(conf->useBrainSeed || neat)) ) ) {
 		std::cerr << "Error when initializing population!" << std::endl;
 		exitRobogen(EXIT_FAILURE);
 	}
 
-	if (hyperNEAT) {
+	if (neat) {
 		neatContainer.reset(new NeatContainer(conf, population, seed, rng));
 	}
 
@@ -262,7 +261,7 @@ void init(unsigned int seed, std::string outputDirectory,
 	// run evolution TODO stopping criterion
 	// ---------------------------------------
 
-	if(hyperNEAT) {
+	if(neat) {
 		if(!neatContainer->fillPopulationWeights(population)) {
 			std::cerr << "Filling weights from NEAT failed." << std::endl;
 			exitRobogen(EXIT_FAILURE);
@@ -300,7 +299,7 @@ void triggerPostEvaluate() {
 	if (generation == 1) {
 		mainEvolutionLoop();
 	} else {
-		if (hyperNEAT) {
+		if (neat) {
 			postEvaluateNEAT();
 		} else {
 			postEvaluateStd();
@@ -330,7 +329,7 @@ void mainEvolutionLoop() {
 		children.clear();
 
 		// create children
-		if (hyperNEAT) {
+		if (neat) {
 			//neatPopulation->Epoch();
 			if(!neatContainer->produceNextGeneration(population)) {
 				std::cerr << "Producing next generation from NEAT failed."
