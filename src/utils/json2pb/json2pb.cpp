@@ -303,24 +303,16 @@ void json2pb(Message &msg, const char *buf, size_t size) {
 	_json2pb(msg, root);
 }
 
-std::string pb2json(const Message &msg) {
-	/* replaced Pavel's method with the following since we were having a
-	 	 problem with callback not getting called from js
-	*/
+int json_dump_std_string(const char *buf, size_t size, void *data) {
+	std::string *s = (std::string *) data;
+	s->append(buf, size);
+	return 0;
+}
 
+std::string pb2json(const Message &msg) {
+	std::string r;
 
 	json_t *root = _pb2json(msg);
-
-	const char* key;
-	json_t *value;
-	json_object_foreach(root, key, value) {
-		if(json_is_object(value))
-			std::cout << key << " " << json_object_size(value) << std::endl;
-
-	}
-
-	char * res = json_dumps(root, JSON_INDENT(1) | JSON_PRESERVE_ORDER);
-	std::string result(res);
-	free(res);
-	return result;
+	json_dump_callback(root, json_dump_std_string, &r, JSON_INDENT(1));
+	return r;
 }
