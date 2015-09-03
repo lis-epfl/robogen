@@ -188,8 +188,11 @@ void CoreComponentModel::getSensors(
 
 void CoreComponentModel::updateSensors(boost::shared_ptr<Environment>& env) {
 	if (sensor_ != NULL) {
+		dVector3 gravity;
+		dWorldGetGravity(getPhysicsWorld(), gravity);
 		sensor_->update(this->getRootPosition(), this->getRootAttitude(),
-				env->getTimeElapsed());
+				env->getTimeElapsed(),
+				osg::Vec3(gravity[0], gravity[1], gravity[2]));
 	}
 }
 

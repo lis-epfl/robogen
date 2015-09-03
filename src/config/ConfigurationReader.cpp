@@ -34,6 +34,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 #include <boost/math/special_functions/round.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "config/ConfigurationReader.h"
 #include "config/ObstaclesConfig.h"
@@ -104,11 +105,17 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					" is true")
 			("maxDirectionShiftsPerSecond",boost::program_options::value<int>(),
 					"Maximum number of direction shifts per second"\
-					"for testing motor burnout.  If not set, then there is no"\
-					"cap")
+					" for testing motor burnout.  If not set, then there is no"\
+					" cap")
 			("startPositionConfigFile",
 					boost::program_options::value<std::string>(),
-					"Start Positions Configuration File");
+					"Start Positions Configuration File")
+			("gravity",
+					boost::program_options::value<std::string>(),
+					"Gravity: either a single z-value for g=(0,0,z)"\
+					" or x,y,z (comma separated) for full g vector."\
+					" Specified in m/(s^2)"\
+					" Defaults to (0,0,-9.81)");
 
 	if (fileName == "help") {
 		desc.print(std::cout);
@@ -128,25 +135,25 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	std::string terrainType;
 
 	if (!vm.count("terrainType")) {
-		std::cout << "Undefined 'terrainType' parameter in '" << fileName << "'"
+		std::cerr << "Undefined 'terrainType' parameter in '" << fileName << "'"
 				<< std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
 
 	if (!vm.count("terrainLength")) {
-		std::cout << "Undefined 'terrainLength' parameter in '" << fileName
+		std::cerr << "Undefined 'terrainLength' parameter in '" << fileName
 				<< "'" << std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
 
 	if (!vm.count("terrainWidth")) {
-		std::cout << "Undefined 'terrainWidth' parameter in '" << fileName
+		std::cerr << "Undefined 'terrainWidth' parameter in '" << fileName
 				<< "'" << std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
 
 	if (!vm.count("terrainFriction")) {
-		std::cout << "Undefined 'terrainFriction' parameter in '" << fileName
+		std::cerr << "Undefined 'terrainFriction' parameter in '" << fileName
 				<< "'" << std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
@@ -170,13 +177,13 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		float terrainHeight;
 
 		if (!vm.count("terrainHeightField")) {
-			std::cout << "Undefined 'terrainHeightField' parameter in '"
+			std::cerr << "Undefined 'terrainHeightField' parameter in '"
 					<< fileName << "'" << std::endl;
 			return boost::shared_ptr<RobogenConfig>();
 		}
 
 		if (!vm.count("terrainHeight")) {
-			std::cout << "Undefined 'terrainHeight' parameter in '" << fileName
+			std::cerr << "Undefined 'terrainHeight' parameter in '" << fileName
 					<< "'" << std::endl;
 			return boost::shared_ptr<RobogenConfig>();
 		}
@@ -200,14 +207,14 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 						terrainWidth, terrainHeight, terrainFriction));
 
 	} else {
-		std::cout << "Unknown value of 'terrainType' parameter in '" << fileName
+		std::cerr << "Unknown value of 'terrainType' parameter in '" << fileName
 				<< "'" << std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
 
 	// Read obstacles configuration
 	if (!vm.count("obstaclesConfigFile")) {
-		std::cout << "Undefined 'obstaclesConfigFile' parameter in '"
+		std::cerr << "Undefined 'obstaclesConfigFile' parameter in '"
 				<< fileName << "'" << std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
@@ -237,7 +244,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 
 	// Read obstacles configuration
 	if (!vm.count("startPositionConfigFile")) {
-		std::cout << "Undefined 'startPositionConfigFile' parameter in '"
+		std::cerr << "Undefined 'startPositionConfigFile' parameter in '"
 				<< fileName << "'" << std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
@@ -262,7 +269,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 
 	// Read generic parameters
 	if (!vm.count("scenario")) {
-		std::cout << "Undefined 'scenario' parameter in '" << fileName << "'"
+		std::cerr << "Undefined 'scenario' parameter in '" << fileName << "'"
 				<< std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
@@ -274,7 +281,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	} else if (scenario.compare("chasing") == 0) {
 		simulationScenario = RobogenConfig::CHASING;
 	} else {
-		std::cout << "Undefined 'scenario' parameter in '" << fileName << "'"
+		std::cerr << "Undefined 'scenario' parameter in '" << fileName << "'"
 				<< std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
@@ -285,14 +292,14 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	}
 
 	if (!vm.count("timeStep")) {
-		std::cout << "Undefined 'timeStep' parameter in '" << fileName << "'"
+		std::cerr << "Undefined 'timeStep' parameter in '" << fileName << "'"
 				<< std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
 	float timeStep = vm["timeStep"].as<float>();
 
 	if (!vm.count("nTimeSteps")) {
-		std::cout << "Undefined 'nTimesteps' parameter in '" << fileName << "'"
+		std::cerr << "Undefined 'nTimesteps' parameter in '" << fileName << "'"
 				<< std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
@@ -309,7 +316,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 				(1.0/((float)vm["actuationFrequency"].as<int>())) * 100000);
 		int timeStepTmp = boost::math::iround (timeStep * 100000);
 		if ((actuationFrequencyTmp % timeStepTmp) != 0) {
-			std::cout << "Inverse of 'actuationFrequency' must be a multiple "
+			std::cerr << "Inverse of 'actuationFrequency' must be a multiple "
 					<< "of 'timeStep'" << std::endl;
 			return boost::shared_ptr<RobogenConfig>();
 		}
@@ -353,13 +360,34 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		                                 ].as<int>();
 	}
 
+	osg::Vec3 gravity(0,0,-9.81);
+	if(vm.count("gravity")) {
+
+		std::string gravityString = vm["gravity"].as<std::string>();
+		std::vector<std::string> gravityOpts;
+		boost::split(gravityOpts, gravityString, boost::is_any_of(","));
+		if (gravityOpts.size() == 1) {
+			gravity[2] = std::atof(gravityOpts[0].c_str());
+		} else if (gravityOpts.size() == 3) {
+			for(unsigned int i=0; i<3; ++i) {
+				gravity[i] = std::atof(gravityOpts[i].c_str());
+			}
+		} else {
+			std::cerr << "'gravity' must either be a single value for " <<
+					"g=(0,0,z) or x,y,z (comma separated) for full g vector" <<
+					std::endl;
+			return boost::shared_ptr<RobogenConfig>();
+		}
+	}
+
 	return boost::shared_ptr<RobogenConfig>(
 			new RobogenConfig(simulationScenario, nTimesteps,
 					timeStep, actuationPeriod, terrain,
 					obstacles, obstaclesConfigFile, startPositions,
 					startPositionFile, lightSourceHeight, sensorNoiseLevel,
 					motorNoiseLevel, capAcceleration, maxLinearAcceleration,
-					maxAngularAcceleration, maxDirectionShiftsPerSecond));
+					maxAngularAcceleration, maxDirectionShiftsPerSecond,
+					gravity));
 
 }
 
@@ -566,7 +594,10 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 					simulatorConf.capacceleration(),
 					simulatorConf.maxlinearacceleration(),
 					simulatorConf.maxangularacceleration(),
-					simulatorConf.maxdirectionshiftspersecond()
+					simulatorConf.maxdirectionshiftspersecond(),
+					osg::Vec3(simulatorConf.gravityx(),
+							  simulatorConf.gravityy(),
+							  simulatorConf.gravityz())
 					));
 
 }
