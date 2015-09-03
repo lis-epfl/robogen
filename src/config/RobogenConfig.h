@@ -238,11 +238,9 @@ public:
 		} else if (scenario_ == RACING) {
 			ret.set_scenario("racing");
 		}
-		ret.set_terrainlength(terrain_->getLength());
-		ret.set_terrainwidth(terrain_->getWidth());
+
 		ret.set_timestep(timeStepLength_);
 		ret.set_actuationperiod(actuationPeriod_);
-		ret.set_terrainfriction(terrain_->getFriction());
 		ret.set_sensornoiselevel(sensorNoiseLevel_);
 		ret.set_motornoiselevel(motorNoiseLevel_);
 		ret.set_capacceleration(capAcceleration_);
@@ -252,6 +250,8 @@ public:
 		ret.set_gravityx(gravity_.x());
 		ret.set_gravityy(gravity_.y());
 		ret.set_gravityz(gravity_.z());
+
+		terrain_->serialize(ret);
 
 		obstacles_->serialize(ret);
 		startPositions_->serialize(ret);

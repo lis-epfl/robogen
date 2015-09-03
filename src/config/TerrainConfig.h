@@ -30,6 +30,7 @@
 #define ROBOGEN_TERRAIN_CONFIG_H_
 
 #include <string>
+#include "robogen.pb.h"
 
 namespace robogen {
 
@@ -136,6 +137,15 @@ public:
 	 */
 	float getFriction() {
 		return friction_;
+	}
+
+	void serialize(robogenMessage::SimulatorConf &message) {
+		message.set_terraintype(type_);
+		message.set_terrainheightfieldfilename(heightFieldFileName_);
+		message.set_terrainlength(length_);
+		message.set_terrainwidth(width_);
+		message.set_terrainheight(height_);
+		message.set_terrainfriction(friction_);
 	}
 
 private:

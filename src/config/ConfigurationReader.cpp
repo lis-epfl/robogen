@@ -565,10 +565,21 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 	}
 
 	// Decode terrain configuration
-	boost::shared_ptr<TerrainConfig> terrain(
-			new TerrainConfig(simulatorConf.terrainlength(),
+	boost::shared_ptr<TerrainConfig> terrain;
+	if(simulatorConf.terraintype() == TerrainConfig::EMPTY) {
+		terrain.reset(new TerrainConfig(simulatorConf.terrainfriction()));
+	} else if(simulatorConf.terraintype() == TerrainConfig::FLAT) {
+		terrain.reset(new TerrainConfig(simulatorConf.terrainlength(),
 					simulatorConf.terrainwidth(),
 					simulatorConf.terrainfriction()));
+	} else if(simulatorConf.terraintype() == TerrainConfig::ROUGH) {
+		terrain.reset(new TerrainConfig(
+							simulatorConf.terrainheightfieldfilename(),
+							simulatorConf.terrainlength(),
+							simulatorConf.terrainwidth(),
+							simulatorConf.terrainheight(),
+							simulatorConf.terrainfriction()));
+	}
 
 	// Decode simulator configuration
 	RobogenConfig::SimulationScenario simulationScenario;
