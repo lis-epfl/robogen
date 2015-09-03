@@ -128,6 +128,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					desc, true), vm);
 	boost::program_options::notify(vm);
 
+	const boost::filesystem::path filePath(fileName);
+
 	// Read terrain configuration
 	float terrainLength;
 	float terrainWidth;
@@ -139,77 +141,79 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 				<< std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
-
-	if (!vm.count("terrainLength")) {
-		std::cerr << "Undefined 'terrainLength' parameter in '" << fileName
-				<< "'" << std::endl;
-		return boost::shared_ptr<RobogenConfig>();
-	}
-
-	if (!vm.count("terrainWidth")) {
-		std::cerr << "Undefined 'terrainWidth' parameter in '" << fileName
-				<< "'" << std::endl;
-		return boost::shared_ptr<RobogenConfig>();
-	}
+	terrainType = vm["terrainType"].as<std::string>();
 
 	if (!vm.count("terrainFriction")) {
 		std::cerr << "Undefined 'terrainFriction' parameter in '" << fileName
 				<< "'" << std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
-
-	const boost::filesystem::path filePath(fileName);
-
-	terrainType = vm["terrainType"].as<std::string>();
-	terrainLength = vm["terrainLength"].as<float>();
-	terrainWidth = vm["terrainWidth"].as<float>();
 	terrainFriction = vm["terrainFriction"].as<float>();
 
 	boost::shared_ptr<TerrainConfig> terrain;
-	if (terrainType.compare("flat") == 0) {
-
-		terrain.reset(new TerrainConfig(terrainLength, terrainWidth,
-				terrainFriction));
-
-	} else if (terrainType.compare("rugged") == 0) {
-
-		std::string terrainHeightField;
-		float terrainHeight;
-
-		if (!vm.count("terrainHeightField")) {
-			std::cerr << "Undefined 'terrainHeightField' parameter in '"
-					<< fileName << "'" << std::endl;
-			return boost::shared_ptr<RobogenConfig>();
-		}
-
-		if (!vm.count("terrainHeight")) {
-			std::cerr << "Undefined 'terrainHeight' parameter in '" << fileName
+	if (terrainType.compare("empty") == 0) {
+		terrain.reset(new TerrainConfig(terrainFriction));
+	} else {
+		// if have empty terrain don't need these values, and leave terrain NULL
+		if (!vm.count("terrainLength")) {
+			std::cerr << "Undefined 'terrainLength' parameter in '" << fileName
 					<< "'" << std::endl;
 			return boost::shared_ptr<RobogenConfig>();
 		}
+		terrainLength = vm["terrainLength"].as<float>();
 
-		terrainHeightField = vm["terrainHeightField"].as<std::string>();
-		const boost::filesystem::path terrainHeightFieldFilePath(
-				terrainHeightField);
-		if (!terrainHeightFieldFilePath.is_absolute()) {
-			const boost::filesystem::path absolutePath =
-					boost::filesystem::absolute(terrainHeightFieldFilePath,
-							filePath.parent_path());
-			terrainHeightField = absolutePath.string();
+		if (!vm.count("terrainWidth")) {
+			std::cerr << "Undefined 'terrainWidth' parameter in '" << fileName
+					<< "'" << std::endl;
+			return boost::shared_ptr<RobogenConfig>();
 		}
+		terrainWidth = vm["terrainWidth"].as<float>();
+
+		if (terrainType.compare("flat") == 0) {
+
+			terrain.reset(new TerrainConfig(terrainLength, terrainWidth,
+					terrainFriction));
+
+		} else if (terrainType.compare("rugged") == 0) {
+
+			std::string terrainHeightField;
+			float terrainHeight;
+
+			if (!vm.count("terrainHeightField")) {
+				std::cerr << "Undefined 'terrainHeightField' parameter in '"
+						<< fileName << "'" << std::endl;
+				return boost::shared_ptr<RobogenConfig>();
+			}
+
+			if (!vm.count("terrainHeight")) {
+				std::cerr << "Undefined 'terrainHeight' parameter in '" << fileName
+						<< "'" << std::endl;
+				return boost::shared_ptr<RobogenConfig>();
+			}
+
+			terrainHeightField = vm["terrainHeightField"].as<std::string>();
+			const boost::filesystem::path terrainHeightFieldFilePath(
+					terrainHeightField);
+			if (!terrainHeightFieldFilePath.is_absolute()) {
+				const boost::filesystem::path absolutePath =
+						boost::filesystem::absolute(terrainHeightFieldFilePath,
+								filePath.parent_path());
+				terrainHeightField = absolutePath.string();
+			}
 
 
 
-		terrainHeight = vm["terrainHeight"].as<float>();
+			terrainHeight = vm["terrainHeight"].as<float>();
 
-		terrain.reset(
-				new TerrainConfig(terrainHeightField, terrainLength,
-						terrainWidth, terrainHeight, terrainFriction));
+			terrain.reset(
+					new TerrainConfig(terrainHeightField, terrainLength,
+							terrainWidth, terrainHeight, terrainFriction));
 
-	} else {
-		std::cerr << "Unknown value of 'terrainType' parameter in '" << fileName
-				<< "'" << std::endl;
-		return boost::shared_ptr<RobogenConfig>();
+		} else {
+			std::cerr << "Unknown value of 'terrainType' parameter in '" << fileName
+					<< "'" << std::endl;
+			return boost::shared_ptr<RobogenConfig>();
+		}
 	}
 
 	// Read obstacles configuration

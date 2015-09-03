@@ -41,7 +41,7 @@ TerrainRender::TerrainRender(boost::shared_ptr<Terrain> terrain) {
 	rootNode_ = osg::ref_ptr<osg::PositionAttitudeTransform>(
 			new osg::PositionAttitudeTransform);
 
-	if (terrain->isFlat()) {
+	if (terrain->getType() == TerrainConfig::FLAT) {
 
 		// Generate a flat terrain
 
@@ -58,7 +58,7 @@ TerrainRender::TerrainRender(boost::shared_ptr<Terrain> terrain) {
 
 		rootNode_->addChild(osgGroundGeode);
 
-	} else {
+	} else if (terrain->getType() == TerrainConfig::ROUGH) {
 
 		// Generate terrain from height field
 
