@@ -63,9 +63,9 @@ public:
 
 	virtual bool initModel();
 
-	virtual dBodyID getRoot();
+	virtual boost::shared_ptr<SimpleBody> getRoot();
 
-	virtual dBodyID getSlot(unsigned int i);
+	virtual boost::shared_ptr<SimpleBody> getSlot(unsigned int i);
 
 	virtual osg::Vec3 getSlotPosition(unsigned int i);
 
@@ -75,8 +75,7 @@ public:
 
 private:
 
-	dBodyID hingeRoot_;
-	dBodyID hingeTail_;
+	boost::shared_ptr<SimpleBody> hingeRoot_, hingeTail_;
 
 };
 

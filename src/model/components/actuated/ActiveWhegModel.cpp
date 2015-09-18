@@ -76,49 +76,54 @@ float ActiveWhegModel::getRadius() const {
 bool ActiveWhegModel::initModel() {
 
    // Create the components of the wheg
-   whegRoot_ = this->createBody(B_SLOT_ID);
-   dBodyID servo = this->createBody(B_SERVO_ID);
-   dBodyID whegBase = this->createBody(B_WHEG_BASE);
-   dBodyID spoke1 = this->createBody(B_WHEG_SPOKE_1);
-   dBodyID spoke2 = this->createBody(B_WHEG_SPOKE_2);
-   dBodyID spoke3 = this->createBody(B_WHEG_SPOKE_3);
+   //whegRoot_ = this->createBody(B_SLOT_ID);
+   //dBodyID servo = this->createBody(B_SERVO_ID);
+   //dBodyID whegBase = this->createBody(B_WHEG_BASE);
+   //dBodyID spoke1 = this->createBody(B_WHEG_SPOKE_1);
+   //dBodyID spoke2 = this->createBody(B_WHEG_SPOKE_2);
+   //dBodyID spoke3 = this->createBody(B_WHEG_SPOKE_3);
 
    // Set the masses for the various boxes
-   dMass mass;
+   //dMass mass;
 
 
 
-   this->createBoxGeom(whegRoot_, MASS_SLOT, osg::Vec3(0, 0, 0), SLOT_THICKNESS,
-         SLOT_WIDTH, SLOT_WIDTH);
+   whegRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0), SLOT_THICKNESS,
+         SLOT_WIDTH, SLOT_WIDTH, B_SLOT_ID);
 
 
    dReal zServo = 0;
-   this->createBoxGeom(servo, MASS_SERVO, osg::Vec3(X_SERVO, 0, zServo),
-         SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT);
+   boost::shared_ptr<SimpleBody> servo = this->addBox(MASS_SERVO,
+		   osg::Vec3(X_SERVO, 0, zServo),
+		   SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT, B_SERVO_ID);
 
 
    //need to scale the base to account for the larger whegs as right
    //now the whole model scales
    dReal whegBaseRadius = WHEG_BASE_RADIUS * getRadius()/0.03;
 
-   this->createCylinderGeom(whegBase, MASS_WHEG / 4,
-         osg::Vec3(X_WHEG_BASE, 0, zServo), 1, whegBaseRadius,
-         WHEG_THICKNESS);
+   boost::shared_ptr<SimpleBody> whegBase = this->addCylinder(MASS_WHEG / 4,
+		   osg::Vec3(X_WHEG_BASE, 0, zServo), 1, whegBaseRadius,
+		   WHEG_THICKNESS, B_WHEG_BASE);
 
-   this->createBoxGeom(spoke1, MASS_WHEG / 4,
-         osg::Vec3(X_WHEG_BASE, 0,
-               zServo + whegBaseRadius + getRadius() / 2),
-         WHEG_THICKNESS, WHEG_WIDTH, getRadius());
+   boost::shared_ptr<SimpleBody> spoke1 = this->addBox(MASS_WHEG / 4,
+         osg::Vec3(X_WHEG_BASE, 0, zServo + whegBaseRadius + getRadius() / 2),
+         WHEG_THICKNESS, WHEG_WIDTH, getRadius(), B_WHEG_SPOKE_1);
 
-   this->createBoxGeom(spoke2, MASS_WHEG / 4, osg::Vec3(X_WHEG_BASE, 0, zServo),
-         WHEG_THICKNESS, WHEG_WIDTH, getRadius());
+   boost::shared_ptr<SimpleBody> spoke2 = this->addBox(MASS_WHEG / 4,
+		   osg::Vec3(X_WHEG_BASE, 0, zServo),
+		   WHEG_THICKNESS, WHEG_WIDTH, getRadius(), B_WHEG_SPOKE_2);
 
-   this->createBoxGeom(spoke3, MASS_WHEG / 4, osg::Vec3(X_WHEG_BASE, 0, zServo),
-         WHEG_THICKNESS, WHEG_WIDTH, getRadius());
+   boost::shared_ptr<SimpleBody> spoke3 = this->addBox(MASS_WHEG / 4,
+		   osg::Vec3(X_WHEG_BASE, 0, zServo),
+		   WHEG_THICKNESS, WHEG_WIDTH, getRadius(), B_WHEG_SPOKE_3);
 
    // Position spokes
    osg::Quat rotation;
-   dQuaternion quatOde;
+//   dQuaternion quatOde;
+
+   //TODO
+#if 0
 
    float rotationSpoke1 = 60;
    float rotationSpoke2 = 180;
@@ -193,16 +198,16 @@ bool ActiveWhegModel::initModel() {
    this->motor_.reset(
          new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE_ROTATIONAL,
         		 ioPair(this->getId(),0)));
-
+#endif
    return true;
 
 }
 
-dBodyID ActiveWhegModel::getRoot() {
+boost::shared_ptr<SimpleBody> ActiveWhegModel::getRoot() {
    return whegRoot_;
 }
 
-dBodyID ActiveWhegModel::getSlot(unsigned int i) {
+boost::shared_ptr<SimpleBody> ActiveWhegModel::getSlot(unsigned int i) {
 
    if (i > 1) {
       std::cout << "[ActiveWhegModel] Invalid slot: " << i << std::endl;
@@ -219,7 +224,7 @@ osg::Vec3 ActiveWhegModel::getSlotPosition(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Vec3 curPos = this->getPosition(whegRoot_);
+   osg::Vec3 curPos = this->whegRoot_->getPosition();
    osg::Vec3 slotAxis = this->getSlotAxis(i);
    return curPos + slotAxis * (SLOT_THICKNESS / 2);
 
@@ -232,7 +237,7 @@ osg::Vec3 ActiveWhegModel::getSlotAxis(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Quat quat = this->getAttitude(this->whegRoot_);
+   osg::Quat quat = this->whegRoot_->getAttitude();
    osg::Vec3 axis(-1, 0, 0);
 
    return quat * axis;
@@ -246,7 +251,7 @@ osg::Vec3 ActiveWhegModel::getSlotOrientation(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Quat quat = this->getAttitude(this->whegRoot_);
+   osg::Quat quat = this->whegRoot_->getAttitude();
    osg::Vec3 axis(0, 1, 0);
 
    return quat * axis;

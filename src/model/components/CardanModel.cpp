@@ -50,7 +50,9 @@ CardanModel::~CardanModel() {
 }
 
 bool CardanModel::initModel() {
+//TODO
 
+	#if 0
 	// Create the 4 components of the hinge
 	cardanRoot_ = this->createBody(B_SLOT_A_ID);
 	dBodyID connectionPartA = this->createBody(B_CONNECTION_A_ID);
@@ -98,10 +100,12 @@ bool CardanModel::initModel() {
 	this->fixBodies(connectionPartB, cardanTail_, osg::Vec3(1, 0, 0));
 
 	return true;
-
+#else
+	return false;
+#endif
 }
 
-dBodyID CardanModel::getRoot() {
+boost::shared_ptr<SimpleBody> CardanModel::getRoot() {
 	return cardanRoot_;
 }
 
@@ -109,7 +113,7 @@ dJointID CardanModel::getJoint() {
 	return universalJoint_;
 }
 
-dBodyID CardanModel::getSlot(unsigned int i) {
+boost::shared_ptr<SimpleBody> CardanModel::getSlot(unsigned int i) {
 	if (i == SLOT_A) {
 		return cardanRoot_;
 	} else {
@@ -127,13 +131,13 @@ osg::Vec3 CardanModel::getSlotPosition(unsigned int i) {
 	osg::Vec3 slotPos;
 	if (i == SLOT_A) {
 
-		osg::Vec3 curPos = this->getPosition(cardanRoot_);
+		osg::Vec3 curPos = this->cardanRoot_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		return curPos + slotAxis * (SLOT_THICKNESS / 2);
 
 	} else {
 
-		osg::Vec3 curPos = this->getPosition(cardanTail_);
+		osg::Vec3 curPos = this->cardanTail_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		return curPos + slotAxis * (SLOT_THICKNESS / 2);
 
@@ -155,12 +159,12 @@ osg::Vec3 CardanModel::getSlotAxis(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->cardanRoot_);
+		quat = this->cardanRoot_->getAttitude();
 		axis.set(-1, 0, 0);
 
 	} else if (i == SLOT_B) {
 
-		quat = this->getAttitude(this->cardanTail_);
+		quat = this->cardanTail_->getAttitude();
 		axis.set(1, 0, 0);
 
 	}
@@ -181,12 +185,12 @@ osg::Vec3 CardanModel::getSlotOrientation(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->cardanRoot_);
+		quat = this->cardanRoot_->getAttitude();
 		axis.set(0, 1, 0);
 
 	} else if (i == SLOT_B) {
 
-		quat = this->getAttitude(this->cardanTail_);
+		quat = this->cardanTail_->getAttitude();
 		axis.set(0, 1, 0);
 
 	}

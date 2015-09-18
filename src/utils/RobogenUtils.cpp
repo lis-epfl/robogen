@@ -211,9 +211,8 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 
 	// Create a joint to hold pieces in position
 
-	dJointID joint = dJointCreateFixed(odeWorld, connectionJointGroup);
-	dJointAttach(joint, a->getSlot(slotA), b->getSlot(slotB));
-	dJointSetFixed(joint);
+	boost::shared_ptr<Joint> joint(new Joint(odeWorld, a->getSlot(slotA), b->getSlot(slotB),
+			connectionJointGroup));
 
 }
 

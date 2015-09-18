@@ -35,6 +35,7 @@
 
 namespace robogen {
 
+
 //#ifdef OLD_SERVO_MODEL
 const float ServoMotor::DEFAULT_GAIN = 0.5;
 //#else
@@ -64,18 +65,19 @@ void ServoMotor::init() {
 #endif
 }
 
-ServoMotor::ServoMotor(dJointID joint, float maxForce, float gain,
+ServoMotor::ServoMotor(boost::shared_ptr<Joint> joint,
+		float maxForce, float gain,
 		ioPair id, int maxDirectionShiftsPerSecond) : Motor(id),
-		joint_(joint), maxForce_(maxForce), gain_(gain),
+		joint_(joint->getJoint()), maxForce_(maxForce), gain_(gain),
 		isVelocityDriven_(false),
 		internalCounter_(0), isBurntOut_(false),
 		maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond) {
 	init();
 }
 
-ServoMotor::ServoMotor(dJointID joint, float maxForce,
+ServoMotor::ServoMotor(boost::shared_ptr<Joint> joint, float maxForce,
 		ioPair id, int maxDirectionShiftsPerSecond) : Motor(id),
-		joint_(joint), maxForce_(maxForce), gain_(0),
+		joint_(joint->getJoint()), maxForce_(maxForce), gain_(0),
 		isVelocityDriven_(true),
 		internalCounter_(0), isBurntOut_(false),
 		maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond) {

@@ -55,7 +55,8 @@ RotateJointModel::~RotateJointModel() {
 }
 
 bool RotateJointModel::initModel() {
-
+//todo
+#if 0
 	// Create the 4 components of the hinge
 	jointRoot_ = this->createBody(B_SLOT_ID);
 	dBodyID servo = this->createBody(B_SERVO_ID);
@@ -107,16 +108,16 @@ bool RotateJointModel::initModel() {
 			new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE_ROTATIONAL,
 					ServoMotor::DEFAULT_GAIN,
 					ioPair(this->getId(),0)));
-
+#endif
 	return true;
 
 }
 
-dBodyID RotateJointModel::getRoot() {
+boost::shared_ptr<SimpleBody> RotateJointModel::getRoot() {
 	return jointRoot_;
 }
 
-dBodyID RotateJointModel::getSlot(unsigned int i) {
+boost::shared_ptr<SimpleBody> RotateJointModel::getSlot(unsigned int i) {
 
 	if (i > 2) {
 		std::cout << "[RotateJointModel] Invalid slot: " << i << std::endl;
@@ -139,13 +140,13 @@ osg::Vec3 RotateJointModel::getSlotPosition(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		osg::Vec3 curPos = this->getPosition(jointRoot_);
+		osg::Vec3 curPos = this->jointRoot_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		return curPos + slotAxis * (SLOT_THICKNESS / 2);
 
 	} else {
 
-		osg::Vec3 curPos = this->getPosition(jointConnection_);
+		osg::Vec3 curPos = this->jointConnection_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		return curPos + slotAxis * (JOINT_CONNECTION_THICKNESS / 2);
 
@@ -163,10 +164,10 @@ osg::Vec3 RotateJointModel::getSlotAxis(unsigned int i) {
 	osg::Quat quat;
 	osg::Vec3 axis;
 	if (i == SLOT_A) {
-		quat = this->getAttitude(this->jointRoot_);
+		quat = this->jointRoot_->getAttitude();
 		axis.set(-1, 0, 0);
 	} else {
-		quat = this->getAttitude(this->jointConnection_);
+		quat = this->jointConnection_->getAttitude();
 		axis.set(1, 0, 0);
 	}
 
@@ -184,10 +185,10 @@ osg::Vec3 RotateJointModel::getSlotOrientation(unsigned int i) {
 	osg::Quat quat;
 	osg::Vec3 axis;
 	if (i == SLOT_A) {
-		quat = this->getAttitude(this->jointRoot_);
+		quat = this->jointRoot_->getAttitude();
 		axis.set(0, 1, 0);
 	} else {
-		quat = this->getAttitude(this->jointConnection_);
+		quat = this->jointConnection_->getAttitude();
 		axis.set(0, 1, 0);
 	}
 

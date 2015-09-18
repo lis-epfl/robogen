@@ -68,34 +68,34 @@ float ActiveWheelModel::getRadius() const {
 bool ActiveWheelModel::initModel() {
 
    // Create the 4 components of the hinge
-   wheelRoot_ = this->createBody(B_SLOT_ID);
-   dBodyID servo = this->createBody(B_SERVO_ID);
-   dBodyID wheel = this->createBody(B_WHEEL_ID);
+   //wheelRoot_ = this->createBody(B_SLOT_ID);
+   //dBodyID servo = this->createBody(B_SERVO_ID);
+   //dBodyID wheel = this->createBody(B_WHEEL_ID);
 
    // Set the masses for the various boxes
-   dMass mass;
+   //dMass mass;
 
 
-   this->createBoxGeom(wheelRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
-         SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+	wheelRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
+         SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_ID);
 
    dReal zServo = 0;//-SLOT_WIDTH / 2 + SERVO_Z_OFFSET + SERVO_HEIGHT / 2;
-   this->createBoxGeom(servo, MASS_SERVO, osg::Vec3(X_SERVO, 0, zServo),
-         SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT);
+   boost::shared_ptr<SimpleBody> servo = this->addBox(MASS_SERVO,
+		   osg::Vec3(X_SERVO, 0, zServo),
+         SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT, B_SERVO_ID);
 
-   this->createCylinderGeom(wheel, MASS_WHEEL, osg::Vec3(X_WHEEL, 0, 0), 1,
-         getRadius(), WHEEL_THICKNESS);
+   boost::shared_ptr<SimpleBody> wheel = this->addCylinder(MASS_WHEEL,
+		   osg::Vec3(X_WHEEL, 0, 0), 1, getRadius(), WHEEL_THICKNESS,
+		   B_WHEEL_ID);
 
    // Create joints to hold pieces in position
 
    // slot <slider> hinge
-   this->fixBodies(wheelRoot_, servo, osg::Vec3(1, 0, 0));
+   this->fixBodies(wheelRoot_, servo);
 
    // servo <(hinge)> wheel
-   dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
-   dJointAttach(joint, servo, wheel);
-   dJointSetHingeAxis(joint, 1, 0, 0);
-   dJointSetHingeAnchor(joint, X_WHEEL, 0, 0);
+   boost::shared_ptr<Joint> joint = this->attachWithHinge(
+		   servo, wheel,  osg::Vec3(1, 0, 0), osg::Vec3(X_WHEEL, 0, 0));
 
    // Create servo
    this->motor_.reset(
@@ -106,11 +106,11 @@ bool ActiveWheelModel::initModel() {
 
 }
 
-dBodyID ActiveWheelModel::getRoot() {
+boost::shared_ptr<SimpleBody> ActiveWheelModel::getRoot() {
    return wheelRoot_;
 }
 
-dBodyID ActiveWheelModel::getSlot(unsigned int i) {
+boost::shared_ptr<SimpleBody> ActiveWheelModel::getSlot(unsigned int i) {
 
    if (i > 1) {
       std::cout << "[ActiveWheelModel] Invalid slot: " << i << std::endl;
@@ -127,7 +127,7 @@ osg::Vec3 ActiveWheelModel::getSlotPosition(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Vec3 curPos = this->getPosition(wheelRoot_);
+   osg::Vec3 curPos = wheelRoot_->getPosition();
    osg::Vec3 slotAxis = this->getSlotAxis(i);
    return curPos + slotAxis * (SLOT_THICKNESS / 2);
 
@@ -140,7 +140,7 @@ osg::Vec3 ActiveWheelModel::getSlotAxis(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Quat quat = this->getAttitude(this->wheelRoot_);
+   osg::Quat quat = wheelRoot_->getAttitude();
    osg::Vec3 axis(-1, 0, 0);
 
    return quat * axis;
@@ -154,7 +154,7 @@ osg::Vec3 ActiveWheelModel::getSlotOrientation(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Quat quat = this->getAttitude(this->wheelRoot_);
+   osg::Quat quat = wheelRoot_->getAttitude();
    osg::Vec3 axis(0, 1, 0);
 
    return quat * axis;

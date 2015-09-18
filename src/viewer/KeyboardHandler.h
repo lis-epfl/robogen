@@ -89,9 +89,11 @@ public:
 
 	}
 
+/*
 	virtual void accept(osgGA::GUIEventHandlerVisitor& v) {
 		v.visit(*this);
 	}
+*/
 
 	/**
 	 * Check if the pause button was pressed

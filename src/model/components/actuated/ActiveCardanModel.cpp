@@ -64,105 +64,104 @@ ActiveCardanModel::~ActiveCardanModel() {
 bool ActiveCardanModel::initModel() {
 
 	// Create the 4 components of the hinge
-	cardanRoot_ = this->createBody(B_SLOT_A_ID);
-	dBodyID connectionPartA = this->createBody(B_CONNECTION_A_ID);
-	dBodyID crossPartA = this->createBody(B_CROSS_PART_A_ID);
-	dBodyID crossPartB = this->createBody(B_CROSS_PART_B_ID);
-	dBodyID connectionPartB = this->createBody(B_CONNECTION_B_ID);
-	cardanTail_ = this->createBody(B_SLOT_B_ID);
+	//cardanRoot_ = this->createBody(B_SLOT_A_ID);
+	//dBodyID connectionPartA = this->createBody(B_CONNECTION_A_ID);
+	//dBodyID crossPartA = this->createBody(B_CROSS_PART_A_ID);
+	//dBodyID crossPartB = this->createBody(B_CROSS_PART_B_ID);
+	//dBodyID connectionPartB = this->createBody(B_CONNECTION_B_ID);
+	//cardanTail_ = this->createBody(B_SLOT_B_ID);
 
 	float separation = inMm(0.1);
 
-	this->createBoxGeom(cardanRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
-			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+	cardanRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
+			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_A_ID);
 
 	dReal xPartA = SLOT_THICKNESS / 2 + separation
 			+ CONNNECTION_PART_LENGTH / 2;
-	this->createBoxGeom(connectionPartA, MASS_SERVO, osg::Vec3(xPartA, 0, 0),
+	boost::shared_ptr<SimpleBody> connectionPartA = this->addBox(MASS_SERVO,
+			osg::Vec3(xPartA, 0, 0),
 			CONNNECTION_PART_LENGTH, CONNNECTION_PART_WIDTH,
-			CONNECTION_PART_HEIGHT);
+			CONNECTION_PART_HEIGHT, B_CONNECTION_A_ID);
 
 	dReal xCrossPartA = xPartA + CONNECTION_PART_OFFSET;
-	this->createBoxGeom(crossPartA, MASS_CROSS / 3,
+	boost::shared_ptr<SimpleBody> crossPartA = this->addBox(MASS_CROSS / 3,
 			osg::Vec3(xCrossPartA, 0, 0), CROSS_THICKNESS, CROSS_WIDTH,
-			CROSS_HEIGHT);
-	this->createBoxGeom(crossPartB, MASS_CROSS / 3,
+			CROSS_HEIGHT, B_CROSS_PART_A_ID);
+	boost::shared_ptr<SimpleBody> crossPartB = this->addBox(MASS_CROSS / 3,
 			osg::Vec3(xCrossPartA, 0, 0), CROSS_THICKNESS, CROSS_HEIGHT,
-			CROSS_WIDTH);
+			CROSS_WIDTH, B_CROSS_PART_B_ID);
 
 	dReal xPartB = xCrossPartA + CONNECTION_PART_OFFSET;
-	this->createBoxGeom(connectionPartB, MASS_SERVO, osg::Vec3(xPartB, 0, 0),
+	boost::shared_ptr<SimpleBody> connectionPartB = this->addBox(MASS_SERVO,
+			osg::Vec3(xPartB, 0, 0),
 			CONNNECTION_PART_LENGTH, CONNECTION_PART_HEIGHT,
-			CONNNECTION_PART_WIDTH);
+			CONNNECTION_PART_WIDTH, B_CONNECTION_B_ID);
 
 	dReal xTail = xPartB + CONNNECTION_PART_LENGTH / 2 + separation
 			+ SLOT_THICKNESS / 2;
-	this->createBoxGeom(cardanTail_, MASS_SLOT, osg::Vec3(xTail, 0, 0),
-			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+	cardanTail_ = this->addBox(MASS_SLOT, osg::Vec3(xTail, 0, 0),
+			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_B_ID);
 
 	// Cross Geometries
-	dBodyID crossPartAedge1 = this->createBody(B_CROSS_PART_A_EDGE_1_ID);
-	dBodyID crossPartAedge2 = this->createBody(B_CROSS_PART_A_EDGE_2_ID);
+	//dBodyID crossPartAedge1 = this->createBody(B_CROSS_PART_A_EDGE_1_ID);
+	//dBodyID crossPartAedge2 = this->createBody(B_CROSS_PART_A_EDGE_2_ID);
 
-	dBodyID crossPartBedge1 = this->createBody(B_CROSS_PART_B_EDGE_1_ID);
-	dBodyID crossPartBedge2 = this->createBody(B_CROSS_PART_B_EDGE_2_ID);
+	//dBodyID crossPartBedge1 = this->createBody(B_CROSS_PART_B_EDGE_1_ID);
+	//dBodyID crossPartBedge2 = this->createBody(B_CROSS_PART_B_EDGE_2_ID);
 
-	this->createBoxGeom(crossPartAedge1, MASS_CROSS / 12,
+	boost::shared_ptr<SimpleBody> crossPartAedge1 = this->addBox(MASS_CROSS / 12,
 			osg::Vec3(xCrossPartA - (CROSS_WIDTH / 2 + CROSS_THICKNESS / 2), 0,
 					CROSS_HEIGHT / 2 + (CROSS_THICKNESS / 2)),
-			CROSS_CENTER_OFFSET, CROSS_WIDTH, CROSS_THICKNESS);
+			CROSS_CENTER_OFFSET, CROSS_WIDTH, CROSS_THICKNESS, B_CROSS_PART_A_EDGE_1_ID);
 
-	this->createBoxGeom(crossPartAedge2, MASS_CROSS / 12,
+	boost::shared_ptr<SimpleBody> crossPartAedge2 = this->addBox(MASS_CROSS / 12,
 			osg::Vec3(xCrossPartA - (CROSS_WIDTH / 2 + CROSS_THICKNESS / 2), 0,
 					-CROSS_HEIGHT / 2 - (CROSS_THICKNESS / 2)),
-			CROSS_CENTER_OFFSET, CROSS_WIDTH, CROSS_THICKNESS);
+			CROSS_CENTER_OFFSET, CROSS_WIDTH, CROSS_THICKNESS, B_CROSS_PART_A_EDGE_2_ID);
 
-	this->createBoxGeom(crossPartBedge1, MASS_CROSS / 12,
+	boost::shared_ptr<SimpleBody> crossPartBedge1 = this->addBox(MASS_CROSS / 12,
 			osg::Vec3(xCrossPartA + (CROSS_WIDTH / 2 + CROSS_THICKNESS / 2),
 					CROSS_HEIGHT / 2 - (CROSS_THICKNESS / 2), 0),
-			CROSS_CENTER_OFFSET, CROSS_THICKNESS, CROSS_WIDTH);
+			CROSS_CENTER_OFFSET, CROSS_THICKNESS, CROSS_WIDTH, B_CROSS_PART_B_EDGE_1_ID);
 
-	this->createBoxGeom(crossPartBedge2, MASS_CROSS / 12,
+	boost::shared_ptr<SimpleBody> crossPartBedge2 = this->addBox(MASS_CROSS / 12,
 			osg::Vec3(xCrossPartA + (CROSS_WIDTH / 2 + CROSS_THICKNESS / 2),
 					-CROSS_HEIGHT / 2 + (CROSS_THICKNESS / 2), 0),
-			CROSS_CENTER_OFFSET, CROSS_THICKNESS, CROSS_WIDTH);
+			CROSS_CENTER_OFFSET, CROSS_THICKNESS, CROSS_WIDTH, B_CROSS_PART_B_EDGE_2_ID);
 
 	// Create joints to hold pieces in position
 
 	// root <-> connectionPartA
-	this->fixBodies(cardanRoot_, connectionPartA, osg::Vec3(1, 0, 0));
+	this->fixBodies(cardanRoot_, connectionPartA);
 
 	// connectionPartA <(hinge)> crossPartA
-	dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
-	dJointAttach(joint, connectionPartA, crossPartA);
-	dJointSetHingeAxis(joint, 0, 0, 1);
-	dJointSetHingeAnchor(joint,
-			xPartA
+	boost::shared_ptr<Joint> joint = this->attachWithHinge(connectionPartA,
+			connectionPartB, osg::Vec3(0, 0, 1),
+			osg::Vec3(xPartA
 					+ ((CONNNECTION_PART_LENGTH / 2)
-							- (CONNNECTION_PART_LENGTH
-									- CONNNECTION_PART_ROTATION_OFFSET)), 0, 0);
+					- (CONNNECTION_PART_LENGTH
+					- CONNNECTION_PART_ROTATION_OFFSET)), 0, 0));
+
 
 	// crossPartA <-> crossPartB
-	this->fixBodies(crossPartA, crossPartB, osg::Vec3(1, 0, 0));
+	this->fixBodies(crossPartA, crossPartB);
 
 	// crossPartB <(hinge)> connectionPartB
-	dJointID joint2 = dJointCreateHinge(this->getPhysicsWorld(), 0);
-	dJointAttach(joint2, crossPartB, connectionPartB);
-	dJointSetHingeAxis(joint2, 0, 1, 0);
-	dJointSetHingeAnchor(joint2,
-			xPartB
+	boost::shared_ptr<Joint> joint2 = this->attachWithHinge(crossPartB,
+			connectionPartB, osg::Vec3(0, 1, 0),
+			osg::Vec3(xPartB
 					- ((CONNNECTION_PART_LENGTH / 2)
-							- (CONNNECTION_PART_LENGTH
-									- CONNNECTION_PART_ROTATION_OFFSET)), 0, 0);
+					- (CONNNECTION_PART_LENGTH
+					- CONNNECTION_PART_ROTATION_OFFSET)), 0, 0));
 
 	// connectionPartB <-> tail
-	this->fixBodies(connectionPartB, cardanTail_, osg::Vec3(1, 0, 0));
+	this->fixBodies(connectionPartB, cardanTail_);
 
 	// Fix cross Parts
-	this->fixBodies(crossPartA, crossPartAedge1, osg::Vec3(1, 0, 0));
-	this->fixBodies(crossPartA, crossPartAedge2, osg::Vec3(1, 0, 0));
-	this->fixBodies(crossPartB, crossPartBedge1, osg::Vec3(1, 0, 0));
-	this->fixBodies(crossPartB, crossPartBedge2, osg::Vec3(1, 0, 0));
+	this->fixBodies(crossPartA, crossPartAedge1);
+	this->fixBodies(crossPartA, crossPartAedge2);
+	this->fixBodies(crossPartB, crossPartBedge1);
+	this->fixBodies(crossPartB, crossPartBedge2);
 
 	// Create motors
 	motor1_.reset(
@@ -178,11 +177,11 @@ bool ActiveCardanModel::initModel() {
 
 }
 
-dBodyID ActiveCardanModel::getRoot() {
+boost::shared_ptr<SimpleBody> ActiveCardanModel::getRoot() {
 	return cardanRoot_;
 }
 
-dBodyID ActiveCardanModel::getSlot(unsigned int i) {
+boost::shared_ptr<SimpleBody> ActiveCardanModel::getSlot(unsigned int i) {
 	if (i == SLOT_A) {
 		return cardanRoot_;
 	} else {
@@ -200,13 +199,13 @@ osg::Vec3 ActiveCardanModel::getSlotPosition(unsigned int i) {
 	osg::Vec3 slotPos;
 	if (i == SLOT_A) {
 
-		osg::Vec3 curPos = this->getPosition(cardanRoot_);
+		osg::Vec3 curPos = this->cardanRoot_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		slotPos = curPos + slotAxis * (SLOT_THICKNESS / 2);
 
 	} else {
 
-		osg::Vec3 curPos = this->getPosition(cardanTail_);
+		osg::Vec3 curPos = this->cardanTail_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		slotPos = curPos + slotAxis * (SLOT_THICKNESS / 2);
 
@@ -228,12 +227,12 @@ osg::Vec3 ActiveCardanModel::getSlotAxis(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->cardanRoot_);
+		quat = this->cardanRoot_->getAttitude();
 		axis.set(-1, 0, 0);
 
 	} else if (i == SLOT_B) {
 
-		quat = this->getAttitude(this->cardanTail_);
+		quat = this->cardanTail_->getAttitude();
 		axis.set(1, 0, 0);
 
 	}
@@ -254,12 +253,12 @@ osg::Vec3 ActiveCardanModel::getSlotOrientation(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->cardanRoot_);
+		quat = this->cardanRoot_->getAttitude();
 		axis.set(0, 1, 0);
 
 	} else if (i == SLOT_B) {
 
-		quat = this->getAttitude(this->cardanTail_);
+		quat = this->cardanTail_->getAttitude();
 		axis.set(0, 1, 0);
 
 	}

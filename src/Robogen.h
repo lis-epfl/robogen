@@ -35,6 +35,7 @@
 #include <limits>
 #include <ode/ode.h>
 #include <osg/Vec3>
+#include <osg/Quat>
 
 #define inMm(x) ((x)/1000.0)
 #define inGrams(x) ((x)/1000.0)

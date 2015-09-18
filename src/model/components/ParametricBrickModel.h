@@ -73,9 +73,9 @@ public:
 
 	virtual bool initModel();
 
-	virtual dBodyID getRoot();
+	virtual boost::shared_ptr<SimpleBody> getRoot();
 
-	virtual dBodyID getSlot(unsigned int i);
+	virtual boost::shared_ptr<SimpleBody> getSlot(unsigned int i);
 
 	virtual osg::Vec3 getSlotPosition(unsigned int i);
 
@@ -101,8 +101,7 @@ private:
 	float angleA_;
 	float angleB_;
 
-	dBodyID brickRoot_;
-	dBodyID brickTail_;
+	boost::shared_ptr<SimpleBody> brickRoot_, brickTail_;
 
 };
 

@@ -65,9 +65,9 @@ public:
 
 	virtual bool initModel();
 
-	virtual dBodyID getRoot();
+	virtual boost::shared_ptr<SimpleBody> getRoot();
 
-	virtual dBodyID getSlot(unsigned int i);
+	virtual boost::shared_ptr<SimpleBody> getSlot(unsigned int i);
 
 	virtual osg::Vec3 getSlotPosition(unsigned int i);
 
@@ -79,8 +79,7 @@ public:
 
 private:
 
-	dBodyID jointRoot_;
-	dBodyID jointConnection_;
+	boost::shared_ptr<SimpleBody> jointRoot_, jointConnection_;
 
 	boost::shared_ptr<Motor> motor_;
 };

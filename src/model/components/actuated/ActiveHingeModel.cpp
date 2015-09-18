@@ -61,47 +61,46 @@ ActiveHingeModel::~ActiveHingeModel() {
 bool ActiveHingeModel::initModel() {
 
 	// Create the 4 components of the hinge
-	hingeRoot_ = this->createBody(B_SLOT_A_ID);
-	dBodyID frame = this->createBody(B_FRAME_ID);
-	dBodyID servo = this->createBody(B_SERVO_ID);
-	hingeTail_ = this->createBody(B_SLOT_B_ID);
+	//hingeRoot_ = this->createBody(B_SLOT_A_ID);
+	//dBodyID frame = this->createBody(B_FRAME_ID);
+	//dBodyID servo = this->createBody(B_SERVO_ID);
+	//hingeTail_ = this->createBody(B_SLOT_B_ID);
 
 	// Set the masses for the various boxes
 
 	float separation = 0;//inMm(0.1);
 
-	this->createBoxGeom(hingeRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
-			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+	hingeRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
+			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_A_ID);
 
 	dReal xFrame = separation + FRAME_LENGTH / 2 + SLOT_THICKNESS / 2;
-	this->createBoxGeom(frame, MASS_FRAME, osg::Vec3(xFrame,
-			SERVO_POSITION_OFFSET, 0),
-			FRAME_LENGTH, FRAME_WIDTH, FRAME_HEIGHT);
+	boost::shared_ptr<SimpleBody> frame = this->addBox(MASS_FRAME,
+			osg::Vec3(xFrame,SERVO_POSITION_OFFSET, 0),
+			FRAME_LENGTH, FRAME_WIDTH, FRAME_HEIGHT, B_FRAME_ID);
 
 	dReal xServo = xFrame + (FRAME_ROTATION_OFFSET - (FRAME_LENGTH / 2))
 			+ SERVO_ROTATION_OFFSET - SERVO_LENGTH/2;
-	this->createBoxGeom(servo, MASS_SERVO, osg::Vec3(xServo,
-			SERVO_POSITION_OFFSET, 0),
-			SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT);
+	boost::shared_ptr<SimpleBody> servo = this->addBox(MASS_SERVO,
+			osg::Vec3(xServo,SERVO_POSITION_OFFSET, 0),
+			SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT, B_SERVO_ID);
 
 	dReal xTail = xServo + SERVO_LENGTH / 2 + separation + SLOT_THICKNESS / 2;
-	this->createBoxGeom(hingeTail_, MASS_SLOT, osg::Vec3(xTail, 0, 0),
-			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+	hingeTail_ = this->addBox(MASS_SLOT, osg::Vec3(xTail, 0, 0),
+			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_B_ID);
 
 	// Create joints to hold pieces in position
 
 	// root <-> connectionPartA
-	this->fixBodies(hingeRoot_, frame, osg::Vec3(1, 0, 0));
+	this->fixBodies(hingeRoot_, frame);
 
 	// connectionPartA <(hinge)> connectionPArtB
-	dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
-	dJointAttach(joint, frame, servo);
-	dJointSetHingeAxis(joint, 0, 1, 0);
-	dJointSetHingeAnchor(joint,
-			SLOT_THICKNESS / 2 + separation + FRAME_ROTATION_OFFSET, 0, 0);
+	boost::shared_ptr<Joint> joint = this->attachWithHinge(frame, servo,
+			osg::Vec3(0, 1, 0),
+			osg::Vec3(SLOT_THICKNESS / 2 + separation + FRAME_ROTATION_OFFSET,
+						0, 0));
 
 	// connectionPartB <-> tail
-	this->fixBodies(servo, hingeTail_, osg::Vec3(1, 0, 0));
+	this->fixBodies(servo, hingeTail_);
 
 	// Create servo
 	this->motor_.reset(
@@ -113,11 +112,11 @@ bool ActiveHingeModel::initModel() {
 
 }
 
-dBodyID ActiveHingeModel::getRoot() {
+boost::shared_ptr<SimpleBody> ActiveHingeModel::getRoot() {
 	return hingeRoot_;
 }
 
-dBodyID ActiveHingeModel::getSlot(unsigned int i) {
+boost::shared_ptr<SimpleBody> ActiveHingeModel::getSlot(unsigned int i) {
 	if (i == SLOT_A) {
 		return hingeRoot_;
 	} else {
@@ -135,13 +134,13 @@ osg::Vec3 ActiveHingeModel::getSlotPosition(unsigned int i) {
 	osg::Vec3 slotPos;
 	if (i == SLOT_A) {
 
-		osg::Vec3 curPos = this->getPosition(hingeRoot_);
+		osg::Vec3 curPos = hingeRoot_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
 
 	} else {
 
-		osg::Vec3 curPos = this->getPosition(hingeTail_);
+		osg::Vec3 curPos = hingeTail_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
 
@@ -162,12 +161,12 @@ osg::Vec3 ActiveHingeModel::getSlotAxis(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->hingeRoot_);
+		quat = this->hingeRoot_->getAttitude();
 		axis.set(-1, 0, 0);
 
 	} else if (i == SLOT_B) {
 
-		quat = this->getAttitude(this->hingeTail_);
+		quat = this->hingeTail_->getAttitude();
 		axis.set(1, 0, 0);
 
 	}
@@ -188,12 +187,12 @@ osg::Vec3 ActiveHingeModel::getSlotOrientation(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->hingeRoot_);
+		quat = this->hingeRoot_->getAttitude();
 		axis.set(0, 1, 0);
 
 	} else if (i == SLOT_B) {
 
-		quat = this->getAttitude(this->hingeTail_);
+		quat = this->hingeTail_->getAttitude();
 		axis.set(0, 1, 0);
 
 	}

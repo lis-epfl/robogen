@@ -61,9 +61,9 @@ public:
 
 	virtual bool initModel();
 
-	virtual dBodyID getRoot();
+	virtual boost::shared_ptr<SimpleBody> getRoot();
 
-	virtual dBodyID getSlot(unsigned int i);
+	virtual boost::shared_ptr<SimpleBody> getSlot(unsigned int i);
 
 	virtual osg::Vec3 getSlotPosition(unsigned int i);
 
@@ -77,7 +77,7 @@ public:
 
 private:
 
-	dBodyID sensorRoot_;
+	boost::shared_ptr<SimpleBody> sensorRoot_;
 
 	boost::shared_ptr<TouchSensor> sensorLeft_;
 	boost::shared_ptr<TouchSensor> sensorRight_;

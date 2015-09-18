@@ -663,42 +663,44 @@ void Robot::getBB(double& minX, double& maxX, double& minY, double& maxY,
 	maxY = -100000000;
 	maxZ = -100000000;
 
-	std::vector<dBodyID> bodies;
+	std::vector<boost::shared_ptr<SimpleBody> > bodies;
 	for (unsigned int i = 0; i < this->bodyParts_.size(); ++i) {
-		std::vector<dBodyID> tempBodies = this->bodyParts_[i]->getBodies();
+		std::vector<boost::shared_ptr<SimpleBody> > tempBodies =
+				this->bodyParts_[i]->getBodies();
 		bodies.insert(bodies.begin(), tempBodies.begin(), tempBodies.end());
 	}
 
 	for (unsigned int i = 0; i < bodies.size(); ++i) {
 
 		dGeomID curBodyGeom = dBodyGetFirstGeom(bodies[i]);
+		while(curBodyGeom) {
+			dReal aabb[6];
+			dGeomGetAABB(curBodyGeom, aabb);
 
-		dReal aabb[6];
-		dGeomGetAABB(curBodyGeom, aabb);
+			if (aabb[0] < minX) {
+				minX = aabb[0];
+			}
 
-		if (aabb[0] < minX) {
-			minX = aabb[0];
-		}
+			if (aabb[1] > maxX) {
+				maxX = aabb[1];
+			}
 
-		if (aabb[1] > maxX) {
-			maxX = aabb[1];
-		}
+			if (aabb[2] < minY) {
+				minY = aabb[2];
+			}
 
-		if (aabb[2] < minY) {
-			minY = aabb[2];
-		}
+			if (aabb[3] > maxY) {
+				maxY = aabb[3];
+			}
 
-		if (aabb[3] > maxY) {
-			maxY = aabb[3];
-		}
+			if (aabb[4] < minZ) {
+				minZ = aabb[4];
+			}
 
-		if (aabb[4] < minZ) {
-			minZ = aabb[4];
-		}
-
-		if (aabb[5] > maxZ) {
-			maxZ = aabb[5];
-		}
+			if (aabb[5] > maxZ) {
+				maxZ = aabb[5];
+			}
+			curBodyGeom = dBodyGetNextGeom(curBodyGeom)
 
 	}
 }

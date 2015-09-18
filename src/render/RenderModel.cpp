@@ -279,7 +279,7 @@ std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > RenderModel::attachGe
 
 
 	for (unsigned int i=0; i<ids.size(); i++) {
-		dGeomID g = dBodyGetFirstGeom(this->getModel()->getBody(ids[i]));
+		dGeomID g = dBodyGetFirstGeom(this->getModel()->getBody(ids[i])->getBody());
 
 		while(g != 0) {
 			int gclass = dGeomGetClass(g);

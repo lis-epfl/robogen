@@ -53,7 +53,7 @@ float PassiveWheelModel::getRadius() const {
 }
 
 bool PassiveWheelModel::initModel() {
-
+#if 0
    // Create the 4 components of the hinge
    wheelRoot_ = this->createBody(B_SLOT_ID);
    dBodyID wheel = this->createBody(B_WHEEL_ID);
@@ -75,14 +75,15 @@ bool PassiveWheelModel::initModel() {
    dJointSetHingeAxis(joint, 1, 0, 0);
 
    return true;
-
+#endif
+   return false;
 }
 
-dBodyID PassiveWheelModel::getRoot() {
+boost::shared_ptr<SimpleBody> PassiveWheelModel::getRoot() {
    return wheelRoot_;
 }
 
-dBodyID PassiveWheelModel::getSlot(unsigned int i) {
+boost::shared_ptr<SimpleBody> PassiveWheelModel::getSlot(unsigned int i) {
 
    if (i > 1) {
       std::cout << "[PassiveWheelModel] Invalid slot: " << i << std::endl;
@@ -99,7 +100,7 @@ osg::Vec3 PassiveWheelModel::getSlotPosition(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Vec3 curPos = this->getPosition(wheelRoot_);
+   osg::Vec3 curPos = this->wheelRoot_->getPosition();
    osg::Vec3 slotAxis = this->getSlotAxis(i);
    return curPos + slotAxis * (SLOT_THICKNESS / 2);
 
@@ -112,7 +113,7 @@ osg::Vec3 PassiveWheelModel::getSlotAxis(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Quat quat = this->getAttitude(this->wheelRoot_);
+   osg::Quat quat = this->wheelRoot_->getAttitude();
    osg::Vec3 axis(-1, 0, 0);
 
    return quat * axis;
@@ -126,7 +127,7 @@ osg::Vec3 PassiveWheelModel::getSlotOrientation(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Quat quat = this->getAttitude(this->wheelRoot_);
+   osg::Quat quat = this->wheelRoot_->getAttitude();
    osg::Vec3 axis(0, 1, 0);
 
    return quat * axis;

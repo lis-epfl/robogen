@@ -53,19 +53,18 @@ CoreComponentModel::~CoreComponentModel() {
 
 bool CoreComponentModel::initModel() {
 
-	coreComponent_ = this->createBody(B_CORE_COMPONENT_ID);
-	this->createBoxGeom(coreComponent_, hasSensors_ ? CORE_MASS : BRICK_MASS,
+	coreComponent_ = this->addBox(hasSensors_ ? CORE_MASS : BRICK_MASS,
 			osg::Vec3(0, 0, 0), WIDTH, WIDTH,
-			HEIGHT);
+			HEIGHT, B_CORE_COMPONENT_ID);
 
 	return true;
 }
 
-dBodyID CoreComponentModel::getRoot() {
+boost::shared_ptr<SimpleBody> CoreComponentModel::getRoot() {
 	return coreComponent_;
 }
 
-dBodyID CoreComponentModel::getSlot(unsigned int /*i*/) {
+boost::shared_ptr<SimpleBody> CoreComponentModel::getSlot(unsigned int /*i*/) {
 	return coreComponent_;
 }
 

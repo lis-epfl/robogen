@@ -52,23 +52,26 @@ LightSensorModel::~LightSensorModel() {
 bool LightSensorModel::initModel() {
 
 
-	sensorRoot_ = this->createBody(B_SENSOR_BASE_ID);
-
 	//just dividing the mass by 3 for each component, is there a better way to do this?
-	this->createBoxGeom(sensorRoot_, MASS/3.0, osg::Vec3(0, 0, 0),
-			SENSOR_BASE_THICKNESS, SENSOR_BASE_WIDTH, SENSOR_BASE_WIDTH);
+	sensorRoot_ = this->addBox(MASS/3.0, osg::Vec3(0, 0, 0),
+			SENSOR_BASE_THICKNESS, SENSOR_BASE_WIDTH, SENSOR_BASE_WIDTH,
+			B_SENSOR_BASE_ID);
 
-	dBodyID platform = this->createBody(B_SENSOR_PLATFORM_ID);
-	this->createBoxGeom(platform, MASS/3.0, osg::Vec3(SENSOR_BASE_THICKNESS/2.0 + SENSOR_PLATFORM_THICKNESS/2.0, 0, 0),
-				SENSOR_PLATFORM_THICKNESS, SENSOR_PLATFORM_WIDTH, SENSOR_PLATFORM_WIDTH);
+	boost::shared_ptr<SimpleBody> platform = this->addBox(MASS/3.0,
+			osg::Vec3(SENSOR_BASE_THICKNESS/2.0 +
+					  SENSOR_PLATFORM_THICKNESS/2.0, 0, 0),
+			SENSOR_PLATFORM_THICKNESS, SENSOR_PLATFORM_WIDTH,
+			SENSOR_PLATFORM_WIDTH, B_SENSOR_PLATFORM_ID);
 
-	this->fixBodies(sensorRoot_, platform, osg::Vec3(1, 0, 0));
+	this->fixBodies(sensorRoot_, platform);
 
-	dBodyID cylinder = this->createBody(B_SENSOR_CYLINDER_ID);
-	this->createCylinderGeom(cylinder, MASS/3.0, osg::Vec3(SENSOR_BASE_THICKNESS/2.0 + SENSOR_PLATFORM_THICKNESS + SENSOR_CYLINDER_HEIGHT/2.0, 0, 0), 1,
-				SENSOR_CYLINDER_RADIUS, SENSOR_CYLINDER_HEIGHT);
+	boost::shared_ptr<SimpleBody> cylinder = this->addCylinder(MASS/3.0,
+			osg::Vec3(SENSOR_BASE_THICKNESS/2.0 + SENSOR_PLATFORM_THICKNESS +
+					  SENSOR_CYLINDER_HEIGHT/2.0, 0, 0), 1,
+			SENSOR_CYLINDER_RADIUS, SENSOR_CYLINDER_HEIGHT,
+			B_SENSOR_CYLINDER_ID);
 
-	this->fixBodies(platform, cylinder, osg::Vec3(1, 0, 0));
+	this->fixBodies(platform, cylinder);
 
 	this->sensor_.reset(new LightSensor(this->getCollisionSpace(),
 			this->getBodies(), this->getId()));
@@ -81,11 +84,11 @@ bool LightSensorModel::isInternal() {
 	return internalSensor_;
 }
 
-dBodyID LightSensorModel::getRoot() {
+boost::shared_ptr<SimpleBody> LightSensorModel::getRoot() {
 	return sensorRoot_;
 }
 
-dBodyID LightSensorModel::getSlot(unsigned int /*i*/) {
+boost::shared_ptr<SimpleBody> LightSensorModel::getSlot(unsigned int /*i*/) {
 	return sensorRoot_;
 }
 
@@ -99,7 +102,7 @@ osg::Vec3 LightSensorModel::getSlotPosition(unsigned int i) {
 	osg::Vec3 slotPos;
 	if (i == SLOT_A) {
 
-		osg::Vec3 curPos = this->getPosition(sensorRoot_);
+		osg::Vec3 curPos = this->sensorRoot_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		slotPos = curPos - slotAxis * (SENSOR_BASE_THICKNESS / 2);
 
@@ -121,7 +124,7 @@ osg::Vec3 LightSensorModel::getSlotAxis(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->sensorRoot_);
+		quat = this->sensorRoot_->getAttitude();
 		axis.set(-1, 0, 0);
 
 	}
@@ -142,7 +145,7 @@ osg::Vec3 LightSensorModel::getSlotOrientation(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->sensorRoot_);
+		quat = this->sensorRoot_->getAttitude();
 		axis.set(0, 1, 0);
 
 	}
@@ -159,12 +162,12 @@ void LightSensorModel::getSensors(
 void LightSensorModel::updateSensors(boost::shared_ptr<Environment>& /*env*/) {
 
 	// Axis
-	osg::Quat quat = this->getAttitude(this->sensorRoot_);
+	osg::Quat quat = this->sensorRoot_->getAttitude();
 
-	osg::Vec3 curPos = this->getPosition(sensorRoot_);
+	osg::Vec3 curPos = this->sensorRoot_->getPosition();
 	osg::Vec3 axis(1, 0, 0);
 	osg::Vec3 sensorPos = curPos + quat * axis * SENSOR_DISPLACEMENT;
-	this->sensor_->update(sensorPos, this->getAttitude(sensorRoot_));
+	this->sensor_->update(sensorPos, this->sensorRoot_->getAttitude());
 }
 
 }

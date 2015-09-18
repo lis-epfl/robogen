@@ -132,9 +132,9 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 		// offending body parts
 		std::map<dBodyID, std::string> dBodyToPartID;
 		for (unsigned int i = 0; i < bodyParts.size(); ++i) {
-			std::vector<dBodyID> dBodies = bodyParts[i]->getBodies();
+			std::vector<boost::shared_ptr<SimpleBody> > dBodies = bodyParts[i]->getBodies();
 			for (unsigned int j = 0; j < dBodies.size(); ++j) {
-				dBodyToPartID[dBodies[j]] = bodyParts[i]->getId();
+				dBodyToPartID[dBodies[j]->getBody()] = bodyParts[i]->getId();
 			}
 		}
 

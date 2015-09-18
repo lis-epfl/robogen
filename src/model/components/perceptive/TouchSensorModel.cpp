@@ -50,6 +50,8 @@ TouchSensorModel::~TouchSensorModel() {
 
 bool TouchSensorModel::initModel() {
 
+	//TODO
+#if 0
 	sensorRoot_ = this->createBody(B_SENSOR_BASE_ID);
 	dBodyID leftSensor = this->createBody(B_SENSOR_LEFT);
 	dBodyID rightSensor = this->createBody(B_SENSOR_RIGHT);
@@ -73,16 +75,16 @@ bool TouchSensorModel::initModel() {
 	// Connect everything
 	this->fixBodies(sensorRoot_, leftSensor, osg::Vec3(1, 0, 0));
 	this->fixBodies(sensorRoot_, rightSensor, osg::Vec3(1, 0, 0));
-
+#endif
 	return true;
 
 }
 
-dBodyID TouchSensorModel::getRoot() {
+boost::shared_ptr<SimpleBody> TouchSensorModel::getRoot() {
 	return sensorRoot_;
 }
 
-dBodyID TouchSensorModel::getSlot(unsigned int /*i*/) {
+boost::shared_ptr<SimpleBody> TouchSensorModel::getSlot(unsigned int /*i*/) {
 	return sensorRoot_;
 }
 
@@ -96,7 +98,7 @@ osg::Vec3 TouchSensorModel::getSlotPosition(unsigned int i) {
 	osg::Vec3 slotPos;
 	if (i == SLOT_A) {
 
-		osg::Vec3 curPos = this->getPosition(sensorRoot_);
+		osg::Vec3 curPos = this->sensorRoot_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		slotPos = curPos - slotAxis * (SENSOR_BASE_THICKNESS / 2);
 
@@ -118,7 +120,7 @@ osg::Vec3 TouchSensorModel::getSlotAxis(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->sensorRoot_);
+		quat = this->sensorRoot_->getAttitude();
 		axis.set(-1, 0, 0);
 
 	}
@@ -139,7 +141,7 @@ osg::Vec3 TouchSensorModel::getSlotOrientation(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->sensorRoot_);
+		quat = this->sensorRoot_->getAttitude();
 		axis.set(0, 1, 0);
 
 	}

@@ -52,7 +52,7 @@ ParametricBrickModel::~ParametricBrickModel() {
 }
 
 bool ParametricBrickModel::initModel() {
-
+#if 0
 	// Create the 4 components of the hinge
 	brickRoot_ = this->createBody(B_SLOT_A_ID);
 
@@ -146,14 +146,15 @@ bool ParametricBrickModel::initModel() {
 	this->fixBodies(connectionPart, brickTail_, osg::Vec3(1, 0, 0));
 
 	return true;
-
+#endif
+	return false;
 }
 
-dBodyID ParametricBrickModel::getRoot() {
+boost::shared_ptr<SimpleBody> ParametricBrickModel::getRoot() {
 	return brickRoot_;
 }
 
-dBodyID ParametricBrickModel::getSlot(unsigned int i) {
+boost::shared_ptr<SimpleBody> ParametricBrickModel::getSlot(unsigned int i) {
 	if (i == SLOT_A) {
 		return brickRoot_;
 	} else {
@@ -170,13 +171,13 @@ osg::Vec3 ParametricBrickModel::getSlotPosition(unsigned int i) {
 	osg::Vec3 slotPos;
 	if (i == SLOT_A) {
 
-		osg::Vec3 curPos = this->getPosition(brickRoot_);
+		osg::Vec3 curPos = this->brickRoot_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
 
 	} else {
 
-		osg::Vec3 curPos = this->getPosition(brickTail_);
+		osg::Vec3 curPos = this->brickTail_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
 
@@ -197,12 +198,12 @@ osg::Vec3 ParametricBrickModel::getSlotAxis(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->brickRoot_);
+		quat = this->brickRoot_->getAttitude();
 		axis.set(-1, 0, 0);
 
 	} else if (i == SLOT_B) {
 
-		quat = this->getAttitude(this->brickTail_);
+		quat = this->brickTail_->getAttitude();
 		axis.set(1, 0, 0);
 
 	}
@@ -223,12 +224,12 @@ osg::Vec3 ParametricBrickModel::getSlotOrientation(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->brickRoot_);
+		quat = this->brickRoot_->getAttitude();
 		axis.set(0, 1, 0);
 
 	} else if (i == SLOT_B) {
 
-		quat = this->getAttitude(this->brickTail_);
+		quat = this->brickTail_->getAttitude();
 		axis.set(0, 1, 0);
 
 	}
