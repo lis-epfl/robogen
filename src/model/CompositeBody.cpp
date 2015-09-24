@@ -5,7 +5,6 @@
  *      Author: auerbach
  */
 
-#if 0
 #include <sstream>
 
 #include "Model.h"
@@ -195,5 +194,3 @@ std::string CompositeBody::str(int indent) {
 
 
 }
-
-#endif

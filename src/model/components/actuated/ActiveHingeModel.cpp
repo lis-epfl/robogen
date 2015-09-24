@@ -93,14 +93,14 @@ bool ActiveHingeModel::initModel() {
 	// root <-> connectionPartA
 	this->fixBodies(hingeRoot_, frame);
 
+	// connectionPartB <-> tail
+	this->fixBodies(servo, hingeTail_);
+
 	// connectionPartA <(hinge)> connectionPArtB
 	boost::shared_ptr<Joint> joint = this->attachWithHinge(frame, servo,
 			osg::Vec3(0, 1, 0),
 			osg::Vec3(SLOT_THICKNESS / 2 + separation + FRAME_ROTATION_OFFSET,
 						0, 0));
-
-	// connectionPartB <-> tail
-	this->fixBodies(servo, hingeTail_);
 
 	// Create servo
 	this->motor_.reset(

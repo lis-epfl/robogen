@@ -5,7 +5,7 @@
  *      Author: auerbach
  */
 
-#if 0
+
 
 #ifndef ROBOGEN_COMPOSITEBODY_CPP_
 #define ROBOGEN_COMPOSITEBODY_CPP_
@@ -59,4 +59,4 @@ private:
 
 #endif /* COMPOSITEBODY_CPP_ */
 
-#endif
+

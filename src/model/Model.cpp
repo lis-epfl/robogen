@@ -68,9 +68,9 @@ void Model::setRootPosition(const osg::Vec3& pos) {
 	osg::Vec3 translation = pos - curPosition;
 
 	std::map<int, boost::shared_ptr<SimpleBody> >::iterator it = this->bodies_.begin();
-	//std::set<dBodyID> movedBodies;
+	std::set<dBodyID> movedBodies;
 	for (; it != this->bodies_.end(); ++it) {
-	//	if(movedBodies.count(it->second->getBody()) == 0) {
+		if(movedBodies.count(it->second->getBody()) == 0) {
 
 			const dReal *position = dBodyGetPosition(it->second->getBody());
 			osg::Vec3 curBodyPos = osg::Vec3(position[0], position[1], position[2]);
@@ -87,8 +87,8 @@ void Model::setRootPosition(const osg::Vec3& pos) {
 
 			dBodySetPosition(it->second->getBody(), curBodyPos.x(), curBodyPos.y(),
 				curBodyPos.z());
-	//		movedBodies.insert(it->second->getBody());
-	//	}
+			movedBodies.insert(it->second->getBody());
+		}
 	}
 }
 
@@ -105,9 +105,9 @@ void Model::setRootAttitude(const osg::Quat& quat) {
 
 	std::map<int, boost::shared_ptr<SimpleBody> >::iterator it =
 			this->bodies_.begin();
-	//std::set<dBodyID> movedBodies;
+	std::set<dBodyID> movedBodies;
 	for (; it != this->bodies_.end(); ++it) {
-	//	if(movedBodies.count(it->second->getBody()) == 0) {
+		if(movedBodies.count(it->second->getBody()) == 0) {
 			//osg::Vec3 curPosition = it->second->getPosition();
 			const dReal *position = dBodyGetPosition(it->second->getBody());
 			osg::Vec3 curPosition = osg::Vec3(position[0], position[1], position[2]);
@@ -131,23 +131,13 @@ void Model::setRootAttitude(const osg::Quat& quat) {
 			quatOde[3] = curBodyAttitude.z();
 
 			dBodySetQuaternion(it->second->getBody(), quatOde);
-//			movedBodies.insert(it->second->getBody());
-		//}
+			movedBodies.insert(it->second->getBody());
+		}
 	}
 
 	this->setRootPosition(rootPosition);
 
 }
-
-//osg::Vec3 Model::getPosition(dBodyID body) {
-//	const dReal* boxVec = dBodyGetPosition(body);
-//	return osg::Vec3(boxVec[0], boxVec[1], boxVec[2]);
-//}
-
-//osg::Quat Model::getAttitude(dBodyID body) {
-//	const dReal* boxQuat = dBodyGetQuaternion(body);
-//	return (osg::Quat(boxQuat[1], boxQuat[2], boxQuat[3], boxQuat[0]));
-//}
 
 osg::Vec3 Model::getBodyPosition(int id) {
 	return this->getBody(id)->getPosition();
@@ -193,20 +183,6 @@ std::vector<int> Model::getIDs() {
 void Model::addBody(boost::shared_ptr<SimpleBody> body, int id) {
 	this->bodies_.insert(std::pair<int, boost::shared_ptr<SimpleBody> >(id, body));
 }
-
-/*
-dBodyID Model::createBody(int label) {
-	dBodyID b = dBodyCreate(this->getPhysicsWorld());
-	if (label >= 0) {
-		this->addBody(b, label);
-	}
-	return b;
-}
-
-dBodyID Model::createBody() {
-	return this->createBody(-1);
-}
-*/
 
 boost::shared_ptr<SimpleBody> Model::addBox(float mass,
 		const osg::Vec3& pos, float lengthX, float lengthY, float lengthZ,
@@ -268,7 +244,7 @@ boost::shared_ptr<SimpleBody> Model::addCapsule(float mass,
 void Model::fixBodies(boost::shared_ptr<SimpleBody> b1,
 						  boost::shared_ptr<SimpleBody> b2) {
 
-#if 0
+#if 1
 	boost::shared_ptr<CompositeBody> composite(new CompositeBody());
 	std::vector<boost::shared_ptr<PhysicalBody> > bodies;
 	bodies.push_back(b1);
