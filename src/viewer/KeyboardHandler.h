@@ -30,6 +30,7 @@
 #define ROBOGEN_KEYBOARD_HANDLER_H_
 
 #include <osgGA/GUIEventHandler>
+#include <osg/Version>
 
 namespace robogen {
 
@@ -88,12 +89,13 @@ public:
 		return false;
 
 	}
-
-/*
+#if OSG_VERSION_LESS_OR_EQUAL(3, 2, 0)
+	//think this can safely be removed complete, but will wrap in this check
+	// for now
 	virtual void accept(osgGA::GUIEventHandlerVisitor& v) {
 		v.visit(*this);
 	}
-*/
+#endif
 
 	/**
 	 * Check if the pause button was pressed
