@@ -73,10 +73,8 @@ osg::Vec3 SimpleBody::getPosition() {
 
 osg::Quat SimpleBody::getLocalAttitude() {
 
-	 const dReal* pLocalRotMat = dGeomGetOffsetRotation (geom_);
 	 dQuaternion localQuat;
-	 dQfromR(localQuat, pLocalRotMat);
-
+	 dGeomGetOffsetQuaternion(geom_, localQuat);
 	 return (osg::Quat(localQuat[1], localQuat[2], localQuat[3], localQuat[0]));
 
 }
@@ -105,9 +103,8 @@ osg::Quat SimpleBody::getAttitude() {
 	 dQfromR(worldQuat, worldRotMat);
 	 return (osg::Quat(worldQuat[1], worldQuat[2], worldQuat[3], worldQuat[0]));
 #endif
-	 const dReal* rot = dGeomGetRotation(geom_);
 	 dQuaternion quat;
-	 dQfromR(quat, rot);
+	 dGeomGetQuaternion(geom_, quat);
 	 return (osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 }
 

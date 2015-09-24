@@ -226,15 +226,6 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				}
 			}
 
-			std::cout << robot->getBodyParts()[0]->getRootPosition()[0] << " " <<
-					robot->getBodyParts()[0]->getRootPosition()[1] << " " <<
-					robot->getBodyParts()[0]->getRootPosition()[2] << std::endl;
-			std::cout << robot->getBodyParts()[0]->getRootAttitude()[0] << " " <<
-					robot->getBodyParts()[0]->getRootAttitude()[1] << " " <<
-					robot->getBodyParts()[0]->getRootAttitude()[2] <<  " " <<
-					robot->getBodyParts()[0]->getRootAttitude()[3] << std::endl;
-
-
 			if ((count++) % 500 == 0) {
 				std::cout << "." << std::flush;
 			}
