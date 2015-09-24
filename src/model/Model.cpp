@@ -29,6 +29,8 @@
 #include <stdexcept>
 #include <sstream>
 
+#include "CompositeBody.h"
+
 namespace robogen {
 
 Model::Model(dWorldID odeWorld, dSpaceID odeSpace, std::string id) :
@@ -66,11 +68,27 @@ void Model::setRootPosition(const osg::Vec3& pos) {
 	osg::Vec3 translation = pos - curPosition;
 
 	std::map<int, boost::shared_ptr<SimpleBody> >::iterator it = this->bodies_.begin();
+	//std::set<dBodyID> movedBodies;
 	for (; it != this->bodies_.end(); ++it) {
-		osg::Vec3 curBodyPos = it->second->getPosition();
-		curBodyPos += translation;
-		dBodySetPosition(it->second->getBody(), curBodyPos.x(), curBodyPos.y(),
+	//	if(movedBodies.count(it->second->getBody()) == 0) {
+
+			const dReal *position = dBodyGetPosition(it->second->getBody());
+			osg::Vec3 curBodyPos = osg::Vec3(position[0], position[1], position[2]);
+			//osg::Vec3 curBodyPos = it->second->getPosition();
+			//std::cout << "MOVING body ";
+			//std::cout << "from " << curBodyPos.x() << ", " <<curBodyPos.y() <<  ", " <<
+			//		curBodyPos.z() << std::endl;
+
+			curBodyPos += translation;
+			//std::cout << "to " << curBodyPos.x() << ", " <<curBodyPos.y() <<  ", " <<
+			//		curBodyPos.z() << std::endl;
+
+
+
+			dBodySetPosition(it->second->getBody(), curBodyPos.x(), curBodyPos.y(),
 				curBodyPos.z());
+	//		movedBodies.insert(it->second->getBody());
+	//	}
 	}
 }
 
@@ -87,28 +105,34 @@ void Model::setRootAttitude(const osg::Quat& quat) {
 
 	std::map<int, boost::shared_ptr<SimpleBody> >::iterator it =
 			this->bodies_.begin();
+	//std::set<dBodyID> movedBodies;
 	for (; it != this->bodies_.end(); ++it) {
+	//	if(movedBodies.count(it->second->getBody()) == 0) {
+			//osg::Vec3 curPosition = it->second->getPosition();
+			const dReal *position = dBodyGetPosition(it->second->getBody());
+			osg::Vec3 curPosition = osg::Vec3(position[0], position[1], position[2]);
 
-		osg::Vec3 curPosition = it->second->getPosition();
-		osg::Vec3 relPosition = curPosition - rootPosition;
+			osg::Vec3 relPosition = curPosition - rootPosition;
 
-		// Rotate relPosition
-		osg::Vec3 newPosition = quat * relPosition;
-		dBodySetPosition(it->second->getBody(), newPosition.x(), newPosition.y(),
-				newPosition.z());
+			// Rotate relPosition
+			osg::Vec3 newPosition = quat * relPosition;
+			dBodySetPosition(it->second->getBody(), newPosition.x(), newPosition.y(),
+					newPosition.z());
 
-		osg::Quat curBodyAttitude = it->second->getAttitude();
-		curBodyAttitude *= quat;
+			osg::Quat curBodyAttitude = it->second->getAttitude();
+			curBodyAttitude *= quat;
 
-		//curBodyAttitude = quat;
+			//curBodyAttitude = quat;
 
-		dQuaternion quatOde;
-		quatOde[0] = curBodyAttitude.w();
-		quatOde[1] = curBodyAttitude.x();
-		quatOde[2] = curBodyAttitude.y();
-		quatOde[3] = curBodyAttitude.z();
+			dQuaternion quatOde;
+			quatOde[0] = curBodyAttitude.w();
+			quatOde[1] = curBodyAttitude.x();
+			quatOde[2] = curBodyAttitude.y();
+			quatOde[3] = curBodyAttitude.z();
 
-		dBodySetQuaternion(it->second->getBody(), quatOde);
+			dBodySetQuaternion(it->second->getBody(), quatOde);
+//			movedBodies.insert(it->second->getBody());
+		//}
 	}
 
 	this->setRootPosition(rootPosition);
@@ -241,19 +265,33 @@ boost::shared_ptr<SimpleBody> Model::addCapsule(float mass,
 	return body;
 }
 
-boost::shared_ptr<Joint> Model::fixBodies(boost::shared_ptr<SimpleBody> b1,
+void Model::fixBodies(boost::shared_ptr<SimpleBody> b1,
 						  boost::shared_ptr<SimpleBody> b2) {
 
-	return boost::shared_ptr<Joint>(new Joint(this->getPhysicsWorld(),
-			b1, b2));
+#if 0
+	boost::shared_ptr<CompositeBody> composite(new CompositeBody());
+	std::vector<boost::shared_ptr<PhysicalBody> > bodies;
+	bodies.push_back(b1);
+	bodies.push_back(b2);
+	// shared_ptr is maintained on the child bodies
+	composite->init(bodies,this->getPhysicsWorld());
+
+#else
+	boost::shared_ptr<Joint> joint(new Joint());
+	joint->createFixed(this->getPhysicsWorld(),b1, b2);
+	joints_.push_back(joint);
+#endif
+	//return joint;
 }
 
 boost::shared_ptr<Joint> Model::attachWithHinge(
 		boost::shared_ptr<SimpleBody> b1, boost::shared_ptr<SimpleBody> b2,
 		osg::Vec3 axis, osg::Vec3 anchor) {
 
-	return boost::shared_ptr<Joint>(new Joint(this->getPhysicsWorld(),
-			b1, b2, axis, anchor));
+	boost::shared_ptr<Joint> joint(new Joint());
+	joint->createHinge(this->getPhysicsWorld(), b1, b2, axis, anchor);
+	joints_.push_back(joint);
+	return joint;
 }
 
 bool Model::setOrientationToParentSlot(int orientation){
@@ -287,5 +325,11 @@ bool Model::setParentOrientation(int orientation) {
 int Model::getOrientationToRoot() {
 	return this->orientationToRoot_;
 }
+
+void Model::removeJoint(boost::shared_ptr<Joint> joint) {
+	joints_.erase(std::remove(joints_.begin(), joints_.end(), joint),
+			joints_.end());
+}
+
 
 }

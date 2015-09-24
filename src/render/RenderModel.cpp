@@ -279,9 +279,9 @@ std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > RenderModel::attachGe
 
 
 	for (unsigned int i=0; i<ids.size(); i++) {
-		dGeomID g = dBodyGetFirstGeom(this->getModel()->getBody(ids[i])->getBody());
-
-		while(g != 0) {
+		dGeomID g = this->getModel()->getBody(ids[i])->getGeom();
+		//dGeomID g = dBodyGetFirstGeom(this->getModel()->getBody(ids[i])->getBody());
+		//while(g != 0) {
 			int gclass = dGeomGetClass(g);
 			//const dReal *pos = dGeomGetPosition(g);
 			//const dReal *rot = dGeomGetRotation(g);
@@ -317,9 +317,9 @@ std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > RenderModel::attachGe
 							" not yet configured to draw!" << std::endl;
 				}
 			}
-			g = dBodyGetNextGeom(g);
+			//g = dBodyGetNextGeom(g);
 			count++;
-		}
+		//}
 
 	}
 	return pats;

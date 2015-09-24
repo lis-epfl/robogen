@@ -10,10 +10,11 @@
 
 namespace robogen {
 
-Joint::Joint(dWorldID world, boost::shared_ptr<PhysicalBody> bodyA,
+void Joint::createHinge(dWorldID world, boost::shared_ptr<PhysicalBody> bodyA,
 		  boost::shared_ptr<PhysicalBody> bodyB,
-		  osg::Vec3 axis, osg::Vec3 anchor) :
-				  bodyA_(bodyA), bodyB_(bodyB) {
+		  osg::Vec3 axis, osg::Vec3 anchor) {
+	bodyA_ = bodyA;
+	bodyB_ = bodyB;
 
 	joint_ = dJointCreateHinge(world, 0);
 	dJointAttach(joint_, bodyA->getBody(), bodyB->getBody());
@@ -21,24 +22,31 @@ Joint::Joint(dWorldID world, boost::shared_ptr<PhysicalBody> bodyA,
 	dJointSetHingeAnchor(joint_, anchor[0], anchor[1], anchor[2]);
 
 	// now add to body to maintain shared pointer
-	bodyA->addJoint(shared_from_this());
-	bodyB->addJoint(shared_from_this());
+	//bodyA->addJoint(shared_from_this());
+	//bodyB->addJoint(shared_from_this());
+
+	type_ = HINGE;
 }
 
 
-Joint::Joint(dWorldID world, boost::shared_ptr<PhysicalBody> bodyA,
-			  boost::shared_ptr<PhysicalBody> bodyB, dJointGroupID jointGroup) :
-				 bodyA_(bodyA), bodyB_(bodyB), jointGroup_(jointGroup) {
+void Joint::createFixed(dWorldID world, boost::shared_ptr<PhysicalBody> bodyA,
+			  boost::shared_ptr<PhysicalBody> bodyB, dJointGroupID jointGroup) {
+	bodyA_ = bodyA;
+	bodyB_ = bodyB;
+	jointGroup_ = jointGroup;
+
 	joint_ = dJointCreateFixed(world, jointGroup);
 	dJointAttach(joint_, bodyA->getBody(), bodyB->getBody());
 	dJointSetFixed(joint_);
 
-	bodyA->addJoint(shared_from_this());
-	bodyB->addJoint(shared_from_this());
+	//bodyA->addJoint(shared_from_this());
+	//bodyB->addJoint(shared_from_this());
+
+	type_ = FIXED;
 }
 
 Joint::~Joint() {
-	dJointDestroy(joint_);
+	//dJointDestroy(joint_);
 }
 
 }

@@ -40,6 +40,8 @@
 
 #include "arduino/ArduinoNNConfiguration.h"
 
+
+
 namespace robogen {
 
 /**
@@ -50,12 +52,12 @@ class BodyConnectionVisitor: public boost::default_bfs_visitor {
 public:
 
 	BodyConnectionVisitor(dWorldID& odeWorld,
-			std::vector<boost::shared_ptr<Model> >& bodyParts,
-			std::map<std::string, unsigned int>& nodeIdToPos,
-			dJointGroupID connectionJointGroup) :
-			odeWorld_(odeWorld), bodyParts_(bodyParts), nodeIdToPos_(
-					nodeIdToPos), connectionJointGroup_(connectionJointGroup) {
-
+			/*std::vector<boost::shared_ptr<Model> >& bodyParts,
+			std::map<std::string, unsigned int>& nodeIdToPos,*/
+			dJointGroupID connectionJointGroup, Robot *robot) :
+			odeWorld_(odeWorld), /*bodyParts_(bodyParts),
+			nodeIdToPos_(nodeIdToPos),*/
+			connectionJointGroup_(connectionJointGroup), robot_(robot) {
 	}
 
 	/**
@@ -69,8 +71,11 @@ public:
 		boost::shared_ptr<Connection> c = boost::get(bodyConnectionMap, v);
 
 		// This is the gist of the bfs visitor
-		RobogenUtils::connect(c->getTo(), c->getToSlot(), c->getFrom(),
-				c->getFromSlot(), connectionJointGroup_, odeWorld_);
+		boost::shared_ptr<Joint> joint = RobogenUtils::connect(c->getTo(),
+				c->getToSlot(), c->getFrom(), c->getFromSlot(),
+				connectionJointGroup_, odeWorld_);
+
+		//robot_->addJoint(joint);
 
 		return;
 	}
@@ -79,11 +84,13 @@ private:
 
 	dWorldID& odeWorld_;
 
-	std::vector<boost::shared_ptr<Model> >& bodyParts_;
+	//std::vector<boost::shared_ptr<Model> >& bodyParts_;
 
-	std::map<std::string, unsigned int>& nodeIdToPos_;
+	//std::map<std::string, unsigned int>& nodeIdToPos_;
 
 	dJointGroupID connectionJointGroup_;
+
+	Robot *robot_;
 
 };
 
@@ -167,9 +174,13 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 					<< "." << std::endl;
 			return false;
 		}
-
 		model->initModel();
+		//std::cout << ">>>>>>>>>>>>>>>>>" << bodyPart.id() << " " << x << " " << y << " " << z <<std::endl;
+		//std::cout << "pre .................. " << model->getRootPosition()[0]
+		//		  << " " << model->getRootPosition()[1] << " " << model->getRootPosition()[2] << std::endl;
 		model->setRootPosition(osg::Vec3(x, y, z));
+		//std::cout << "post .................. " << model->getRootPosition()[0]
+		//          << " " << model->getRootPosition()[1] << " " << model->getRootPosition()[2] << std::endl;
 		bodyParts_.push_back(model);
 		bodyPartsMap_.insert(std::pair<std::string, int>(bodyPart.id(), i));
 
@@ -622,14 +633,73 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 
 }
 
+void Robot::optimizePhysics() {
+#if 0
+	std::cout << "********************************************************\n";
+
+	std::set<boost::shared_ptr<Joint> > joints;
+
+	std::cout << "body parts: " << std::endl;
+	for(size_t i=0; i<this->bodyParts_.size(); ++i) {
+		std::cout << bodyParts_[i]->getId() << std::endl;
+		for(size_t j=0; j<this->bodyParts_[i]->getBodies().size(); ++j) {
+			std::cout << "\t";
+			const osg::Vec3 pos = this->bodyParts_[i]->getBodies()[j]->getPosition();
+			std::cout << pos[0] << " " << pos[1] << " " << pos[2] << std::endl;
+		}
+
+
+
+		const std::vector<boost::shared_ptr<Joint> > bodyJoints =
+				bodyParts_[i]->getJoints();
+		for(size_t j=0; j<bodyJoints.size(); ++j) {
+			joints.insert(bodyJoints[j]);
+		}
+	}
+
+	composites_.clear();
+	unsigned int numFixed = 0, numHinge = 0;
+	for (std::set<boost::shared_ptr<Joint> >::iterator it=joints.begin();
+			it!=joints.end(); ++it) {
+		if ((*it)->getType() == Joint::FIXED) {
+			numFixed++;
+
+			std::vector<boost::shared_ptr<PhysicalBody> > toMerge;
+			toMerge.push_back( (*it)->getBodyA().lock() );
+			toMerge.push_back( (*it)->getBodyB().lock() );
+
+			composites_.push_back(boost::shared_ptr<CompositeBody>(
+					new CompositeBody(toMerge, odeWorld_)));
+
+		} else
+			numHinge++;
+	}
+
+	std::cout << numFixed << " fixed joints!" << std::endl;
+	std::cout << numHinge << " hinge joints!" << std::endl;
+
+
+	std::cout << composites_.size() << " composites\n";
+
+	for(size_t i=0; i<composites_.size(); ++i) {
+		std::cout << i << " " << composites_[i]->str() << std::endl;
+	}
+	std::cout << "********************************************************\n";
+#endif
+}
+
+
 void Robot::reconnect() {
 	// Let's now actually connect the body parts
 	// vis will do the job
-	BodyConnectionVisitor vis(odeWorld_, bodyParts_, bodyPartsMap_,
-			connectionJointGroup_);
+	BodyConnectionVisitor vis(odeWorld_, /*bodyParts_, bodyPartsMap_,*/
+			connectionJointGroup_, this);
 	// purge current connection joint group
 	dJointGroupEmpty(connectionJointGroup_);
+	this->joints_.clear();
 	boost::breadth_first_search(*bodyTree_, rootNode_, boost::visitor(vis));
+
+	this->optimizePhysics();
 }
 
 int Robot::getRoot() {
@@ -672,7 +742,7 @@ void Robot::getBB(double& minX, double& maxX, double& minY, double& maxY,
 
 	for (unsigned int i = 0; i < bodies.size(); ++i) {
 
-		dGeomID curBodyGeom = dBodyGetFirstGeom(bodies[i]);
+		dGeomID curBodyGeom = dBodyGetFirstGeom(bodies[i]->getBody());
 		while(curBodyGeom) {
 			dReal aabb[6];
 			dGeomGetAABB(curBodyGeom, aabb);
@@ -700,8 +770,8 @@ void Robot::getBB(double& minX, double& maxX, double& minY, double& maxY,
 			if (aabb[5] > maxZ) {
 				maxZ = aabb[5];
 			}
-			curBodyGeom = dBodyGetNextGeom(curBodyGeom)
-
+			curBodyGeom = dBodyGetNextGeom(curBodyGeom);
+		}
 	}
 }
 

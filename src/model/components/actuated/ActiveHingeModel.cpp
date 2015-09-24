@@ -108,6 +108,7 @@ bool ActiveHingeModel::initModel() {
 					ServoMotor::DEFAULT_GAIN,
 					ioPair(this->getId(),0)));
 
+
 	return true;
 
 }

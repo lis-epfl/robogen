@@ -11,8 +11,6 @@
 #include "Robogen.h"
 #include <vector>
 #include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
 
 
 #include "Joint.h"
@@ -20,25 +18,47 @@
 namespace robogen {
 
 class Model;
+class CompositeBody;
 
-class PhysicalBody : public boost::enable_shared_from_this<PhysicalBody> {
+class PhysicalBody  {
 
 public:
 	inline dBodyID getBody() { return body_; }
 	inline void setBody(dBodyID body) { body_ = body; }
 	inline virtual ~PhysicalBody() {
-		dBodyDestroy(body_);
-		joints.clear();
+		/*if(body_) {
+			printf("destroying body!!!\n");
+			std::cout << body_ << std::endl;
+			dBodyDestroy(body_);
+			body_ = NULL;
+		}*/
+		joints_.clear();
 	}
 	inline void addJoint(boost::shared_ptr<Joint> joint) {
-		joints.push_back(joint);
+		joints_.push_back(joint);
 	}
+
+	inline const std::vector<boost::shared_ptr<Joint> > &getJoints() {
+		return joints_;
+	}
+
+
 	virtual osg::Vec3 getPosition() = 0;
 	virtual osg::Quat getAttitude() = 0;
 
+	inline void setParent(boost::shared_ptr<CompositeBody> parent) {
+		parent_ = parent;
+	}
+
+	inline boost::shared_ptr<CompositeBody> getParent() {
+		return parent_;
+	}
+
+
 protected:
 	dBodyID body_;
-	std::vector<boost::shared_ptr<Joint> > joints;
+	std::vector<boost::shared_ptr<Joint> > joints_;
+	boost::shared_ptr<CompositeBody> parent_;
 };
 
 }

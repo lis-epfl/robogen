@@ -8,14 +8,13 @@
 #include "Model.h"
 #include "SimpleBody.h"
 
-
 namespace robogen {
 
-SimpleBody::SimpleBody(boost::weak_ptr<Model> model, dMass mass,
+SimpleBody::SimpleBody(boost::shared_ptr<Model> model, dMass mass,
 		dGeomID geom, const osg::Vec3& pos, const osg::Quat& attitude) :
-		model_(model), geom_(geom), mass_(mass) {
+		model_(model),  mass_(mass), geom_(geom) {
 
-	body_ = dBodyCreate(model_.lock()->getPhysicsWorld());
+	body_ = dBodyCreate(model->getPhysicsWorld());
 
 	dBodySetMass(body_, &mass_);
 	dGeomSetBody(geom, body_);
@@ -67,6 +66,7 @@ osg::Vec3 SimpleBody::getPosition() {
 	 //dQfromR(worldQuat, worldRotMat);
 #endif
 	 const dReal* pos = dGeomGetPosition(geom_);
+	 //printf("pos: % 02.7f % 02.7f % 02.7f\n", pos[0], pos[1], pos[2]);
 	 return osg::Vec3(pos[0], pos[1], pos[2]);
 
 }
@@ -112,6 +112,12 @@ osg::Quat SimpleBody::getAttitude() {
 }
 
 
-
+const boost::weak_ptr<Model>& SimpleBody::getModel() {
+		if (!model_.lock()) {
+			std::cout << "bad model!" << std::endl;
+			exitRobogen(EXIT_FAILURE);
+		}
+		return model_;
+	}
 
 }

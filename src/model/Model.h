@@ -215,7 +215,7 @@ public:
 	 * @param b1 first body
 	 * @param b2 second body
 	 */
-	boost::shared_ptr<Joint> fixBodies(boost::shared_ptr<SimpleBody> b1,
+	void fixBodies(boost::shared_ptr<SimpleBody> b1,
 			boost::shared_ptr<SimpleBody> b2);
 
 
@@ -252,6 +252,15 @@ public:
 
 
 	int getOrientationToRoot();
+
+	/**
+	 * Get the internal joints of the model
+	 */
+	inline const std::vector< boost::shared_ptr<Joint> > &getJoints() {
+		return joints_;
+	}
+
+	void removeJoint(boost::shared_ptr<Joint> joint);
 
 protected:
 
@@ -291,6 +300,8 @@ private:
 	int orientationToParentSlot_;
 
 	int orientationToRoot_;
+
+	std::vector< boost::shared_ptr<Joint> > joints_;
 
 };
 

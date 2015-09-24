@@ -22,9 +22,18 @@ class Model;
 class SimpleBody : public PhysicalBody {
 
 public:
-	SimpleBody(boost::weak_ptr<Model> model, dMass mass,
+	SimpleBody(boost::shared_ptr<Model> model, dMass mass,
 			dGeomID geom, const osg::Vec3& pos,
 			const osg::Quat& attitude = osg::Quat());
+
+	inline ~SimpleBody() {
+		/*if(geom_) {
+			printf("destroying geom!!!\n");
+			std::cout << geom_ << std::endl;
+			dGeomDestroy(geom_);
+			geom_ = NULL;
+		}*/
+	}
 
 
 	osg::Vec3 getPosition();
@@ -41,9 +50,7 @@ public:
 		return mass_;
 	}
 
-	inline const boost::weak_ptr<Model>& getModel() {
-		return model_;
-	}
+	const boost::weak_ptr<Model>& getModel();
 
 	inline const osg::Vec3& getSpecifiedPosition() {
 		return specifiedPosition_;
@@ -54,11 +61,13 @@ public:
 	}
 
 
+
 private:
 
-	dGeomID geom_;
-	dMass mass_;
 	boost::weak_ptr<Model> model_;
+	dMass mass_;
+	dGeomID geom_;
+
 	osg::Vec3 specifiedPosition_;
 	osg::Quat specifiedAttitude_;
 };
