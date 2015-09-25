@@ -155,7 +155,7 @@ public:
 	int getRoot();
 
 	inline void addJoint(boost::shared_ptr<Joint> joint) {
-		joints_.insert(joint);
+		joints_.push_back(joint);
 	}
 
 	/**
@@ -268,7 +268,8 @@ private:
 
 	bool printInfo_;
 
-	std::set<boost::shared_ptr<Joint> > joints_;
+	// not a set because we don't want iteration order to depend on address
+	std::vector<boost::shared_ptr<Joint> > joints_;
 	std::vector<boost::shared_ptr<CompositeBody> > composites_;
 };
 

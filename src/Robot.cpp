@@ -663,8 +663,14 @@ void Robot::optimizePhysics() {
 	composites_.clear();
 	unsigned int numFixed = 0, numHinge = 0;
 
-	std::set<boost::shared_ptr<Joint> >::iterator it=joints_.begin();
+	std::vector<boost::shared_ptr<Joint> >::iterator it=joints_.begin();
+	std::set<boost::shared_ptr<Joint> > uniqueJoints;
 	while(it!=joints_.end()) {
+		if (uniqueJoints.count((*it)) > 0) {
+			continue;
+		}
+		uniqueJoints.insert(*it);
+
 		if ((*it)->getType() == Joint::FIXED) {
 			boost::shared_ptr<PhysicalBody> bodyA = (*it)->getBodyA().lock()->getRoot();
 			boost::shared_ptr<PhysicalBody> bodyB = (*it)->getBodyB().lock()->getRoot();
@@ -677,7 +683,7 @@ void Robot::optimizePhysics() {
 			// before creating composite
 			(*it)->reset();
 			// also remove it from the set
-			joints_.erase(it++);
+			it = joints_.erase(it);
 #ifdef DEBUG_OPTIMIZE
 			std::cout << "Post -" << std::endl;
 			std::cout << "\tA: " << bodyA << " " << bodyA->getJoints().size() << std::endl;
@@ -741,7 +747,7 @@ void Robot::reconnect() {
 			connectionJointGroup_, this);
 	// purge current connection joint group
 
-	std::set<boost::shared_ptr<Joint> >::iterator it=joints_.begin();
+	std::vector<boost::shared_ptr<Joint> >::iterator it=joints_.begin();
 	while(it!=joints_.end()) {
 		(*it)->reset();
 		++it;
