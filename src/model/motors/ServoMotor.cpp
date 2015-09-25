@@ -57,8 +57,10 @@ const float ServoMotor::MIN_VELOCITY = -(50.0/60.0) * 2 * M_PI;
 const float ServoMotor::MAX_VELOCITY = (50.0/60.0) * 2 * M_PI;
 
 void ServoMotor::init() {
-	dJointSetHingeParam(joint_, dParamFMax, maxForce_);
-	dJointSetFeedback( joint_, &fback_ );
+	// need to set these on our joint object so that they get
+	// reset if the joint is reconnected
+	joint_->setParam(dParamFMax, maxForce_);
+	joint_->setFeedback( &fback_ );
 	shouldStep_ = false;
 #ifndef OLD_SERVO_MODEL
 	shouldStep_ = true;
@@ -68,7 +70,7 @@ void ServoMotor::init() {
 ServoMotor::ServoMotor(boost::shared_ptr<Joint> joint,
 		float maxForce, float gain,
 		ioPair id, int maxDirectionShiftsPerSecond) : Motor(id),
-		joint_(joint->getJoint()), maxForce_(maxForce), gain_(gain),
+		joint_(joint), maxForce_(maxForce), gain_(gain),
 		isVelocityDriven_(false),
 		internalCounter_(0), isBurntOut_(false),
 		maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond) {
@@ -77,7 +79,7 @@ ServoMotor::ServoMotor(boost::shared_ptr<Joint> joint,
 
 ServoMotor::ServoMotor(boost::shared_ptr<Joint> joint, float maxForce,
 		ioPair id, int maxDirectionShiftsPerSecond) : Motor(id),
-		joint_(joint->getJoint()), maxForce_(maxForce), gain_(0),
+		joint_(joint), maxForce_(maxForce), gain_(0),
 		isVelocityDriven_(true),
 		internalCounter_(0), isBurntOut_(false),
 		maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond) {
@@ -130,18 +132,18 @@ void ServoMotor::step(float stepSize) {
 		return;
 
 	if (isBurntOut_) {
-		dJointSetHingeParam(joint_, dParamVel, 0);
+		dJointSetHingeParam(joint_->getJoint(), dParamVel, 0);
 		return;
 	}
 
 	if (isVelocityDriven_) {
 		if (fabs(desiredVelocity_) < 1e-5) {
-			dJointSetHingeParam(joint_, dParamVel, 0);
+			dJointSetHingeParam(joint_->getJoint(), dParamVel, 0);
 		} else {
-			dJointSetHingeParam(joint_, dParamVel, desiredVelocity_);
+			dJointSetHingeParam(joint_->getJoint(), dParamVel, desiredVelocity_);
 		}
 	} else {
-		dReal curPosition = dJointGetHingeAngle(joint_);
+		dReal curPosition = dJointGetHingeAngle(joint_->getJoint());
 		dReal error = curPosition - desiredPosition_;
 
 		dReal velocity = -gain_ * error / stepSize;
@@ -153,9 +155,9 @@ void ServoMotor::step(float stepSize) {
 		}
 
 		if (fabs(velocity) > 1e-5) {
-			dJointSetHingeParam(joint_, dParamVel, velocity);
+			dJointSetHingeParam(joint_->getJoint(), dParamVel, velocity);
 		} else {
-			dJointSetHingeParam(joint_, dParamVel, 0);
+			dJointSetHingeParam(joint_->getJoint(), dParamVel, 0);
 		}
 	}
 
@@ -182,15 +184,15 @@ dReal ServoMotor::getTorque() {
 	osg::Vec3 force1(fback_.f1[0], fback_.f1[1], fback_.f1[2] );
 	osg::Vec3 force2(fback_.f2[0], fback_.f2[1], fback_.f2[2] );
 
-	const double* p1 = dBodyGetPosition( dJointGetBody(joint_,0) );
-	const double* p2 = dBodyGetPosition( dJointGetBody(joint_,1) );
+	const double* p1 = dBodyGetPosition( dJointGetBody(joint_->getJoint(),0) );
+	const double* p2 = dBodyGetPosition( dJointGetBody(joint_->getJoint(),1) );
 
 	osg::Vec3 pos1(p1[0], p1[1], p1[2]);
 	osg::Vec3 pos2(p2[0], p2[1], p2[2]);
 
 
 	dVector3 odeAnchor;
-	dJointGetHingeAnchor ( joint_, odeAnchor );
+	dJointGetHingeAnchor ( joint_->getJoint(), odeAnchor );
 	osg::Vec3 anchor(odeAnchor[0], odeAnchor[1], odeAnchor[2]);
 
 
@@ -198,7 +200,7 @@ dReal ServoMotor::getTorque() {
 	osg::Vec3 ftorque2 = torque2 - (force2^(pos2-anchor));// opposite direction - use if this is necessary
 
 	dVector3 odeAxis;
-	dJointGetHingeAxis ( joint_, odeAxis);
+	dJointGetHingeAxis ( joint_->getJoint(), odeAxis);
 	osg::Vec3 axis(odeAxis[0], odeAxis[1], odeAxis[2] );
 	axis.normalize();
 
@@ -209,12 +211,12 @@ dReal ServoMotor::getTorque() {
 }
 
 dReal ServoMotor::getVelocity() {
-	return dJointGetHingeAngleRate(joint_);
+	return dJointGetHingeAngleRate(joint_->getJoint());
 
 }
 
 dReal ServoMotor::getPosition() {
-	return dJointGetHingeAngle(joint_);
+	return dJointGetHingeAngle(joint_->getJoint());
 }
 
 

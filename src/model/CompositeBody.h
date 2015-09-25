@@ -13,8 +13,10 @@
 
 #include "Robogen.h"
 #include <vector>
+#include <set>
+#include <map>
 #include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
+
 
 
 #include "PhysicalBody.h"
@@ -22,15 +24,14 @@
 
 namespace robogen {
 
-class CompositeBody : public PhysicalBody,
-	public boost::enable_shared_from_this<CompositeBody> {
+class CompositeBody : public PhysicalBody {
 
 public:
 	//errorless constructor
 	CompositeBody() { }
 
 	void init(std::vector<boost::shared_ptr<PhysicalBody> > subBodies,
-			dWorldID world);
+			dWorldID world, bool multiModel = false);
 
 	virtual ~CompositeBody();
 
@@ -41,16 +42,28 @@ public:
 		return subBodies_;
 	}
 
+	inline bool isMultiModel() {
+		return multiModel_;
+	}
+
+	std::vector<boost::shared_ptr<Joint> > getAllJoints();
+
 	std::string str(int indent=0);
 
 private:
 
-	void addSubBody(boost::shared_ptr<PhysicalBody> subBody);
+	void addSubBody(boost::shared_ptr<PhysicalBody> subBody,
+			bool directDescendant = true);
+	void updateDescendantBodies();
+
 	std::vector<boost::weak_ptr<SimpleBody> > flattenSubBodies();
+
 
 	dMass compositeMass_;
 	std::vector<boost::weak_ptr<PhysicalBody> > subBodies_;
-
+	bool multiModel_;
+	std::set<dBodyID> bodiesToDestroy_;
+	std::map<dGeomID, osg::Quat> rotations_;
 
 
 };

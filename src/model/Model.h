@@ -273,6 +273,8 @@ protected:
 
 private:
 
+	std::set<boost::shared_ptr<PhysicalBody> > bodiesToMove();
+
 	/**
 	 * ODE world
 	 */

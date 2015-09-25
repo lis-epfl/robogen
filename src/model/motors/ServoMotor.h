@@ -141,7 +141,7 @@ private:
 	/**
 	 * ODE joint that models the servo
 	 */
-	dJointID joint_;
+	boost::shared_ptr<Joint> joint_;
 
 	/**
 	 * Max force that the motor can produce

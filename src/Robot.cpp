@@ -75,7 +75,7 @@ public:
 				c->getToSlot(), c->getFrom(), c->getFromSlot(),
 				connectionJointGroup_, odeWorld_);
 
-		//robot_->addJoint(joint);
+		robot_->addJoint(joint);
 
 		return;
 	}
@@ -634,47 +634,72 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 }
 
 void Robot::optimizePhysics() {
-#if 0
-	std::cout << "********************************************************\n";
-
-	std::set<boost::shared_ptr<Joint> > joints;
+#ifdef DEBUG_OPTIMIZE
+	std::cout << "*********************************************************************************\n";
+	std::cout << "***********              OPTIMIZING PHYSICS          ****************************\n";
+	std::cout << "*********************************************************************************\n";
+	std::cout << "\n\n\n";
 
 	std::cout << "body parts: " << std::endl;
+
 	for(size_t i=0; i<this->bodyParts_.size(); ++i) {
 		std::cout << bodyParts_[i]->getId() << std::endl;
 		for(size_t j=0; j<this->bodyParts_[i]->getBodies().size(); ++j) {
 			std::cout << "\t";
 			const osg::Vec3 pos = this->bodyParts_[i]->getBodies()[j]->getPosition();
-			std::cout << pos[0] << " " << pos[1] << " " << pos[2] << std::endl;
-		}
-
-
-
-		const std::vector<boost::shared_ptr<Joint> > bodyJoints =
-				bodyParts_[i]->getJoints();
-		for(size_t j=0; j<bodyJoints.size(); ++j) {
-			joints.insert(bodyJoints[j]);
+			const osg::Quat rot = this->bodyParts_[i]->getBodies()[j]->getAttitude();
+			std::cout << "Physical body:" << this->bodyParts_[i]->getBodies()[j]
+			          << " attached to "
+			          << this->bodyParts_[i]->getBodies()[j]->getBody()
+			          << " located at "
+			          << pos[0] << " " << pos[1] << " " << pos[2]
+					  << " with rotation "
+					  << rot[0] << " " << rot[1] << " " << rot[2]
+					  << " " << rot[3] << std::endl;
 		}
 	}
+#endif
 
 	composites_.clear();
 	unsigned int numFixed = 0, numHinge = 0;
-	for (std::set<boost::shared_ptr<Joint> >::iterator it=joints.begin();
-			it!=joints.end(); ++it) {
+
+	std::set<boost::shared_ptr<Joint> >::iterator it=joints_.begin();
+	while(it!=joints_.end()) {
 		if ((*it)->getType() == Joint::FIXED) {
+			boost::shared_ptr<PhysicalBody> bodyA = (*it)->getBodyA().lock()->getRoot();
+			boost::shared_ptr<PhysicalBody> bodyB = (*it)->getBodyB().lock()->getRoot();
+#ifdef DEBUG_OPTIMIZE
+			std::cout << "Pre -" << std::endl;
+			std::cout << "\tA: " << bodyA << " " << bodyA->getJoints().size() << std::endl;
+			std::cout << "\tB: " << bodyB << " " << bodyB->getJoints().size() << std::endl;
+#endif
+			// reset the joint (which will remove it from the bodies)
+			// before creating composite
+			(*it)->reset();
+			// also remove it from the set
+			joints_.erase(it++);
+#ifdef DEBUG_OPTIMIZE
+			std::cout << "Post -" << std::endl;
+			std::cout << "\tA: " << bodyA << " " << bodyA->getJoints().size() << std::endl;
+			std::cout << "\tB: " << bodyB << " " << bodyB->getJoints().size() << std::endl;
+#endif
 			numFixed++;
 
 			std::vector<boost::shared_ptr<PhysicalBody> > toMerge;
-			toMerge.push_back( (*it)->getBodyA().lock() );
-			toMerge.push_back( (*it)->getBodyB().lock() );
+			toMerge.push_back( bodyA );
+			toMerge.push_back( bodyB );
 
-			composites_.push_back(boost::shared_ptr<CompositeBody>(
-					new CompositeBody(toMerge, odeWorld_)));
+			boost::shared_ptr<CompositeBody> composite(new CompositeBody());
+			composite->init(toMerge, odeWorld_, true);
+			composites_.push_back(composite);
 
-		} else
+
+		} else {
+			it++;
 			numHinge++;
+		}
 	}
-
+#ifdef DEBUG_OPTIMIZE
 	std::cout << numFixed << " fixed joints!" << std::endl;
 	std::cout << numHinge << " hinge joints!" << std::endl;
 
@@ -682,24 +707,50 @@ void Robot::optimizePhysics() {
 	std::cout << composites_.size() << " composites\n";
 
 	for(size_t i=0; i<composites_.size(); ++i) {
-		std::cout << i << " " << composites_[i]->str() << std::endl;
+		std::cout << i << " " << composites_[i] << " " << composites_[i]->str() << std::endl;
 	}
 	std::cout << "********************************************************\n";
+	std::cout << "body parts: " << std::endl;
+	for(size_t i=0; i<this->bodyParts_.size(); ++i) {
+		std::cout << bodyParts_[i]->getId() << std::endl;
+		for(size_t j=0; j<this->bodyParts_[i]->getBodies().size(); ++j) {
+			std::cout << "\t";
+			const osg::Vec3 pos = this->bodyParts_[i]->getBodies()[j]->getPosition();
+			const osg::Quat rot = this->bodyParts_[i]->getBodies()[j]->getAttitude();
+			std::cout << "Physical body:" << this->bodyParts_[i]->getBodies()[j]
+					  << " attached to "
+					  << this->bodyParts_[i]->getBodies()[j]->getBody()
+					  << " located at "
+					  << pos[0] << " " << pos[1] << " " << pos[2]
+					  << " with rotation "
+					  << rot[0] << " " << rot[1] << " " << rot[2]
+					  << " " << rot[3] << std::endl;
+		}
+	}
 #endif
 }
 
 
 void Robot::reconnect() {
+#ifdef DEBUG_OPTIMIZE
+	std::cout << "------------------ RECONNECTING ROBOT ------------------" << std::endl;
+#endif
 	// Let's now actually connect the body parts
 	// vis will do the job
 	BodyConnectionVisitor vis(odeWorld_, /*bodyParts_, bodyPartsMap_,*/
 			connectionJointGroup_, this);
 	// purge current connection joint group
-	dJointGroupEmpty(connectionJointGroup_);
-	this->joints_.clear();
-	boost::breadth_first_search(*bodyTree_, rootNode_, boost::visitor(vis));
 
-	this->optimizePhysics();
+	std::set<boost::shared_ptr<Joint> >::iterator it=joints_.begin();
+	while(it!=joints_.end()) {
+		(*it)->reset();
+		++it;
+	}
+	this->joints_.clear();
+
+	dJointGroupEmpty(connectionJointGroup_);
+
+	boost::breadth_first_search(*bodyTree_, rootNode_, boost::visitor(vis));
 }
 
 int Robot::getRoot() {

@@ -60,6 +60,14 @@ public:
 		return specifiedAttitude_;
 	}
 
+	inline void setSpecifiedPosition(osg::Vec3 specifiedPosition) {
+		specifiedPosition_ = specifiedPosition;
+	}
+
+	inline void setSpecifiedAttitude(osg::Quat specifiedAttitude) {
+		specifiedAttitude_ = specifiedAttitude;
+	}
+
 
 
 private:

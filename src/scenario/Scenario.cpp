@@ -159,6 +159,8 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 
 	}
 
+	robot->optimizePhysics();
+
 	return true;
 }
 

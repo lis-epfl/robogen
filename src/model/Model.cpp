@@ -25,6 +25,9 @@
  *
  * @(#) $Id$
  */
+
+#define NO_FIXED_JOINTS
+
 #include "model/Model.h"
 #include <stdexcept>
 #include <sstream>
@@ -62,34 +65,44 @@ osg::Quat Model::getRootAttitude() {
 	return this->getRoot()->getAttitude();
 }
 
+std::set<boost::shared_ptr<PhysicalBody> > Model::bodiesToMove() {
+	std::set<boost::shared_ptr<PhysicalBody> > rootBodies;
+
+	for(size_t i=0; i<bodies_.size(); ++i) {
+		boost::shared_ptr<PhysicalBody> bodyRoot = bodies_[i]->getRoot();
+		boost::shared_ptr<CompositeBody> composite =
+						boost::dynamic_pointer_cast<CompositeBody>(bodyRoot);
+		if( !(composite && composite->isMultiModel()) ) {
+			rootBodies.insert(bodyRoot);
+		}
+	}
+	return rootBodies;
+}
+
+
 void Model::setRootPosition(const osg::Vec3& pos) {
 
 	osg::Vec3 curPosition = this->getRootPosition();
 	osg::Vec3 translation = pos - curPosition;
 
-	std::map<int, boost::shared_ptr<SimpleBody> >::iterator it = this->bodies_.begin();
-	std::set<dBodyID> movedBodies;
-	for (; it != this->bodies_.end(); ++it) {
-		if(movedBodies.count(it->second->getBody()) == 0) {
+	std::set<boost::shared_ptr<PhysicalBody> > rootBodies = bodiesToMove();
 
-			const dReal *position = dBodyGetPosition(it->second->getBody());
-			osg::Vec3 curBodyPos = osg::Vec3(position[0], position[1], position[2]);
-			//osg::Vec3 curBodyPos = it->second->getPosition();
-			//std::cout << "MOVING body ";
-			//std::cout << "from " << curBodyPos.x() << ", " <<curBodyPos.y() <<  ", " <<
-			//		curBodyPos.z() << std::endl;
+	for(std::set<boost::shared_ptr<PhysicalBody> >::iterator it =
+			rootBodies.begin(); it!=rootBodies.end(); ++it) {
 
-			curBodyPos += translation;
-			//std::cout << "to " << curBodyPos.x() << ", " <<curBodyPos.y() <<  ", " <<
-			//		curBodyPos.z() << std::endl;
+		osg::Vec3 curBodyPos = (*it)->getPosition();
+		//osg::Vec3 curBodyPos = it->second->getPosition();
+		//std::cout << "MOVING body ";
+		//std::cout << "from " << curBodyPos.x() << ", " <<curBodyPos.y() <<  ", " <<
+		//		curBodyPos.z() << std::endl;
 
+		curBodyPos += translation;
+		//std::cout << "to " << curBodyPos.x() << ", " <<curBodyPos.y() <<  ", " <<
+		//		curBodyPos.z() << std::endl;
 
-
-			dBodySetPosition(it->second->getBody(), curBodyPos.x(), curBodyPos.y(),
-				curBodyPos.z());
-			movedBodies.insert(it->second->getBody());
-		}
+		(*it)->setPosition(curBodyPos);
 	}
+
 }
 
 void Model::translateRootPosition(const osg::Vec3& translation) {
@@ -103,36 +116,33 @@ void Model::setRootAttitude(const osg::Quat& quat) {
 
 	osg::Vec3 rootPosition = this->getRootPosition();
 
-	std::map<int, boost::shared_ptr<SimpleBody> >::iterator it =
-			this->bodies_.begin();
-	std::set<dBodyID> movedBodies;
-	for (; it != this->bodies_.end(); ++it) {
-		if(movedBodies.count(it->second->getBody()) == 0) {
-			//osg::Vec3 curPosition = it->second->getPosition();
-			const dReal *position = dBodyGetPosition(it->second->getBody());
-			osg::Vec3 curPosition = osg::Vec3(position[0], position[1], position[2]);
+	std::set<boost::shared_ptr<PhysicalBody> > rootBodies = bodiesToMove();
 
-			osg::Vec3 relPosition = curPosition - rootPosition;
+	for(std::set<boost::shared_ptr<PhysicalBody> >::iterator it =
+			rootBodies.begin(); it!=rootBodies.end(); ++it) {
+		//osg::Vec3 curPosition = it->second->getPosition();
+		//const dReal *position = dBodyGetPosition((*it)->getBody());
+		osg::Vec3 curPosition = (*it)->getPosition();//osg::Vec3(position[0], position[1], position[2]);
+		osg::Vec3 relPosition = curPosition - rootPosition;
 
-			// Rotate relPosition
-			osg::Vec3 newPosition = quat * relPosition;
-			dBodySetPosition(it->second->getBody(), newPosition.x(), newPosition.y(),
-					newPosition.z());
+		// Rotate relPosition
+		osg::Vec3 newPosition = quat * relPosition;
+		(*it)->setPosition(newPosition);
+		//dBodySetPosition((*it)->getBody(), newPosition.x(), newPosition.y(),
+				//newPosition.z());
 
-			osg::Quat curBodyAttitude = it->second->getAttitude();
-			curBodyAttitude *= quat;
+		osg::Quat curBodyAttitude = (*it)->getAttitude();
+		curBodyAttitude *= quat;
 
-			//curBodyAttitude = quat;
+		//curBodyAttitude = quat;
+		(*it)->setAttitude(curBodyAttitude);
+		//dQuaternion quatOde;
+		//quatOde[0] = curBodyAttitude.w();
+		//quatOde[1] = curBodyAttitude.x();
+		//quatOde[2] = curBodyAttitude.y();
+		//quatOde[3] = curBodyAttitude.z();
 
-			dQuaternion quatOde;
-			quatOde[0] = curBodyAttitude.w();
-			quatOde[1] = curBodyAttitude.x();
-			quatOde[2] = curBodyAttitude.y();
-			quatOde[3] = curBodyAttitude.z();
-
-			dBodySetQuaternion(it->second->getBody(), quatOde);
-			movedBodies.insert(it->second->getBody());
-		}
+		//dBodySetQuaternion((*it)->getBody(), quatOde);
 	}
 
 	this->setRootPosition(rootPosition);
@@ -244,7 +254,7 @@ boost::shared_ptr<SimpleBody> Model::addCapsule(float mass,
 void Model::fixBodies(boost::shared_ptr<SimpleBody> b1,
 						  boost::shared_ptr<SimpleBody> b2) {
 
-#if 1
+#ifdef NO_FIXED_JOINTS
 	boost::shared_ptr<CompositeBody> composite(new CompositeBody());
 	std::vector<boost::shared_ptr<PhysicalBody> > bodies;
 	bodies.push_back(b1);
@@ -257,13 +267,12 @@ void Model::fixBodies(boost::shared_ptr<SimpleBody> b1,
 	joint->createFixed(this->getPhysicsWorld(),b1, b2);
 	joints_.push_back(joint);
 #endif
-	//return joint;
+
 }
 
 boost::shared_ptr<Joint> Model::attachWithHinge(
 		boost::shared_ptr<SimpleBody> b1, boost::shared_ptr<SimpleBody> b2,
 		osg::Vec3 axis, osg::Vec3 anchor) {
-
 	boost::shared_ptr<Joint> joint(new Joint());
 	joint->createHinge(this->getPhysicsWorld(), b1, b2, axis, anchor);
 	joints_.push_back(joint);

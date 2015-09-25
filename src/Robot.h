@@ -155,8 +155,14 @@ public:
 	int getRoot();
 
 	inline void addJoint(boost::shared_ptr<Joint> joint) {
-		joints_.push_back(joint);
+		joints_.insert(joint);
 	}
+
+	/**
+	 * Merges bodies connected with fixed joints into complex bodies
+	 */
+	void optimizePhysics();
+
 private:
 
 	/**
@@ -178,10 +184,6 @@ private:
 	 */
 	void reconnect();
 
-	/**
-	 * Merges bodies connected with fixed joints into complex bodies
-	 */
-	void optimizePhysics();
 
 	/**
 	 * ODE physics world
@@ -266,7 +268,7 @@ private:
 
 	bool printInfo_;
 
-	std::vector<boost::shared_ptr<Joint> > joints_;
+	std::set<boost::shared_ptr<Joint> > joints_;
 	std::vector<boost::shared_ptr<CompositeBody> > composites_;
 };
 
