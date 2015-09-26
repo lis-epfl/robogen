@@ -22,15 +22,8 @@ SimpleBody::SimpleBody(boost::shared_ptr<Model> model, dMass mass,
 	for(unsigned int i=0; i<3; ++i) specifiedPosition_[i] = pos[i];
 	for(unsigned int i=0; i<4; ++i) specifiedAttitude_[i] = attitude[i];
 
-	dBodySetPosition(body_, pos[0], pos[1], pos[2]);
-
-	dQuaternion quatOde;
-	quatOde[0] = attitude.w();
-	quatOde[1] = attitude.x();
-	quatOde[2] = attitude.y();
-	quatOde[3] = attitude.z();
-	dBodySetQuaternion(body_, quatOde);
-
+	setPosition(pos);
+	setAttitude(attitude);
 }
 
 osg::Vec3 SimpleBody::getLocalPosition() {

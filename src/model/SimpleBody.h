@@ -68,6 +68,17 @@ public:
 		specifiedAttitude_ = specifiedAttitude;
 	}
 
+	//overwrite parent methods to also update specified position / attitude
+	inline void setPosition(osg::Vec3 position) {
+		PhysicalBody::setPosition(position);
+		setSpecifiedPosition(position);
+	}
+
+	inline void setAttitude(osg::Quat attitude) {
+		PhysicalBody::setAttitude(attitude);
+		setSpecifiedAttitude(attitude);
+	}
+
 
 
 private:

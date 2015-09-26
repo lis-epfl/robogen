@@ -665,6 +665,8 @@ void Robot::optimizePhysics() {
 
 	std::vector<boost::shared_ptr<Joint> >::iterator it=joints_.begin();
 	std::set<boost::shared_ptr<Joint> > uniqueJoints;
+	// iterate over vector so order is determined by insertion,
+	// but use set to prevent duplicates
 	while(it!=joints_.end()) {
 		if (uniqueJoints.count((*it)) > 0) {
 			continue;
@@ -672,8 +674,8 @@ void Robot::optimizePhysics() {
 		uniqueJoints.insert(*it);
 
 		if ((*it)->getType() == Joint::FIXED) {
-			boost::shared_ptr<PhysicalBody> bodyA = (*it)->getBodyA().lock()->getRoot();
-			boost::shared_ptr<PhysicalBody> bodyB = (*it)->getBodyB().lock()->getRoot();
+			boost::shared_ptr<PhysicalBody> bodyA = (*it)->getBodyA().lock();
+			boost::shared_ptr<PhysicalBody> bodyB = (*it)->getBodyB().lock();
 #ifdef DEBUG_OPTIMIZE
 			std::cout << "Pre -" << std::endl;
 			std::cout << "\tA: " << bodyA << " " << bodyA->getJoints().size() << std::endl;

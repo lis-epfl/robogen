@@ -11,6 +11,8 @@
 #include "CompositeBody.h"
 #include "SimpleBody.h"
 
+//#define DEBUG_MERGE
+//#define DEBUG_MERGE_ADVANCED
 namespace robogen {
 
 void getRotationMatrixOde(osg::Quat quat, dReal *rotationMatrixOde) {
@@ -30,24 +32,31 @@ void CompositeBody::init(std::vector<boost::shared_ptr<PhysicalBody> >
 
 	multiModel_ = multiModel;
 
-	if(subBodies.size() < 2) {
-		std::cerr << "Trying to create composite from less than 2 bodies!"
-				<< std::endl;
-		exitRobogen(EXIT_FAILURE);
-	}
+	// want to keep insertion order concstent, so use vector, but use set to get unique elements
+	std::vector<boost::shared_ptr<PhysicalBody> > rootBodies;
+	std::set<boost::shared_ptr<PhysicalBody> > uniqueRoots;
 
 	for(size_t i=0; i<subBodies.size(); ++i) {
-		for(size_t j=i+1; j<subBodies.size(); ++j) {
 #ifdef DEBUG_MERGE
-			std::cout <<  "merging >>>>>>>>>>>>>>>>> " << subBodies[i]->getBody() <<
-					" " << subBodies[j]->getBody() << std::endl;
-#endif
-			if(subBodies[i]->getBody() == subBodies[j]->getBody()) {
-				std::cout << subBodies[i] << " and " << subBodies[i] << " are ";
-				std::cout << "already merged...skipping " << subBodies[i]->getBody() << std::endl;
-				return;
-			}
+		if (i==0) {
+			std::cout <<  ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "
+					<< "merging >>>>>>>>>>>>> " << std::endl;
 		}
+		std::cout << "\t" << subBodies[i] << " (" << subBodies[i]->getBody() << ")"
+			<< " with root "
+			<< subBodies[i]->getRoot() << " ("
+			<< subBodies[i]->getRoot()->getBody() << ")"<< std::endl;
+#endif
+		if (uniqueRoots.count(subBodies[i]->getRoot()) == 0) {
+			uniqueRoots.insert(subBodies[i]->getRoot());
+			rootBodies.push_back(subBodies[i]->getRoot());
+		}
+	}
+
+	if(rootBodies.size() < 2) {
+		std::cerr << "Trying to create composite from less than root 2 bodies!"
+				<< std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	body_ = dBodyCreate(world);
@@ -59,8 +68,8 @@ void CompositeBody::init(std::vector<boost::shared_ptr<PhysicalBody> >
 	std::cout << "Adding " << subBodies.size() << " sub bodies." << std::endl;
 	std::cout << "  already " << subBodies_.size() << " sub bodies" << std::endl;
 #endif
-	for(size_t i=0; i<subBodies.size(); ++i) {
-		this->addSubBody(subBodies[i]);
+	for(size_t i=0; i<rootBodies.size(); ++i) {
+		this->addSubBody(rootBodies[i]);
 	}
 #ifdef DEBUG_MERGE
 	std::cout << subBodies_.size() << " sub bodies added " << std::endl;
@@ -74,14 +83,15 @@ void CompositeBody::init(std::vector<boost::shared_ptr<PhysicalBody> >
 	for (size_t i=0; i<simpleBodies.size(); ++i) {
 		osg::Vec3 currentPosition = simpleBodies[i].lock()->getPosition();
 		osg::Quat currentAttitude = simpleBodies[i].lock()->getAttitude();
-#ifdef DEBUG_MERGE
+#ifdef DEBUG_MERGE_ADVANCED
 		std::cout << "PRE SETTING OFFSET " <<
 				currentPosition[0] << " " << currentPosition[1] << " " <<
 				currentPosition[2] << std::endl;
 #endif
-		osg::Vec3 specifiedPosition = simpleBodies[i].lock()->getSpecifiedPosition();
 
-#ifdef DEBUG_MERGE
+
+#ifdef DEBUG_MERGE_ADVANCED
+		osg::Vec3 specifiedPosition = simpleBodies[i].lock()->getSpecifiedPosition();
 		std::cout << "SPECIFIED " <<
 				specifiedPosition[0] << " " << specifiedPosition[1] << " " <<
 				specifiedPosition[2] << std::endl;
@@ -97,7 +107,7 @@ void CompositeBody::init(std::vector<boost::shared_ptr<PhysicalBody> >
 				currentPosition[0]-compositeMass_.c[0],
 				currentPosition[1]-compositeMass_.c[1],
 				currentPosition[2]-compositeMass_.c[2]);
-#ifdef DEBUG_MERGE
+#ifdef DEBUG_MERGE_ADVANCED
 		std::cout << "-------------GEOM ROTATION-----------------------\n";
 		std::cout << "\t\t"
 				<< currentAttitude[0] <<  " " <<
@@ -109,7 +119,7 @@ void CompositeBody::init(std::vector<boost::shared_ptr<PhysicalBody> >
 		dGeomSetOffsetRotation(simpleBodies[i].lock()->getGeom(),
 				rotationMatrixOde);
 		currentPosition = simpleBodies[i].lock()->getPosition();
-#ifdef DEBUG_MERGE
+#ifdef DEBUG_MERGE_ADVANCED
 		std::cout << "POST SETTING OFFSET " <<
 						currentPosition[0] << " " << currentPosition[1] << " " <<
 						currentPosition[2] << std::endl;
@@ -247,7 +257,7 @@ void CompositeBody::addSubBody(boost::shared_ptr<PhysicalBody> subBody,
 
 		dMatrix3 rotationMatrixOde;
 		getRotationMatrixOde(currentRotation, rotationMatrixOde);
-#ifdef DEBUG_MERGE
+#ifdef DEBUG_MERGE_ADVANCED
 		std::cout << "-------------MASS ROTATION-----------------------\n";
 		std::cout << "\t\t" << currentRotation[0] << " " << currentRotation[1]
 		        << " " << currentRotation[2]

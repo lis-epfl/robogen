@@ -218,11 +218,19 @@ public:
 	void fixBodies(boost::shared_ptr<SimpleBody> b1,
 			boost::shared_ptr<SimpleBody> b2);
 
-
 	/**
 	 * Fix bodies together
+	 * @param bodies vector of bodies to be fixed together
+	 */
+	void fixBodies(std::vector<boost::shared_ptr<PhysicalBody> >bodies);
+
+
+	/**
+	 * Attach with hunge
 	 * @param b1 first body
 	 * @param b2 second body
+	 * @param axis hinge's rotation axis
+	 * @param anchor hinge's anchor location
 	 */
 	boost::shared_ptr<Joint> attachWithHinge(boost::shared_ptr<SimpleBody> b1,
 			boost::shared_ptr<SimpleBody> b2, osg::Vec3 axis, osg::Vec3 anchor);
