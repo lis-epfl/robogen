@@ -12,14 +12,14 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
-#include "PhysicalBody.h"
+#include "AbstractBody.h"
 
 
 namespace robogen {
 
 class Model;
 
-class SimpleBody : public PhysicalBody {
+class SimpleBody : public AbstractBody {
 
 public:
 	SimpleBody(boost::shared_ptr<Model> model, dMass mass,
@@ -70,12 +70,12 @@ public:
 
 	//overwrite parent methods to also update specified position / attitude
 	inline void setPosition(osg::Vec3 position) {
-		PhysicalBody::setPosition(position);
+		AbstractBody::setPosition(position);
 		setSpecifiedPosition(position);
 	}
 
 	inline void setAttitude(osg::Quat attitude) {
-		PhysicalBody::setAttitude(attitude);
+		AbstractBody::setAttitude(attitude);
 		setSpecifiedAttitude(attitude);
 	}
 

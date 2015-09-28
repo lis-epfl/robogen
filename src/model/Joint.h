@@ -15,7 +15,7 @@
 
 namespace robogen {
 
-class PhysicalBody;
+class AbstractBody;
 
 class Joint : public boost::enable_shared_from_this<Joint> {
 public:
@@ -31,12 +31,12 @@ public:
 		fback_ = NULL;
 	}
 	// create a hinge
-	void createHinge(dWorldID world, boost::shared_ptr<PhysicalBody> bodyA,
-		  boost::shared_ptr<PhysicalBody> bodyB,
+	void createHinge(dWorldID world, boost::shared_ptr<AbstractBody> bodyA,
+		  boost::shared_ptr<AbstractBody> bodyB,
 		  osg::Vec3 axis, osg::Vec3 anchor, dJointGroupID jointGroup=0);
 	// create fixed
-	void createFixed(dWorldID world, boost::shared_ptr<PhysicalBody> bodyA,
-			  boost::shared_ptr<PhysicalBody> bodyB, dJointGroupID jointGroup=0);
+	void createFixed(dWorldID world, boost::shared_ptr<AbstractBody> bodyA,
+			  boost::shared_ptr<AbstractBody> bodyB, dJointGroupID jointGroup=0);
 
 	void reconnect();
 
@@ -47,8 +47,8 @@ public:
 	inline dJointID getJoint() { return joint_; }
 	inline JointType getType() { return type_; }
 
-	inline boost::weak_ptr<PhysicalBody> getBodyA() { return bodyA_; }
-	inline boost::weak_ptr<PhysicalBody> getBodyB() { return bodyB_; }
+	inline boost::weak_ptr<AbstractBody> getBodyA() { return bodyA_; }
+	inline boost::weak_ptr<AbstractBody> getBodyB() { return bodyB_; }
 
 
 	inline const osg::Vec3 &getAnchor() { return anchor_; }
@@ -67,7 +67,7 @@ private :
 
 
 	dJointID joint_;
-	boost::weak_ptr<PhysicalBody> bodyA_, bodyB_;
+	boost::weak_ptr<AbstractBody> bodyA_, bodyB_;
 	dJointGroupID jointGroup_;
 	JointType type_;
 	osg::Vec3 anchor_, hingeAxis_;

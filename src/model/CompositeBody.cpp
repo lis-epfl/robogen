@@ -27,14 +27,14 @@ void getRotationMatrixOde(osg::Quat quat, dReal *rotationMatrixOde) {
 }
 
 
-void CompositeBody::init(std::vector<boost::shared_ptr<PhysicalBody> >
+void CompositeBody::init(std::vector<boost::shared_ptr<AbstractBody> >
 							subBodies, dWorldID world, bool multiModel) {
 
 	multiModel_ = multiModel;
 
 	// want to keep insertion order concstent, so use vector, but use set to get unique elements
-	std::vector<boost::shared_ptr<PhysicalBody> > rootBodies;
-	std::set<boost::shared_ptr<PhysicalBody> > uniqueRoots;
+	std::vector<boost::shared_ptr<AbstractBody> > rootBodies;
+	std::set<boost::shared_ptr<AbstractBody> > uniqueRoots;
 
 	for(size_t i=0; i<subBodies.size(); ++i) {
 #ifdef DEBUG_MERGE
@@ -210,7 +210,7 @@ CompositeBody::~CompositeBody() {
 
 void CompositeBody::updateDescendantBodies() {
 	for(size_t i=0; i<subBodies_.size(); ++i) {
-		boost::shared_ptr<PhysicalBody> subBody = subBodies_[i].lock();
+		boost::shared_ptr<AbstractBody> subBody = subBodies_[i].lock();
 		subBody->setBody(body_);
 		if(boost::shared_ptr<CompositeBody> composite =
 				boost::dynamic_pointer_cast<CompositeBody>(subBody)) {
@@ -219,7 +219,7 @@ void CompositeBody::updateDescendantBodies() {
 	}
 }
 
-void CompositeBody::addSubBody(boost::shared_ptr<PhysicalBody> subBody,
+void CompositeBody::addSubBody(boost::shared_ptr<AbstractBody> subBody,
 		bool directDescendant) {
 
 
@@ -348,7 +348,7 @@ std::vector<boost::shared_ptr<Joint> > CompositeBody::getAllJoints() {
 }
 
 
-std::string posString(PhysicalBody* body) {
+std::string posString(AbstractBody* body) {
 	std::stringstream ss;
 	ss << body->getPosition()[0] << ", " << body->getPosition()[1] << ", " <<
 			body->getPosition()[2];

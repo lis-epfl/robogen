@@ -6,14 +6,14 @@
  */
 
 #include "Joint.h"
-#include "PhysicalBody.h"
+#include "AbstractBody.h"
 #include "CompositeBody.h"
 
 namespace robogen {
 
 
-void Joint::createHinge(dWorldID world, boost::shared_ptr<PhysicalBody> bodyA,
-		  boost::shared_ptr<PhysicalBody> bodyB,
+void Joint::createHinge(dWorldID world, boost::shared_ptr<AbstractBody> bodyA,
+		  boost::shared_ptr<AbstractBody> bodyB,
 		  osg::Vec3 axis, osg::Vec3 anchor, dJointGroupID jointGroup) {
 
 	type_ = HINGE;
@@ -34,8 +34,8 @@ void Joint::createHinge(dWorldID world, boost::shared_ptr<PhysicalBody> bodyA,
 }
 
 
-void Joint::createFixed(dWorldID world, boost::shared_ptr<PhysicalBody> bodyA,
-			  boost::shared_ptr<PhysicalBody> bodyB, dJointGroupID jointGroup) {
+void Joint::createFixed(dWorldID world, boost::shared_ptr<AbstractBody> bodyA,
+			  boost::shared_ptr<AbstractBody> bodyB, dJointGroupID jointGroup) {
 
 	type_ = FIXED;
 

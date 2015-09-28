@@ -661,8 +661,8 @@ void Robot::optimizePhysics() {
 		uniqueJoints.insert(*it);
 
 		if ((*it)->getType() == Joint::FIXED) {
-			boost::shared_ptr<PhysicalBody> bodyA = (*it)->getBodyA().lock();
-			boost::shared_ptr<PhysicalBody> bodyB = (*it)->getBodyB().lock();
+			boost::shared_ptr<AbstractBody> bodyA = (*it)->getBodyA().lock();
+			boost::shared_ptr<AbstractBody> bodyB = (*it)->getBodyB().lock();
 #ifdef DEBUG_OPTIMIZE
 			std::cout << "Pre -" << std::endl;
 			std::cout << "\tA: " << bodyA << " " << bodyA->getJoints().size() << std::endl;
@@ -680,7 +680,7 @@ void Robot::optimizePhysics() {
 #endif
 			numFixed++;
 
-			std::vector<boost::shared_ptr<PhysicalBody> > toMerge;
+			std::vector<boost::shared_ptr<AbstractBody> > toMerge;
 			toMerge.push_back( bodyA );
 			toMerge.push_back( bodyB );
 

@@ -65,11 +65,11 @@ osg::Quat Model::getRootAttitude() {
 	return this->getRoot()->getAttitude();
 }
 
-std::set<boost::shared_ptr<PhysicalBody> > Model::bodiesToMove() {
-	std::set<boost::shared_ptr<PhysicalBody> > rootBodies;
+std::set<boost::shared_ptr<AbstractBody> > Model::bodiesToMove() {
+	std::set<boost::shared_ptr<AbstractBody> > rootBodies;
 
 	for(size_t i=0; i<bodies_.size(); ++i) {
-		boost::shared_ptr<PhysicalBody> bodyRoot = bodies_[i]->getRoot();
+		boost::shared_ptr<AbstractBody> bodyRoot = bodies_[i]->getRoot();
 		boost::shared_ptr<CompositeBody> composite =
 						boost::dynamic_pointer_cast<CompositeBody>(bodyRoot);
 		if( !(composite && composite->isMultiModel()) ) {
@@ -85,9 +85,9 @@ void Model::setRootPosition(const osg::Vec3& pos) {
 	osg::Vec3 curPosition = this->getRootPosition();
 	osg::Vec3 translation = pos - curPosition;
 
-	std::set<boost::shared_ptr<PhysicalBody> > rootBodies = bodiesToMove();
+	std::set<boost::shared_ptr<AbstractBody> > rootBodies = bodiesToMove();
 
-	for(std::set<boost::shared_ptr<PhysicalBody> >::iterator it =
+	for(std::set<boost::shared_ptr<AbstractBody> >::iterator it =
 			rootBodies.begin(); it!=rootBodies.end(); ++it) {
 
 		osg::Vec3 curBodyPos = (*it)->getPosition();
@@ -109,9 +109,9 @@ void Model::setRootAttitude(const osg::Quat& quat) {
 
 	osg::Vec3 rootPosition = this->getRootPosition();
 
-	std::set<boost::shared_ptr<PhysicalBody> > rootBodies = bodiesToMove();
+	std::set<boost::shared_ptr<AbstractBody> > rootBodies = bodiesToMove();
 
-	for(std::set<boost::shared_ptr<PhysicalBody> >::iterator it =
+	for(std::set<boost::shared_ptr<AbstractBody> >::iterator it =
 			rootBodies.begin(); it!=rootBodies.end(); ++it) {
 		//osg::Vec3 curPosition = it->second->getPosition();
 		//const dReal *position = dBodyGetPosition((*it)->getBody());
@@ -234,7 +234,7 @@ boost::shared_ptr<SimpleBody> Model::addCapsule(float mass,
 	return body;
 }
 
-void Model::fixBodies(std::vector<boost::shared_ptr<PhysicalBody> > bodies) {
+void Model::fixBodies(std::vector<boost::shared_ptr<AbstractBody> > bodies) {
 	boost::shared_ptr<CompositeBody> composite(new CompositeBody());
 	// shared_ptr is maintained on the child bodies
 	composite->init(bodies,this->getPhysicsWorld());
@@ -244,7 +244,7 @@ void Model::fixBodies(boost::shared_ptr<SimpleBody> b1,
 						  boost::shared_ptr<SimpleBody> b2) {
 
 #ifdef NO_FIXED_JOINTS
-	std::vector<boost::shared_ptr<PhysicalBody> > bodies;
+	std::vector<boost::shared_ptr<AbstractBody> > bodies;
 	bodies.push_back(b1);
 	bodies.push_back(b2);
 	fixBodies(bodies);

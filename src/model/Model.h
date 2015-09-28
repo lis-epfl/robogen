@@ -205,7 +205,7 @@ public:
 	 * Fix bodies together
 	 * @param bodies vector of bodies to be fixed together
 	 */
-	void fixBodies(std::vector<boost::shared_ptr<PhysicalBody> >bodies);
+	void fixBodies(std::vector<boost::shared_ptr<AbstractBody> >bodies);
 
 
 	/**
@@ -264,7 +264,7 @@ protected:
 
 private:
 
-	std::set<boost::shared_ptr<PhysicalBody> > bodiesToMove();
+	std::set<boost::shared_ptr<AbstractBody> > bodiesToMove();
 
 	/**
 	 * ODE world

@@ -19,18 +19,18 @@
 
 
 
-#include "PhysicalBody.h"
+#include "AbstractBody.h"
 #include "SimpleBody.h"
 
 namespace robogen {
 
-class CompositeBody : public PhysicalBody {
+class CompositeBody : public AbstractBody {
 
 public:
 	//errorless constructor
 	CompositeBody() { }
 
-	void init(std::vector<boost::shared_ptr<PhysicalBody> > subBodies,
+	void init(std::vector<boost::shared_ptr<AbstractBody> > subBodies,
 			dWorldID world, bool multiModel = false);
 
 	virtual ~CompositeBody();
@@ -38,7 +38,7 @@ public:
 	virtual osg::Vec3 getPosition();
 	virtual osg::Quat getAttitude();
 
-	inline const std::vector<boost::weak_ptr<PhysicalBody> > &getSubBodies() {
+	inline const std::vector<boost::weak_ptr<AbstractBody> > &getSubBodies() {
 		return subBodies_;
 	}
 
@@ -52,7 +52,7 @@ public:
 
 private:
 
-	void addSubBody(boost::shared_ptr<PhysicalBody> subBody,
+	void addSubBody(boost::shared_ptr<AbstractBody> subBody,
 			bool directDescendant = true);
 	void updateDescendantBodies();
 
@@ -60,7 +60,7 @@ private:
 
 
 	dMass compositeMass_;
-	std::vector<boost::weak_ptr<PhysicalBody> > subBodies_;
+	std::vector<boost::weak_ptr<AbstractBody> > subBodies_;
 	bool multiModel_;
 	std::set<dBodyID> bodiesToDestroy_;
 	std::map<dGeomID, osg::Quat> rotations_;

@@ -1,5 +1,5 @@
 /*
- * Body.h
+ * AbstractBody.h
  *
  *  Created on: Sep 13, 2015
  *      Author: auerbach
@@ -21,12 +21,12 @@ namespace robogen {
 class Model;
 class CompositeBody;
 
-class PhysicalBody : public boost::enable_shared_from_this<PhysicalBody> {
+class AbstractBody : public boost::enable_shared_from_this<AbstractBody> {
 
 public:
 	inline dBodyID getBody() { return body_; }
 	inline void setBody(dBodyID body) { body_ = body; }
-	inline virtual ~PhysicalBody() {
+	inline virtual ~AbstractBody() {
 		/*if(body_) {
 			printf("destroying body!!!\n");
 			std::cout << body_ << std::endl;
@@ -64,7 +64,7 @@ public:
 		return parent_;
 	}
 
-	boost::shared_ptr<PhysicalBody> getRoot();
+	boost::shared_ptr<AbstractBody> getRoot();
 
 
 protected:
