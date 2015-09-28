@@ -250,22 +250,31 @@ void CompositeBody::addSubBody(boost::shared_ptr<PhysicalBody> subBody,
 						 << simple->getPosition()[2] << std::endl;
 		std::cout << "================================\n";
 #endif
+
+		// do these operations as the same order as demo_boxstack:
+		// dMassRotate then dMassTranslate then dMassAdd
+
 		const osg::Vec3 currentPosition = simple->getPosition();//getSpecifiedPosition();
 		const osg::Quat currentRotation = simple->getAttitude();
+		dMatrix3 rotationMatrixOde;
+		getRotationMatrixOde(currentRotation, rotationMatrixOde);
+		dMassRotate(&componentMass, rotationMatrixOde);
+
+		rotations_[simple->getGeom()] = currentRotation;
+
 		dMassTranslate (&componentMass,currentPosition[0],
 				currentPosition[1], currentPosition[2]);
 
-		dMatrix3 rotationMatrixOde;
-		getRotationMatrixOde(currentRotation, rotationMatrixOde);
+		dMassAdd (&compositeMass_,&componentMass);
+
+
 #ifdef DEBUG_MERGE_ADVANCED
 		std::cout << "-------------MASS ROTATION-----------------------\n";
 		std::cout << "\t\t" << currentRotation[0] << " " << currentRotation[1]
 		        << " " << currentRotation[2]
 		        << " " << currentRotation[3] << std::endl;
 #endif
-		//dMassRotate(&componentMass, rotationMatrixOde);
-		rotations_[simple->getGeom()] = currentRotation;
-		dMassAdd (&compositeMass_,&componentMass);
+
 
 	} else {
 		std::cerr << "Invalid Body Type" << std::endl;
