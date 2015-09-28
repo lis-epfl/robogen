@@ -218,6 +218,18 @@ public:
 	boost::shared_ptr<Joint> attachWithHinge(boost::shared_ptr<SimpleBody> b1,
 			boost::shared_ptr<SimpleBody> b2, osg::Vec3 axis, osg::Vec3 anchor);
 
+	/**
+	 * Attach with universal joint
+	 * @param b1 first body
+	 * @param b2 second body
+	 * @param axis1 universal's first rotation axis
+	 * @param axis2 universal's second rotation axis
+	 * @param anchor universal's anchor location
+	 */
+	boost::shared_ptr<Joint> attachWithUniversal(boost::shared_ptr<SimpleBody> b1,
+			boost::shared_ptr<SimpleBody> b2, osg::Vec3 axis,osg::Vec3 axis2,
+			osg::Vec3 anchor);
+
 
 	/**
 	 * Set orientation to parent slot with increments of 90 degrees

@@ -42,8 +42,9 @@ class Joint : public boost::enable_shared_from_this<Joint> {
 public:
 
 	enum JointType {
-		HINGE = 0,
-		FIXED
+		FIXED = 0,
+		HINGE,
+		UNIVERSAL
 	};
 
 	// error free constructor
@@ -57,7 +58,11 @@ public:
 		  osg::Vec3 axis, osg::Vec3 anchor, dJointGroupID jointGroup=0);
 	// create fixed
 	void createFixed(dWorldID world, boost::shared_ptr<AbstractBody> bodyA,
-			  boost::shared_ptr<AbstractBody> bodyB, dJointGroupID jointGroup=0);
+		  boost::shared_ptr<AbstractBody> bodyB, dJointGroupID jointGroup=0);
+	// create universal
+	void createUniversal(dWorldID world, boost::shared_ptr<AbstractBody> bodyA,
+		  boost::shared_ptr<AbstractBody> bodyB, osg::Vec3 axis1,
+		  osg::Vec3 axis2, osg::Vec3 anchor, dJointGroupID jointGroup=0);
 
 	void reconnect();
 
@@ -74,6 +79,8 @@ public:
 
 	inline const osg::Vec3 &getAnchor() { return anchor_; }
 	inline const osg::Vec3 &getHingeAxis() { return hingeAxis_; }
+	inline const osg::Vec3 &getUniversalAxis1() { return universalAxis1_; }
+	inline const osg::Vec3 &getUniversalAxis2() { return universalAxis2_; }
 
 	void updateAxisAndAngle();
 
@@ -91,7 +98,7 @@ private :
 	boost::weak_ptr<AbstractBody> bodyA_, bodyB_;
 	dJointGroupID jointGroup_;
 	JointType type_;
-	osg::Vec3 anchor_, hingeAxis_;
+	osg::Vec3 anchor_, hingeAxis_, universalAxis1_, universalAxis2_;
 	dWorldID world_;
 	std::map<unsigned int, double> params_;
 	dJointFeedback *fback_;

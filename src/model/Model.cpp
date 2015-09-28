@@ -267,6 +267,16 @@ boost::shared_ptr<Joint> Model::attachWithHinge(
 	return joint;
 }
 
+boost::shared_ptr<Joint> Model::attachWithUniversal(
+		boost::shared_ptr<SimpleBody> b1, boost::shared_ptr<SimpleBody> b2,
+		osg::Vec3 axis1, osg::Vec3 axis2, osg::Vec3 anchor) {
+	boost::shared_ptr<Joint> joint(new Joint());
+	joint->createUniversal(this->getPhysicsWorld(), b1, b2, axis1, axis2,
+			anchor);
+	joints_.push_back(joint);
+	return joint;
+}
+
 bool Model::setOrientationToParentSlot(int orientation){
 	if (orientation < 0 || orientation > 3){
 		std::cout << "Specified orientation to parent slot is not"\

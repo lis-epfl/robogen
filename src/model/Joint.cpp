@@ -75,6 +75,31 @@ void Joint::createFixed(dWorldID world, boost::shared_ptr<AbstractBody> bodyA,
 	this->reconnect();
 }
 
+void Joint::createUniversal(dWorldID world,
+				boost::shared_ptr<AbstractBody> bodyA,
+				boost::shared_ptr<AbstractBody> bodyB,
+				osg::Vec3 axis1, osg::Vec3 axis2, osg::Vec3 anchor,
+				dJointGroupID jointGroup) {
+
+	type_ = UNIVERSAL;
+
+	world_ = world;
+	anchor_ = anchor;
+	universalAxis1_ = axis1;
+	universalAxis2_ = axis2;
+	jointGroup_ = jointGroup;
+
+	// now add to body to maintain shared pointer
+	bodyA_ = bodyA;
+	bodyB_ = bodyB;
+
+	bodyA_.lock()->addJoint(shared_from_this());
+	bodyB_.lock()->addJoint(shared_from_this());
+
+	this->reconnect();
+}
+
+
 void Joint::reconnect() {
 	if (joint_) {
 		/*
@@ -116,6 +141,28 @@ void Joint::reconnect() {
 		dJointSetHingeAxis(joint_, hingeAxis_[0], hingeAxis_[1], hingeAxis_[2]);
 		dJointSetHingeAnchor(joint_, anchor_[0], anchor_[1], anchor_[2]);
 
+	} else if(type_ == UNIVERSAL) {
+#ifdef DEBUG_RECONNECT
+		std::cout << "-*-*-*-*-*-*-*-*-*-*- axis1 " <<
+				universalAxis1_[0] << " " << universalAxis1_[1] << " "
+				<< universalAxis1_[2]
+                << std::endl;
+		std::cout << "-*-*-*-*-*-*-*-*-*-*- axis2 " <<
+				universalAxis2_[0] << " " << universalAxis2_[1] << " "
+				<< universalAxis2_[2]
+                << std::endl;
+		std::cout << "-*-*-*-*-*-*-*-*-*-*- anchor " <<
+				anchor_[0] << " " << anchor_[1] << " " << anchor_[2]
+				<< std::endl;
+#endif
+		joint_ = dJointCreateUniversal(world_, jointGroup_);
+		dJointAttach(joint_, bodyA_.lock()->getBody(), bodyB_.lock()->getBody());
+		dJointSetUniversalAxis1(joint_, universalAxis1_[0], universalAxis1_[1],
+				universalAxis1_[2]);
+		dJointSetUniversalAxis2(joint_, universalAxis2_[0], universalAxis2_[1],
+						universalAxis2_[2]);
+		dJointSetUniversalAnchor(joint_, anchor_[0], anchor_[1], anchor_[2]);
+
 	} else {
 		std::cerr << "INVALID JOINT TYPE" << std::endl;
 		exitRobogen(EXIT_FAILURE);
@@ -152,6 +199,8 @@ void Joint::updateJointParams() {
 			dJointSetFixedParam(joint_, it->first, it->second);
 		} else if (type_ == HINGE) {
 			dJointSetHingeParam(joint_, it->first, it->second);
+		} else if (type_ == UNIVERSAL) {
+			dJointSetUniversalParam(joint_, it->first, it->second);
 		}
 	}
 	if(fback_)

@@ -2,9 +2,10 @@
  * @(#) CardanModel.h   1.0   Feb 13, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -71,13 +72,13 @@ public:
 
 	virtual osg::Vec3 getSlotAxis(unsigned int i);
 
-	dJointID getJoint();
+	boost::shared_ptr<Joint> getJoint();
 
 private:
 
 	boost::shared_ptr<SimpleBody> cardanRoot_, cardanTail_;
 
-	dJointID universalJoint_;
+	boost::shared_ptr<Joint> universalJoint_;
 
 };
 

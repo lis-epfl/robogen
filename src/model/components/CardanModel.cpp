@@ -2,9 +2,10 @@
  * @(#) CardanModel.cpp   1.0   Feb 8, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -50,66 +51,62 @@ CardanModel::~CardanModel() {
 }
 
 bool CardanModel::initModel() {
-//TODO
 
-	#if 0
-	// Create the 4 components of the hinge
-	cardanRoot_ = this->createBody(B_SLOT_A_ID);
-	dBodyID connectionPartA = this->createBody(B_CONNECTION_A_ID);
-	dBodyID connectionPartB = this->createBody(B_CONNECTION_B_ID);
-	cardanTail_ = this->createBody(B_SLOT_B_ID);
+	// Create the 4 components of the cardan
+	// now created directly with calls to this->add___
 
 	float separation = inMm(0.1);
 
-	this->createBoxGeom(cardanRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
-			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+	cardanRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
+			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_A_ID);
 
 	dReal xPartA = SLOT_THICKNESS / 2 + separation
 			+ CONNNECTION_PART_LENGTH / 2;
-	this->createBoxGeom(connectionPartA, MASS_FRAME, osg::Vec3(xPartA, 0, 0),
-			CONNNECTION_PART_LENGTH, SLOT_WIDTH, CONNECTION_PART_HEIGHT);
+	boost::shared_ptr<SimpleBody> connectionPartA = this->addBox(
+			MASS_FRAME, osg::Vec3(xPartA, 0, 0),
+			CONNNECTION_PART_LENGTH, SLOT_WIDTH, CONNECTION_PART_HEIGHT,
+			B_CONNECTION_A_ID);
 
 	dReal xPartB = xPartA
 			+ (CONNNECTION_PART_LENGTH / 2
 					- (CONNNECTION_PART_LENGTH - CONNECTION_PART_OFFSET)) * 2;
-	this->createBoxGeom(connectionPartB, MASS_FRAME, osg::Vec3(xPartB, 0, 0),
-			CONNNECTION_PART_LENGTH, CONNECTION_PART_HEIGHT, SLOT_WIDTH);
+	boost::shared_ptr<SimpleBody> connectionPartB = this->addBox(
+			MASS_FRAME, osg::Vec3(xPartB, 0, 0),
+			CONNNECTION_PART_LENGTH, CONNECTION_PART_HEIGHT, SLOT_WIDTH,
+			B_CONNECTION_B_ID);
 
 	dReal xTail = xPartB + CONNNECTION_PART_LENGTH / 2 + separation
 			+ SLOT_THICKNESS / 2;
-	this->createBoxGeom(cardanTail_, MASS_SLOT, osg::Vec3(xTail, 0, 0),
-			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+	cardanTail_ = this->addBox(MASS_SLOT, osg::Vec3(xTail, 0, 0),
+			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_B_ID);
 
 	// Create joints to hold pieces in position
 
 	// root <-> connectionPartA
-	this->fixBodies(cardanRoot_, connectionPartA, osg::Vec3(1, 0, 0));
+	this->fixBodies(cardanRoot_, connectionPartA);
 
 	// connectionPartA <(universal)> connectionPArtB
-	universalJoint_ = dJointCreateUniversal(this->getPhysicsWorld(), 0);
-	dJointAttach(universalJoint_, connectionPartA, connectionPartB);
-	dJointSetUniversalAxis2(universalJoint_, 0, 0, 1);
-	dJointSetUniversalAxis1(universalJoint_, 0, 1, 0);
-	dJointSetUniversalAnchor(universalJoint_,
-			xPartA
-					+ (CONNNECTION_PART_LENGTH / 2
-							- (CONNNECTION_PART_LENGTH - CONNECTION_PART_OFFSET)),
-			0, 0);
+
+	universalJoint_ = this->attachWithUniversal(connectionPartA,
+			connectionPartB,
+			osg::Vec3(0, 1, 0), osg::Vec3(0, 0, 1),
+			osg::Vec3(
+					xPartA + (CONNNECTION_PART_LENGTH / 2
+						- (CONNNECTION_PART_LENGTH - CONNECTION_PART_OFFSET)),
+					0, 0));
 
 	// connectionPartB <-> tail
-	this->fixBodies(connectionPartB, cardanTail_, osg::Vec3(1, 0, 0));
+	this->fixBodies(connectionPartB, cardanTail_);
 
 	return true;
-#else
-	return false;
-#endif
+
 }
 
 boost::shared_ptr<SimpleBody> CardanModel::getRoot() {
 	return cardanRoot_;
 }
 
-dJointID CardanModel::getJoint() {
+boost::shared_ptr<Joint> CardanModel::getJoint() {
 	return universalJoint_;
 }
 
