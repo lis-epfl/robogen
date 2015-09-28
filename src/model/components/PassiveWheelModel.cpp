@@ -2,9 +2,10 @@
  * @(#) PassiveWheelModel.cpp   1.0   Feb 13, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -53,30 +54,28 @@ float PassiveWheelModel::getRadius() const {
 }
 
 bool PassiveWheelModel::initModel() {
-#if 0
-   // Create the 4 components of the hinge
-   wheelRoot_ = this->createBody(B_SLOT_ID);
-   dBodyID wheel = this->createBody(B_WHEEL_ID);
 
-   this->createBoxGeom(wheelRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
-         SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+	// Create the 2 components of the wheel,
+	// now created directly with calls to this->add___
+
+
+   wheelRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
+         SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_ID);
 
    dReal xWheel = SLOT_THICKNESS/2 - (SLOT_THICKNESS +
 		   SLOT_CONNECTION_THICKNESS - SLOT_WHEEL_OFFSET);
 
-   this->createCylinderGeom(wheel, MASS_WHEEL, osg::Vec3(xWheel, 0, 0), 1,
-         getRadius(), WHEEL_THICKNESS);
+   boost::shared_ptr<SimpleBody> wheel = this->addCylinder(MASS_WHEEL,
+		   osg::Vec3(xWheel, 0, 0), 1,
+		   getRadius(), WHEEL_THICKNESS, B_WHEEL_ID);
 
    // Create joints to hold pieces in position
 
    // slot <(hinge)> wheel
-   dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
-   dJointAttach(joint, wheelRoot_, wheel);
-   dJointSetHingeAxis(joint, 1, 0, 0);
+   this->attachWithHinge(wheelRoot_, wheel, osg::Vec3( 1, 0, 0),
+		   osg::Vec3(xWheel, 0, 0) );
 
    return true;
-#endif
-   return false;
 }
 
 boost::shared_ptr<SimpleBody> PassiveWheelModel::getRoot() {

@@ -2,9 +2,10 @@
  * @(#) RotateJointModel.cpp   1.0   Feb 18, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -55,60 +56,44 @@ RotateJointModel::~RotateJointModel() {
 }
 
 bool RotateJointModel::initModel() {
-//todo
-#if 0
-	// Create the 4 components of the hinge
-	jointRoot_ = this->createBody(B_SLOT_ID);
-	dBodyID servo = this->createBody(B_SERVO_ID);
-	jointConnection_ = this->createBody(B_JOINT_CONNECTION_ID);
 
-	// Set the masses for the various boxes
-	dMass mass;
-
-	dMassSetBoxTotal(&mass, MASS_SLOT, SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
-	dBodySetMass(jointRoot_, &mass);
-
-	dMassSetBoxTotal(&mass, MASS_SERVO, SERVO_LENGTH, SERVO_WIDTH,
-			SERVO_HEIGHT);
-	dBodySetMass(servo, &mass);
-
-	dMassSetBoxTotal(&mass, MASS_CONNECTION_SLOT, JOINT_CONNECTION_THICKNESS,
-			JOINT_CONNECTION_WIDTH, JOINT_CONNECTION_WIDTH);
-	dBodySetMass(jointConnection_, &mass);
+	// Create the 3 components of the wheel,
+	// now created directly with calls to this->add___
 
 	float separation = inMm(0.1);
 
-	this->createBoxGeom(jointRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
-			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+	jointRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
+			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_ID);
 
 	dReal xServo = SLOT_THICKNESS / 2 + separation + SERVO_LENGTH / 2;
 	dReal zServo = -SLOT_WIDTH / 2 + SERVO_Z_OFFSET + SERVO_HEIGHT / 2;
-	this->createBoxGeom(servo, MASS_SERVO, osg::Vec3(xServo, 0, zServo),
-			SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT);
+	boost::shared_ptr<SimpleBody> servo = this->addBox(MASS_SERVO,
+			osg::Vec3(xServo, 0, zServo),
+			SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT,
+			B_SERVO_ID);
 
 	dReal xJointConnection = xServo + SERVO_LENGTH / 2 + separation
 			- JOINT_CONNECTION_THICKNESS / 2 ;
-	this->createBoxGeom(jointConnection_, MASS_CONNECTION_SLOT,
+	jointConnection_ = this->addBox(MASS_CONNECTION_SLOT,
 			osg::Vec3(xJointConnection, 0, 0), JOINT_CONNECTION_THICKNESS,
-			JOINT_CONNECTION_WIDTH, JOINT_CONNECTION_WIDTH);
+			JOINT_CONNECTION_WIDTH, JOINT_CONNECTION_WIDTH,
+			B_JOINT_CONNECTION_ID);
 
 	// Create joints to hold pieces in position
 
 	// slot <slider> hinge
-	this->fixBodies(jointRoot_, servo, osg::Vec3(1, 0, 0));
+	this->fixBodies(jointRoot_, servo);
 
 	// servo <(hinge)> wheel
-	dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
-	dJointAttach(joint, servo, jointConnection_);
-	dJointSetHingeAxis(joint, 1, 0, 0);
-	dJointSetHingeAnchor(joint, xJointConnection, 0, 0);
+	boost::shared_ptr<Joint> joint = attachWithHinge(servo, jointConnection_,
+			osg::Vec3(1, 0, 0), osg::Vec3(xJointConnection, 0, 0));
 
 	// Create servo
 	this->motor_.reset(
 			new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE_ROTATIONAL,
 					ServoMotor::DEFAULT_GAIN,
 					ioPair(this->getId(),0)));
-#endif
+
 	return true;
 
 }

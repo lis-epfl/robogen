@@ -2,9 +2,10 @@
  * @(#) ActiveWhegModel.cpp   1.0   Feb 27, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -109,36 +110,20 @@ bool ActiveWhegModel::initModel() {
 		   WHEG_THICKNESS, WHEG_WIDTH, getRadius(), B_WHEG_SPOKE_3);
 
    // Position spokes
-   osg::Quat rotation;
-
-   //TODO
-#if 0
+   osg::Quat rotation1, rotation2, rotation3;
 
    float rotationSpoke1 = 60;
    float rotationSpoke2 = 180;
    float rotationSpoke3 = 300;
 
-   rotation.makeRotate(osg::inDegrees(rotationSpoke1), osg::Vec3(1, 0, 0));
-   quatOde[0] = rotation.w();
-   quatOde[1] = rotation.x();
-   quatOde[2] = rotation.y();
-   quatOde[3] = rotation.z();
-   dBodySetQuaternion(spoke1, quatOde);
+   rotation1.makeRotate(osg::inDegrees(rotationSpoke1), osg::Vec3(1, 0, 0));
+   spoke1->setAttitude(rotation1);
 
+   rotation2.makeRotate(osg::inDegrees(rotationSpoke2), osg::Vec3(1, 0, 0));
+   spoke2->setAttitude(rotation2);
 
-   rotation.makeRotate(osg::inDegrees(rotationSpoke2), osg::Vec3(1, 0, 0));
-   quatOde[0] = rotation.w();
-   quatOde[1] = rotation.x();
-   quatOde[2] = rotation.y();
-   quatOde[3] = rotation.z();
-   dBodySetQuaternion(spoke2, quatOde);
-
-   rotation.makeRotate(osg::inDegrees(rotationSpoke3), osg::Vec3(1, 0, 0));
-   quatOde[0] = rotation.w();
-   quatOde[1] = rotation.x();
-   quatOde[2] = rotation.y();
-   quatOde[3] = rotation.z();
-   dBodySetQuaternion(spoke3, quatOde);
+   rotation3.makeRotate(osg::inDegrees(rotationSpoke3), osg::Vec3(1, 0, 0));
+   spoke3->setAttitude(rotation3);
 
    // Move center of spokes
    osg::Vec3 newPosSpoke1(X_WHEG_BASE, 0, zServo);
@@ -147,9 +132,7 @@ bool ActiveWhegModel::initModel() {
                * std::cos(osg::inDegrees(90.0 + rotationSpoke1)),
          (whegBaseRadius + getRadius() / 2)
                * std::sin(osg::inDegrees(90.0 + rotationSpoke1)));
-   dBodySetPosition(spoke1, newPosSpoke1.x(), newPosSpoke1.y(),
-         newPosSpoke1.z());
-
+   spoke1->setPosition(newPosSpoke1);
 
    osg::Vec3 newPosSpoke2(X_WHEG_BASE, 0, zServo);
    newPosSpoke2 += osg::Vec3(0,
@@ -157,8 +140,7 @@ bool ActiveWhegModel::initModel() {
                * std::cos(osg::inDegrees(90.0 + rotationSpoke2)),
          (whegBaseRadius + getRadius() / 2)
                * std::sin(osg::inDegrees(90.0 + rotationSpoke2)));
-   dBodySetPosition(spoke2, newPosSpoke2.x(), newPosSpoke2.y(),
-         newPosSpoke2.z());
+   spoke2->setPosition(newPosSpoke2);
 
    osg::Vec3 newPosSpoke3(X_WHEG_BASE, 0, zServo);
    newPosSpoke3 += osg::Vec3(0,
@@ -166,28 +148,24 @@ bool ActiveWhegModel::initModel() {
                * std::cos(osg::inDegrees(90.0 + rotationSpoke3)),
          (whegBaseRadius + getRadius() / 2)
                * std::sin(osg::inDegrees(90.0 + rotationSpoke3)));
-   dBodySetPosition(spoke3, newPosSpoke3.x(), newPosSpoke3.y(),
-         newPosSpoke3.z());
+   spoke3->setPosition(newPosSpoke3);
 
    // Create joints to hold pieces in position
 
    // slot <slider> servo
-   this->fixBodies(whegRoot_, servo, osg::Vec3(1, 0, 0));
-   this->fixBodies(whegBase, spoke1, osg::Vec3(1, 0, 0));
-   this->fixBodies(whegBase, spoke2, osg::Vec3(1, 0, 0));
-   this->fixBodies(whegBase, spoke3, osg::Vec3(1, 0, 0));
+   this->fixBodies(whegRoot_, servo);
+   this->fixBodies(whegBase, spoke1);
+   this->fixBodies(whegBase, spoke2);
+   this->fixBodies(whegBase, spoke3);
 
    // servo <(hinge)> wheg base
-   dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
-   dJointAttach(joint, servo, whegBase);
-   dJointSetHingeAxis(joint, 1, 0, 0);
-   dJointSetHingeAnchor(joint, X_WHEG_BASE, 0, 0);
+   boost::shared_ptr<Joint> joint = this->attachWithHinge(servo, whegBase,
+		   osg::Vec3(1,0,0), osg::Vec3(X_WHEG_BASE, 0, 0));
 
    // Create servo
    this->motor_.reset(
          new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE_ROTATIONAL,
         		 ioPair(this->getId(),0)));
-#endif
    return true;
 
 }
