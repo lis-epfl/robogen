@@ -41,6 +41,17 @@ osg::Vec3 fromOde(osg::Vec3 x) {
 	return x*1000.0;
 }
 
+void getRotationMatrixOde(osg::Quat quat, dQuaternion rotationMatrixOde) {
+	dQuaternion quatOde;
+	quatOde[0] = quat.w();
+	quatOde[1] = quat.x();
+	quatOde[2] = quat.y();
+	quatOde[3] = quat.z();
+
+	dQtoR(quatOde, rotationMatrixOde);
+
+}
+
 int modulo(int x, int y) {
 	while(x < 0) {
 		x += y;

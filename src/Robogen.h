@@ -44,6 +44,9 @@ float fromOde(float x);
 double fromOde(double x);
 osg::Vec3 fromOde(osg::Vec3 x);
 
+//build rotationMatrixOde and put it in rotationMatrixOde
+void getRotationMatrixOde(osg::Quat quat, dQuaternion rotationMatrixOde);
+
 int modulo(int x, int y);
 
 void startRobogen();
