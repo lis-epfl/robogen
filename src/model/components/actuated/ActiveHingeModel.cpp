@@ -135,13 +135,13 @@ osg::Vec3 ActiveHingeModel::getSlotPosition(unsigned int i) {
 
 		osg::Vec3 curPos = hingeRoot_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
+		slotPos = curPos + slotAxis * (SLOT_THICKNESS / 2);
 
 	} else {
 
 		osg::Vec3 curPos = hingeTail_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
+		slotPos = curPos + slotAxis * (SLOT_THICKNESS / 2);
 
 	}
 	return slotPos;

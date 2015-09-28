@@ -43,6 +43,7 @@ public:
 	static const float CORE_MASS;
 	static const float HEIGHT;
 	static const float WIDTH;
+	static const float SLOT_THICKNESS;
 
 	static const unsigned int B_CORE_COMPONENT_ID = 0;
 
