@@ -226,6 +226,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				}
 			}
 
+
+
 			if ((count++) % 500 == 0) {
 				std::cout << "." << std::flush;
 			}

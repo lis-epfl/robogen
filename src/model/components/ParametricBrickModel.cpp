@@ -53,13 +53,12 @@ ParametricBrickModel::~ParametricBrickModel() {
 
 bool ParametricBrickModel::initModel() {
 
-	// Create the 4 components of the hinge
-	//brickRoot_ = this->createBody(B_SLOT_A_ID);
+	// ParametricBrick is composed of 5 geometries,
+	// now created directly with calls to this->add___
 
 	brickRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
 				SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_A_ID);
 
-	//dBodyID fixedBar = this->createBody(B_FIXED_BAR__ID);
 	osg::Vec3 fixedBarPosition(SLOT_THICKNESS / 2. + FIXED_BAR_LENGTH/2., 0, 0);
 	boost::shared_ptr<SimpleBody> fixedBar = this->addBox(
 			MASS_CONNECTION_PER_M * FIXED_BAR_LENGTH,
@@ -68,9 +67,6 @@ bool ParametricBrickModel::initModel() {
 			B_FIXED_BAR__ID);
 
 	this->fixBodies(brickRoot_, fixedBar);
-
-	//dBodyID cylinder = this->createBody(B_CYLINDER_ID);
-
 
 	osg::Vec3 cylinderPosition(fixedBarPosition.x() + FIXED_BAR_LENGTH/2.,
 			0, 0);
@@ -82,8 +78,6 @@ bool ParametricBrickModel::initModel() {
 
 	this->fixBodies(fixedBar, cylinder);
 
-
-	//dBodyID connectionPart = this->createBody(B_CONNECTION_PART_ID);
 
 	// here we just place the box at origin since we will correctly
 	// position it after applying the rotation.
@@ -109,8 +103,6 @@ bool ParametricBrickModel::initModel() {
 	// Create joints to hold pieces in position
 	this->fixBodies(cylinder, connectionPart);
 
-
-	//brickTail_ = this->createBody(B_SLOT_B_ID);
 
 	// do something similar with the slot piece
 	// first place it at origin

@@ -75,19 +75,9 @@ float ActiveWhegModel::getRadius() const {
 
 bool ActiveWhegModel::initModel() {
 
-   // Create the components of the wheg
-   //whegRoot_ = this->createBody(B_SLOT_ID);
-   //dBodyID servo = this->createBody(B_SERVO_ID);
-   //dBodyID whegBase = this->createBody(B_WHEG_BASE);
-   //dBodyID spoke1 = this->createBody(B_WHEG_SPOKE_1);
-   //dBodyID spoke2 = this->createBody(B_WHEG_SPOKE_2);
-   //dBodyID spoke3 = this->createBody(B_WHEG_SPOKE_3);
-
-   // Set the masses for the various boxes
-   //dMass mass;
-
-
-
+  	// Create the 6 components of the wheg
+	// now created directly with calls to this->add___
+   
    whegRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0), SLOT_THICKNESS,
          SLOT_WIDTH, SLOT_WIDTH, B_SLOT_ID);
 
@@ -120,7 +110,6 @@ bool ActiveWhegModel::initModel() {
 
    // Position spokes
    osg::Quat rotation;
-//   dQuaternion quatOde;
 
    //TODO
 #if 0

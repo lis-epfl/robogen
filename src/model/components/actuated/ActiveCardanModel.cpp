@@ -63,13 +63,8 @@ ActiveCardanModel::~ActiveCardanModel() {
 
 bool ActiveCardanModel::initModel() {
 
-	// Create the 4 components of the hinge
-	//cardanRoot_ = this->createBody(B_SLOT_A_ID);
-	//dBodyID connectionPartA = this->createBody(B_CONNECTION_A_ID);
-	//dBodyID crossPartA = this->createBody(B_CROSS_PART_A_ID);
-	//dBodyID crossPartB = this->createBody(B_CROSS_PART_B_ID);
-	//dBodyID connectionPartB = this->createBody(B_CONNECTION_B_ID);
-	//cardanTail_ = this->createBody(B_SLOT_B_ID);
+	// Create the 6 components of the model
+	// now created directly with calls to this->add___
 
 	float separation = inMm(0.1);
 
@@ -103,11 +98,6 @@ bool ActiveCardanModel::initModel() {
 			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_B_ID);
 
 	// Cross Geometries
-	//dBodyID crossPartAedge1 = this->createBody(B_CROSS_PART_A_EDGE_1_ID);
-	//dBodyID crossPartAedge2 = this->createBody(B_CROSS_PART_A_EDGE_2_ID);
-
-	//dBodyID crossPartBedge1 = this->createBody(B_CROSS_PART_B_EDGE_1_ID);
-	//dBodyID crossPartBedge2 = this->createBody(B_CROSS_PART_B_EDGE_2_ID);
 
 	boost::shared_ptr<SimpleBody> crossPartAedge1 = this->addBox(MASS_CROSS / 12,
 			osg::Vec3(xCrossPartA - (CROSS_WIDTH / 2 + CROSS_THICKNESS / 2), 0,

@@ -40,8 +40,6 @@
 
 #include "arduino/ArduinoNNConfiguration.h"
 
-
-
 namespace robogen {
 
 /**
@@ -52,11 +50,8 @@ class BodyConnectionVisitor: public boost::default_bfs_visitor {
 public:
 
 	BodyConnectionVisitor(dWorldID& odeWorld,
-			/*std::vector<boost::shared_ptr<Model> >& bodyParts,
-			std::map<std::string, unsigned int>& nodeIdToPos,*/
 			dJointGroupID connectionJointGroup, Robot *robot) :
-			odeWorld_(odeWorld), /*bodyParts_(bodyParts),
-			nodeIdToPos_(nodeIdToPos),*/
+			odeWorld_(odeWorld), 
 			connectionJointGroup_(connectionJointGroup), robot_(robot) {
 	}
 
@@ -83,10 +78,6 @@ public:
 private:
 
 	dWorldID& odeWorld_;
-
-	//std::vector<boost::shared_ptr<Model> >& bodyParts_;
-
-	//std::map<std::string, unsigned int>& nodeIdToPos_;
 
 	dJointGroupID connectionJointGroup_;
 
@@ -174,13 +165,9 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 					<< "." << std::endl;
 			return false;
 		}
+
 		model->initModel();
-		//std::cout << ">>>>>>>>>>>>>>>>>" << bodyPart.id() << " " << x << " " << y << " " << z <<std::endl;
-		//std::cout << "pre .................. " << model->getRootPosition()[0]
-		//		  << " " << model->getRootPosition()[1] << " " << model->getRootPosition()[2] << std::endl;
 		model->setRootPosition(osg::Vec3(x, y, z));
-		//std::cout << "post .................. " << model->getRootPosition()[0]
-		//          << " " << model->getRootPosition()[1] << " " << model->getRootPosition()[2] << std::endl;
 		bodyParts_.push_back(model);
 		bodyPartsMap_.insert(std::pair<std::string, int>(bodyPart.id(), i));
 
@@ -745,8 +732,7 @@ void Robot::reconnect() {
 #endif
 	// Let's now actually connect the body parts
 	// vis will do the job
-	BodyConnectionVisitor vis(odeWorld_, /*bodyParts_, bodyPartsMap_,*/
-			connectionJointGroup_, this);
+	BodyConnectionVisitor vis(odeWorld_, connectionJointGroup_, this);
 	// purge current connection joint group
 
 	std::vector<boost::shared_ptr<Joint> >::iterator it=joints_.begin();
@@ -802,6 +788,7 @@ void Robot::getBB(double& minX, double& maxX, double& minY, double& maxY,
 	for (unsigned int i = 0; i < bodies.size(); ++i) {
 
 		dGeomID curBodyGeom = dBodyGetFirstGeom(bodies[i]->getBody());
+
 		while(curBodyGeom) {
 			dReal aabb[6];
 			dGeomGetAABB(curBodyGeom, aabb);

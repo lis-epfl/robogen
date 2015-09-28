@@ -184,7 +184,6 @@ private:
 	 */
 	void reconnect();
 
-
 	/**
 	 * ODE physics world
 	 */
@@ -268,8 +267,12 @@ private:
 
 	bool printInfo_;
 
-	// not a set because we don't want iteration order to depend on address
+	// store joints created by connecting components
+	// not a set because we don't want iteration order to depend on address,
+	// but we will use a set to check for uniqueness while iterating
 	std::vector<boost::shared_ptr<Joint> > joints_;
+
+	// store the composite bodies formed by replacing fixed joints
 	std::vector<boost::shared_ptr<CompositeBody> > composites_;
 };
 

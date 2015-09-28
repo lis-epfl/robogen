@@ -132,16 +132,6 @@ public:
 	void setRootAttitude(const osg::Quat& quat);
 
 	/**
-	 * @return the position of the given body
-	 */
-	//osg::Vec3 getPosition(dBodyID body);
-
-	/**
-	 * @return the attitude of the given body
-	 */
-	//osg::Quat getAttitude(dBodyID body);
-
-	/**
 	 * @return the physics world
 	 */
 	dWorldID getPhysicsWorld();
@@ -165,13 +155,6 @@ public:
 	 * @return all the bodies belonging to this model
 	 */
 	std::vector<int> getIDs();
-
-	/**
-	 * Create the specified body
-	 * @param body label. If the label is negative, does not register the body in the list of bodies of this model.
-	 */
-	//dBodyID createBody(int label);
-	//dBodyID createBody();
 
 	/**
 	 * Create a box geometry for the body
@@ -226,7 +209,7 @@ public:
 
 
 	/**
-	 * Attach with hunge
+	 * Attach with hinge
 	 * @param b1 first body
 	 * @param b2 second body
 	 * @param axis hinge's rotation axis
@@ -311,6 +294,10 @@ private:
 
 	int orientationToRoot_;
 
+	/**
+	 * Internal joints of the model
+	 *
+	 */
 	std::vector< boost::shared_ptr<Joint> > joints_;
 
 };

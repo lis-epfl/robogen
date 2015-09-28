@@ -67,14 +67,8 @@ float ActiveWheelModel::getRadius() const {
 
 bool ActiveWheelModel::initModel() {
 
-   // Create the 4 components of the hinge
-   //wheelRoot_ = this->createBody(B_SLOT_ID);
-   //dBodyID servo = this->createBody(B_SERVO_ID);
-   //dBodyID wheel = this->createBody(B_WHEEL_ID);
-
-   // Set the masses for the various boxes
-   //dMass mass;
-
+   // Create the 3 components of the wheel,
+	// now created directly with calls to this->add___
 
 	wheelRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
          SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_ID);

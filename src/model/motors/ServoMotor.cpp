@@ -35,7 +35,6 @@
 
 namespace robogen {
 
-
 //#ifdef OLD_SERVO_MODEL
 const float ServoMotor::DEFAULT_GAIN = 0.5;
 //#else

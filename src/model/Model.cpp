@@ -91,18 +91,11 @@ void Model::setRootPosition(const osg::Vec3& pos) {
 			rootBodies.begin(); it!=rootBodies.end(); ++it) {
 
 		osg::Vec3 curBodyPos = (*it)->getPosition();
-		//osg::Vec3 curBodyPos = it->second->getPosition();
-		//std::cout << "MOVING body ";
-		//std::cout << "from " << curBodyPos.x() << ", " <<curBodyPos.y() <<  ", " <<
-		//		curBodyPos.z() << std::endl;
 
 		curBodyPos += translation;
-		//std::cout << "to " << curBodyPos.x() << ", " <<curBodyPos.y() <<  ", " <<
-		//		curBodyPos.z() << std::endl;
 
 		(*it)->setPosition(curBodyPos);
 	}
-
 }
 
 void Model::translateRootPosition(const osg::Vec3& translation) {
@@ -128,21 +121,11 @@ void Model::setRootAttitude(const osg::Quat& quat) {
 		// Rotate relPosition
 		osg::Vec3 newPosition = quat * relPosition;
 		(*it)->setPosition(newPosition);
-		//dBodySetPosition((*it)->getBody(), newPosition.x(), newPosition.y(),
-				//newPosition.z());
 
 		osg::Quat curBodyAttitude = (*it)->getAttitude();
 		curBodyAttitude *= quat;
 
-		//curBodyAttitude = quat;
 		(*it)->setAttitude(curBodyAttitude);
-		//dQuaternion quatOde;
-		//quatOde[0] = curBodyAttitude.w();
-		//quatOde[1] = curBodyAttitude.x();
-		//quatOde[2] = curBodyAttitude.y();
-		//quatOde[3] = curBodyAttitude.z();
-
-		//dBodySetQuaternion((*it)->getBody(), quatOde);
 	}
 
 	this->setRootPosition(rootPosition);

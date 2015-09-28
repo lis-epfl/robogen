@@ -53,13 +53,9 @@ HingeModel::~HingeModel() {
 
 bool HingeModel::initModel() {
 
-	// Create the 4 components of the hinge
-//	hingeRoot_ = this->createBody(B_SLOT_A_ID);
-//	dBodyID connectionPartA = this->createBody(B_CONNECTION_A_ID);
-//	dBodyID connectionPartB = this->createBody(B_CONNECTION_B_ID);
-//	hingeTail_ = this->createBody(B_SLOT_B_ID);
+	// hinge will have 4 components, with new functionality, these are created directly from
+	// calls to this->add____
 
-	// Create the geometries
 	float separation = 0;//inMm(0.1);
 
 	hingeRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),

@@ -61,12 +61,7 @@ ActiveHingeModel::~ActiveHingeModel() {
 bool ActiveHingeModel::initModel() {
 
 	// Create the 4 components of the hinge
-	//hingeRoot_ = this->createBody(B_SLOT_A_ID);
-	//dBodyID frame = this->createBody(B_FRAME_ID);
-	//dBodyID servo = this->createBody(B_SERVO_ID);
-	//hingeTail_ = this->createBody(B_SLOT_B_ID);
-
-	// Set the masses for the various boxes
+	// now created directly with calls to this->add___
 
 	float separation = 0;//inMm(0.1);
 
