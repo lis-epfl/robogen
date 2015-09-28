@@ -579,7 +579,7 @@ RelativePositionMap initRelativePositionMap() {
 			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_A_ID))] =
 			fromOde(
 					osg::Vec3(ActiveHingeModel::FRAME_LENGTH / 2,
-							ActiveHingeModel::SERVO_POSITION_OFFSET, 0));
+							0, 0));
 
 	// x = 0 is midpoint of slot so SLOT_THICKNESS/2 is edge of servo
 	// and servo is  SERVO_LENGTH + SLOT_THICKNESS  long
@@ -587,7 +587,8 @@ RelativePositionMap initRelativePositionMap() {
 	// = -(SERVO_LENGTH)/2
 	relativePositionMap[std::make_pair(&typeid(ActiveHingeModel),
 			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_B_ID))] =
-			fromOde(osg::Vec3(-(ActiveHingeModel::SERVO_LENGTH) / 2, 0, 0));
+			fromOde(osg::Vec3(-(ActiveHingeModel::SERVO_LENGTH) / 2,
+					-2 * ActiveHingeModel::SERVO_POSITION_OFFSET, 0));
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	// TODO Active Wheel
 

@@ -36,6 +36,7 @@ const float CoreComponentModel::BRICK_MASS = inGrams(10.2);//inGrams(14.9);
 const float CoreComponentModel::CORE_MASS = inGrams(10.2 + 34.3);//inGrams(14.9 + 40.5);
 const float CoreComponentModel::HEIGHT = inMm(35.5);
 const float CoreComponentModel::WIDTH = inMm(41);//inMm(46.5);
+const float CoreComponentModel::SLOT_THICKNESS = inMm(1.5);
 
 CoreComponentModel::CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id, bool hasSensors) :
@@ -77,7 +78,10 @@ osg::Vec3 CoreComponentModel::getSlotPosition(unsigned int i) {
 	}
 
 	osg::Vec3 curPos = this->getRootPosition();
-	osg::Vec3 slotAxis = this->getSlotAxis(i) * WIDTH / 2;
+	// want the slot to be the coordinates specifying the edge of where the
+	// adjoining part touches
+	osg::Vec3 slotAxis = this->getSlotAxis(i) *
+			(WIDTH / 2 - SLOT_THICKNESS);
 	curPos = curPos + slotAxis;
 
 	return curPos;

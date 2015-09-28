@@ -172,13 +172,13 @@ osg::Vec3 ParametricBrickModel::getSlotPosition(unsigned int i) {
 
 		osg::Vec3 curPos = this->getPosition(brickRoot_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
+		slotPos = curPos + slotAxis * (SLOT_THICKNESS / 2);
 
 	} else {
 
 		osg::Vec3 curPos = this->getPosition(brickTail_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		slotPos = curPos - slotAxis * (SLOT_THICKNESS / 2);
+		slotPos = curPos + slotAxis * (SLOT_THICKNESS / 2);
 
 	}
 	return slotPos;

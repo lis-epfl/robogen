@@ -98,7 +98,7 @@ osg::Vec3 TouchSensorModel::getSlotPosition(unsigned int i) {
 
 		osg::Vec3 curPos = this->getPosition(sensorRoot_);
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
-		slotPos = curPos - slotAxis * (SENSOR_BASE_THICKNESS / 2);
+		slotPos = curPos + slotAxis * (SENSOR_BASE_THICKNESS / 2);
 
 	}
 
