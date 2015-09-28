@@ -26,6 +26,8 @@
  * @(#) $Id$
  */
 
+#include <iostream>
+
 #include "Joint.h"
 #include "AbstractBody.h"
 #include "CompositeBody.h"
