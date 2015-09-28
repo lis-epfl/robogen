@@ -2,9 +2,10 @@
  * @(#) TouchSensorModel.cpp   1.0   Feb 27, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -50,32 +51,37 @@ TouchSensorModel::~TouchSensorModel() {
 
 bool TouchSensorModel::initModel() {
 
-	//TODO
-#if 0
-	sensorRoot_ = this->createBody(B_SENSOR_BASE_ID);
-	dBodyID leftSensor = this->createBody(B_SENSOR_LEFT);
-	dBodyID rightSensor = this->createBody(B_SENSOR_RIGHT);
+	// Create the 3 components of the sensor
+	// now created directly with calls to this->add___
 
-	this->createBoxGeom(sensorRoot_, MASS / 3., osg::Vec3(0, 0, 0),
-			SENSOR_BASE_THICKNESS, SENSOR_BASE_WIDTH, SENSOR_BASE_WIDTH);
+	sensorRoot_ = this->addBox(MASS / 3., osg::Vec3(0, 0, 0),
+			SENSOR_BASE_THICKNESS, SENSOR_BASE_WIDTH, SENSOR_BASE_WIDTH,
+			B_SENSOR_BASE_ID);
 
 	dReal xSensors = SENSOR_BASE_THICKNESS / 2 + SENSOR_THICKNESS / 2;
 	dReal yLeftSensor = -SENSOR_WIDTH / 2 - SENSOR_SEPARATION / 2;
 	dReal yRightSensor = SENSOR_WIDTH / 2 + SENSOR_SEPARATION / 2;
 
+
+	boost::shared_ptr<SimpleBody> leftSensor = this->addBox(MASS / 3.,
+			osg::Vec3(xSensors, yLeftSensor, 0), SENSOR_THICKNESS,
+			SENSOR_WIDTH, SENSOR_HEIGHT, B_SENSOR_LEFT);
+	boost::shared_ptr<SimpleBody> rightSensor = this->addBox(MASS / 3.,
+			osg::Vec3(xSensors, yRightSensor, 0), SENSOR_THICKNESS,
+			SENSOR_WIDTH, SENSOR_HEIGHT, B_SENSOR_RIGHT);
+
+
 	this->sensorLeft_.reset(
-			new TouchSensor(this->getCollisionSpace(), leftSensor, MASS / 3.,
-					osg::Vec3(xSensors, yLeftSensor, 0), SENSOR_THICKNESS,
-					SENSOR_WIDTH, SENSOR_HEIGHT, this->getId() + "-left"));
+			new TouchSensor(this->getCollisionSpace(), leftSensor,
+					this->getId() + "-left"));
 	this->sensorRight_.reset(
-			new TouchSensor(this->getCollisionSpace(), rightSensor, MASS / 3.,
-					osg::Vec3(xSensors, yRightSensor, 0), SENSOR_THICKNESS,
-					SENSOR_WIDTH, SENSOR_HEIGHT, this->getId() + "-right"));
+			new TouchSensor(this->getCollisionSpace(), rightSensor,
+					this->getId() + "-right"));
 
 	// Connect everything
-	this->fixBodies(sensorRoot_, leftSensor, osg::Vec3(1, 0, 0));
-	this->fixBodies(sensorRoot_, rightSensor, osg::Vec3(1, 0, 0));
-#endif
+	this->fixBodies(sensorRoot_, leftSensor);
+	this->fixBodies(sensorRoot_, rightSensor);
+
 	return true;
 
 }

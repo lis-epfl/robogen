@@ -3,9 +3,10 @@
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -35,6 +36,7 @@
 
 #include "Robogen.h"
 #include "model/sensors/Sensor.h"
+#include "model/SimpleBody.h"
 
 namespace robogen {
 
@@ -45,8 +47,8 @@ public:
 	/**
 	 * Initializes a touch sensor including its geometry
 	 */
-	TouchSensor(dSpaceID odeSpace, dBodyID pBody, float mass,
-			osg::Vec3 pos, float x, float y, float z, std::string label);
+	TouchSensor(dSpaceID odeSpace, boost::shared_ptr<SimpleBody> body,
+			std::string label);
 
 	virtual std::string &getLabel();
 
@@ -71,19 +73,16 @@ private:
 	dSpaceID collideSpace_;
 
 	/**
-	 * Space of touch sensor
+	 * Body representing this touch sensor
 	 */
-	dSpaceID sensorSpace_;
-
-	/**
-	 * The geometry of the sensor
-	 */
-	dGeomID sensorGeometry_;
+	boost::shared_ptr<SimpleBody> body_;
 
 	/**
 	 * The label of the sensor, for data analysis
 	 */
 	std::string label_;
+
+
 };
 
 }
