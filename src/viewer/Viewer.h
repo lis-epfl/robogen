@@ -37,6 +37,7 @@
 #include "scenario/Scenario.h"
 #include "model/Model.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
+#include "RenderModels.h"
 
 #define MAX_TIME_BETWEEN_FRAMES 0.05
 

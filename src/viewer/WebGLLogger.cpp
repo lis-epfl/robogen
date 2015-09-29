@@ -190,7 +190,7 @@ void WebGLLogger::generateMapInfo() {
 	json_array_append(dims, json_real(terrain->getWidth()));
 	json_array_append(dims, json_real(terrain->getDepth()));
 
-	if (!terrain->isFlat()) {
+	if (terrain->getType() == TerrainConfig::ROUGH) {
 		json_array_append(dims, json_real(terrain->getHeightFieldHeight()));
 		json_t *mapData = json_array();
 		json_object_set_new(this->jsonMap, WebGLLogger::MAP_DATA_TAG, mapData);

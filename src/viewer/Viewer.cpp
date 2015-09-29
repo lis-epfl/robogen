@@ -27,7 +27,6 @@
  */
 
 #include "viewer/Viewer.h"
-#include "RenderModels.h"
 #include "utils/RobogenUtils.h"
 
 #include <boost/format.hpp>

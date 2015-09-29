@@ -59,7 +59,7 @@ void odeCollisionCallback(void *data, dGeomID o1, dGeomID o2) {
 					dContactSoftCFM |
 					dContactApprox1 |
 					dContactSlip1 | dContactSlip2;
-
+		// TODO use different value for self collisions and/or obstacles?
 		contact[i].surface.mu = collisionData->config->getTerrainConfig()->getFriction();
 		contact[i].surface.soft_erp = 0.96;
 		contact[i].surface.soft_cfm = 0.01;

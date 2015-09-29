@@ -50,9 +50,10 @@ public:
 	 * Update the sensor position
 	 * @param position
 	 * @param timeElapsed time elapsed since last update
+	 * @param gravity gravitational vector of environment
 	 */
 	void update(const osg::Vec3& position, const osg::Quat& attitude,
-			float timeElapsed);
+			float timeElapsed, const osg::Vec3& gravity);
 
 	/**
 	 * Return a sensors for each acceleration outputs (acceleration along the three axis)

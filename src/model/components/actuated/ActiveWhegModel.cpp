@@ -2,9 +2,10 @@
  * @(#) ActiveWhegModel.cpp   1.0   Feb 27, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -75,76 +76,54 @@ float ActiveWhegModel::getRadius() const {
 
 bool ActiveWhegModel::initModel() {
 
-   // Create the components of the wheg
-   whegRoot_ = this->createBody(B_SLOT_ID);
-   dBodyID servo = this->createBody(B_SERVO_ID);
-   dBodyID whegBase = this->createBody(B_WHEG_BASE);
-   dBodyID spoke1 = this->createBody(B_WHEG_SPOKE_1);
-   dBodyID spoke2 = this->createBody(B_WHEG_SPOKE_2);
-   dBodyID spoke3 = this->createBody(B_WHEG_SPOKE_3);
-
-   // Set the masses for the various boxes
-   dMass mass;
-
-
-
-   this->createBoxGeom(whegRoot_, MASS_SLOT, osg::Vec3(0, 0, 0), SLOT_THICKNESS,
-         SLOT_WIDTH, SLOT_WIDTH);
+  	// Create the 6 components of the wheg
+	// now created directly with calls to this->add___
+   
+   whegRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0), SLOT_THICKNESS,
+         SLOT_WIDTH, SLOT_WIDTH, B_SLOT_ID);
 
 
    dReal zServo = 0;
-   this->createBoxGeom(servo, MASS_SERVO, osg::Vec3(X_SERVO, 0, zServo),
-         SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT);
+   boost::shared_ptr<SimpleBody> servo = this->addBox(MASS_SERVO,
+		   osg::Vec3(X_SERVO, 0, zServo),
+		   SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT, B_SERVO_ID);
 
 
    //need to scale the base to account for the larger whegs as right
    //now the whole model scales
    dReal whegBaseRadius = WHEG_BASE_RADIUS * getRadius()/0.03;
 
-   this->createCylinderGeom(whegBase, MASS_WHEG / 4,
-         osg::Vec3(X_WHEG_BASE, 0, zServo), 1, whegBaseRadius,
-         WHEG_THICKNESS);
+   boost::shared_ptr<SimpleBody> whegBase = this->addCylinder(MASS_WHEG / 4,
+		   osg::Vec3(X_WHEG_BASE, 0, zServo), 1, whegBaseRadius,
+		   WHEG_THICKNESS, B_WHEG_BASE);
 
-   this->createBoxGeom(spoke1, MASS_WHEG / 4,
-         osg::Vec3(X_WHEG_BASE, 0,
-               zServo + whegBaseRadius + getRadius() / 2),
-         WHEG_THICKNESS, WHEG_WIDTH, getRadius());
+   boost::shared_ptr<SimpleBody> spoke1 = this->addBox(MASS_WHEG / 4,
+         osg::Vec3(X_WHEG_BASE, 0, zServo + whegBaseRadius + getRadius() / 2),
+         WHEG_THICKNESS, WHEG_WIDTH, getRadius(), B_WHEG_SPOKE_1);
 
-   this->createBoxGeom(spoke2, MASS_WHEG / 4, osg::Vec3(X_WHEG_BASE, 0, zServo),
-         WHEG_THICKNESS, WHEG_WIDTH, getRadius());
+   boost::shared_ptr<SimpleBody> spoke2 = this->addBox(MASS_WHEG / 4,
+		   osg::Vec3(X_WHEG_BASE, 0, zServo),
+		   WHEG_THICKNESS, WHEG_WIDTH, getRadius(), B_WHEG_SPOKE_2);
 
-   this->createBoxGeom(spoke3, MASS_WHEG / 4, osg::Vec3(X_WHEG_BASE, 0, zServo),
-         WHEG_THICKNESS, WHEG_WIDTH, getRadius());
+   boost::shared_ptr<SimpleBody> spoke3 = this->addBox(MASS_WHEG / 4,
+		   osg::Vec3(X_WHEG_BASE, 0, zServo),
+		   WHEG_THICKNESS, WHEG_WIDTH, getRadius(), B_WHEG_SPOKE_3);
 
    // Position spokes
-   osg::Quat rotation;
-   dQuaternion quatOde;
+   osg::Quat rotation1, rotation2, rotation3;
 
    float rotationSpoke1 = 60;
    float rotationSpoke2 = 180;
    float rotationSpoke3 = 300;
 
-   rotation.makeRotate(osg::inDegrees(rotationSpoke1), osg::Vec3(1, 0, 0));
-   quatOde[0] = rotation.w();
-   quatOde[1] = rotation.x();
-   quatOde[2] = rotation.y();
-   quatOde[3] = rotation.z();
-   dBodySetQuaternion(spoke1, quatOde);
+   rotation1.makeRotate(osg::inDegrees(rotationSpoke1), osg::Vec3(1, 0, 0));
+   spoke1->setAttitude(rotation1);
 
+   rotation2.makeRotate(osg::inDegrees(rotationSpoke2), osg::Vec3(1, 0, 0));
+   spoke2->setAttitude(rotation2);
 
-   rotation.makeRotate(osg::inDegrees(rotationSpoke2), osg::Vec3(1, 0, 0));
-   quatOde[0] = rotation.w();
-   quatOde[1] = rotation.x();
-   quatOde[2] = rotation.y();
-   quatOde[3] = rotation.z();
-   dBodySetQuaternion(spoke2, quatOde);
-
-   rotation.makeRotate(osg::inDegrees(rotationSpoke3), osg::Vec3(1, 0, 0));
-   quatOde[0] = rotation.w();
-   quatOde[1] = rotation.x();
-   quatOde[2] = rotation.y();
-   quatOde[3] = rotation.z();
-   dBodySetQuaternion(spoke3, quatOde);
+   rotation3.makeRotate(osg::inDegrees(rotationSpoke3), osg::Vec3(1, 0, 0));
+   spoke3->setAttitude(rotation3);
 
    // Move center of spokes
    osg::Vec3 newPosSpoke1(X_WHEG_BASE, 0, zServo);
@@ -153,9 +132,7 @@ bool ActiveWhegModel::initModel() {
                * std::cos(osg::inDegrees(90.0 + rotationSpoke1)),
          (whegBaseRadius + getRadius() / 2)
                * std::sin(osg::inDegrees(90.0 + rotationSpoke1)));
-   dBodySetPosition(spoke1, newPosSpoke1.x(), newPosSpoke1.y(),
-         newPosSpoke1.z());
-
+   spoke1->setPosition(newPosSpoke1);
 
    osg::Vec3 newPosSpoke2(X_WHEG_BASE, 0, zServo);
    newPosSpoke2 += osg::Vec3(0,
@@ -163,8 +140,7 @@ bool ActiveWhegModel::initModel() {
                * std::cos(osg::inDegrees(90.0 + rotationSpoke2)),
          (whegBaseRadius + getRadius() / 2)
                * std::sin(osg::inDegrees(90.0 + rotationSpoke2)));
-   dBodySetPosition(spoke2, newPosSpoke2.x(), newPosSpoke2.y(),
-         newPosSpoke2.z());
+   spoke2->setPosition(newPosSpoke2);
 
    osg::Vec3 newPosSpoke3(X_WHEG_BASE, 0, zServo);
    newPosSpoke3 += osg::Vec3(0,
@@ -172,37 +148,33 @@ bool ActiveWhegModel::initModel() {
                * std::cos(osg::inDegrees(90.0 + rotationSpoke3)),
          (whegBaseRadius + getRadius() / 2)
                * std::sin(osg::inDegrees(90.0 + rotationSpoke3)));
-   dBodySetPosition(spoke3, newPosSpoke3.x(), newPosSpoke3.y(),
-         newPosSpoke3.z());
+   spoke3->setPosition(newPosSpoke3);
 
    // Create joints to hold pieces in position
 
    // slot <slider> servo
-   this->fixBodies(whegRoot_, servo, osg::Vec3(1, 0, 0));
-   this->fixBodies(whegBase, spoke1, osg::Vec3(1, 0, 0));
-   this->fixBodies(whegBase, spoke2, osg::Vec3(1, 0, 0));
-   this->fixBodies(whegBase, spoke3, osg::Vec3(1, 0, 0));
+   this->fixBodies(whegRoot_, servo);
+   this->fixBodies(whegBase, spoke1);
+   this->fixBodies(whegBase, spoke2);
+   this->fixBodies(whegBase, spoke3);
 
    // servo <(hinge)> wheg base
-   dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
-   dJointAttach(joint, servo, whegBase);
-   dJointSetHingeAxis(joint, 1, 0, 0);
-   dJointSetHingeAnchor(joint, X_WHEG_BASE, 0, 0);
+   boost::shared_ptr<Joint> joint = this->attachWithHinge(servo, whegBase,
+		   osg::Vec3(1,0,0), osg::Vec3(X_WHEG_BASE, 0, 0));
 
    // Create servo
    this->motor_.reset(
          new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE_ROTATIONAL,
         		 ioPair(this->getId(),0)));
-
    return true;
 
 }
 
-dBodyID ActiveWhegModel::getRoot() {
+boost::shared_ptr<SimpleBody> ActiveWhegModel::getRoot() {
    return whegRoot_;
 }
 
-dBodyID ActiveWhegModel::getSlot(unsigned int i) {
+boost::shared_ptr<SimpleBody> ActiveWhegModel::getSlot(unsigned int i) {
 
    if (i > 1) {
       std::cout << "[ActiveWhegModel] Invalid slot: " << i << std::endl;
@@ -219,7 +191,7 @@ osg::Vec3 ActiveWhegModel::getSlotPosition(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Vec3 curPos = this->getPosition(whegRoot_);
+   osg::Vec3 curPos = this->whegRoot_->getPosition();
    osg::Vec3 slotAxis = this->getSlotAxis(i);
    return curPos + slotAxis * (SLOT_THICKNESS / 2);
 
@@ -232,7 +204,7 @@ osg::Vec3 ActiveWhegModel::getSlotAxis(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Quat quat = this->getAttitude(this->whegRoot_);
+   osg::Quat quat = this->whegRoot_->getAttitude();
    osg::Vec3 axis(-1, 0, 0);
 
    return quat * axis;
@@ -246,7 +218,7 @@ osg::Vec3 ActiveWhegModel::getSlotOrientation(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Quat quat = this->getAttitude(this->whegRoot_);
+   osg::Quat quat = this->whegRoot_->getAttitude();
    osg::Vec3 axis(0, 1, 0);
 
    return quat * axis;

@@ -60,14 +60,14 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 	terrain_.reset(new Terrain(odeWorld_, odeSpace_));
 
 #ifndef DISABLE_HEIGHT_MAP
-	if (terrainConfig->isFlat()) {
+	if (terrainConfig->getType() == TerrainConfig::FLAT) {
 #endif
 		if(!terrain_->initFlat(terrainConfig->getLength(),
 				terrainConfig->getWidth())) {
 			return false;
 		}
 #ifndef DISABLE_HEIGHT_MAP
-	} else {
+	} else if (terrainConfig->getType() == TerrainConfig::ROUGH) {
 		if(!terrain_->initRough(terrainConfig->getHeightFieldFileName(),
 				terrainConfig->getLength(), terrainConfig->getWidth(),
 				terrainConfig->getHeight())) {
@@ -162,6 +162,9 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 		}
 
 	}
+
+	// optimize the physics!  replace all fixed joints with composite bodies
+	robot->optimizePhysics();
 
 	return true;
 }

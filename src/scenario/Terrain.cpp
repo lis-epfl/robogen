@@ -36,8 +36,8 @@
 namespace robogen {
 
 Terrain::Terrain(dWorldID odeWorld, dSpaceID odeSpace) :
-		odeWorld_(odeWorld), odeSpace_(odeSpace), flat_(true), heightField_(
-				NULL), odeGeometry_(NULL) {
+		odeWorld_(odeWorld), odeSpace_(odeSpace), type_(TerrainConfig::EMPTY),
+		heightField_(NULL), odeGeometry_(NULL) {
 
 }
 
@@ -47,8 +47,8 @@ Terrain::~Terrain() {
 	}
 }
 
-bool Terrain::isFlat() {
-	return flat_;
+TerrainConfig::TerrainType Terrain::getType() {
+	return type_;
 }
 
 bool Terrain::initFlat(float width, float depth) {
@@ -61,7 +61,7 @@ bool Terrain::initFlat(float width, float depth) {
 
 	heightFieldWidth_ = width;
 	heightFieldDepth_ = depth;
-	flat_ = true;
+	type_ = TerrainConfig::FLAT;
 
 	return true;
 
@@ -78,7 +78,7 @@ bool Terrain::initRough(const std::string& heightMapFileName, float width,
 		return false;
 	}
 
-	flat_ = false;
+	type_ = TerrainConfig::ROUGH;
 
 	// Try with trimesh!!
 	heightFieldData_ = image;

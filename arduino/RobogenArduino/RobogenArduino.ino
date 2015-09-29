@@ -256,7 +256,7 @@ void setup() {
 
       #ifdef USE_SERIAL
       delay(50);
-      imu.(&accelGyro);
+      imu.update(&accelGyro);
       Serial.print(F("Accelero offsets\n"));
       Serial.print(accelGyro.getXAccelOffset()); Serial.print(F("\t"));
       Serial.print(accelGyro.getYAccelOffset()); Serial.print(F("\t"));

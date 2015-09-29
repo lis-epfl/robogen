@@ -31,6 +31,7 @@
 #include <osg/ref_ptr>
 #include <string>
 #include "Robogen.h"
+#include "config/TerrainConfig.h"
 
 namespace osg {
 class Image;
@@ -40,7 +41,7 @@ namespace robogen {
 
 /**
  * Terrain model. The terrain can be either a flat surface or defined by an height map
- * that is tiled infinitely.
+ * that is tiled infinitely or totally empty.
  */
 class Terrain {
 
@@ -57,9 +58,9 @@ public:
 	virtual ~Terrain();
 
 	/**
-	 * @return true if the terrain is flat, false if an height map is present
+	 * @return type of terrain
 	 */
-	bool isFlat();
+	TerrainConfig::TerrainType getType();
 
 	/**
 	 * Initializes a flat terrain
@@ -121,9 +122,9 @@ private:
 	dSpaceID odeSpace_;
 
 	/**
-	 * True if the terrain is flat (no heightmap), false otherwise
+	 * Type of terrain
 	 */
-	bool flat_;
+	TerrainConfig::TerrainType type_;
 
 	/**
 	 * The heightfield

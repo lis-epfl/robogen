@@ -258,7 +258,7 @@ private:
 
 	/**
 	 * Map from part id to part representation
-	 * @todo use to avoid multiple samenames
+	 * @todo use to avoid multiple same names
 	 */
 	IdPartMap idToPart_;
 

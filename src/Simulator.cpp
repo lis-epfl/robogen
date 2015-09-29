@@ -73,8 +73,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// Create ODE world
 		odeWorld = dWorldCreate();
 
-		// Set gravity [mm/s]
-		dWorldSetGravity(odeWorld, 0, 0, -9.81);
+		// Set gravity from config
+		osg::Vec3 gravity = configuration->getGravity();
+		dWorldSetGravity(odeWorld, gravity.x(), gravity.y(), gravity.z());
 
 		dWorldSetERP(odeWorld, 0.1);
 		dWorldSetCFM(odeWorld, 10e-6);
@@ -241,7 +242,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 			if (configuration->isCapAlleration()) {
 				dBodyID rootBody =
-						robot->getCoreComponent()->getRoot();
+						robot->getCoreComponent()->getRoot()->getBody();
 				const dReal *angVel, *linVel;
 
 				angVel = dBodyGetAngularVel(rootBody);

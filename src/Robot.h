@@ -41,6 +41,8 @@
 #include "robogen.pb.h"
 #include "model/Connection.h"
 
+#include "model/CompositeBody.h"
+
 extern "C" {
 #include "brain/NeuralNetwork.h"
 }
@@ -151,6 +153,16 @@ public:
 	void traverseBody(const std::vector<boost::shared_ptr<Model> >,
 			const std::vector<boost::shared_ptr<Connection> >);
 	int getRoot();
+
+	inline void addJoint(boost::shared_ptr<Joint> joint) {
+		joints_.push_back(joint);
+	}
+
+	/**
+	 * Merges bodies connected with fixed joints into complex bodies
+	 */
+	void optimizePhysics();
+
 private:
 
 	/**
@@ -254,6 +266,14 @@ private:
 	const robogenMessage::Robot* robotMessage_;
 
 	bool printInfo_;
+
+	// store joints created by connecting components
+	// not a set because we don't want iteration order to depend on address,
+	// but we will use a set to check for uniqueness while iterating
+	std::vector<boost::shared_ptr<Joint> > joints_;
+
+	// store the composite bodies formed by replacing fixed joints
+	std::vector<boost::shared_ptr<CompositeBody> > composites_;
 };
 
 }

@@ -75,11 +75,12 @@ double LightSensor::getIntensity(double angle, double lightIntensity,
 	return intensity;
 }
 
-LightSensor::LightSensor(dSpaceID odeSpace, std::vector<dBodyID> sensorBodies,
+LightSensor::LightSensor(dSpaceID odeSpace,
+		std::vector<boost::shared_ptr<SimpleBody> > sensorBodies,
 		std::string label):odeSpace_(odeSpace), label_(label),
 		lastReadOutput_(MIN_INTENSITY_VALUE){
 	for(unsigned int i=0; i<sensorBodies.size(); i++){
-		for (dGeomID g=dBodyGetFirstGeom(sensorBodies[i]); g
+		for (dGeomID g=dBodyGetFirstGeom(sensorBodies[i]->getBody()); g
 				; g=dBodyGetNextGeom(g)){
 			sensorGeoms_.push_back(g);
 		}

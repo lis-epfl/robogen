@@ -141,8 +141,9 @@ bool EvolverLog::logGeneration(int generation, Population &population) {
 	bestAvgStd_ << generation << " " << best << " " <<
 			average << " "  << stdev << std::endl;
 
+	std::cout << "All fitnesses:";
 	for(unsigned int i = 0; i<population.size(); ++i) {
-		std::cout << population[i]->getFitness() << " ";
+		std::cout << " " << population[i]->getFitness();
 	}
 	std::cout << std::endl;
 

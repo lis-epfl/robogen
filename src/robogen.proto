@@ -91,6 +91,12 @@ message SimulatorConf {
   required float maxLinearAcceleration = 14;
   required float maxAngularAcceleration = 15;
   required int32 maxDirectionShiftsPerSecond = 16;
+  required float gravityX = 17;
+  required float gravityY = 18;
+  required float gravityZ = 19;
+  required int32 terrainType = 20;
+  required float terrainHeight = 21;
+  required string terrainHeightFieldFileName = 22;
 }
 
 message EvaluationRequest {
