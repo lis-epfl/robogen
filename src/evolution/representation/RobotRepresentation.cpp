@@ -46,7 +46,7 @@
 namespace robogen {
 
 RobotRepresentation::RobotRepresentation() :
-		maxid_(1000) {
+		maxid_(1000), evaluated_(false) {
 
 }
 
