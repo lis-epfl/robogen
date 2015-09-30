@@ -47,6 +47,19 @@ SimpleBody::SimpleBody(boost::shared_ptr<Model> model, dMass mass,
 	setAttitude(attitude);
 }
 
+void SimpleBody::removeJoint(boost::shared_ptr<Joint> joint) {
+	joints_.erase(std::remove(joints_.begin(), joints_.end(), joint),
+				joints_.end());
+}
+
+void SimpleBody::addJoint(boost::shared_ptr<Joint> joint) {
+	joints_.push_back(joint);
+}
+
+void SimpleBody::clearJoints() {
+	joints_.clear();
+}
+
 osg::Vec3 SimpleBody::getLocalPosition() {
 	  // Get local position/orientation of component within geom transform
 	 const dReal* pLocalPos = dGeomGetOffsetPosition (geom_);

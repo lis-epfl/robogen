@@ -213,8 +213,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		int count = 0;
 		double t = 0;
 
-		boost::shared_ptr<CollisionData> collisionData( new CollisionData() );
-		collisionData->config = configuration;
+		boost::shared_ptr<CollisionData> collisionData(
+				new CollisionData(scenario) );
 
 		double step = configuration->getTimeStepLength();
 		while ((t < configuration->getSimulationTime())
@@ -438,6 +438,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		if(webGLlogger) {
 			webGLlogger.reset();
 		}
+
+		collisionData.reset();
+
 
 		// Destroy robot (because of associated ODE joint group)
 		robot.reset();

@@ -31,14 +31,33 @@
 
 #include "Robogen.h"
 #include <boost/shared_ptr.hpp>
-#include "config/RobogenConfig.h"
+#include "scenario/Scenario.h"
+#include "model/Model.h"
+
+#include <map>
 
 namespace robogen {
 
 //useful container in case we want to have access to other data
 //within the callback
-struct CollisionData {
-	boost::shared_ptr<RobogenConfig> config;
+class CollisionData {
+public :
+
+	CollisionData(boost::shared_ptr<Scenario> scenario);
+	inline ~CollisionData() {
+		geomModelMap_.clear();
+	}
+	inline boost::shared_ptr<Scenario> getScenario() {
+		return scenario_;
+	}
+	bool ignoreCollision(dGeomID o1, dGeomID o2);
+
+	//unsigned int numCulled ;
+
+private :
+	boost::shared_ptr<Scenario> scenario_;
+	std::map<dGeomID, boost::shared_ptr<Model> > geomModelMap_;
+
 };
 
 

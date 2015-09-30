@@ -35,7 +35,6 @@
 #include <boost/weak_ptr.hpp>
 #include "AbstractBody.h"
 
-
 namespace robogen {
 
 class Model;
@@ -54,6 +53,16 @@ public:
 			dGeomDestroy(geom_);
 			geom_ = NULL;
 		}*/
+		joints_.clear();
+	}
+
+	void addJoint(boost::shared_ptr<Joint> joint);
+	void clearJoints();
+
+	void removeJoint(boost::shared_ptr<Joint> joint);
+
+	inline const std::vector<boost::shared_ptr<Joint> > &getJoints() {
+		return joints_;
 	}
 
 
@@ -110,6 +119,8 @@ private:
 
 	osg::Vec3 specifiedPosition_;
 	osg::Quat specifiedAttitude_;
+
+	std::vector<boost::shared_ptr<Joint> > joints_;
 };
 
 }

@@ -62,8 +62,8 @@ RobogenUtils::~RobogenUtils() {
 
 }
 
-boost::shared_ptr<Joint> RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
-		boost::shared_ptr<Model> b, unsigned int slotB,
+boost::shared_ptr<Joint> RobogenUtils::connect(boost::shared_ptr<Model> a,
+		unsigned int slotA, boost::shared_ptr<Model> b, unsigned int slotB,
 		dJointGroupID connectionJointGroup, dWorldID odeWorld) {
 
 	// Mandatory debug output
