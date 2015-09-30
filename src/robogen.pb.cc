@@ -254,7 +254,7 @@ void protobuf_AssignDesc_robogen_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(StartPosition));
   SimulatorConf_descriptor_ = file->message_type(10);
-  static const int SimulatorConf_offsets_[16] = {
+  static const int SimulatorConf_offsets_[22] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, terrainwidth_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, terrainlength_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, obstacles_),
@@ -271,6 +271,12 @@ void protobuf_AssignDesc_robogen_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, maxlinearacceleration_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, maxangularacceleration_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, maxdirectionshiftspersecond_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, gravityx_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, gravityy_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, gravityz_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, terraintype_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, terrainheight_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SimulatorConf, terrainheightfieldfilename_),
   };
   SimulatorConf_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -420,7 +426,7 @@ void protobuf_AddDesc_robogen_2eproto() {
     "\022\021\n\txRotation\030\010 \002(\002\022\021\n\tyRotation\030\t \002(\002\022\021"
     "\n\tzRotation\030\n \002(\002\022\025\n\rrotationAngle\030\013 \002(\002"
     "\"6\n\rStartPosition\022\t\n\001x\030\001 \002(\002\022\t\n\001y\030\002 \002(\002\022"
-    "\017\n\007azimuth\030\003 \002(\002\"\325\003\n\rSimulatorConf\022\024\n\014te"
+    "\017\n\007azimuth\030\003 \002(\002\"\333\004\n\rSimulatorConf\022\024\n\014te"
     "rrainWidth\030\001 \002(\002\022\025\n\rterrainLength\030\002 \002(\002\022"
     "+\n\tobstacles\030\003 \003(\0132\030.robogenMessage.Obst"
     "acle\022\020\n\010scenario\030\004 \002(\t\022\031\n\021lightSourceHei"
@@ -432,11 +438,15 @@ void protobuf_AddDesc_robogen_2eproto() {
     "\002(\002\022\027\n\017capAcceleration\030\r \002(\010\022\035\n\025maxLinea"
     "rAcceleration\030\016 \002(\002\022\036\n\026maxAngularAcceler"
     "ation\030\017 \002(\002\022#\n\033maxDirectionShiftsPerSeco"
-    "nd\030\020 \002(\005\"o\n\021EvaluationRequest\022$\n\005robot\030\001"
-    " \002(\0132\025.robogenMessage.Robot\0224\n\rconfigura"
-    "tion\030\002 \002(\0132\035.robogenMessage.SimulatorCon"
-    "f\"C\n\020EvaluationResult\022\n\n\002id\030\001 \002(\005\022\017\n\007fit"
-    "ness\030\002 \002(\002\022\022\n\nobjectives\030\003 \003(\002", 1710);
+    "nd\030\020 \002(\005\022\020\n\010gravityX\030\021 \002(\002\022\020\n\010gravityY\030\022"
+    " \002(\002\022\020\n\010gravityZ\030\023 \002(\002\022\023\n\013terrainType\030\024 "
+    "\002(\005\022\025\n\rterrainHeight\030\025 \002(\002\022\"\n\032terrainHei"
+    "ghtFieldFileName\030\026 \002(\t\"o\n\021EvaluationRequ"
+    "est\022$\n\005robot\030\001 \002(\0132\025.robogenMessage.Robo"
+    "t\0224\n\rconfiguration\030\002 \002(\0132\035.robogenMessag"
+    "e.SimulatorConf\"C\n\020EvaluationResult\022\n\n\002i"
+    "d\030\001 \002(\005\022\017\n\007fitness\030\002 \002(\002\022\022\n\nobjectives\030\003"
+    " \003(\002", 1844);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "robogen.proto", &protobuf_RegisterTypes);
   EvolvableParameter::default_instance_ = new EvolvableParameter();
@@ -484,7 +494,6 @@ const int EvolvableParameter::kParamValueFieldNumber;
 EvolvableParameter::EvolvableParameter()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.EvolvableParameter)
 }
 
 void EvolvableParameter::InitAsDefaultInstance() {
@@ -494,7 +503,6 @@ EvolvableParameter::EvolvableParameter(const EvolvableParameter& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.EvolvableParameter)
 }
 
 void EvolvableParameter::SharedCtor() {
@@ -504,7 +512,6 @@ void EvolvableParameter::SharedCtor() {
 }
 
 EvolvableParameter::~EvolvableParameter() {
-  // @@protoc_insertion_point(destructor:robogenMessage.EvolvableParameter)
   SharedDtor();
 }
 
@@ -535,41 +542,39 @@ EvolvableParameter* EvolvableParameter::New() const {
 }
 
 void EvolvableParameter::Clear() {
-  paramvalue_ = 0;
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    paramvalue_ = 0;
+  }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool EvolvableParameter::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.EvolvableParameter)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required float paramValue = 1;
       case 1: {
-        if (tag == 13) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &paramvalue_)));
           set_has_paramvalue();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -577,18 +582,12 @@ bool EvolvableParameter::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.EvolvableParameter)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.EvolvableParameter)
-  return false;
 #undef DO_
 }
 
 void EvolvableParameter::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.EvolvableParameter)
   // required float paramValue = 1;
   if (has_paramvalue()) {
     ::google::protobuf::internal::WireFormatLite::WriteFloat(1, this->paramvalue(), output);
@@ -598,12 +597,10 @@ void EvolvableParameter::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.EvolvableParameter)
 }
 
 ::google::protobuf::uint8* EvolvableParameter::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.EvolvableParameter)
   // required float paramValue = 1;
   if (has_paramvalue()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(1, this->paramvalue(), target);
@@ -613,7 +610,6 @@ void EvolvableParameter::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.EvolvableParameter)
   return target;
 }
 
@@ -709,7 +705,6 @@ const int BodyPart::kOrientationFieldNumber;
 BodyPart::BodyPart()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.BodyPart)
 }
 
 void BodyPart::InitAsDefaultInstance() {
@@ -719,29 +714,26 @@ BodyPart::BodyPart(const BodyPart& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.BodyPart)
 }
 
 void BodyPart::SharedCtor() {
-  ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
-  id_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  type_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  id_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  type_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   root_ = false;
   orientation_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
 BodyPart::~BodyPart() {
-  // @@protoc_insertion_point(destructor:robogenMessage.BodyPart)
   SharedDtor();
 }
 
 void BodyPart::SharedDtor() {
-  if (id_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+  if (id_ != &::google::protobuf::internal::kEmptyString) {
     delete id_;
   }
-  if (type_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+  if (type_ != &::google::protobuf::internal::kEmptyString) {
     delete type_;
   }
   if (this != default_instance_) {
@@ -770,33 +762,20 @@ BodyPart* BodyPart::New() const {
 }
 
 void BodyPart::Clear() {
-#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
-  &reinterpret_cast<BodyPart*>(16)->f) - \
-   reinterpret_cast<char*>(16))
-
-#define ZR_(first, last) do {                              \
-    size_t f = OFFSET_OF_FIELD_(first);                    \
-    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
-    ::memset(&first, 0, n);                                \
-  } while (0)
-
-  if (_has_bits_[0 / 32] & 23) {
-    ZR_(root_, orientation_);
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (has_id()) {
-      if (id_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      if (id_ != &::google::protobuf::internal::kEmptyString) {
         id_->clear();
       }
     }
     if (has_type()) {
-      if (type_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      if (type_ != &::google::protobuf::internal::kEmptyString) {
         type_->clear();
       }
     }
+    root_ = false;
+    orientation_ = 0;
   }
-
-#undef OFFSET_OF_FIELD_
-#undef ZR_
-
   evolvableparam_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -804,25 +783,21 @@ void BodyPart::Clear() {
 
 bool BodyPart::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.BodyPart)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required string id = 1;
       case 1: {
-        if (tag == 10) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_id()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
             this->id().data(), this->id().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "id");
+            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(18)) goto parse_type;
         break;
@@ -830,16 +805,16 @@ bool BodyPart::MergePartialFromCodedStream(
 
       // required string type = 2;
       case 2: {
-        if (tag == 18) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_type:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_type()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
             this->type().data(), this->type().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "type");
+            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(24)) goto parse_root;
         break;
@@ -847,14 +822,15 @@ bool BodyPart::MergePartialFromCodedStream(
 
       // required bool root = 3;
       case 3: {
-        if (tag == 24) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_root:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
                  input, &root_)));
           set_has_root();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(34)) goto parse_evolvableParam;
         break;
@@ -862,12 +838,13 @@ bool BodyPart::MergePartialFromCodedStream(
 
       // repeated .robogenMessage.EvolvableParameter evolvableParam = 4;
       case 4: {
-        if (tag == 34) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_evolvableParam:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_evolvableparam()));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(34)) goto parse_evolvableParam;
         if (input->ExpectTag(40)) goto parse_orientation;
@@ -876,25 +853,25 @@ bool BodyPart::MergePartialFromCodedStream(
 
       // required int32 orientation = 5;
       case 5: {
-        if (tag == 40) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_orientation:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &orientation_)));
           set_has_orientation();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -902,35 +879,27 @@ bool BodyPart::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.BodyPart)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.BodyPart)
-  return false;
 #undef DO_
 }
 
 void BodyPart::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.BodyPart)
   // required string id = 1;
   if (has_id()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->id().data(), this->id().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "id");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
       1, this->id(), output);
   }
 
   // required string type = 2;
   if (has_type()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->type().data(), this->type().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "type");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
       2, this->type(), output);
   }
 
@@ -954,18 +923,15 @@ void BodyPart::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.BodyPart)
 }
 
 ::google::protobuf::uint8* BodyPart::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.BodyPart)
   // required string id = 1;
   if (has_id()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->id().data(), this->id().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "id");
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         1, this->id(), target);
@@ -973,10 +939,9 @@ void BodyPart::SerializeWithCachedSizes(
 
   // required string type = 2;
   if (has_type()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->type().data(), this->type().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "type");
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         2, this->type(), target);
@@ -1003,7 +968,6 @@ void BodyPart::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.BodyPart)
   return target;
 }
 
@@ -1104,7 +1068,9 @@ void BodyPart::CopyFrom(const BodyPart& from) {
 bool BodyPart::IsInitialized() const {
   if ((_has_bits_[0] & 0x00000017) != 0x00000017) return false;
 
-  if (!::google::protobuf::internal::AllAreInitialized(this->evolvableparam())) return false;
+  for (int i = 0; i < evolvableparam_size(); i++) {
+    if (!this->evolvableparam(i).IsInitialized()) return false;
+  }
   return true;
 }
 
@@ -1142,7 +1108,6 @@ const int BodyConnection::kDestSlotFieldNumber;
 BodyConnection::BodyConnection()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.BodyConnection)
 }
 
 void BodyConnection::InitAsDefaultInstance() {
@@ -1152,29 +1117,26 @@ BodyConnection::BodyConnection(const BodyConnection& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.BodyConnection)
 }
 
 void BodyConnection::SharedCtor() {
-  ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
-  src_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  dest_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  src_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  dest_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   srcslot_ = 0;
   destslot_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
 BodyConnection::~BodyConnection() {
-  // @@protoc_insertion_point(destructor:robogenMessage.BodyConnection)
   SharedDtor();
 }
 
 void BodyConnection::SharedDtor() {
-  if (src_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+  if (src_ != &::google::protobuf::internal::kEmptyString) {
     delete src_;
   }
-  if (dest_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+  if (dest_ != &::google::protobuf::internal::kEmptyString) {
     delete dest_;
   }
   if (this != default_instance_) {
@@ -1203,58 +1165,41 @@ BodyConnection* BodyConnection::New() const {
 }
 
 void BodyConnection::Clear() {
-#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
-  &reinterpret_cast<BodyConnection*>(16)->f) - \
-   reinterpret_cast<char*>(16))
-
-#define ZR_(first, last) do {                              \
-    size_t f = OFFSET_OF_FIELD_(first);                    \
-    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
-    ::memset(&first, 0, n);                                \
-  } while (0)
-
-  if (_has_bits_[0 / 32] & 15) {
-    ZR_(srcslot_, destslot_);
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (has_src()) {
-      if (src_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      if (src_ != &::google::protobuf::internal::kEmptyString) {
         src_->clear();
       }
     }
     if (has_dest()) {
-      if (dest_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      if (dest_ != &::google::protobuf::internal::kEmptyString) {
         dest_->clear();
       }
     }
+    srcslot_ = 0;
+    destslot_ = 0;
   }
-
-#undef OFFSET_OF_FIELD_
-#undef ZR_
-
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool BodyConnection::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.BodyConnection)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required string src = 1;
       case 1: {
-        if (tag == 10) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_src()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
             this->src().data(), this->src().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "src");
+            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(18)) goto parse_dest;
         break;
@@ -1262,16 +1207,16 @@ bool BodyConnection::MergePartialFromCodedStream(
 
       // required string dest = 2;
       case 2: {
-        if (tag == 18) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_dest:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_dest()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
             this->dest().data(), this->dest().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "dest");
+            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(24)) goto parse_srcSlot;
         break;
@@ -1279,14 +1224,15 @@ bool BodyConnection::MergePartialFromCodedStream(
 
       // required int32 srcSlot = 3;
       case 3: {
-        if (tag == 24) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_srcSlot:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &srcslot_)));
           set_has_srcslot();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(32)) goto parse_destSlot;
         break;
@@ -1294,25 +1240,25 @@ bool BodyConnection::MergePartialFromCodedStream(
 
       // required int32 destSlot = 4;
       case 4: {
-        if (tag == 32) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_destSlot:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &destslot_)));
           set_has_destslot();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -1320,35 +1266,27 @@ bool BodyConnection::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.BodyConnection)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.BodyConnection)
-  return false;
 #undef DO_
 }
 
 void BodyConnection::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.BodyConnection)
   // required string src = 1;
   if (has_src()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->src().data(), this->src().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "src");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
       1, this->src(), output);
   }
 
   // required string dest = 2;
   if (has_dest()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->dest().data(), this->dest().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "dest");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
       2, this->dest(), output);
   }
 
@@ -1366,18 +1304,15 @@ void BodyConnection::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.BodyConnection)
 }
 
 ::google::protobuf::uint8* BodyConnection::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.BodyConnection)
   // required string src = 1;
   if (has_src()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->src().data(), this->src().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "src");
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         1, this->src(), target);
@@ -1385,10 +1320,9 @@ void BodyConnection::SerializeWithCachedSizes(
 
   // required string dest = 2;
   if (has_dest()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->dest().data(), this->dest().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "dest");
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         2, this->dest(), target);
@@ -1408,7 +1342,6 @@ void BodyConnection::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.BodyConnection)
   return target;
 }
 
@@ -1536,7 +1469,6 @@ const int Body::kConnectionFieldNumber;
 Body::Body()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.Body)
 }
 
 void Body::InitAsDefaultInstance() {
@@ -1546,7 +1478,6 @@ Body::Body(const Body& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.Body)
 }
 
 void Body::SharedCtor() {
@@ -1555,7 +1486,6 @@ void Body::SharedCtor() {
 }
 
 Body::~Body() {
-  // @@protoc_insertion_point(destructor:robogenMessage.Body)
   SharedDtor();
 }
 
@@ -1594,22 +1524,19 @@ void Body::Clear() {
 
 bool Body::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.Body)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // repeated .robogenMessage.BodyPart part = 1;
       case 1: {
-        if (tag == 10) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_part:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_part()));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(10)) goto parse_part;
         if (input->ExpectTag(18)) goto parse_connection;
@@ -1618,24 +1545,24 @@ bool Body::MergePartialFromCodedStream(
 
       // repeated .robogenMessage.BodyConnection connection = 2;
       case 2: {
-        if (tag == 18) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_connection:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_connection()));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(18)) goto parse_connection;
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -1643,18 +1570,12 @@ bool Body::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.Body)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.Body)
-  return false;
 #undef DO_
 }
 
 void Body::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.Body)
   // repeated .robogenMessage.BodyPart part = 1;
   for (int i = 0; i < this->part_size(); i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
@@ -1671,12 +1592,10 @@ void Body::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.Body)
 }
 
 ::google::protobuf::uint8* Body::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.Body)
   // repeated .robogenMessage.BodyPart part = 1;
   for (int i = 0; i < this->part_size(); i++) {
     target = ::google::protobuf::internal::WireFormatLite::
@@ -1695,7 +1614,6 @@ void Body::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.Body)
   return target;
 }
 
@@ -1762,8 +1680,12 @@ void Body::CopyFrom(const Body& from) {
 
 bool Body::IsInitialized() const {
 
-  if (!::google::protobuf::internal::AllAreInitialized(this->part())) return false;
-  if (!::google::protobuf::internal::AllAreInitialized(this->connection())) return false;
+  for (int i = 0; i < part_size(); i++) {
+    if (!this->part(i).IsInitialized()) return false;
+  }
+  for (int i = 0; i < connection_size(); i++) {
+    if (!this->connection(i).IsInitialized()) return false;
+  }
   return true;
 }
 
@@ -1797,7 +1719,6 @@ const int NeuralConnection::kWeightFieldNumber;
 NeuralConnection::NeuralConnection()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.NeuralConnection)
 }
 
 void NeuralConnection::InitAsDefaultInstance() {
@@ -1807,28 +1728,25 @@ NeuralConnection::NeuralConnection(const NeuralConnection& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.NeuralConnection)
 }
 
 void NeuralConnection::SharedCtor() {
-  ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
-  src_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  dest_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  src_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  dest_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   weight_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
 NeuralConnection::~NeuralConnection() {
-  // @@protoc_insertion_point(destructor:robogenMessage.NeuralConnection)
   SharedDtor();
 }
 
 void NeuralConnection::SharedDtor() {
-  if (src_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+  if (src_ != &::google::protobuf::internal::kEmptyString) {
     delete src_;
   }
-  if (dest_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+  if (dest_ != &::google::protobuf::internal::kEmptyString) {
     delete dest_;
   }
   if (this != default_instance_) {
@@ -1857,14 +1775,14 @@ NeuralConnection* NeuralConnection::New() const {
 }
 
 void NeuralConnection::Clear() {
-  if (_has_bits_[0 / 32] & 7) {
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (has_src()) {
-      if (src_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      if (src_ != &::google::protobuf::internal::kEmptyString) {
         src_->clear();
       }
     }
     if (has_dest()) {
-      if (dest_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      if (dest_ != &::google::protobuf::internal::kEmptyString) {
         dest_->clear();
       }
     }
@@ -1876,25 +1794,21 @@ void NeuralConnection::Clear() {
 
 bool NeuralConnection::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.NeuralConnection)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required string src = 1;
       case 1: {
-        if (tag == 10) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_src()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
             this->src().data(), this->src().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "src");
+            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(18)) goto parse_dest;
         break;
@@ -1902,16 +1816,16 @@ bool NeuralConnection::MergePartialFromCodedStream(
 
       // required string dest = 2;
       case 2: {
-        if (tag == 18) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_dest:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_dest()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
             this->dest().data(), this->dest().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "dest");
+            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(29)) goto parse_weight;
         break;
@@ -1919,25 +1833,25 @@ bool NeuralConnection::MergePartialFromCodedStream(
 
       // required float weight = 3;
       case 3: {
-        if (tag == 29) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_weight:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &weight_)));
           set_has_weight();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -1945,35 +1859,27 @@ bool NeuralConnection::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.NeuralConnection)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.NeuralConnection)
-  return false;
 #undef DO_
 }
 
 void NeuralConnection::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.NeuralConnection)
   // required string src = 1;
   if (has_src()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->src().data(), this->src().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "src");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
       1, this->src(), output);
   }
 
   // required string dest = 2;
   if (has_dest()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->dest().data(), this->dest().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "dest");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
       2, this->dest(), output);
   }
 
@@ -1986,18 +1892,15 @@ void NeuralConnection::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.NeuralConnection)
 }
 
 ::google::protobuf::uint8* NeuralConnection::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.NeuralConnection)
   // required string src = 1;
   if (has_src()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->src().data(), this->src().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "src");
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         1, this->src(), target);
@@ -2005,10 +1908,9 @@ void NeuralConnection::SerializeWithCachedSizes(
 
   // required string dest = 2;
   if (has_dest()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->dest().data(), this->dest().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "dest");
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         2, this->dest(), target);
@@ -2023,7 +1925,6 @@ void NeuralConnection::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.NeuralConnection)
   return target;
 }
 
@@ -2146,7 +2047,6 @@ const int Neuron::kGainFieldNumber;
 Neuron::Neuron()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.Neuron)
 }
 
 void Neuron::InitAsDefaultInstance() {
@@ -2156,17 +2056,15 @@ Neuron::Neuron(const Neuron& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.Neuron)
 }
 
 void Neuron::SharedCtor() {
-  ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
-  id_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  layer_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  type_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  id_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  layer_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  type_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   bias_ = 0;
-  bodypartid_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  bodypartid_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   ioid_ = 0;
   tau_ = 0;
   phaseoffset_ = 0;
@@ -2176,21 +2074,20 @@ void Neuron::SharedCtor() {
 }
 
 Neuron::~Neuron() {
-  // @@protoc_insertion_point(destructor:robogenMessage.Neuron)
   SharedDtor();
 }
 
 void Neuron::SharedDtor() {
-  if (id_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+  if (id_ != &::google::protobuf::internal::kEmptyString) {
     delete id_;
   }
-  if (layer_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+  if (layer_ != &::google::protobuf::internal::kEmptyString) {
     delete layer_;
   }
-  if (type_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+  if (type_ != &::google::protobuf::internal::kEmptyString) {
     delete type_;
   }
-  if (bodypartid_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+  if (bodypartid_ != &::google::protobuf::internal::kEmptyString) {
     delete bodypartid_;
   }
   if (this != default_instance_) {
@@ -2219,69 +2116,57 @@ Neuron* Neuron::New() const {
 }
 
 void Neuron::Clear() {
-#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
-  &reinterpret_cast<Neuron*>(16)->f) - \
-   reinterpret_cast<char*>(16))
-
-#define ZR_(first, last) do {                              \
-    size_t f = OFFSET_OF_FIELD_(first);                    \
-    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
-    ::memset(&first, 0, n);                                \
-  } while (0)
-
-  if (_has_bits_[0 / 32] & 255) {
-    ZR_(bias_, phaseoffset_);
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (has_id()) {
-      if (id_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      if (id_ != &::google::protobuf::internal::kEmptyString) {
         id_->clear();
       }
     }
     if (has_layer()) {
-      if (layer_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      if (layer_ != &::google::protobuf::internal::kEmptyString) {
         layer_->clear();
       }
     }
     if (has_type()) {
-      if (type_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      if (type_ != &::google::protobuf::internal::kEmptyString) {
         type_->clear();
       }
     }
+    bias_ = 0;
     if (has_bodypartid()) {
-      if (bodypartid_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      if (bodypartid_ != &::google::protobuf::internal::kEmptyString) {
         bodypartid_->clear();
       }
     }
+    ioid_ = 0;
+    tau_ = 0;
+    phaseoffset_ = 0;
   }
-  ZR_(period_, gain_);
-
-#undef OFFSET_OF_FIELD_
-#undef ZR_
-
+  if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    period_ = 0;
+    gain_ = 0;
+  }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool Neuron::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.Neuron)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required string id = 1;
       case 1: {
-        if (tag == 10) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_id()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
             this->id().data(), this->id().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "id");
+            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(18)) goto parse_layer;
         break;
@@ -2289,16 +2174,16 @@ bool Neuron::MergePartialFromCodedStream(
 
       // required string layer = 2;
       case 2: {
-        if (tag == 18) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_layer:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_layer()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
             this->layer().data(), this->layer().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "layer");
+            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(26)) goto parse_type;
         break;
@@ -2306,16 +2191,16 @@ bool Neuron::MergePartialFromCodedStream(
 
       // required string type = 3;
       case 3: {
-        if (tag == 26) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_type:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_type()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
             this->type().data(), this->type().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "type");
+            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(37)) goto parse_bias;
         break;
@@ -2323,14 +2208,15 @@ bool Neuron::MergePartialFromCodedStream(
 
       // optional float bias = 4;
       case 4: {
-        if (tag == 37) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_bias:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &bias_)));
           set_has_bias();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(42)) goto parse_bodyPartId;
         break;
@@ -2338,16 +2224,16 @@ bool Neuron::MergePartialFromCodedStream(
 
       // optional string bodyPartId = 5;
       case 5: {
-        if (tag == 42) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_bodyPartId:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_bodypartid()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
             this->bodypartid().data(), this->bodypartid().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "bodypartid");
+            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(48)) goto parse_ioId;
         break;
@@ -2355,14 +2241,15 @@ bool Neuron::MergePartialFromCodedStream(
 
       // optional int32 ioId = 6;
       case 6: {
-        if (tag == 48) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_ioId:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &ioid_)));
           set_has_ioid();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(61)) goto parse_tau;
         break;
@@ -2370,14 +2257,15 @@ bool Neuron::MergePartialFromCodedStream(
 
       // optional float tau = 7;
       case 7: {
-        if (tag == 61) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_tau:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &tau_)));
           set_has_tau();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(69)) goto parse_phaseOffset;
         break;
@@ -2385,14 +2273,15 @@ bool Neuron::MergePartialFromCodedStream(
 
       // optional float phaseOffset = 8;
       case 8: {
-        if (tag == 69) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_phaseOffset:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &phaseoffset_)));
           set_has_phaseoffset();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(77)) goto parse_period;
         break;
@@ -2400,14 +2289,15 @@ bool Neuron::MergePartialFromCodedStream(
 
       // optional float period = 9;
       case 9: {
-        if (tag == 77) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_period:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &period_)));
           set_has_period();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(85)) goto parse_gain;
         break;
@@ -2415,25 +2305,25 @@ bool Neuron::MergePartialFromCodedStream(
 
       // optional float gain = 10;
       case 10: {
-        if (tag == 85) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_gain:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &gain_)));
           set_has_gain();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -2441,45 +2331,36 @@ bool Neuron::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.Neuron)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.Neuron)
-  return false;
 #undef DO_
 }
 
 void Neuron::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.Neuron)
   // required string id = 1;
   if (has_id()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->id().data(), this->id().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "id");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
       1, this->id(), output);
   }
 
   // required string layer = 2;
   if (has_layer()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->layer().data(), this->layer().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "layer");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
       2, this->layer(), output);
   }
 
   // required string type = 3;
   if (has_type()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->type().data(), this->type().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "type");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
       3, this->type(), output);
   }
 
@@ -2490,11 +2371,10 @@ void Neuron::SerializeWithCachedSizes(
 
   // optional string bodyPartId = 5;
   if (has_bodypartid()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->bodypartid().data(), this->bodypartid().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "bodypartid");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
       5, this->bodypartid(), output);
   }
 
@@ -2527,18 +2407,15 @@ void Neuron::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.Neuron)
 }
 
 ::google::protobuf::uint8* Neuron::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.Neuron)
   // required string id = 1;
   if (has_id()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->id().data(), this->id().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "id");
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         1, this->id(), target);
@@ -2546,10 +2423,9 @@ void Neuron::SerializeWithCachedSizes(
 
   // required string layer = 2;
   if (has_layer()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->layer().data(), this->layer().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "layer");
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         2, this->layer(), target);
@@ -2557,10 +2433,9 @@ void Neuron::SerializeWithCachedSizes(
 
   // required string type = 3;
   if (has_type()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->type().data(), this->type().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "type");
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         3, this->type(), target);
@@ -2573,10 +2448,9 @@ void Neuron::SerializeWithCachedSizes(
 
   // optional string bodyPartId = 5;
   if (has_bodypartid()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->bodypartid().data(), this->bodypartid().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "bodypartid");
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         5, this->bodypartid(), target);
@@ -2611,7 +2485,6 @@ void Neuron::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.Neuron)
   return target;
 }
 
@@ -2799,7 +2672,6 @@ const int Brain::kConnectionFieldNumber;
 Brain::Brain()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.Brain)
 }
 
 void Brain::InitAsDefaultInstance() {
@@ -2809,7 +2681,6 @@ Brain::Brain(const Brain& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.Brain)
 }
 
 void Brain::SharedCtor() {
@@ -2818,7 +2689,6 @@ void Brain::SharedCtor() {
 }
 
 Brain::~Brain() {
-  // @@protoc_insertion_point(destructor:robogenMessage.Brain)
   SharedDtor();
 }
 
@@ -2857,22 +2727,19 @@ void Brain::Clear() {
 
 bool Brain::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.Brain)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // repeated .robogenMessage.Neuron neuron = 1;
       case 1: {
-        if (tag == 10) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_neuron:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_neuron()));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(10)) goto parse_neuron;
         if (input->ExpectTag(18)) goto parse_connection;
@@ -2881,24 +2748,24 @@ bool Brain::MergePartialFromCodedStream(
 
       // repeated .robogenMessage.NeuralConnection connection = 2;
       case 2: {
-        if (tag == 18) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_connection:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_connection()));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(18)) goto parse_connection;
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -2906,18 +2773,12 @@ bool Brain::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.Brain)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.Brain)
-  return false;
 #undef DO_
 }
 
 void Brain::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.Brain)
   // repeated .robogenMessage.Neuron neuron = 1;
   for (int i = 0; i < this->neuron_size(); i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
@@ -2934,12 +2795,10 @@ void Brain::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.Brain)
 }
 
 ::google::protobuf::uint8* Brain::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.Brain)
   // repeated .robogenMessage.Neuron neuron = 1;
   for (int i = 0; i < this->neuron_size(); i++) {
     target = ::google::protobuf::internal::WireFormatLite::
@@ -2958,7 +2817,6 @@ void Brain::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.Brain)
   return target;
 }
 
@@ -3025,8 +2883,12 @@ void Brain::CopyFrom(const Brain& from) {
 
 bool Brain::IsInitialized() const {
 
-  if (!::google::protobuf::internal::AllAreInitialized(this->neuron())) return false;
-  if (!::google::protobuf::internal::AllAreInitialized(this->connection())) return false;
+  for (int i = 0; i < neuron_size(); i++) {
+    if (!this->neuron(i).IsInitialized()) return false;
+  }
+  for (int i = 0; i < connection_size(); i++) {
+    if (!this->connection(i).IsInitialized()) return false;
+  }
   return true;
 }
 
@@ -3060,7 +2922,6 @@ const int Robot::kBrainFieldNumber;
 Robot::Robot()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.Robot)
 }
 
 void Robot::InitAsDefaultInstance() {
@@ -3072,7 +2933,6 @@ Robot::Robot(const Robot& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.Robot)
 }
 
 void Robot::SharedCtor() {
@@ -3084,7 +2944,6 @@ void Robot::SharedCtor() {
 }
 
 Robot::~Robot() {
-  // @@protoc_insertion_point(destructor:robogenMessage.Robot)
   SharedDtor();
 }
 
@@ -3117,7 +2976,7 @@ Robot* Robot::New() const {
 }
 
 void Robot::Clear() {
-  if (_has_bits_[0 / 32] & 7) {
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     id_ = 0;
     if (has_body()) {
       if (body_ != NULL) body_->::robogenMessage::Body::Clear();
@@ -3132,23 +2991,20 @@ void Robot::Clear() {
 
 bool Robot::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.Robot)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required int32 id = 1;
       case 1: {
-        if (tag == 8) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &id_)));
           set_has_id();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(18)) goto parse_body;
         break;
@@ -3156,12 +3012,13 @@ bool Robot::MergePartialFromCodedStream(
 
       // required .robogenMessage.Body body = 2;
       case 2: {
-        if (tag == 18) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_body:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                input, mutable_body()));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(26)) goto parse_brain;
         break;
@@ -3169,23 +3026,23 @@ bool Robot::MergePartialFromCodedStream(
 
       // required .robogenMessage.Brain brain = 3;
       case 3: {
-        if (tag == 26) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_brain:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                input, mutable_brain()));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -3193,18 +3050,12 @@ bool Robot::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.Robot)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.Robot)
-  return false;
 #undef DO_
 }
 
 void Robot::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.Robot)
   // required int32 id = 1;
   if (has_id()) {
     ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->id(), output);
@@ -3226,12 +3077,10 @@ void Robot::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.Robot)
 }
 
 ::google::protobuf::uint8* Robot::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.Robot)
   // required int32 id = 1;
   if (has_id()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->id(), target);
@@ -3255,7 +3104,6 @@ void Robot::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.Robot)
   return target;
 }
 
@@ -3387,7 +3235,6 @@ const int Obstacle::kRotationAngleFieldNumber;
 Obstacle::Obstacle()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.Obstacle)
 }
 
 void Obstacle::InitAsDefaultInstance() {
@@ -3397,7 +3244,6 @@ Obstacle::Obstacle(const Obstacle& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.Obstacle)
 }
 
 void Obstacle::SharedCtor() {
@@ -3417,7 +3263,6 @@ void Obstacle::SharedCtor() {
 }
 
 Obstacle::~Obstacle() {
-  // @@protoc_insertion_point(destructor:robogenMessage.Obstacle)
   SharedDtor();
 }
 
@@ -3448,47 +3293,41 @@ Obstacle* Obstacle::New() const {
 }
 
 void Obstacle::Clear() {
-#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
-  &reinterpret_cast<Obstacle*>(16)->f) - \
-   reinterpret_cast<char*>(16))
-
-#define ZR_(first, last) do {                              \
-    size_t f = OFFSET_OF_FIELD_(first);                    \
-    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
-    ::memset(&first, 0, n);                                \
-  } while (0)
-
-  if (_has_bits_[0 / 32] & 255) {
-    ZR_(x_, xrotation_);
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    x_ = 0;
+    y_ = 0;
+    z_ = 0;
+    xsize_ = 0;
+    ysize_ = 0;
+    zsize_ = 0;
+    density_ = 0;
+    xrotation_ = 0;
   }
-  ZR_(yrotation_, rotationangle_);
-
-#undef OFFSET_OF_FIELD_
-#undef ZR_
-
+  if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    yrotation_ = 0;
+    zrotation_ = 0;
+    rotationangle_ = 0;
+  }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool Obstacle::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.Obstacle)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required float x = 1;
       case 1: {
-        if (tag == 13) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &x_)));
           set_has_x();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(21)) goto parse_y;
         break;
@@ -3496,14 +3335,15 @@ bool Obstacle::MergePartialFromCodedStream(
 
       // required float y = 2;
       case 2: {
-        if (tag == 21) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_y:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &y_)));
           set_has_y();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(29)) goto parse_z;
         break;
@@ -3511,14 +3351,15 @@ bool Obstacle::MergePartialFromCodedStream(
 
       // required float z = 3;
       case 3: {
-        if (tag == 29) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_z:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &z_)));
           set_has_z();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(37)) goto parse_xSize;
         break;
@@ -3526,14 +3367,15 @@ bool Obstacle::MergePartialFromCodedStream(
 
       // required float xSize = 4;
       case 4: {
-        if (tag == 37) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_xSize:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &xsize_)));
           set_has_xsize();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(45)) goto parse_ySize;
         break;
@@ -3541,14 +3383,15 @@ bool Obstacle::MergePartialFromCodedStream(
 
       // required float ySize = 5;
       case 5: {
-        if (tag == 45) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_ySize:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &ysize_)));
           set_has_ysize();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(53)) goto parse_zSize;
         break;
@@ -3556,14 +3399,15 @@ bool Obstacle::MergePartialFromCodedStream(
 
       // required float zSize = 6;
       case 6: {
-        if (tag == 53) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_zSize:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &zsize_)));
           set_has_zsize();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(61)) goto parse_density;
         break;
@@ -3571,14 +3415,15 @@ bool Obstacle::MergePartialFromCodedStream(
 
       // required float density = 7;
       case 7: {
-        if (tag == 61) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_density:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &density_)));
           set_has_density();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(69)) goto parse_xRotation;
         break;
@@ -3586,14 +3431,15 @@ bool Obstacle::MergePartialFromCodedStream(
 
       // required float xRotation = 8;
       case 8: {
-        if (tag == 69) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_xRotation:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &xrotation_)));
           set_has_xrotation();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(77)) goto parse_yRotation;
         break;
@@ -3601,14 +3447,15 @@ bool Obstacle::MergePartialFromCodedStream(
 
       // required float yRotation = 9;
       case 9: {
-        if (tag == 77) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_yRotation:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &yrotation_)));
           set_has_yrotation();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(85)) goto parse_zRotation;
         break;
@@ -3616,14 +3463,15 @@ bool Obstacle::MergePartialFromCodedStream(
 
       // required float zRotation = 10;
       case 10: {
-        if (tag == 85) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_zRotation:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &zrotation_)));
           set_has_zrotation();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(93)) goto parse_rotationAngle;
         break;
@@ -3631,25 +3479,25 @@ bool Obstacle::MergePartialFromCodedStream(
 
       // required float rotationAngle = 11;
       case 11: {
-        if (tag == 93) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_rotationAngle:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &rotationangle_)));
           set_has_rotationangle();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -3657,18 +3505,12 @@ bool Obstacle::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.Obstacle)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.Obstacle)
-  return false;
 #undef DO_
 }
 
 void Obstacle::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.Obstacle)
   // required float x = 1;
   if (has_x()) {
     ::google::protobuf::internal::WireFormatLite::WriteFloat(1, this->x(), output);
@@ -3728,12 +3570,10 @@ void Obstacle::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.Obstacle)
 }
 
 ::google::protobuf::uint8* Obstacle::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.Obstacle)
   // required float x = 1;
   if (has_x()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(1, this->x(), target);
@@ -3793,7 +3633,6 @@ void Obstacle::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.Obstacle)
   return target;
 }
 
@@ -3981,7 +3820,6 @@ const int StartPosition::kAzimuthFieldNumber;
 StartPosition::StartPosition()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.StartPosition)
 }
 
 void StartPosition::InitAsDefaultInstance() {
@@ -3991,7 +3829,6 @@ StartPosition::StartPosition(const StartPosition& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.StartPosition)
 }
 
 void StartPosition::SharedCtor() {
@@ -4003,7 +3840,6 @@ void StartPosition::SharedCtor() {
 }
 
 StartPosition::~StartPosition() {
-  // @@protoc_insertion_point(destructor:robogenMessage.StartPosition)
   SharedDtor();
 }
 
@@ -4034,44 +3870,31 @@ StartPosition* StartPosition::New() const {
 }
 
 void StartPosition::Clear() {
-#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
-  &reinterpret_cast<StartPosition*>(16)->f) - \
-   reinterpret_cast<char*>(16))
-
-#define ZR_(first, last) do {                              \
-    size_t f = OFFSET_OF_FIELD_(first);                    \
-    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
-    ::memset(&first, 0, n);                                \
-  } while (0)
-
-  ZR_(x_, azimuth_);
-
-#undef OFFSET_OF_FIELD_
-#undef ZR_
-
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    x_ = 0;
+    y_ = 0;
+    azimuth_ = 0;
+  }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool StartPosition::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.StartPosition)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required float x = 1;
       case 1: {
-        if (tag == 13) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &x_)));
           set_has_x();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(21)) goto parse_y;
         break;
@@ -4079,14 +3902,15 @@ bool StartPosition::MergePartialFromCodedStream(
 
       // required float y = 2;
       case 2: {
-        if (tag == 21) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_y:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &y_)));
           set_has_y();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(29)) goto parse_azimuth;
         break;
@@ -4094,25 +3918,25 @@ bool StartPosition::MergePartialFromCodedStream(
 
       // required float azimuth = 3;
       case 3: {
-        if (tag == 29) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_azimuth:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &azimuth_)));
           set_has_azimuth();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -4120,18 +3944,12 @@ bool StartPosition::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.StartPosition)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.StartPosition)
-  return false;
 #undef DO_
 }
 
 void StartPosition::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.StartPosition)
   // required float x = 1;
   if (has_x()) {
     ::google::protobuf::internal::WireFormatLite::WriteFloat(1, this->x(), output);
@@ -4151,12 +3969,10 @@ void StartPosition::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.StartPosition)
 }
 
 ::google::protobuf::uint8* StartPosition::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.StartPosition)
   // required float x = 1;
   if (has_x()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(1, this->x(), target);
@@ -4176,7 +3992,6 @@ void StartPosition::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.StartPosition)
   return target;
 }
 
@@ -4296,12 +4111,17 @@ const int SimulatorConf::kCapAccelerationFieldNumber;
 const int SimulatorConf::kMaxLinearAccelerationFieldNumber;
 const int SimulatorConf::kMaxAngularAccelerationFieldNumber;
 const int SimulatorConf::kMaxDirectionShiftsPerSecondFieldNumber;
+const int SimulatorConf::kGravityXFieldNumber;
+const int SimulatorConf::kGravityYFieldNumber;
+const int SimulatorConf::kGravityZFieldNumber;
+const int SimulatorConf::kTerrainTypeFieldNumber;
+const int SimulatorConf::kTerrainHeightFieldNumber;
+const int SimulatorConf::kTerrainHeightFieldFileNameFieldNumber;
 #endif  // !_MSC_VER
 
 SimulatorConf::SimulatorConf()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.SimulatorConf)
 }
 
 void SimulatorConf::InitAsDefaultInstance() {
@@ -4311,15 +4131,13 @@ SimulatorConf::SimulatorConf(const SimulatorConf& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.SimulatorConf)
 }
 
 void SimulatorConf::SharedCtor() {
-  ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
   terrainwidth_ = 0;
   terrainlength_ = 0;
-  scenario_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  scenario_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   lightsourceheight_ = 0;
   timestep_ = 0;
   ntimesteps_ = 0;
@@ -4331,17 +4149,25 @@ void SimulatorConf::SharedCtor() {
   maxlinearacceleration_ = 0;
   maxangularacceleration_ = 0;
   maxdirectionshiftspersecond_ = 0;
+  gravityx_ = 0;
+  gravityy_ = 0;
+  gravityz_ = 0;
+  terraintype_ = 0;
+  terrainheight_ = 0;
+  terrainheightfieldfilename_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
 SimulatorConf::~SimulatorConf() {
-  // @@protoc_insertion_point(destructor:robogenMessage.SimulatorConf)
   SharedDtor();
 }
 
 void SimulatorConf::SharedDtor() {
-  if (scenario_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+  if (scenario_ != &::google::protobuf::internal::kEmptyString) {
     delete scenario_;
+  }
+  if (terrainheightfieldfilename_ != &::google::protobuf::internal::kEmptyString) {
+    delete terrainheightfieldfilename_;
   }
   if (this != default_instance_) {
   }
@@ -4369,33 +4195,40 @@ SimulatorConf* SimulatorConf::New() const {
 }
 
 void SimulatorConf::Clear() {
-#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
-  &reinterpret_cast<SimulatorConf*>(16)->f) - \
-   reinterpret_cast<char*>(16))
-
-#define ZR_(first, last) do {                              \
-    size_t f = OFFSET_OF_FIELD_(first);                    \
-    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
-    ::memset(&first, 0, n);                                \
-  } while (0)
-
-  if (_has_bits_[0 / 32] & 123) {
-    ZR_(terrainwidth_, terrainlength_);
-    ZR_(lightsourceheight_, timestep_);
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    terrainwidth_ = 0;
+    terrainlength_ = 0;
     if (has_scenario()) {
-      if (scenario_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      if (scenario_ != &::google::protobuf::internal::kEmptyString) {
         scenario_->clear();
       }
     }
+    lightsourceheight_ = 0;
+    timestep_ = 0;
     ntimesteps_ = 0;
   }
-  if (_has_bits_[8 / 32] & 65280) {
-    ZR_(actuationperiod_, maxdirectionshiftspersecond_);
+  if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    actuationperiod_ = 0;
+    terrainfriction_ = 0;
+    sensornoiselevel_ = 0;
+    motornoiselevel_ = 0;
+    capacceleration_ = false;
+    maxlinearacceleration_ = 0;
+    maxangularacceleration_ = 0;
+    maxdirectionshiftspersecond_ = 0;
   }
-
-#undef OFFSET_OF_FIELD_
-#undef ZR_
-
+  if (_has_bits_[16 / 32] & (0xffu << (16 % 32))) {
+    gravityx_ = 0;
+    gravityy_ = 0;
+    gravityz_ = 0;
+    terraintype_ = 0;
+    terrainheight_ = 0;
+    if (has_terrainheightfieldfilename()) {
+      if (terrainheightfieldfilename_ != &::google::protobuf::internal::kEmptyString) {
+        terrainheightfieldfilename_->clear();
+      }
+    }
+  }
   obstacles_.Clear();
   startpositions_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
@@ -4404,23 +4237,20 @@ void SimulatorConf::Clear() {
 
 bool SimulatorConf::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.SimulatorConf)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(16383);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required float terrainWidth = 1;
       case 1: {
-        if (tag == 13) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &terrainwidth_)));
           set_has_terrainwidth();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(21)) goto parse_terrainLength;
         break;
@@ -4428,14 +4258,15 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required float terrainLength = 2;
       case 2: {
-        if (tag == 21) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_terrainLength:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &terrainlength_)));
           set_has_terrainlength();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(26)) goto parse_obstacles;
         break;
@@ -4443,12 +4274,13 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // repeated .robogenMessage.Obstacle obstacles = 3;
       case 3: {
-        if (tag == 26) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_obstacles:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_obstacles()));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(26)) goto parse_obstacles;
         if (input->ExpectTag(34)) goto parse_scenario;
@@ -4457,16 +4289,16 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required string scenario = 4;
       case 4: {
-        if (tag == 34) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_scenario:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_scenario()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
             this->scenario().data(), this->scenario().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "scenario");
+            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(45)) goto parse_lightSourceHeight;
         break;
@@ -4474,14 +4306,15 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required float lightSourceHeight = 5;
       case 5: {
-        if (tag == 45) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_lightSourceHeight:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &lightsourceheight_)));
           set_has_lightsourceheight();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(53)) goto parse_timeStep;
         break;
@@ -4489,14 +4322,15 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required float timeStep = 6;
       case 6: {
-        if (tag == 53) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_timeStep:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &timestep_)));
           set_has_timestep();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(56)) goto parse_nTimeSteps;
         break;
@@ -4504,14 +4338,15 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required int32 nTimeSteps = 7;
       case 7: {
-        if (tag == 56) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_nTimeSteps:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &ntimesteps_)));
           set_has_ntimesteps();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(66)) goto parse_startPositions;
         break;
@@ -4519,12 +4354,13 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // repeated .robogenMessage.StartPosition startPositions = 8;
       case 8: {
-        if (tag == 66) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_startPositions:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_startpositions()));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(66)) goto parse_startPositions;
         if (input->ExpectTag(72)) goto parse_actuationPeriod;
@@ -4533,14 +4369,15 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required int32 actuationPeriod = 9;
       case 9: {
-        if (tag == 72) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_actuationPeriod:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &actuationperiod_)));
           set_has_actuationperiod();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(85)) goto parse_terrainFriction;
         break;
@@ -4548,14 +4385,15 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required float terrainFriction = 10;
       case 10: {
-        if (tag == 85) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_terrainFriction:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &terrainfriction_)));
           set_has_terrainfriction();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(93)) goto parse_sensorNoiseLevel;
         break;
@@ -4563,14 +4401,15 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required float sensorNoiseLevel = 11;
       case 11: {
-        if (tag == 93) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_sensorNoiseLevel:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &sensornoiselevel_)));
           set_has_sensornoiselevel();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(101)) goto parse_motorNoiseLevel;
         break;
@@ -4578,14 +4417,15 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required float motorNoiseLevel = 12;
       case 12: {
-        if (tag == 101) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_motorNoiseLevel:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &motornoiselevel_)));
           set_has_motornoiselevel();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(104)) goto parse_capAcceleration;
         break;
@@ -4593,14 +4433,15 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required bool capAcceleration = 13;
       case 13: {
-        if (tag == 104) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_capAcceleration:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
                  input, &capacceleration_)));
           set_has_capacceleration();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(117)) goto parse_maxLinearAcceleration;
         break;
@@ -4608,14 +4449,15 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required float maxLinearAcceleration = 14;
       case 14: {
-        if (tag == 117) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_maxLinearAcceleration:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &maxlinearacceleration_)));
           set_has_maxlinearacceleration();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(125)) goto parse_maxAngularAcceleration;
         break;
@@ -4623,14 +4465,15 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required float maxAngularAcceleration = 15;
       case 15: {
-        if (tag == 125) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_maxAngularAcceleration:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &maxangularacceleration_)));
           set_has_maxangularacceleration();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(128)) goto parse_maxDirectionShiftsPerSecond;
         break;
@@ -4638,25 +4481,122 @@ bool SimulatorConf::MergePartialFromCodedStream(
 
       // required int32 maxDirectionShiftsPerSecond = 16;
       case 16: {
-        if (tag == 128) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_maxDirectionShiftsPerSecond:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &maxdirectionshiftspersecond_)));
           set_has_maxdirectionshiftspersecond();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectTag(141)) goto parse_gravityX;
+        break;
+      }
+
+      // required float gravityX = 17;
+      case 17: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
+         parse_gravityX:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &gravityx_)));
+          set_has_gravityx();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(149)) goto parse_gravityY;
+        break;
+      }
+
+      // required float gravityY = 18;
+      case 18: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
+         parse_gravityY:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &gravityy_)));
+          set_has_gravityy();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(157)) goto parse_gravityZ;
+        break;
+      }
+
+      // required float gravityZ = 19;
+      case 19: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
+         parse_gravityZ:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &gravityz_)));
+          set_has_gravityz();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(160)) goto parse_terrainType;
+        break;
+      }
+
+      // required int32 terrainType = 20;
+      case 20: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_terrainType:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &terraintype_)));
+          set_has_terraintype();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(173)) goto parse_terrainHeight;
+        break;
+      }
+
+      // required float terrainHeight = 21;
+      case 21: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
+         parse_terrainHeight:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &terrainheight_)));
+          set_has_terrainheight();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(178)) goto parse_terrainHeightFieldFileName;
+        break;
+      }
+
+      // required string terrainHeightFieldFileName = 22;
+      case 22: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_terrainHeightFieldFileName:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_terrainheightfieldfilename()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->terrainheightfieldfilename().data(), this->terrainheightfieldfilename().length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -4664,18 +4604,12 @@ bool SimulatorConf::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.SimulatorConf)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.SimulatorConf)
-  return false;
 #undef DO_
 }
 
 void SimulatorConf::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.SimulatorConf)
   // required float terrainWidth = 1;
   if (has_terrainwidth()) {
     ::google::protobuf::internal::WireFormatLite::WriteFloat(1, this->terrainwidth(), output);
@@ -4694,11 +4628,10 @@ void SimulatorConf::SerializeWithCachedSizes(
 
   // required string scenario = 4;
   if (has_scenario()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->scenario().data(), this->scenario().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "scenario");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
       4, this->scenario(), output);
   }
 
@@ -4763,16 +4696,48 @@ void SimulatorConf::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(16, this->maxdirectionshiftspersecond(), output);
   }
 
+  // required float gravityX = 17;
+  if (has_gravityx()) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(17, this->gravityx(), output);
+  }
+
+  // required float gravityY = 18;
+  if (has_gravityy()) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(18, this->gravityy(), output);
+  }
+
+  // required float gravityZ = 19;
+  if (has_gravityz()) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(19, this->gravityz(), output);
+  }
+
+  // required int32 terrainType = 20;
+  if (has_terraintype()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(20, this->terraintype(), output);
+  }
+
+  // required float terrainHeight = 21;
+  if (has_terrainheight()) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(21, this->terrainheight(), output);
+  }
+
+  // required string terrainHeightFieldFileName = 22;
+  if (has_terrainheightfieldfilename()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->terrainheightfieldfilename().data(), this->terrainheightfieldfilename().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      22, this->terrainheightfieldfilename(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.SimulatorConf)
 }
 
 ::google::protobuf::uint8* SimulatorConf::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.SimulatorConf)
   // required float terrainWidth = 1;
   if (has_terrainwidth()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(1, this->terrainwidth(), target);
@@ -4792,10 +4757,9 @@ void SimulatorConf::SerializeWithCachedSizes(
 
   // required string scenario = 4;
   if (has_scenario()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->scenario().data(), this->scenario().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "scenario");
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         4, this->scenario(), target);
@@ -4863,11 +4827,45 @@ void SimulatorConf::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(16, this->maxdirectionshiftspersecond(), target);
   }
 
+  // required float gravityX = 17;
+  if (has_gravityx()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(17, this->gravityx(), target);
+  }
+
+  // required float gravityY = 18;
+  if (has_gravityy()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(18, this->gravityy(), target);
+  }
+
+  // required float gravityZ = 19;
+  if (has_gravityz()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(19, this->gravityz(), target);
+  }
+
+  // required int32 terrainType = 20;
+  if (has_terraintype()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(20, this->terraintype(), target);
+  }
+
+  // required float terrainHeight = 21;
+  if (has_terrainheight()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(21, this->terrainheight(), target);
+  }
+
+  // required string terrainHeightFieldFileName = 22;
+  if (has_terrainheightfieldfilename()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->terrainheightfieldfilename().data(), this->terrainheightfieldfilename().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        22, this->terrainheightfieldfilename(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.SimulatorConf)
   return target;
 }
 
@@ -4953,6 +4951,42 @@ int SimulatorConf::ByteSize() const {
       total_size += 2 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
           this->maxdirectionshiftspersecond());
+    }
+
+  }
+  if (_has_bits_[16 / 32] & (0xffu << (16 % 32))) {
+    // required float gravityX = 17;
+    if (has_gravityx()) {
+      total_size += 2 + 4;
+    }
+
+    // required float gravityY = 18;
+    if (has_gravityy()) {
+      total_size += 2 + 4;
+    }
+
+    // required float gravityZ = 19;
+    if (has_gravityz()) {
+      total_size += 2 + 4;
+    }
+
+    // required int32 terrainType = 20;
+    if (has_terraintype()) {
+      total_size += 2 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->terraintype());
+    }
+
+    // required float terrainHeight = 21;
+    if (has_terrainheight()) {
+      total_size += 2 + 4;
+    }
+
+    // required string terrainHeightFieldFileName = 22;
+    if (has_terrainheightfieldfilename()) {
+      total_size += 2 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->terrainheightfieldfilename());
     }
 
   }
@@ -5045,6 +5079,26 @@ void SimulatorConf::MergeFrom(const SimulatorConf& from) {
       set_maxdirectionshiftspersecond(from.maxdirectionshiftspersecond());
     }
   }
+  if (from._has_bits_[16 / 32] & (0xffu << (16 % 32))) {
+    if (from.has_gravityx()) {
+      set_gravityx(from.gravityx());
+    }
+    if (from.has_gravityy()) {
+      set_gravityy(from.gravityy());
+    }
+    if (from.has_gravityz()) {
+      set_gravityz(from.gravityz());
+    }
+    if (from.has_terraintype()) {
+      set_terraintype(from.terraintype());
+    }
+    if (from.has_terrainheight()) {
+      set_terrainheight(from.terrainheight());
+    }
+    if (from.has_terrainheightfieldfilename()) {
+      set_terrainheightfieldfilename(from.terrainheightfieldfilename());
+    }
+  }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
@@ -5061,10 +5115,14 @@ void SimulatorConf::CopyFrom(const SimulatorConf& from) {
 }
 
 bool SimulatorConf::IsInitialized() const {
-  if ((_has_bits_[0] & 0x0000ff7b) != 0x0000ff7b) return false;
+  if ((_has_bits_[0] & 0x003fff7b) != 0x003fff7b) return false;
 
-  if (!::google::protobuf::internal::AllAreInitialized(this->obstacles())) return false;
-  if (!::google::protobuf::internal::AllAreInitialized(this->startpositions())) return false;
+  for (int i = 0; i < obstacles_size(); i++) {
+    if (!this->obstacles(i).IsInitialized()) return false;
+  }
+  for (int i = 0; i < startpositions_size(); i++) {
+    if (!this->startpositions(i).IsInitialized()) return false;
+  }
   return true;
 }
 
@@ -5086,6 +5144,12 @@ void SimulatorConf::Swap(SimulatorConf* other) {
     std::swap(maxlinearacceleration_, other->maxlinearacceleration_);
     std::swap(maxangularacceleration_, other->maxangularacceleration_);
     std::swap(maxdirectionshiftspersecond_, other->maxdirectionshiftspersecond_);
+    std::swap(gravityx_, other->gravityx_);
+    std::swap(gravityy_, other->gravityy_);
+    std::swap(gravityz_, other->gravityz_);
+    std::swap(terraintype_, other->terraintype_);
+    std::swap(terrainheight_, other->terrainheight_);
+    std::swap(terrainheightfieldfilename_, other->terrainheightfieldfilename_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
@@ -5111,7 +5175,6 @@ const int EvaluationRequest::kConfigurationFieldNumber;
 EvaluationRequest::EvaluationRequest()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.EvaluationRequest)
 }
 
 void EvaluationRequest::InitAsDefaultInstance() {
@@ -5123,7 +5186,6 @@ EvaluationRequest::EvaluationRequest(const EvaluationRequest& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.EvaluationRequest)
 }
 
 void EvaluationRequest::SharedCtor() {
@@ -5134,7 +5196,6 @@ void EvaluationRequest::SharedCtor() {
 }
 
 EvaluationRequest::~EvaluationRequest() {
-  // @@protoc_insertion_point(destructor:robogenMessage.EvaluationRequest)
   SharedDtor();
 }
 
@@ -5167,7 +5228,7 @@ EvaluationRequest* EvaluationRequest::New() const {
 }
 
 void EvaluationRequest::Clear() {
-  if (_has_bits_[0 / 32] & 3) {
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (has_robot()) {
       if (robot_ != NULL) robot_->::robogenMessage::Robot::Clear();
     }
@@ -5181,21 +5242,18 @@ void EvaluationRequest::Clear() {
 
 bool EvaluationRequest::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.EvaluationRequest)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required .robogenMessage.Robot robot = 1;
       case 1: {
-        if (tag == 10) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                input, mutable_robot()));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(18)) goto parse_configuration;
         break;
@@ -5203,23 +5261,23 @@ bool EvaluationRequest::MergePartialFromCodedStream(
 
       // required .robogenMessage.SimulatorConf configuration = 2;
       case 2: {
-        if (tag == 18) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_configuration:
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                input, mutable_configuration()));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -5227,18 +5285,12 @@ bool EvaluationRequest::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.EvaluationRequest)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.EvaluationRequest)
-  return false;
 #undef DO_
 }
 
 void EvaluationRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.EvaluationRequest)
   // required .robogenMessage.Robot robot = 1;
   if (has_robot()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
@@ -5255,12 +5307,10 @@ void EvaluationRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.EvaluationRequest)
 }
 
 ::google::protobuf::uint8* EvaluationRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.EvaluationRequest)
   // required .robogenMessage.Robot robot = 1;
   if (has_robot()) {
     target = ::google::protobuf::internal::WireFormatLite::
@@ -5279,7 +5329,6 @@ void EvaluationRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.EvaluationRequest)
   return target;
 }
 
@@ -5392,7 +5441,6 @@ const int EvaluationResult::kObjectivesFieldNumber;
 EvaluationResult::EvaluationResult()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:robogenMessage.EvaluationResult)
 }
 
 void EvaluationResult::InitAsDefaultInstance() {
@@ -5402,7 +5450,6 @@ EvaluationResult::EvaluationResult(const EvaluationResult& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:robogenMessage.EvaluationResult)
 }
 
 void EvaluationResult::SharedCtor() {
@@ -5413,7 +5460,6 @@ void EvaluationResult::SharedCtor() {
 }
 
 EvaluationResult::~EvaluationResult() {
-  // @@protoc_insertion_point(destructor:robogenMessage.EvaluationResult)
   SharedDtor();
 }
 
@@ -5444,21 +5490,10 @@ EvaluationResult* EvaluationResult::New() const {
 }
 
 void EvaluationResult::Clear() {
-#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
-  &reinterpret_cast<EvaluationResult*>(16)->f) - \
-   reinterpret_cast<char*>(16))
-
-#define ZR_(first, last) do {                              \
-    size_t f = OFFSET_OF_FIELD_(first);                    \
-    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
-    ::memset(&first, 0, n);                                \
-  } while (0)
-
-  ZR_(id_, fitness_);
-
-#undef OFFSET_OF_FIELD_
-#undef ZR_
-
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    id_ = 0;
+    fitness_ = 0;
+  }
   objectives_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -5466,23 +5501,20 @@ void EvaluationResult::Clear() {
 
 bool EvaluationResult::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:robogenMessage.EvaluationResult)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
+  while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required int32 id = 1;
       case 1: {
-        if (tag == 8) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &id_)));
           set_has_id();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(21)) goto parse_fitness;
         break;
@@ -5490,14 +5522,15 @@ bool EvaluationResult::MergePartialFromCodedStream(
 
       // required float fitness = 2;
       case 2: {
-        if (tag == 21) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_fitness:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, &fitness_)));
           set_has_fitness();
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(29)) goto parse_objectives;
         break;
@@ -5505,29 +5538,31 @@ bool EvaluationResult::MergePartialFromCodedStream(
 
       // repeated float objectives = 3;
       case 3: {
-        if (tag == 29) {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_objectives:
           DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  1, 29, input, this->mutable_objectives())));
-        } else if (tag == 26) {
+        } else if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag)
+                   == ::google::protobuf::internal::WireFormatLite::
+                      WIRETYPE_LENGTH_DELIMITED) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitiveNoInline<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
                  input, this->mutable_objectives())));
         } else {
-          goto handle_unusual;
+          goto handle_uninterpreted;
         }
         if (input->ExpectTag(29)) goto parse_objectives;
-        if (input->ExpectAtEnd()) goto success;
+        if (input->ExpectAtEnd()) return true;
         break;
       }
 
       default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
+          return true;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -5535,18 +5570,12 @@ bool EvaluationResult::MergePartialFromCodedStream(
       }
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:robogenMessage.EvaluationResult)
   return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:robogenMessage.EvaluationResult)
-  return false;
 #undef DO_
 }
 
 void EvaluationResult::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:robogenMessage.EvaluationResult)
   // required int32 id = 1;
   if (has_id()) {
     ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->id(), output);
@@ -5567,12 +5596,10 @@ void EvaluationResult::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:robogenMessage.EvaluationResult)
 }
 
 ::google::protobuf::uint8* EvaluationResult::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:robogenMessage.EvaluationResult)
   // required int32 id = 1;
   if (has_id()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->id(), target);
@@ -5593,7 +5620,6 @@ void EvaluationResult::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:robogenMessage.EvaluationResult)
   return target;
 }
 
