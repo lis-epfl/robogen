@@ -29,14 +29,14 @@
 #include <iostream>
 
 #include "Joint.h"
-#include "AbstractBody.h"
+#include "SimpleBody.h"
 #include "CompositeBody.h"
 
 namespace robogen {
 
 
-void Joint::createHinge(dWorldID world, boost::shared_ptr<AbstractBody> bodyA,
-		  boost::shared_ptr<AbstractBody> bodyB,
+void Joint::createHinge(dWorldID world, boost::shared_ptr<SimpleBody> bodyA,
+		  boost::shared_ptr<SimpleBody> bodyB,
 		  osg::Vec3 axis, osg::Vec3 anchor, dJointGroupID jointGroup) {
 
 	type_ = HINGE;
@@ -57,8 +57,8 @@ void Joint::createHinge(dWorldID world, boost::shared_ptr<AbstractBody> bodyA,
 }
 
 
-void Joint::createFixed(dWorldID world, boost::shared_ptr<AbstractBody> bodyA,
-			  boost::shared_ptr<AbstractBody> bodyB, dJointGroupID jointGroup) {
+void Joint::createFixed(dWorldID world, boost::shared_ptr<SimpleBody> bodyA,
+			  boost::shared_ptr<SimpleBody> bodyB, dJointGroupID jointGroup) {
 
 	type_ = FIXED;
 
@@ -78,8 +78,8 @@ void Joint::createFixed(dWorldID world, boost::shared_ptr<AbstractBody> bodyA,
 }
 
 void Joint::createUniversal(dWorldID world,
-				boost::shared_ptr<AbstractBody> bodyA,
-				boost::shared_ptr<AbstractBody> bodyB,
+				boost::shared_ptr<SimpleBody> bodyA,
+				boost::shared_ptr<SimpleBody> bodyB,
 				osg::Vec3 axis1, osg::Vec3 axis2, osg::Vec3 anchor,
 				dJointGroupID jointGroup) {
 

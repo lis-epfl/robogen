@@ -346,7 +346,6 @@ osg::Quat CompositeBody::getAttitude() {
 
 std::vector<boost::shared_ptr<Joint> > CompositeBody::getAllJoints() {
 	std::vector<boost::shared_ptr<Joint> > allJoints;
-	allJoints.insert(allJoints.end(), getJoints().begin(), getJoints().end());
 	std::vector<boost::weak_ptr<SimpleBody> > children = flattenSubBodies();
 	for(size_t i=0; i<children.size(); ++i) {
 		allJoints.insert(allJoints.end(), children[i].lock()->getJoints().begin(),

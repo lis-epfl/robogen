@@ -3,9 +3,10 @@
  *
  * Titus Cieslewski (dev@titus-c.ch)
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2014 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -28,6 +29,8 @@
  */
 
 #include "evolution/representation/RobotRepresentation.h"
+#include "Robogen.h"
+
 #ifndef FAKEROBOTREPRESENTATION_H
 
 #include <iostream>
@@ -46,7 +49,7 @@
 namespace robogen {
 
 RobotRepresentation::RobotRepresentation() :
-		maxid_(1000) {
+		maxid_(1000), evaluated_(false) {
 
 }
 
@@ -87,13 +90,20 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
  * Helper function for decoding a part line of a robot text file.
  * @return true if successful read
  */
+
+bool isLineEmpty(std::string line) {
+	static const boost::regex spacex("^\\s*$");
+	return boost::regex_match(line.c_str(), spacex);
+}
+
 bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 		unsigned int &slot,
 		char &type, std::string &id, unsigned int &orientation,
 		std::vector<double> &params) {
 	// match (0 or more tabs)(digit) (type) (id) (orientation) (parameters)
 	static const boost::regex rx(
-			"^(\\t*)(\\d) ([A-Z]|(?:[A-Z][a-z]*)+) ([^\\s]+) (\\d)([ \\d\\.-]*)$");
+	 "^(\\t*)(\\d) ([A-Z]|(?:[A-Z][a-z]*)+) ([^\\s]+) (\\d)([ \\d\\.-]*)\\s*$"
+			);
 	boost::cmatch match;
 	std::string line;
 	std::getline(file, line);
@@ -106,14 +116,14 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 		if (match[3].str().length() == 1) {
 			type = match[3].first[0];
 			if( PART_TYPE_MAP.count(type) == 0) {
-				std::cout << "Invalid body part type: " << type
+				std::cerr << "Invalid body part type: " << type
 						<< std::endl;
-				throw std::runtime_error("");
+				exitRobogen(EXIT_FAILURE);
 			}
 		} else if( INVERSE_PART_TYPE_MAP.count(match[3].str()) == 0) {
-			std::cout << "Invalid body part type: " << match[3].str()
+			std::cerr << "Invalid body part type: " << match[3].str()
 					<< std::endl;
-			throw std::runtime_error("");
+			exitRobogen(EXIT_FAILURE);
 		} else {
 			type = INVERSE_PART_TYPE_MAP.at(match[3].str());
 		}
@@ -129,12 +139,12 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 		}
 		if (rawParams.size()
 				!= PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type))) {
-			std::cout << "Error reading body part from text file.\n"
+			std::cerr << "Error reading body part from text file.\n"
 					<< PART_TYPE_MAP.at(type) << " requires "
 					<< PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type))
 					<< " params, but " << rawParams.size()
 					<< " were received\n";
-			throw std::runtime_error("");
+			exitRobogen(EXIT_FAILURE);
 			//return false;
 		}
 		for (unsigned int i = 0; i < rawParams.size(); i++) {
@@ -142,13 +152,13 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 					std::make_pair(PART_TYPE_MAP.at(type), i));
 			double rawParamValue = rawParams[i];
 			if (rawParamValue < ranges.first || rawParamValue > ranges.second) {
-				std::cout << "Error reading body part from text file.\n"
+				std::cerr << "Error reading body part from text file.\n"
 						<< PART_TYPE_MAP.at(type) << " requires param " << i
 						<< " to be in [" << ranges.first << ", "
 						<< ranges.second << "], but " << rawParamValue
 						<< " was received\n";
 				//return false;
-				throw std::runtime_error("");
+				exitRobogen(EXIT_FAILURE);
 			}
 			//add param in [0,1]
 			params.push_back((fabs(ranges.first - ranges.second) < 1e-6) ? 0 :
@@ -159,15 +169,16 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 		return true;
 	} else {
 		// additional info if poor formatting, i.e. line not empty
-		static const boost::regex spacex("^\\s*$");
-		if (!boost::regex_match(line.c_str(), spacex)) {
-			std::cout << "Error reading body part from text file. Received:\n"
+
+		if (!isLineEmpty(line)) {
+			std::cerr << "Error reading body part from text file. Received:\n"
 					<< line << "\nbut expected format:\n"
 					<< "<0 or more tabs><slot index digit> "
 					<< "<part type character OR CamelCase string> "
-							"<part id string> <orientation digit> <evt. parameters>"
+							"<part id string> <orientation digit> "
+					<< "<evt. parameters>"
 					<< std::endl;
-			throw std::runtime_error(""); //sorry Andrea
+			exitRobogen(EXIT_FAILURE);
 		}
 		return false;
 
@@ -182,7 +193,7 @@ bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
 		int &fromIoId, std::string &to, int &toIoId, double &value) {
 
 	static const boost::regex rx(
-			"^([^\\s]+) (\\d+) ([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)$");
+			"^([^\\s]+) (\\d+) ([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)\\s*$");
 	boost::cmatch match;
 	std::string line;
 	std::getline(file, line);
@@ -197,14 +208,13 @@ bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
 		return true;
 	} else {
 		// additional info if poor formatting, i.e. line not empty
-		static const boost::regex spacex("^\\s*$");
-		if (!boost::regex_match(line.c_str(), spacex)) {
-			std::cout << "Error reading weight from text file. Received:\n"
+		if(!isLineEmpty(line)) {
+			std::cerr << "Error reading weight from text file. Received:\n"
 					<< line << "\nbut expected format:\n"
 					<< "<source part id string> <source part io id> "
-							"<destination part id string> <destination part io id> "
-							"<weight>" << std::endl;
-			throw std::runtime_error("");
+						"<destination part id string> <destination part io id> "
+						"<weight>" << std::endl;
+			exitRobogen(EXIT_FAILURE);
 		}
 		return false;
 	}
@@ -224,8 +234,8 @@ void parseTypeString(std::string typeString, unsigned int &type) {
 	else if(typeString == "oscillator")
 		type = NeuronRepresentation::OSCILLATOR;
 	else {
-		std::cout << "Invalid neuron type: " << typeString << std::endl;
-		throw std::runtime_error("");
+		std::cerr << "Invalid neuron type: " << typeString << std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 }
 
@@ -236,7 +246,7 @@ void parseTypeString(std::string typeString, unsigned int &type) {
 bool robotTextFileReadAddNeuronLine(std::ifstream &file, std::string &partId,
 		unsigned int &type) {
 
-	static const boost::regex rx("^([^\\s]+) ([^\\s]+)$");
+	static const boost::regex rx("^([^\\s]+) ([^\\s]+)\\s*$");
 	boost::cmatch match;
 	std::string line;
 	std::getline(file, line);
@@ -248,12 +258,12 @@ bool robotTextFileReadAddNeuronLine(std::ifstream &file, std::string &partId,
 		return true;
 	} else {
 		// additional info if poor formatting, i.e. line not empty
-		static const boost::regex spacex("^\\s*$");
-		if (!boost::regex_match(line.c_str(), spacex)) {
-			std::cout << "Error reading hidden neuron descriptor from text file. Received:\n"
+		if(!isLineEmpty(line)) {
+			std::cerr << "Error reading hidden neuron descriptor from text "
+					<< "file. Received:\n"
 					<< line << "\nbut expected format:\n"
 					<< "<part id string> <type string>" << std::endl;
-			throw std::runtime_error("");
+			exitRobogen(EXIT_FAILURE);
 		}
 		return false;
 	}
@@ -266,9 +276,10 @@ bool robotTextFileReadAddNeuronLine(std::ifstream &file, std::string &partId,
 bool robotTextFileReadParamsLine(std::ifstream &file, std::string &node,
 		int &ioId,  unsigned int &type, std::vector<double> &params) {
 
-	static const boost::regex generalRx("^([^\\s]+) (\\d+) ([^\\s]+)((?: -?\\d*\\.?\\d*)+)$");
+	static const boost::regex
+		generalRx("^([^\\s]+) (\\d+) ([^\\s]+)((?: -?\\d*\\.?\\d*)+)\\s*$");
 
-	static const boost::regex biasRx("^([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)$");
+	static const boost::regex biasRx("^([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)\\s*$");
 	boost::cmatch match;
 	std::string line;
 	std::getline(file, line);
@@ -297,14 +308,15 @@ bool robotTextFileReadParamsLine(std::ifstream &file, std::string &node,
 		return true;
 	} else {
 		// additional info if poor formatting, i.e. line not empty
-		static const boost::regex spacex("^\\s*$");
-		if (!boost::regex_match(line.c_str(), spacex)) {
-			std::cout << "Error reading brain params from text file. Received:\n"
+		if (!isLineEmpty(line) ) {
+			std::cerr << "Error reading brain params from text file. "
+					<< "Received:\n"
 					<< line << "\nbut expected either format:\n"
 					<< "<part id string> <part io id> <bias>\nor\n"
-					<< "<part id string> <part io id> <neuron type> <param> <param> ..."
+					<< "<part id string> <part io id> <neuron type> "
+					<< "<param> <param> ..."
 					<< std::endl;
-			throw std::runtime_error("");
+			exitRobogen(EXIT_FAILURE);
 		}
 		return false;
 	}
@@ -363,7 +375,8 @@ bool RobotRepresentation::init() {
 	// create neural network: create map from body id to ioId for all sensor and
 	// motor body parts
 	std::map<std::string, int> sensorMap, motorMap;
-	for (std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator it =
+	for (std::map<std::string,
+			boost::weak_ptr<PartRepresentation> >::iterator it =
 			idToPart_.begin(); it != idToPart_.end(); it++) {
 
 		// omitting weak pointer checks, as this really shouldn't go wrong here!
@@ -401,17 +414,14 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	std::vector<double> params;
 
 	// process root node
-	try {
-		if (!robotTextFileReadPartLine(file, indent, slot, type, id, orientation,
-				params) || indent) {
-			std::cout << "Robot text file contains no or"
-					" poorly formatted root node" << std::endl;
-			return false;
-		}
-	} catch (std::runtime_error &e) {
-		std::cout << "Error parsing robot body\n";
+
+	if (!robotTextFileReadPartLine(file, indent, slot, type, id, orientation,
+			params) || indent) {
+		std::cout << "Robot text file contains no or"
+				" poorly formatted root node" << std::endl;
 		return false;
 	}
+
 	current = PartRepresentation::create(type, id, orientation, params);
 	if (!current) {
 		std::cout << "Failed to create root node" << std::endl;
@@ -421,44 +431,41 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
 
 	// process other body parts
-	try {
-		while (robotTextFileReadPartLine(file, indent, slot, type, id,
-				orientation, params)) {
-			if (!indent) {
-				std::cout << "Attempt to create multiple root nodes!"
-						<< std::endl;
-				return false;
-			}
-			// indentation: Adding children to current
-			if (indent > (parentStack.size())) {
-				parentStack.push(current);
-			}
-			// indentation: done adding children to top of parent stack
-			for (; indent < (parentStack.size());) {
-				parentStack.pop();
-			}
-			current = PartRepresentation::create(type, id, orientation, params);
-			if (!current) {
-				std::cout << "Failed to create node." << std::endl;
-				return false;
-			}
-			if (parentStack.top()->getChild(slot)) {
-				std::cout << "Attempt to overwrite child "
-						<< parentStack.top()->getChild(slot)->getId() << " of "
-						<< parentStack.top()->getId() << " with "
-						<< current->getId() << std::endl;
-				return false;
-			}
-			if (!parentStack.top()->setChild(slot, current)) {
-				std::cout << "Failed to set child." << std::endl;
-				return false;
-			}
-			idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
+
+	while (robotTextFileReadPartLine(file, indent, slot, type, id,
+			orientation, params)) {
+		if (!indent) {
+			std::cout << "Attempt to create multiple root nodes!"
+					<< std::endl;
+			return false;
 		}
-	} catch (std::runtime_error &e) {
-		std::cout << "Error parsing robot body\n";
-		return false;
+		// indentation: Adding children to current
+		if (indent > (parentStack.size())) {
+			parentStack.push(current);
+		}
+		// indentation: done adding children to top of parent stack
+		for (; indent < (parentStack.size());) {
+			parentStack.pop();
+		}
+		current = PartRepresentation::create(type, id, orientation, params);
+		if (!current) {
+			std::cout << "Failed to create node." << std::endl;
+			return false;
+		}
+		if (parentStack.top()->getChild(slot)) {
+			std::cout << "Attempt to overwrite child "
+					<< parentStack.top()->getChild(slot)->getId() << " of "
+					<< parentStack.top()->getId() << " with "
+					<< current->getId() << std::endl;
+			return false;
+		}
+		if (!parentStack.top()->setChild(slot, current)) {
+			std::cout << "Failed to set child." << std::endl;
+			return false;
+		}
+		idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
 	}
+
 	// process brain
 	std::string from, to;
 	int fromIoId, toIoId;
@@ -466,8 +473,8 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	// create neural network: create map from body id to ioId for all sensor and
 	// motor body parts
 	std::map<std::string, int> sensorMap, motorMap;
-	for (std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator it =
-			idToPart_.begin(); it != idToPart_.end(); it++) {
+	for (std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator
+			it = idToPart_.begin(); it != idToPart_.end(); it++) {
 
 		// omitting weak pointer checks, as this really shouldn't go wrong here!
 		if (it->second.lock()->getMotors().size()) {
@@ -482,37 +489,49 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
 	unsigned int neuronType;
 	// add new neurons
-	try {
-		while (robotTextFileReadAddNeuronLine(file, id, neuronType)) {
-			std::string neuronId = neuralNetwork_->insertNeuron(ioPair(id,
-					neuralNetwork_->getBodyPartNeurons(id).size()),
-					NeuronRepresentation::HIDDEN, neuronType);
-			std::cout << "added hidden neuron "  << neuronId << " with type "
-					<< neuronType << std::endl;
-		}
 
-		// weights
-		while (robotTextFileReadWeightLine(file, from, fromIoId, to, toIoId, value)) {
-			if (!neuralNetwork_->setWeight(from, fromIoId, to, toIoId, value)) {
-				std::cout << "Failed to set weight" << std::endl;
-				return false;
-			}
-		}
-
-		// params
-		params.clear();
-
-		while (robotTextFileReadParamsLine(file, to, toIoId, neuronType, params)) {
-			if (!neuralNetwork_->setParams(to, toIoId, neuronType, params)) {
-				std::cout << "Failed to set neuron params" << std::endl;
-				return false;
-			}
-			params.clear();
-		}
-	} catch (std::runtime_error &e) {
-		std::cout << "Error parsing robot brain\n";
-		return false;
+	while (robotTextFileReadAddNeuronLine(file, id, neuronType)) {
+		std::string neuronId = neuralNetwork_->insertNeuron(ioPair(id,
+				neuralNetwork_->getBodyPartNeurons(id).size()),
+				NeuronRepresentation::HIDDEN, neuronType);
+		std::cout << "added hidden neuron "  << neuronId << " with type "
+				<< neuronType << std::endl;
 	}
+
+	// weights
+	while (robotTextFileReadWeightLine(file, from, fromIoId, to, toIoId,
+			value)) {
+		if (!neuralNetwork_->setWeight(from, fromIoId, to, toIoId, value)) {
+			std::cout << "Failed to set weight" << std::endl;
+			return false;
+		}
+	}
+
+	// params
+	params.clear();
+
+	while (robotTextFileReadParamsLine(file, to, toIoId, neuronType, params)) {
+		if (!neuralNetwork_->setParams(to, toIoId, neuronType, params)) {
+			std::cout << "Failed to set neuron params" << std::endl;
+			return false;
+		}
+		params.clear();
+	}
+
+
+	while(!file.eof()) {
+		std::getline(file, line);
+		if(!isLineEmpty(line)) {
+			std::cerr << std::endl << std::endl
+					<< "The robot text file has non-empty lines after all "
+					<< "body and brain lines have been parsed!" << std::endl
+					<< "Are you sure the file is properly formatted??"
+					<< std::endl << std::endl;
+			exitRobogen(EXIT_FAILURE);
+		}
+	}
+
+
 	file.close();
 
 	maxid_ = 1000;
@@ -552,7 +571,8 @@ void RobotRepresentation::getBrainGenome(std::vector<double*> &weights,
 	neuralNetwork_->getGenome(weights, types, params);
 }
 
-boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain() const {
+boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain(
+		) const {
 	return neuralNetwork_;
 }
 
@@ -644,13 +664,13 @@ bool RobotRepresentation::trimBodyAt(const std::string& id) {
 	PartRepresentation *parent = idToPart_[id].lock()->getParent();
 	int position = idToPart_[id].lock()->getPosition();
 	if (!parent) {
-		std::cout << "Trying to remove root body part!" << std::endl;
+		std::cerr << "Trying to remove root body part!" << std::endl;
 		return false;
 	}
 	//std::cout << "Has references: " << idToPart_[id].lock().use_count()
 	//		<< std::endl;
 	if (!parent->setChild(position, boost::shared_ptr<PartRepresentation>())) {
-		std::cout << "Failed trimming robot body!" << std::endl;
+		std::cerr << "Failed trimming robot body!" << std::endl;
 		return false;
 	}
 	if (!parent->getChild(position)) {
@@ -896,9 +916,11 @@ bool RobotRepresentation::removePart(const std::string& partId) {
 
 bool RobotRepresentation::check() {
 
-	// 1. Check that every body part in the body tree is in the idBodyPart map and there are no dangling references
+	// 1. Check that every body part in the body tree is in the idBodyPart map
+	// and there are no dangling references
 	std::vector<std::string> bodyPartIdsFromMap;
-	for (std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator it = idToPart_.begin(); it != idToPart_.end(); ++it) {
+	for (std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator
+			it = idToPart_.begin(); it != idToPart_.end(); ++it) {
 		bodyPartIdsFromMap.push_back(it->first);
 	}
 
@@ -917,24 +939,25 @@ bool RobotRepresentation::check() {
 	} else {
 		for (unsigned int i = 0; i < bodyPartIdsFromMap.size(); ++i) {
 			if (bodyPartIdsFromMap[i].compare(bodyIds[i]) != 0) {
-				std::cout << "Error: bodyPartIdsFromMap does not match bodyIds at "
-						<< "position " << i << " " << bodyPartIdsFromMap[i] << " "
-						<< bodyIds[i] << "\n";
+				std::cerr << "Error: bodyPartIdsFromMap does not match bodyIds "
+						<< "at "
+						<< "position " << i << " " << bodyPartIdsFromMap[i]
+						<< " " << bodyIds[i] << "\n";
 				idsMatch = false;
 			}
 		}
 	}
 
 	if (!idsMatch) {
-		std::cout << "bodyPartIdsFromMap:";
+		std::cerr << "bodyPartIdsFromMap:";
 		for (unsigned int i = 0; i < bodyPartIdsFromMap.size(); ++i) {
 			std::cout<< " " << bodyPartIdsFromMap[i] ;
 		}
-		std::cout << "\nbodyIds:";
+		std::cerr << "\nbodyIds:";
 		for (unsigned int i = 0; i < bodyIds.size(); ++i) {
 			std::cout<< " " << bodyIds[i] ;
 		}
-		std::cout << "\n";
+		std::cerr << "\n";
 
 		return false;
 	}
@@ -956,7 +979,8 @@ bool RobotRepresentation::check() {
 
 		if (hasNeurons) {
 
-			std::vector<boost::weak_ptr<NeuronRepresentation> > neurons = neuralNetwork_->getBodyPartNeurons(bodyIds[i]);
+			std::vector<boost::weak_ptr<NeuronRepresentation> > neurons =
+					neuralNetwork_->getBodyPartNeurons(bodyIds[i]);
 			int totInputs = 0;
 			int totOutputs = 0;
 			for (unsigned int j = 0; j < neurons.size(); ++j) {
@@ -967,14 +991,16 @@ bool RobotRepresentation::check() {
 				}
 			}
 
-			if (totInputs != netInputs[bodyIds[i]] || totOutputs != netOutputs[bodyIds[i]]) {
+			if (totInputs != netInputs[bodyIds[i]] ||
+					totOutputs != netOutputs[bodyIds[i]]) {
 				return false;
 			}
 		}
 
 	}
 
-	// TODO Consistency check is not complete, neural representation is only partially checked
+	// TODO Consistency check is not complete, neural representation is
+	// only partially checked
 	return true;
 
 }

@@ -54,20 +54,7 @@ public:
 			dBodyDestroy(body_);
 			body_ = NULL;
 		}*/
-		joints_.clear();
-	}
-	inline void addJoint(boost::shared_ptr<Joint> joint) {
-		joints_.push_back(joint);
-	}
 
-	inline void clearJoints() {
-		joints_.clear();
-	}
-
-	void removeJoint(boost::shared_ptr<Joint> joint);
-
-	inline const std::vector<boost::shared_ptr<Joint> > &getJoints() {
-		return joints_;
 	}
 
 
@@ -90,7 +77,6 @@ public:
 
 protected:
 	dBodyID body_;
-	std::vector<boost::shared_ptr<Joint> > joints_;
 	boost::shared_ptr<CompositeBody> parent_;
 };
 
