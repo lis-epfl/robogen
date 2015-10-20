@@ -102,7 +102,7 @@ void RenderModel::toggleMeshes(bool meshes) {
 }*/
 
 boost::shared_ptr<Model> RenderModel::getModel() {
-	return model_;
+	return model_.lock();
 }
 
 /**

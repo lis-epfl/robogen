@@ -88,6 +88,10 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// Create contact group
 		odeContactGroup = dJointGroupCreate(0);
 
+		// wrap all this in block so things get cleaned up before shutting down
+		// ode
+		{
+
 		// ---------------------------------------
 		// Generate Robot
 		// ---------------------------------------
@@ -438,10 +442,10 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		if(webGLlogger) {
 			webGLlogger.reset();
 		}
+		} // end code block protecting objects for ode code clean up
 
-		// Destroy robot (because of associated ODE joint group)
-		robot.reset();
-		// has shared pointer in scenario, so destroy that too
+
+		// scenario has a shared ptr to the robot, so need to prune it
 		scenario->prune();
 
 		// Destroy the joint group
