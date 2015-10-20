@@ -31,6 +31,7 @@
 
 #include "model/motors/Motor.h"
 #include "Robogen.h"
+#include "model/Joint.h"
 
 namespace robogen {
 
@@ -52,24 +53,24 @@ public:
 	/**
 	 * Apply the motor to the provided joint. Initializes a servo controlled in velocity.
 	 *
-	 * @param joint ODE joint
+	 * @param joint Pointer to joint container
 	 * @param maxForce maximum force the motor can produce
 	 * @param maxDirectionShiftsPerSecond, used for testing motor burn out
 	 * 			default is -1, which means no motor burnout is tested
 	 */
-	ServoMotor(dJointID joint, float maxForce,
+	ServoMotor(boost::shared_ptr<Joint> joint, float maxForce,
 			ioPair id, int maxDirectionShiftsPerSecond=-1);
 
 	/**
 	 * Apply the motor to the provided joint. Initializes a servo controlled in position.
 	 *
-	 * @param joint ODE joint
+	 * @param joint Pointer to joint container
 	 * @param maxForce maximum force the motor can produce
 	 * @param proportional control gain
 	 * @param maxDirectionShiftsPerSecond, used for testing motor burn out
 	 * 			default is -1, which means no motor burnout is tested
 	 */
-	ServoMotor(dJointID joint, float maxForce, float gain,
+	ServoMotor(boost::shared_ptr<Joint> joint, float maxForce, float gain,
 			ioPair id, int maxDirectionShiftsPerSecond=-1);
 
 	/**
@@ -140,7 +141,7 @@ private:
 	/**
 	 * ODE joint that models the servo
 	 */
-	dJointID joint_;
+	boost::shared_ptr<Joint> joint_;
 
 	/**
 	 * Max force that the motor can produce

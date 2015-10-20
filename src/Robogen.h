@@ -35,6 +35,7 @@
 #include <limits>
 #include <ode/ode.h>
 #include <osg/Vec3>
+#include <osg/Quat>
 
 #define inMm(x) ((x)/1000.0)
 #define inGrams(x) ((x)/1000.0)
@@ -42,6 +43,9 @@
 float fromOde(float x);
 double fromOde(double x);
 osg::Vec3 fromOde(osg::Vec3 x);
+
+//build rotationMatrixOde and put it in rotationMatrixOde
+void getRotationMatrixOde(osg::Quat quat, dQuaternion rotationMatrixOde);
 
 int modulo(int x, int y);
 

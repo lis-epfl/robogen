@@ -159,6 +159,9 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 
 	}
 
+	// optimize the physics!  replace all fixed joints with composite bodies
+	robot->optimizePhysics();
+
 	return true;
 }
 

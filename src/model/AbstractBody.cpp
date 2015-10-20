@@ -1,11 +1,10 @@
 /*
- * @(#) RobogenOde.h   1.0   Mar 22, 2013
+ * @(#) AbstractBody.cpp   1.0   September 25, 2015
  *
- * Andrea Maesani (andrea.maesani@epfl.ch)
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2015 Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -26,45 +25,36 @@
  *
  * @(#) $Id$
  */
-#include "Robogen.h"
-#include "robogen.pb.h"
 
-float fromOde(float x) {
-	return x*1000.0;
+
+#include "AbstractBody.h"
+#include "CompositeBody.h"
+
+namespace robogen {
+
+boost::shared_ptr<AbstractBody> AbstractBody::getRoot() {
+	boost::shared_ptr<AbstractBody> root = shared_from_this();
+	while(root->getParent())
+		root = root->getParent();
+	return root;
 }
 
-double fromOde(double x) {
-	return x*1000.0;
+
+void AbstractBody::setPosition(osg::Vec3 position) {
+	dBodySetPosition(getBody(), position.x(), position.y(), position.z());
 }
 
-osg::Vec3 fromOde(osg::Vec3 x) {
-	return x*1000.0;
-}
 
-void getRotationMatrixOde(osg::Quat quat, dQuaternion rotationMatrixOde) {
+void AbstractBody::setAttitude(osg::Quat attitude) {
 	dQuaternion quatOde;
-	quatOde[0] = quat.w();
-	quatOde[1] = quat.x();
-	quatOde[2] = quat.y();
-	quatOde[3] = quat.z();
+	quatOde[0] = attitude.w();
+	quatOde[1] = attitude.x();
+	quatOde[2] = attitude.y();
+	quatOde[3] = attitude.z();
 
-	dQtoR(quatOde, rotationMatrixOde);
-
+	dBodySetQuaternion(getBody(), quatOde);
 }
 
-int modulo(int x, int y) {
-	while(x < 0) {
-		x += y;
-	}
-	return (x % y);
-}
 
-void startRobogen() {
-	GOOGLE_PROTOBUF_VERIFY_VERSION;
-}
 
-void exitRobogen(int exitCode) {
-	google::protobuf::ShutdownProtobufLibrary();
-	exit(exitCode);
 }
-

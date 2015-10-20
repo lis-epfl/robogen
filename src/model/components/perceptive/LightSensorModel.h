@@ -2,9 +2,10 @@
  * @(#) LightSensorModel.h   1.0   Feb 25, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -63,9 +64,9 @@ public:
 
 	virtual bool initModel();
 
-	virtual dBodyID getRoot();
+	virtual boost::shared_ptr<SimpleBody> getRoot();
 
-	virtual dBodyID getSlot(unsigned int i);
+	virtual boost::shared_ptr<SimpleBody> getSlot(unsigned int i);
 
 	virtual osg::Vec3 getSlotPosition(unsigned int i);
 
@@ -83,7 +84,7 @@ private:
 
 	bool internalSensor_;
 
-	dBodyID sensorRoot_;
+	boost::shared_ptr<SimpleBody> sensorRoot_;
 
 	boost::shared_ptr<LightSensor> sensor_;
 

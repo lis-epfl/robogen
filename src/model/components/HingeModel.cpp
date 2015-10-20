@@ -2,9 +2,10 @@
  * @(#) HingeModel.cpp   1.0   Feb 8, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -53,64 +54,60 @@ HingeModel::~HingeModel() {
 
 bool HingeModel::initModel() {
 
-	// Create the 4 components of the hinge
-	hingeRoot_ = this->createBody(B_SLOT_A_ID);
-	dBodyID connectionPartA = this->createBody(B_CONNECTION_A_ID);
-	dBodyID connectionPartB = this->createBody(B_CONNECTION_B_ID);
-	hingeTail_ = this->createBody(B_SLOT_B_ID);
+	// hinge will have 4 components, with new functionality, these are created directly from
+	// calls to this->add____
 
-	// Create the geometries
 	float separation = 0;//inMm(0.1);
 
-	this->createBoxGeom(hingeRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
-			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+	hingeRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
+			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_A_ID);
 
 	dReal xPartA = SLOT_THICKNESS / 2 + separation
 			+ CONNNECTION_PART_LENGTH / 2;
-	this->createBoxGeom(connectionPartA, MASS_FRAME, osg::Vec3(xPartA, 0, 0),
+	boost::shared_ptr<SimpleBody> connectionPartA = this->addBox(MASS_FRAME,
+			osg::Vec3(xPartA, 0, 0),
 			CONNNECTION_PART_LENGTH, CONNECTION_PART_THICKNESS,
-			CONNECTION_PART_HEIGHT);
+			CONNECTION_PART_HEIGHT, B_CONNECTION_A_ID);
 
 	dReal xPartB = xPartA
 			+ (CONNNECTION_PART_LENGTH / 2
 					- (CONNNECTION_PART_LENGTH - CONNECTION_ROTATION_OFFSET))
 					* 2;
-	this->createBoxGeom(connectionPartB, MASS_FRAME, osg::Vec3(xPartB, 0, 0),
+	boost::shared_ptr<SimpleBody> connectionPartB = this->addBox(MASS_FRAME,
+			osg::Vec3(xPartB, 0, 0),
 			CONNNECTION_PART_LENGTH, CONNECTION_PART_THICKNESS,
-			CONNECTION_PART_HEIGHT);
+			CONNECTION_PART_HEIGHT, B_CONNECTION_B_ID);
 
 	dReal xTail = xPartB + CONNNECTION_PART_LENGTH / 2 + separation
 			+ SLOT_THICKNESS / 2;
-	this->createBoxGeom(hingeTail_, MASS_SLOT, osg::Vec3(xTail, 0, 0),
-			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+	hingeTail_ = this->addBox(MASS_SLOT, osg::Vec3(xTail, 0, 0),
+			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_B_ID);
 
 	// Create joints to hold pieces in position
 
 	// root <-> connectionPartA
-	this->fixBodies(hingeRoot_, connectionPartA, osg::Vec3(1, 0, 0));
+	this->fixBodies(hingeRoot_, connectionPartA);
 
 	// connectionPartA <(hinge)> connectionPArtB
-	dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
-	dJointAttach(joint, connectionPartA, connectionPartB);
-	dJointSetHingeAxis(joint, 0, 0, 1);
-	dJointSetHingeAnchor(joint,
-			xPartA
-					+ (CONNNECTION_PART_LENGTH / 2
-							- (CONNNECTION_PART_LENGTH
-									- CONNECTION_ROTATION_OFFSET)), 0, 0);
+	this->attachWithHinge(connectionPartA, connectionPartB,
+			osg::Vec3( 0, 0, 1),
+			osg::Vec3(xPartA
+						+ (CONNNECTION_PART_LENGTH / 2
+						- (CONNNECTION_PART_LENGTH
+						- CONNECTION_ROTATION_OFFSET)), 0, 0));
 
 	// connectionPartB <-> tail
-	this->fixBodies(connectionPartB, hingeTail_, osg::Vec3(1, 0, 0));
+	this->fixBodies(connectionPartB, hingeTail_);
 
 	return true;
 
 }
 
-dBodyID HingeModel::getRoot() {
+boost::shared_ptr<SimpleBody> HingeModel::getRoot() {
 	return hingeRoot_;
 }
 
-dBodyID HingeModel::getSlot(unsigned int i) {
+boost::shared_ptr<SimpleBody> HingeModel::getSlot(unsigned int i) {
 	if (i == SLOT_A) {
 		return hingeRoot_;
 	} else {
@@ -128,13 +125,13 @@ osg::Vec3 HingeModel::getSlotPosition(unsigned int i) {
 	osg::Vec3 slotPos;
 	if (i == SLOT_A) {
 
-		osg::Vec3 curPos = this->getPosition(hingeRoot_);
+		osg::Vec3 curPos = this->hingeRoot_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		return curPos + slotAxis * (SLOT_THICKNESS / 2);
 
 	} else {
 
-		osg::Vec3 curPos = this->getPosition(hingeTail_);
+		osg::Vec3 curPos = this->hingeTail_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		return curPos + slotAxis * (SLOT_THICKNESS / 2);
 
@@ -156,12 +153,12 @@ osg::Vec3 HingeModel::getSlotAxis(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->hingeRoot_);
+		quat = this->hingeRoot_->getAttitude();
 		axis.set(-1, 0, 0);
 
 	} else if (i == SLOT_B) {
 
-		quat = this->getAttitude(this->hingeTail_);
+		quat = this->hingeTail_->getAttitude();
 		axis.set(1, 0, 0);
 
 	}
@@ -182,12 +179,12 @@ osg::Vec3 HingeModel::getSlotOrientation(unsigned int i) {
 
 	if (i == SLOT_A) {
 
-		quat = this->getAttitude(this->hingeRoot_);
+		quat = this->hingeRoot_->getAttitude();
 		axis.set(0, 1, 0);
 
 	} else if (i == SLOT_B) {
 
-		quat = this->getAttitude(this->hingeTail_);
+		quat = this->hingeTail_->getAttitude();
 		axis.set(0, 1, 0);
 
 	}

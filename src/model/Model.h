@@ -32,16 +32,18 @@
 #include <iostream>
 #include <map>
 #include <stdexcept>
+#include <boost/enable_shared_from_this.hpp>
 
 #include "Robogen.h"
-#include "render/RenderModel.h"
+#include "SimpleBody.h"
+#include "Joint.h"
 
 namespace robogen {
 
 /**
  * A slot center must always be place on the external surface of the slot
  */
-class Model {
+class Model : public boost::enable_shared_from_this<Model> {
 
 public:
 
@@ -68,7 +70,7 @@ public:
 	/**
 	 * @return the body corresponding to the selected slot
 	 */
-	virtual dBodyID getSlot(unsigned int i) = 0;
+	virtual boost::shared_ptr<SimpleBody> getSlot(unsigned int i) = 0;
 
 	/**
 	 * @return the slot position, in world coordinates
@@ -89,7 +91,7 @@ public:
 	/**
 	 * @return the root body
 	 */
-	virtual dBodyID getRoot() = 0;
+	virtual boost::shared_ptr<SimpleBody> getRoot() = 0;
 
 	/**
 	 * @return the position of the root part
@@ -130,16 +132,6 @@ public:
 	void setRootAttitude(const osg::Quat& quat);
 
 	/**
-	 * @return the position of the given body
-	 */
-	osg::Vec3 getPosition(dBodyID body);
-
-	/**
-	 * @return the attitude of the given body
-	 */
-	osg::Quat getAttitude(dBodyID body);
-
-	/**
 	 * @return the physics world
 	 */
 	dWorldID getPhysicsWorld();
@@ -152,12 +144,12 @@ public:
 	/**
 	 * @return the specified body
 	 */
-	dBodyID getBody(int id);
+	boost::shared_ptr<SimpleBody> getBody(int id);
 
 	/**
 	 * @return all the bodies belonging to this model
 	 */
-	std::vector<dBodyID> getBodies();
+	std::vector<boost::shared_ptr<SimpleBody> > getBodies();
 
 	/**
 	 * @return all the bodies belonging to this model
@@ -165,56 +157,79 @@ public:
 	std::vector<int> getIDs();
 
 	/**
-	 * Create the specified body
-	 * @param body label. If the label is negative, does not register the body in the list of bodies of this model.
-	 */
-	dBodyID createBody(int label);
-	dBodyID createBody();
-
-	/**
 	 * Create a box geometry for the body
-	 * @param body
 	 * @param mass
 	 * @param pos
 	 * @param lengthX
 	 * @param lengthY
 	 * @param lengthZ
+	 * @param label
 	 */
-	dxGeom* createBoxGeom(dBodyID body, float mass, const osg::Vec3& pos,
-			float lengthX, float lengthY, float lengthZ);
+	boost::shared_ptr<SimpleBody> addBox(float mass,
+			const osg::Vec3& pos, float lengthX, float lengthY, float lengthZ,
+			int label=-1);
 
 	/**
 	 * Create a capsule geometry for the body
-	 * @param body
 	 * @param mass
 	 * @param pos
 	 * @param direction
 	 * @param radius
 	 * @param height
+	 * @param label
 	 */
-	dxGeom* createCapsuleGeom(dBodyID body, float mass, const osg::Vec3& pos,
-			int direction, float radius, float height);
+	boost::shared_ptr<SimpleBody> addCapsule(float mass, const osg::Vec3& pos,
+			int direction, float radius, float height, int label=-1);
 
 	/**
 	 * Create a cylinder geometry for the body
-	 * @param body
 	 * @param mass
 	 * @param pos
 	 * @param direction
 	 * @param radius
 	 * @param height
+	 * @param label
 	 */
-	dxGeom* createCylinderGeom(dBodyID body, float mass, const osg::Vec3& pos,
-			int direction, float radius, float height);
+	boost::shared_ptr<SimpleBody> addCylinder(float mass, const osg::Vec3& pos,
+			int direction, float radius, float height, int label=-1);
 
 	/**
 	 * Fix bodies together
 	 * @param b1 first body
 	 * @param b2 second body
-	 * @param axis the axis along which the bodies will be aligned
-	 * @param a slider joint
 	 */
-	dJointID fixBodies(dBodyID b1, dBodyID b2, const osg::Vec3& axis);
+	void fixBodies(boost::shared_ptr<SimpleBody> b1,
+			boost::shared_ptr<SimpleBody> b2);
+
+	/**
+	 * Fix bodies together
+	 * @param bodies vector of bodies to be fixed together
+	 */
+	void fixBodies(std::vector<boost::shared_ptr<AbstractBody> >bodies);
+
+
+	/**
+	 * Attach with hinge
+	 * @param b1 first body
+	 * @param b2 second body
+	 * @param axis hinge's rotation axis
+	 * @param anchor hinge's anchor location
+	 */
+	boost::shared_ptr<Joint> attachWithHinge(boost::shared_ptr<SimpleBody> b1,
+			boost::shared_ptr<SimpleBody> b2, osg::Vec3 axis, osg::Vec3 anchor);
+
+	/**
+	 * Attach with universal joint
+	 * @param b1 first body
+	 * @param b2 second body
+	 * @param axis1 universal's first rotation axis
+	 * @param axis2 universal's second rotation axis
+	 * @param anchor universal's anchor location
+	 */
+	boost::shared_ptr<Joint> attachWithUniversal(boost::shared_ptr<SimpleBody> b1,
+			boost::shared_ptr<SimpleBody> b2, osg::Vec3 axis,osg::Vec3 axis2,
+			osg::Vec3 anchor);
+
 
 	/**
 	 * Set orientation to parent slot with increments of 90 degrees
@@ -241,15 +256,27 @@ public:
 
 	int getOrientationToRoot();
 
+	/**
+	 * Get the internal joints of the model
+	 */
+	inline const std::vector< boost::shared_ptr<Joint> > &getJoints() {
+		return joints_;
+	}
+
+	void removeJoint(boost::shared_ptr<Joint> joint);
+
 protected:
 
 	/**
 	 * Add a body to the model
 	 * @param body
 	 */
-	void addBody(dBodyID body, int id);
+	void addBody(boost::shared_ptr<SimpleBody>, int id);
+
 
 private:
+
+	std::set<boost::shared_ptr<AbstractBody> > bodiesToMove();
 
 	/**
 	 * ODE world
@@ -269,7 +296,7 @@ private:
 	/**
 	 * ODE Bodies composing the model
 	 */
-	std::map<int, dBodyID> bodies_;
+	std::map<int, boost::shared_ptr<SimpleBody> > bodies_;
 
 	/**
 	 * Orientation at parent slot: 0-3, where the number stands for
@@ -278,6 +305,12 @@ private:
 	int orientationToParentSlot_;
 
 	int orientationToRoot_;
+
+	/**
+	 * Internal joints of the model
+	 *
+	 */
+	std::vector< boost::shared_ptr<Joint> > joints_;
 
 };
 

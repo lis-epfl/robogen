@@ -278,48 +278,45 @@ std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > RenderModel::attachGe
 	int count = 0;
 
 
+	// iterate over the SimpleBodies, each will have a single geom
 	for (unsigned int i=0; i<ids.size(); i++) {
-		dGeomID g = dBodyGetFirstGeom(this->getModel()->getBody(ids[i]));
+		dGeomID g = this->getModel()->getBody(ids[i])->getGeom();
 
-		while(g != 0) {
-			int gclass = dGeomGetClass(g);
-			//const dReal *pos = dGeomGetPosition(g);
-			//const dReal *rot = dGeomGetRotation(g);
+		int gclass = dGeomGetClass(g);
 
 
-			switch (gclass) {
-				case dBoxClass:
-				{
-					dVector3 lengths;
-					dGeomBoxGetLengths(g, lengths);
-					osg::ref_ptr<osg::PositionAttitudeTransform> pat =
-							this->attachBox(
-									ids[i],lengths[0], lengths[1],
-									lengths[2], colors[count % colors.size()]);
-					pats.push_back(pat);
-					break;
-				}
-
-				case dCylinderClass :
-				{
-					dReal radius, length;
-					dGeomCylinderGetParams(g, &radius, &length);
-					osg::ref_ptr<osg::PositionAttitudeTransform> pat =
-							this->attachGeode(ids[i],this->getCylinder(fromOde(radius),
-									fromOde(length), colors[count % colors.size()]));
-					pats.push_back(pat);
-					break;
-				}
-
-				default:
-				{
-					std::cout << "not a box or cylinder," <<
-							" not yet configured to draw!" << std::endl;
-				}
+		switch (gclass) {
+			case dBoxClass:
+			{
+				dVector3 lengths;
+				dGeomBoxGetLengths(g, lengths);
+				osg::ref_ptr<osg::PositionAttitudeTransform> pat =
+						this->attachBox(
+								ids[i],lengths[0], lengths[1],
+								lengths[2], colors[count % colors.size()]);
+				pats.push_back(pat);
+				break;
 			}
-			g = dBodyGetNextGeom(g);
-			count++;
+
+			case dCylinderClass :
+			{
+				dReal radius, length;
+				dGeomCylinderGetParams(g, &radius, &length);
+				osg::ref_ptr<osg::PositionAttitudeTransform> pat =
+						this->attachGeode(ids[i],this->getCylinder(fromOde(radius),
+								fromOde(length), colors[count % colors.size()]));
+				pats.push_back(pat);
+				break;
+			}
+
+			default:
+			{
+				std::cout << "not a box or cylinder," <<
+						" not yet configured to draw!" << std::endl;
+			}
 		}
+
+		count++;
 
 	}
 	return pats;
