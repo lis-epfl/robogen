@@ -49,7 +49,7 @@ ImuSensor::~ImuSensor() {
 }
 
 void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
-		float timeElapsed) {
+		float timeElapsed, const osg::Vec3& gravity) {
 
 	if (!initialized_) {
 		position_ = position;
@@ -69,8 +69,10 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	// velocity & acceleration
 	osg::Vec3 velocity = dPos / timeElapsed;
 	acceleration_ = (velocity - velocity_) / timeElapsed;
-	// add g to acceleration: Positive, as same effect as if accelerating up
-	acceleration_ += osg::Vec3(0, 0, 9.81);
+	// subtract gravity from acceleration
+	// in standard case this means subtracting -9.81 (i.e. adding 9.81) to z
+	// (Positive, same effect as if accelerating up)
+	acceleration_ -= gravity;
 	velocity_ = velocity;
 	// rotation
 	double angle;

@@ -2,9 +2,10 @@
  * @(#) PassiveWheelModel.cpp   1.0   Feb 13, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -54,35 +55,34 @@ float PassiveWheelModel::getRadius() const {
 
 bool PassiveWheelModel::initModel() {
 
-   // Create the 4 components of the hinge
-   wheelRoot_ = this->createBody(B_SLOT_ID);
-   dBodyID wheel = this->createBody(B_WHEEL_ID);
+	// Create the 2 components of the wheel,
+	// now created directly with calls to this->add___
 
-   this->createBoxGeom(wheelRoot_, MASS_SLOT, osg::Vec3(0, 0, 0),
-         SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH);
+
+   wheelRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
+         SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_ID);
 
    dReal xWheel = SLOT_THICKNESS/2 - (SLOT_THICKNESS +
 		   SLOT_CONNECTION_THICKNESS - SLOT_WHEEL_OFFSET);
 
-   this->createCylinderGeom(wheel, MASS_WHEEL, osg::Vec3(xWheel, 0, 0), 1,
-         getRadius(), WHEEL_THICKNESS);
+   boost::shared_ptr<SimpleBody> wheel = this->addCylinder(MASS_WHEEL,
+		   osg::Vec3(xWheel, 0, 0), 1,
+		   getRadius(), WHEEL_THICKNESS, B_WHEEL_ID);
 
    // Create joints to hold pieces in position
 
    // slot <(hinge)> wheel
-   dJointID joint = dJointCreateHinge(this->getPhysicsWorld(), 0);
-   dJointAttach(joint, wheelRoot_, wheel);
-   dJointSetHingeAxis(joint, 1, 0, 0);
+   this->attachWithHinge(wheelRoot_, wheel, osg::Vec3( 1, 0, 0),
+		   osg::Vec3(xWheel, 0, 0) );
 
    return true;
-
 }
 
-dBodyID PassiveWheelModel::getRoot() {
+boost::shared_ptr<SimpleBody> PassiveWheelModel::getRoot() {
    return wheelRoot_;
 }
 
-dBodyID PassiveWheelModel::getSlot(unsigned int i) {
+boost::shared_ptr<SimpleBody> PassiveWheelModel::getSlot(unsigned int i) {
 
    if (i > 1) {
       std::cout << "[PassiveWheelModel] Invalid slot: " << i << std::endl;
@@ -99,7 +99,7 @@ osg::Vec3 PassiveWheelModel::getSlotPosition(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Vec3 curPos = this->getPosition(wheelRoot_);
+   osg::Vec3 curPos = this->wheelRoot_->getPosition();
    osg::Vec3 slotAxis = this->getSlotAxis(i);
    return curPos + slotAxis * (SLOT_THICKNESS / 2);
 
@@ -112,7 +112,7 @@ osg::Vec3 PassiveWheelModel::getSlotAxis(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Quat quat = this->getAttitude(this->wheelRoot_);
+   osg::Quat quat = this->wheelRoot_->getAttitude();
    osg::Vec3 axis(-1, 0, 0);
 
    return quat * axis;
@@ -126,7 +126,7 @@ osg::Vec3 PassiveWheelModel::getSlotOrientation(unsigned int i) {
       assert(i <= 1);
    }
 
-   osg::Quat quat = this->getAttitude(this->wheelRoot_);
+   osg::Quat quat = this->wheelRoot_->getAttitude();
    osg::Vec3 axis(0, 1, 0);
 
    return quat * axis;

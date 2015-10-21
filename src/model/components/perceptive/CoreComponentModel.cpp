@@ -36,6 +36,7 @@ const float CoreComponentModel::BRICK_MASS = inGrams(10.2);//inGrams(14.9);
 const float CoreComponentModel::CORE_MASS = inGrams(10.2 + 34.3);//inGrams(14.9 + 40.5);
 const float CoreComponentModel::HEIGHT = inMm(35.5);
 const float CoreComponentModel::WIDTH = inMm(41);//inMm(46.5);
+const float CoreComponentModel::SLOT_THICKNESS = inMm(1.5);
 
 CoreComponentModel::CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace,
 		std::string id, bool hasSensors) :
@@ -53,19 +54,18 @@ CoreComponentModel::~CoreComponentModel() {
 
 bool CoreComponentModel::initModel() {
 
-	coreComponent_ = this->createBody(B_CORE_COMPONENT_ID);
-	this->createBoxGeom(coreComponent_, hasSensors_ ? CORE_MASS : BRICK_MASS,
+	coreComponent_ = this->addBox(hasSensors_ ? CORE_MASS : BRICK_MASS,
 			osg::Vec3(0, 0, 0), WIDTH, WIDTH,
-			HEIGHT);
+			HEIGHT, B_CORE_COMPONENT_ID);
 
 	return true;
 }
 
-dBodyID CoreComponentModel::getRoot() {
+boost::shared_ptr<SimpleBody> CoreComponentModel::getRoot() {
 	return coreComponent_;
 }
 
-dBodyID CoreComponentModel::getSlot(unsigned int /*i*/) {
+boost::shared_ptr<SimpleBody> CoreComponentModel::getSlot(unsigned int /*i*/) {
 	return coreComponent_;
 }
 
@@ -77,7 +77,10 @@ osg::Vec3 CoreComponentModel::getSlotPosition(unsigned int i) {
 	}
 
 	osg::Vec3 curPos = this->getRootPosition();
-	osg::Vec3 slotAxis = this->getSlotAxis(i) * WIDTH / 2;
+	// want the slot to be the coordinates specifying the edge of where the
+	// adjoining part touches
+	osg::Vec3 slotAxis = this->getSlotAxis(i) *
+			(WIDTH / 2 - SLOT_THICKNESS);
 	curPos = curPos + slotAxis;
 
 	return curPos;
@@ -188,8 +191,11 @@ void CoreComponentModel::getSensors(
 
 void CoreComponentModel::updateSensors(boost::shared_ptr<Environment>& env) {
 	if (sensor_ != NULL) {
+		dVector3 gravity;
+		dWorldGetGravity(getPhysicsWorld(), gravity);
 		sensor_->update(this->getRootPosition(), this->getRootAttitude(),
-				env->getTimeElapsed());
+				env->getTimeElapsed(),
+				osg::Vec3(gravity[0], gravity[1], gravity[2]));
 	}
 }
 

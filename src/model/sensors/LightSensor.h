@@ -36,6 +36,7 @@
 #include "Robogen.h"
 #include "model/sensors/Sensor.h"
 #include "model/objects/LightSource.h"
+#include "model/SimpleBody.h"
 
 namespace robogen {
 
@@ -65,7 +66,8 @@ public:
 	/**
 	 * Initializes a light sensor
 	 */
-	LightSensor(dSpaceID odeSpace, std::vector<dBodyID> sensorBodies,
+	LightSensor(dSpaceID odeSpace,
+			std::vector<boost::shared_ptr<SimpleBody> > sensorBodies,
 			std::string label);
 
 	/**

@@ -62,8 +62,8 @@ RobogenUtils::~RobogenUtils() {
 
 }
 
-void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
-		boost::shared_ptr<Model> b, unsigned int slotB,
+boost::shared_ptr<Joint> RobogenUtils::connect(boost::shared_ptr<Model> a,
+		unsigned int slotA, boost::shared_ptr<Model> b, unsigned int slotB,
 		dJointGroupID connectionJointGroup, dWorldID odeWorld) {
 
 	// Mandatory debug output
@@ -136,6 +136,17 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 	rotAxisQuat.makeRotate(aCenterAxis, bSlotAxisInv);
 	a->setRootAttitude(rotAxisQuat);
 
+#ifdef DEBUG_CONNECT
+	std::cout << "Pre-translation" << std::endl;
+	std::cout << "\t" << a->getId() << " root position";
+	for (unsigned int i=0; i<3; i++) std::cout << " " << a->getRootPosition()[i];
+	std::cout << std::endl;
+	std::cout << "\t" << b->getId() << " root position";
+	for (unsigned int i=0; i<3; i++) std::cout << " " << b->getRootPosition()[i];
+	std::cout << std::endl;
+#endif
+
+
 	// 3) Compute A new center and translate it
 	osg::Vec3 bSlotPos = b->getSlotPosition(slotB);
 	osg::Vec3 aSlotNewPos = bSlotPos;
@@ -145,10 +156,11 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 	a->setRootPosition(aCenter + aTranslation);
 
 #ifdef DEBUG_CONNECT
-	std::cout << a->getId() << " root position";
+	std::cout << "Post-translation" << std::endl;
+	std::cout << "\t" << a->getId() << " root position";
 	for (unsigned int i=0; i<3; i++) std::cout << " " << a->getRootPosition()[i];
 	std::cout << std::endl;
-	std::cout << b->getId() << " root position";
+	std::cout << "\t" << b->getId() << " root position";
 	for (unsigned int i=0; i<3; i++) std::cout << " " << b->getRootPosition()[i];
 	std::cout << std::endl;
 #endif
@@ -211,9 +223,10 @@ void RobogenUtils::connect(boost::shared_ptr<Model> a, unsigned int slotA,
 
 	// Create a joint to hold pieces in position
 
-	dJointID joint = dJointCreateFixed(odeWorld, connectionJointGroup);
-	dJointAttach(joint, a->getSlot(slotA), b->getSlot(slotB));
-	dJointSetFixed(joint);
+	boost::shared_ptr<Joint> joint(new Joint());
+	joint->createFixed(odeWorld, a->getSlot(slotA), b->getSlot(slotB),
+			connectionJointGroup);
+	return joint;
 
 }
 
@@ -579,7 +592,7 @@ RelativePositionMap initRelativePositionMap() {
 			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_A_ID))] =
 			fromOde(
 					osg::Vec3(ActiveHingeModel::FRAME_LENGTH / 2,
-							ActiveHingeModel::SERVO_POSITION_OFFSET, 0));
+							0, 0));
 
 	// x = 0 is midpoint of slot so SLOT_THICKNESS/2 is edge of servo
 	// and servo is  SERVO_LENGTH + SLOT_THICKNESS  long
@@ -587,7 +600,8 @@ RelativePositionMap initRelativePositionMap() {
 	// = -(SERVO_LENGTH)/2
 	relativePositionMap[std::make_pair(&typeid(ActiveHingeModel),
 			static_cast<unsigned int>(ActiveHingeModel::B_SLOT_B_ID))] =
-			fromOde(osg::Vec3(-(ActiveHingeModel::SERVO_LENGTH) / 2, 0, 0));
+			fromOde(osg::Vec3(-(ActiveHingeModel::SERVO_LENGTH) / 2,
+					-2 * ActiveHingeModel::SERVO_POSITION_OFFSET, 0));
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	// TODO Active Wheel
 

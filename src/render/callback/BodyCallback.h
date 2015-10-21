@@ -2,9 +2,10 @@
  * @(#) BodyCallback.h   1.0   Feb 9, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -29,6 +30,7 @@
 #define ROBOGEN_BODY_CALLBACK_H_
 
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include <osg/Node>
 #include "Robogen.h"
 
@@ -48,8 +50,9 @@ private:
 
 	/**
 	 * The physics model
+	 * keep as weak ptr so does not mess up ode cleanup
 	 */
-	boost::shared_ptr<Model> model_;
+	boost::weak_ptr<Model> model_;
 
 	/**
 	 * The id of the body to track

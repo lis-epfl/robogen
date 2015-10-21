@@ -43,6 +43,7 @@ public:
 	static const float CORE_MASS;
 	static const float HEIGHT;
 	static const float WIDTH;
+	static const float SLOT_THICKNESS;
 
 	static const unsigned int B_CORE_COMPONENT_ID = 0;
 
@@ -72,9 +73,9 @@ public:
 
 	virtual bool initModel();
 
-	virtual dBodyID getRoot();
+	virtual boost::shared_ptr<SimpleBody> getRoot();
 
-	virtual dBodyID getSlot(unsigned int i);
+	virtual boost::shared_ptr<SimpleBody> getSlot(unsigned int i);
 
 	virtual osg::Vec3 getSlotPosition(unsigned int i);
 
@@ -94,7 +95,7 @@ private:
 
 	boost::shared_ptr<ImuSensor> sensor_;
 
-	dBodyID coreComponent_;
+	boost::shared_ptr<SimpleBody> coreComponent_;
 
 	bool hasSensors_;
 

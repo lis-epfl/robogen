@@ -30,6 +30,7 @@
 #define ROBOGEN_TERRAIN_CONFIG_H_
 
 #include <string>
+#include "robogen.pb.h"
 
 namespace robogen {
 
@@ -40,14 +41,33 @@ class TerrainConfig {
 
 public:
 
+	enum TerrainType {
+			EMPTY,
+			FLAT,
+			ROUGH
+	};
+
+	/**
+	 * Initializes an empty terrain
+	 *
+	 * @param friction
+	 */
+	TerrainConfig(float friction) :
+			type_(EMPTY), length_(0), width_(0), height_(0),
+			friction_(friction) {
+
+	}
+
+
 	/**
 	 * Initializes a flat terrain
 	 *
 	 * @param length
 	 * @param width
+	 * @param friction
 	 */
 	TerrainConfig(float length, float width, float friction) :
-			flat_(true), length_(length), width_(width), height_(0),
+			type_(FLAT), length_(length), width_(width), height_(0),
 			friction_(friction) {
 
 	}
@@ -62,7 +82,7 @@ public:
 	 */
 	TerrainConfig(const std::string& heightFieldFileName, float length,
 			float width, float height, float friction) :
-				flat_(false), heightFieldFileName_(heightFieldFileName),
+				type_(ROUGH), heightFieldFileName_(heightFieldFileName),
 				length_(length), width_(width), height_(height),
 				friction_(friction) {
 
@@ -78,8 +98,8 @@ public:
 	/**
 	 * @return true if the terrain is flat, false otherwise
 	 */
-	bool isFlat() {
-		return flat_;
+	TerrainType getType() {
+		return type_;
 	}
 
 	/**
@@ -119,12 +139,21 @@ public:
 		return friction_;
 	}
 
+	void serialize(robogenMessage::SimulatorConf &message) {
+		message.set_terraintype(type_);
+		message.set_terrainheightfieldfilename(heightFieldFileName_);
+		message.set_terrainlength(length_);
+		message.set_terrainwidth(width_);
+		message.set_terrainheight(height_);
+		message.set_terrainfriction(friction_);
+	}
+
 private:
 
 	/**
-	 * True if the terrain is flat, false if rough
+	 * type of terrain
 	 */
-	bool flat_;
+	TerrainType type_;
 
 	/**
 	 * If terrain is rugged, contains the height field file name
