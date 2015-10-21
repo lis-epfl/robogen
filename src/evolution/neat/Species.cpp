@@ -47,7 +47,7 @@ namespace NEAT
 Species::Species(const Genome& a_Genome, int a_ID)
 {
     m_ID     = a_ID;
-
+    m_Individuals.reserve(50);
     // copy the initializing genome locally.
     // it is now the representative of the species.
     m_Representative = a_Genome;
@@ -138,10 +138,24 @@ Genome Species::GetIndividual(Parameters& a_Parameters, RNG& a_RNG) const
 
     // Here might be introduced better selection scheme, but this works OK for now
     if (!a_Parameters.RouletteWheelSelection)
-    {
+    {   //start with the last one just for comparison sake
+        int temp_genome;
+        
+        
         int t_num_parents = static_cast<int>( floor((a_Parameters.SurvivalRate * (static_cast<double>(t_Evaluated.size())))+1.0));
+       
         ASSERT(t_num_parents>0);
         t_chosen_one = a_RNG.RandInt(0, t_num_parents);
+        for (unsigned int i = 0; i < a_Parameters.TournamentSize; i++)
+        {
+            temp_genome = a_RNG.RandInt(0, t_num_parents);
+            
+            if (m_Individuals[temp_genome].GetFitness() > m_Individuals[t_chosen_one].GetFitness())
+            {
+                t_chosen_one = temp_genome;
+            }
+        }
+        
     }
     else
     {
@@ -336,7 +350,9 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
     Genome t_baby; // temp genome for reproduction
 
     int t_offspring_count = Rounded(GetOffspringRqd());
-
+    int elite_offspring = Rounded(a_Parameters.Elitism*m_Individuals.size());
+    //ensure we have a champ
+    int elite_count = 0;
     // no offspring?! yikes.. dead species!
     if (t_offspring_count == 0)
     {
@@ -352,20 +368,24 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
     bool t_baby_exists_in_pop = false;
     while(t_offspring_count--)
     {
-    	bool t_new_individual = true;
-
         // if the champ was not chosen, do it now..
+        
         if (!t_champ_chosen)
-        {
-            t_baby = m_Individuals[0];
+        { 
             t_champ_chosen = true;
-            t_new_individual = false;
+            t_baby = m_Individuals[0];
         }
-        // or if it was, then proceed with the others
+
+        else if (elite_count < elite_offspring)
+        {
+            t_baby = m_Individuals[elite_count+1];
+            elite_count++;
+        }
+
         else
         {
-            do // - while the baby already exists somewhere in the new population
-            {
+            //do // - while the baby already exists somewhere in the new population
+            //{
                 // this tells us if the baby is a result of mating
                 bool t_mated = false;
 
@@ -411,15 +431,19 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
                                 // number of tries to find different parent
                                 int t_tries = 32;
                                 if (!a_Parameters.AllowClones)
-                                    while(((t_mom.GetID() == t_dad.GetID()) || (t_mom.CompatibilityDistance(t_dad, a_Parameters) < 0.00001) ) && (t_tries--))
+                                {
+                                    while(((t_mom.GetID() == t_dad.GetID()) /*|| (t_mom.CompatibilityDistance(t_dad, a_Parameters) < 0.00001)*/ ) && (t_tries--))
                                     {
                                         t_dad = GetIndividual(a_Parameters, a_RNG);
                                     }
+                                }
                                 else
+                                {
                                     while(((t_mom.GetID() == t_dad.GetID()) ) && (t_tries--))
                                     {
                                         t_dad = GetIndividual(a_Parameters, a_RNG);
                                     }
+                                }
                                 t_interspecies = false;
                             }
 
@@ -451,11 +475,13 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
 
                 // Mutate the baby
                 if ((!t_mated) || (a_RNG.RandFloat() < a_Parameters.OverallMutationRate))
+                {
                     MutateGenome(t_baby_exists_in_pop, a_Pop, t_baby, a_Parameters, a_RNG);
+                }
 
                 // Check if this baby is already present somewhere in the offspring
                 // we don't want that
-                t_baby_exists_in_pop = false;
+                /*t_baby_exists_in_pop = false;
                 // Unless of course, we want
                 if (!a_Parameters.AllowClones)
                 {
@@ -473,9 +499,9 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
                             }
                         }
                     }
-                }
-            }
-            while (t_baby_exists_in_pop); // end do
+                }*/
+            //}
+            //while (t_baby_exists_in_pop); // end do
         }
 
         // Final place to test for problems
@@ -484,25 +510,26 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
         if ((t_baby.NumLinks() == 0) || t_baby.HasDeadEnds())
         {
             t_baby = GetIndividual(a_Parameters, a_RNG);
-            t_new_individual = false;
         }
 
-        if (t_new_individual) {
-			// We have a new offspring now
-			// give the offspring a new ID
-			t_baby.SetID(a_Pop.GetNextGenomeID());
-			a_Pop.IncrementNextGenomeID();
 
-			// sort the baby's genes
-			t_baby.SortGenes();
+        // We have a new offspring now
+        // give the offspring a new ID
+        t_baby.SetID(a_Pop.GetNextGenomeID());
+        a_Pop.IncrementNextGenomeID();
 
-			// clear the baby's fitness
-			t_baby.SetFitness(0);
-			t_baby.SetAdjFitness(0);
-			t_baby.SetOffspringAmount(0);
+        // sort the baby's genes
+        t_baby.SortGenes();
 
-			t_baby.ResetEvaluated();
-        }
+        // clear the baby's fitness
+        t_baby.SetFitness(0);
+        t_baby.SetAdjFitness(0);
+        t_baby.SetOffspringAmount(0);
+        t_baby.SetPerformance(0.0);
+        t_baby.SetLength(0.0);
+
+        t_baby.ResetEvaluated();
+
 
         //////////////////////////////////
         // put the baby to its species  //

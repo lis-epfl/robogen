@@ -27,15 +27,18 @@
 
 #include <vector>
 #include "NeuralNetwork.h"
-#ifdef PYTHON_ENABLED
+
+#ifdef USE_BOOST_PYTHON
+
 #include <boost/python.hpp>
-#endif
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
-#ifdef PYTHON_ENABLED
+
 namespace py = boost::python;
+
 #endif
+
 namespace NEAT
 {
 
@@ -65,44 +68,55 @@ public:
     bool m_allow_output_output_links;
     bool m_allow_looped_hidden_links;
     bool m_allow_looped_output_links;
+    
+    // custom connectivity
+    // if this is not empty, the phenotype builder will use this
+    // to query all connections
+    // it's a list of [src_code, src_idx, dst_code, dst_idx]
+    // where code is NeuronType (int, the enum)
+    // and idx is the index in the m_input_coords, m_hidden_coords and m_output_coords respectively
+    std::vector< std::vector<int> > m_custom_connectivity;
+    bool m_custom_conn_obeys_flags; // if this is true, the flags restricting the topology above will still apply
+
+    // this enforces custom or full connectivity
+    // if it is true, connections are always made and the weights will be queried only
+    bool m_query_weights_only;
 
     // the activation functions of hidden/output neurons
     ActivationFunction m_hidden_nodes_activation;
     ActivationFunction m_output_nodes_activation;
 
     // additional parameters
-    double m_link_threshold;
     double m_max_weight_and_bias;
     double m_min_time_const;
     double m_max_time_const;
 
 
-    Substrate()
-    {
-        m_leaky = false;
-        m_with_distance = false;
-        m_allow_input_hidden_links = true;
-        m_allow_input_output_links = true;
-        m_allow_hidden_hidden_links = true;
-        m_allow_hidden_output_links = true;
-        m_allow_output_hidden_links = false;
-        m_allow_output_output_links = false;
-        m_allow_looped_hidden_links = false;
-        m_allow_looped_output_links = false;
-        m_hidden_nodes_activation = UNSIGNED_SIGMOID;
-        m_output_nodes_activation = UNSIGNED_SIGMOID;
-        m_link_threshold = 0.2;
-        m_max_weight_and_bias = 5.0;
-        m_min_time_const = 0.1;
-        m_max_time_const = 1.0;
-    };
+    Substrate();
     Substrate(std::vector< std::vector<double> >& a_inputs,
               std::vector< std::vector<double> >& a_hidden,
               std::vector< std::vector<double> >& a_outputs );
+
+#ifdef USE_BOOST_PYTHON
+              
     // Construct from 3 Python lists of tuples
-	#ifdef PYTHON_ENABLED
     Substrate(py::list a_inputs, py::list a_hidden, py::list a_outputs);
-	#endif
+    
+    // Same as the constructor, except it doesn't set any flags
+    void SetNeurons(py::list a_inputs, py::list a_hidden, py::list a_outputs);
+    
+    // Sets a custom connectivity scheme
+    // The neurons must be set before calling this 
+    void SetCustomConnectivity(py::list a_conns);
+#endif
+
+    // Sets a custom connectivity scheme
+    // The neurons must be set before calling this
+    void SetCustomConnectivity(std::vector< std::vector<int> >& a_conns);
+
+    // Clears it
+    void ClearCustomConnectivity();
+
     int GetMaxDims();
 
     // Return the minimum input dimensionality of the CPPN
@@ -112,6 +126,8 @@ public:
     
     // Prints some info about itself
     void PrintInfo();
+    
+#ifdef USE_BOOST_PYTHON
     
     // Serialization
     friend class boost::serialization::access;
@@ -137,20 +153,27 @@ public:
         ar & m_hidden_nodes_activation;
         ar & m_output_nodes_activation;        
 
-        ar & m_link_threshold;
         ar & m_max_weight_and_bias;
         ar & m_min_time_const;
         ar & m_max_time_const;
+
+        ar & m_custom_connectivity;
+        ar & m_custom_conn_obeys_flags;
+        ar & m_query_weights_only;
     }
+    
+#endif
+
 };
 
-#ifdef PYTHON_ENABLED
+#ifdef USE_BOOST_PYTHON
+
 struct Substrate_pickle_suite : py::pickle_suite
 {
     static py::object getstate(const Substrate& a)
     {
         std::ostringstream os;
-        boost::archive::binary_oarchive oa(os);
+        boost::archive::text_oarchive oa(os);
         oa << a;
         return py::str(os.str());
     }
@@ -161,7 +184,7 @@ struct Substrate_pickle_suite : py::pickle_suite
         std::string st = py::extract<std::string> (s)();
         std::istringstream is(st);
 
-        boost::archive::binary_iarchive ia (is);
+        boost::archive::text_iarchive ia (is);
         ia >> a;
     }
     
@@ -169,9 +192,6 @@ struct Substrate_pickle_suite : py::pickle_suite
 };
 
 #endif
-
-
-
 
 }
 

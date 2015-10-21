@@ -30,15 +30,15 @@
 // Description: Definitions for the Neuron and Link gene classes.
 /////////////////////////////////////////////////////////////////
 
-#ifdef PYTHON_ENABLED
+#ifdef USE_BOOST_PYTHON
+
 #include <boost/python.hpp>
-#endif
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 
-#ifdef PYTHON_ENABLED
 namespace py = boost::python;
+
 #endif
 
 #include <iostream>
@@ -80,9 +80,11 @@ enum ActivationFunction
     ABS,                  // Absolute value |x| (another symettry)
     SIGNED_SINE,          // Sine wave          (smooth repetition)
     UNSIGNED_SINE,
-    SIGNED_SQUARE,        // Square wave        (pulse repetition)
-    UNSIGNED_SQUARE,
-    LINEAR               // Linear f(x)=x      (combining coordinate frames only)
+    LINEAR,               // Linear f(x)=x      (combining coordinate frames only)
+
+    RELU,                 // Rectifiers
+    SOFTPLUS
+
 };
 
 
@@ -114,8 +116,10 @@ private:
 
     // Is it recurrent?
     bool m_IsRecurrent;
-	
+
 public:
+
+#ifdef USE_BOOST_PYTHON
 
     // Serialization
     friend class boost::serialization::access;
@@ -128,6 +132,8 @@ public:
         ar & m_IsRecurrent;
         ar & m_Weight;
     }
+
+#endif
 
     double GetWeight() const
     {
@@ -283,6 +289,8 @@ public:
     // The type of activation function the neuron has
     ActivationFunction m_ActFunction;
 
+#ifdef USE_BOOST_PYTHON
+
     // Serialization
     friend class boost::serialization::access;
     template<class Archive>
@@ -300,6 +308,7 @@ public:
         ar & m_SplitY;
     }
 
+#endif
 
     ////////////////
     // Constructors

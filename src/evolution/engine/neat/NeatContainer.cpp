@@ -25,8 +25,11 @@
  *
  * @(#) $Id$
  */
-#include "evolution/engine/neat/NeatContainer.h"
+
+#include <boost/random/uniform_int_distribution.hpp>
 #include <algorithm>
+
+#include "evolution/engine/neat/NeatContainer.h"
 
 //#define NEAT_DEBUG
 
