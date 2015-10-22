@@ -383,6 +383,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				}
 			}
 
+			bool motorBurntOut = false;
 			for (unsigned int i = 0; i < motors.size(); ++i) {
 				if (boost::dynamic_pointer_cast<ServoMotor>(
 						motors[i])) {
@@ -396,14 +397,15 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					// TODO find a cleaner way to do this
 					// for now will reuse accel cap infrastructure
 					if (motor->isBurntOut()) {
-						std::cout << "Motor burnt out, will return 0 "
-								<< "fitness" << std::endl;
-						accelerationCapExceeded = true;
+						std::cout << "Motor burnt out, will terminate now "
+								<< std::endl;
+						motorBurntOut = true;
+						//accelerationCapExceeded = true;
 					}
 				}
 			}
 
-			if(accelerationCapExceeded) {
+			if(accelerationCapExceeded || motorBurntOut) {
 				break;
 			}
 
