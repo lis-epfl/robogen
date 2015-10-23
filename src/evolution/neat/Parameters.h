@@ -30,6 +30,16 @@
 // Description: Definition for the parameters class.
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef USE_BOOST_PYTHON
+
+#include <boost/python.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
+
+namespace py = boost::python;
+
+#endif
 
 namespace NEAT
 {
@@ -281,9 +291,9 @@ public:
     double ActivationFunction_Abs_Prob;
     double ActivationFunction_SignedSine_Prob;
     double ActivationFunction_UnsignedSine_Prob;
-    double ActivationFunction_SignedSquare_Prob;
-    double ActivationFunction_UnsignedSquare_Prob;
     double ActivationFunction_Linear_Prob;
+    double ActivationFunction_Relu_Prob;
+    double ActivationFunction_Softplus_Prob;
 
     // Probability for a baby's neuron time constant values to be mutated
     double MutateNeuronTimeConstantsProb;
@@ -343,6 +353,51 @@ public:
     unsigned int CompatTreshChangeInterval_Evaluations;
 
 
+    // ES HyperNEAT params
+
+
+    double DivisionThreshold;
+
+    double VarianceThreshold;
+
+    // Used for Band prunning.
+    double BandThreshold;
+
+    // Max and Min Depths of the quadtree
+    unsigned int InitialDepth;
+
+    unsigned int MaxDepth;
+
+    // How many hidden layers before connecting nodes to output. At 0 there is
+    // one hidden layer. At 1, there are two and so on.
+    unsigned int IterationLevel;
+    unsigned int TournamentSize;
+
+    // The Bias value for the CPPN queries.
+    double CPPN_Bias;
+
+    // Quadtree Dimensions
+    // The range of the tree. Typically set to 2,
+    double Width;
+    double Height;
+
+    // The (x, y) coordinates of the tree
+    double Qtree_X;
+
+    double Qtree_Y;
+
+    // Use Link Expression output
+    bool Leo;
+
+    // Threshold above which a connection is expressed
+    double LeoThreshold;
+
+    // Use geometric seeding. Currently only along the X axis. 1
+    bool LeoSeed;
+    bool GeometrySeed;
+
+    double Elitism;
+
     /////////////////////////////////////
     // Constructors
     /////////////////////////////////////
@@ -367,7 +422,162 @@ public:
 
     // resets the parameters to built-in defaults
     void Reset();
+    
+#ifdef USE_BOOST_PYTHON
+    
+    // Serialization
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & PopulationSize;
+        ar & DynamicCompatibility;
+        ar & MinSpecies;
+        ar & MaxSpecies;
+        ar & InnovationsForever;
+        ar & AllowClones;
+        ar & YoungAgeTreshold;
+        ar & YoungAgeFitnessBoost;
+        ar & SpeciesMaxStagnation;
+        ar & StagnationDelta;
+        ar & OldAgeTreshold;
+        ar & OldAgePenalty;
+        ar & DetectCompetetiveCoevolutionStagnation;
+        ar & KillWorstSpeciesEach;
+        ar & KillWorstAge;
+        ar & SurvivalRate;
+        ar & CrossoverRate;
+        ar & OverallMutationRate;
+        ar & InterspeciesCrossoverRate;
+        ar & MultipointCrossoverRate;
+        ar & RouletteWheelSelection;
+        ar & PhasedSearching;
+        ar & DeltaCoding;
+        ar & SimplifyingPhaseMPCTreshold;
+        ar & SimplifyingPhaseStagnationTreshold;
+        ar & ComplexityFloorGenerations;
+        ar & NoveltySearch_K;
+        ar & NoveltySearch_P_min;
+        ar & NoveltySearch_Dynamic_Pmin;
+        ar & NoveltySearch_No_Archiving_Stagnation_Treshold;
+        ar & NoveltySearch_Pmin_lowering_multiplier;
+        ar & NoveltySearch_Pmin_min;
+        ar & NoveltySearch_Quick_Archiving_Min_Evaluations;
+        ar & NoveltySearch_Pmin_raising_multiplier;
+        ar & NoveltySearch_Recompute_Sparseness_Each;
+        ar & MutateAddNeuronProb;
+        ar & SplitRecurrent;
+        ar & SplitLoopedRecurrent;
+        ar & NeuronTries;
+        ar & MutateAddLinkProb;
+        ar & MutateAddLinkFromBiasProb;
+        ar & MutateRemLinkProb;
+        ar & MutateRemSimpleNeuronProb;
+        ar & LinkTries;
+        ar & RecurrentProb;
+        ar & RecurrentLoopProb;
+        ar & MutateWeightsProb;
+        ar & MutateWeightsSevereProb;
+        ar & WeightMutationRate;
+        ar & WeightMutationMaxPower;
+        ar & WeightReplacementMaxPower;
+        ar & MaxWeight;
+        ar & MutateActivationAProb;
+        ar & MutateActivationBProb;
+        ar & ActivationAMutationMaxPower;
+        ar & ActivationBMutationMaxPower;
+        ar & TimeConstantMutationMaxPower;
+        ar & BiasMutationMaxPower;
+        ar & MinActivationA;
+        ar & MaxActivationA;
+        ar & MinActivationB;
+        ar & MaxActivationB;
+        ar & MutateNeuronActivationTypeProb;
+        ar & ActivationFunction_SignedSigmoid_Prob;
+        ar & ActivationFunction_UnsignedSigmoid_Prob;
+        ar & ActivationFunction_Tanh_Prob;
+        ar & ActivationFunction_TanhCubic_Prob;
+        ar & ActivationFunction_SignedStep_Prob;
+        ar & ActivationFunction_UnsignedStep_Prob;
+        ar & ActivationFunction_SignedGauss_Prob;
+        ar & ActivationFunction_UnsignedGauss_Prob;
+        ar & ActivationFunction_Abs_Prob;
+        ar & ActivationFunction_SignedSine_Prob;
+        ar & ActivationFunction_UnsignedSine_Prob;
+        ar & ActivationFunction_Linear_Prob;
+        ar & ActivationFunction_Relu_Prob;
+        ar & ActivationFunction_Softplus_Prob;
+
+        ar & MutateNeuronTimeConstantsProb;
+        ar & MutateNeuronBiasesProb;
+        ar & MinNeuronTimeConstant;
+        ar & MaxNeuronTimeConstant;
+        ar & MinNeuronBias;
+        ar & MaxNeuronBias;
+        ar & DisjointCoeff;
+        ar & ExcessCoeff;
+        ar & ActivationADiffCoeff;
+        ar & ActivationBDiffCoeff;
+        ar & WeightDiffCoeff;
+        ar & TimeConstantDiffCoeff;
+        ar & BiasDiffCoeff;
+        ar & ActivationFunctionDiffCoeff;
+        ar & CompatTreshold;
+        ar & MinCompatTreshold;
+        ar & CompatTresholdModifier;
+        ar & CompatTreshChangeInterval_Generations;
+        ar & CompatTreshChangeInterval_Evaluations;
+
+        ar & DivisionThreshold;
+        ar & VarianceThreshold;
+        ar & BandThreshold;
+        ar & InitialDepth;
+        ar & MaxDepth;
+        ar & IterationLevel;
+        ar & CPPN_Bias;
+        ar & Width;
+        ar & Qtree_X;
+        ar & Qtree_Y;
+        ar & Leo;
+        ar & LeoThreshold;
+        ar & LeoSeed;
+        ar & GeometrySeed;
+        ar & TournamentSize;
+        ar & Elitism;
+    }
+    
+#endif
+
 };
+
+
+#ifdef USE_BOOST_PYTHON
+
+struct Parameters_pickle_suite : py::pickle_suite
+{
+    static py::object getstate(const Parameters& a)
+    {
+        std::ostringstream os;
+        boost::archive::text_oarchive oa(os);
+        oa << a;
+        return py::str(os.str());
+    }
+
+    static void setstate(Parameters& a, py::object entries)
+    {
+        py::str s = py::extract<py::str> (entries)();
+        std::string st = py::extract<std::string> (s)();
+        std::istringstream is(st);
+
+        boost::archive::text_iarchive ia (is);
+        ia >> a;
+    }
+    
+    static bool getstate_manages_dict() { return true; }
+};
+
+#endif
+
 
 } // namespace NEAT
 

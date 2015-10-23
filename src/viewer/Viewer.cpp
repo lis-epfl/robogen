@@ -27,7 +27,6 @@
  */
 
 #include "viewer/Viewer.h"
-#include "RenderModels.h"
 #include "utils/RobogenUtils.h"
 
 #include <boost/format.hpp>
@@ -154,7 +153,7 @@ bool Viewer::configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
 	for (unsigned int i = 0; i < bodyParts.size(); ++i) {
 		boost::shared_ptr<RenderModel> renderModel =
 				RobogenUtils::createRenderModel(bodyParts[i]);
-		if (renderModel == NULL) {
+		if (!renderModel) {
 			std::cout
 			<< "Cannot create a render model for model "
 			<< i << std::endl;

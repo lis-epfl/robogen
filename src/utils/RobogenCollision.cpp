@@ -29,6 +29,11 @@
 #include "utils/RobogenCollision.h"
 #include "config/RobogenConfig.h"
 
+#include "Robot.h"
+#include "model/SimpleBody.h"
+
+#include <algorithm>
+
 // ODE World
 extern dWorldID odeWorld;
 
@@ -39,17 +44,52 @@ namespace robogen {
 
 const int MAX_CONTACTS = 32; // maximum number of contact points per body
 
+
+CollisionData::CollisionData(boost::shared_ptr<Scenario> scenario) :
+		scenario_(scenario) {
+
+	//numCulled = 0;
+
+	for (size_t i=0; i<scenario->getRobot()->getBodyParts().size(); ++i) {
+		boost::shared_ptr<Model> model =
+				scenario->getRobot()->getBodyParts()[i];
+		for(size_t j=0; j<model->getBodies().size(); ++j) {
+			geomModelMap_[model->getBodies()[j]->getGeom()] = model;
+		}
+
+	}
+}
+
+bool CollisionData::ignoreCollision(dGeomID o1, dGeomID o2) {
+
+	if (geomModelMap_.count(o1) == 0 || geomModelMap_.count(o2) == 0 )
+		return false;
+	return ( geomModelMap_[o1] == geomModelMap_[o2]);
+
+}
+
+
+
 void odeCollisionCallback(void *data, dGeomID o1, dGeomID o2) {
 
 	CollisionData *collisionData = static_cast<CollisionData*>(data);
 
-	// exit without doing anything if the two bodies are connected by a joint
+	// Since we are now using complex bodies, just because two bodies
+	// are connected with a joint does not mean we should ignore their
+	// collision.  Instead we need to use the ignoreCollision method define
+	// above, which will check if the two geoms are part of the same
+	// model, in which case we can ignore.
+	// TODO can we make this more efficient?
+
+
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
-
-	if (b1 && b2 && dAreConnectedExcluding (b1,b2,dJointTypeContact)) {
+	//if (b1 && b2 && dAreConnectedExcluding (b1,b2,dJointTypeContact)) {
+	if (collisionData->ignoreCollision(o1, o2) ) {
+		//collisionData->numCulled++;
 		return;
 	}
+
 
 	dContact contact[MAX_CONTACTS];
 	for (int i = 0; i < MAX_CONTACTS; i++) {
@@ -59,8 +99,9 @@ void odeCollisionCallback(void *data, dGeomID o1, dGeomID o2) {
 					dContactSoftCFM |
 					dContactApprox1 |
 					dContactSlip1 | dContactSlip2;
-
-		contact[i].surface.mu = collisionData->config->getTerrainConfig()->getFriction();
+		// TODO use different value for self collisions and/or obstacles?
+		contact[i].surface.mu = collisionData->getScenario()->getRobogenConfig(
+									)->getTerrainConfig()->getFriction();
 		contact[i].surface.soft_erp = 0.96;
 		contact[i].surface.soft_cfm = 0.01;
 
@@ -69,16 +110,16 @@ void odeCollisionCallback(void *data, dGeomID o1, dGeomID o2) {
 	}
 
 	int collisionCounts = dCollide(o1, o2, MAX_CONTACTS, &contact[0].geom,
-			sizeof(dContact));
+		sizeof(dContact));
 
-	if (collisionCounts != 0) {
-		for (int i = 0; i < collisionCounts; i++) {
 
-			dJointID c = dJointCreateContact(odeWorld, odeContactGroup,
-					contact + i);
-			dJointAttach(c, b1, b2);
+	for (int i = 0; i < collisionCounts; i++) {
 
-		}
+		dJointID c = dJointCreateContact(odeWorld, odeContactGroup,
+				contact + i);
+		dJointAttach(c, b1, b2);
+
+
 	}
 }
 

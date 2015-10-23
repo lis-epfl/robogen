@@ -58,18 +58,19 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 			robogenConfig_->getTerrainConfig();
 
 	terrain_.reset(new Terrain(odeWorld_, odeSpace_));
-	if (terrainConfig->isFlat()) {
+	if (terrainConfig->getType() == TerrainConfig::FLAT) {
 		if(!terrain_->initFlat(terrainConfig->getLength(),
 				terrainConfig->getWidth())) {
 			return false;
 		}
-	} else {
+	} else if (terrainConfig->getType() == TerrainConfig::ROUGH) {
 		if(!terrain_->initRough(terrainConfig->getHeightFieldFileName(),
 				terrainConfig->getLength(), terrainConfig->getWidth(),
 				terrainConfig->getHeight())) {
 			return false;
 		}
 	}
+
 
 	// Setup robot position
 	double minX = 0;
@@ -157,6 +158,9 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 		}
 
 	}
+
+	// optimize the physics!  replace all fixed joints with composite bodies
+	robot->optimizePhysics();
 
 	return true;
 }

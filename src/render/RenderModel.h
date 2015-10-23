@@ -29,6 +29,7 @@
 #ifndef ROBOGEN_RENDER_MODEL_H_
 #define ROBOGEN_RENDER_MODEL_H_
 
+#include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <osg/Node>
@@ -106,8 +107,9 @@ private:
 
 	/**
 	 * The physics model
+	 * keep as weak ptr so does not mess up ode clean up
 	 */
-	boost::shared_ptr<Model> model_;
+	boost::weak_ptr<Model> model_;
 
 	/**
 	 * Debug mode

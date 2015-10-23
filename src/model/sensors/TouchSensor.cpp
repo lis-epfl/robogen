@@ -2,9 +2,10 @@
  * @(#) TouchSensor.cpp   1.0   Feb 27, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -32,39 +33,78 @@
 
 namespace robogen {
 
-TouchSensor::TouchSensor(dSpaceID odeSpace, dBodyID sensorBody, float mass,
-		osg::Vec3 pos, float x, float y, float z, std::string label) :
-		collideSpace_(odeSpace), label_(label) {
+TouchSensor::TouchSensor(dSpaceID odeSpace, boost::shared_ptr<SimpleBody> body,
+		std::string label) :
+				collideSpace_(odeSpace), body_(body), label_(label) {
+
+	/*
 	// create own space to avoid physical collisions with other objects
 	sensorSpace_ = dHashSpaceCreate(0);
-	// create Sensor geom in this different space
-	dMass massOde;
-	dMassSetBoxTotal(&massOde, mass, x, y, z);
-	dBodySetMass(sensorBody, &massOde);
-	sensorGeometry_ = dCreateBox(sensorSpace_, x, y, z);
+	// copy Sensor geom to this different space
+	dVector3 boxLengths;
+	dGeomBoxGetLengths(body->getGeom(), boxLengths);
+
+	sensorGeometry_ = dCreateBox(sensorSpace_, boxLengths[0],
+			boxLengths[1], boxLengths[2]);
 	dBodySetPosition(sensorBody, pos.x(), pos.y(), pos.z());
 	dGeomSetPosition(sensorGeometry_, pos.x(), pos.y(), pos.z());
 	dGeomSetBody(sensorGeometry_, sensorBody);
+	*/
 }
 
 TouchSensor::~TouchSensor() {
-	dSpaceDestroy(sensorSpace_);
 }
 
 std::string &TouchSensor::getLabel(){
 	return label_;
 }
 
+struct TouchData {
+	boost::shared_ptr<SimpleBody> body;
+	bool touching;
+};
+
 bool TouchSensor::read() {
-	bool touching = false;
-	dSpaceCollide2((dGeomID) collideSpace_, (dGeomID) sensorSpace_,
-			(void*) &touching, TouchSensor::collisionCallback);
-	return touching;
+
+	// make a temporary space for checking touches
+	dSpaceID sensorSpace = dHashSpaceCreate(0);
+	dVector3 boxLengths;
+	dGeomBoxGetLengths(body_->getGeom(), boxLengths);
+
+	dGeomID sensorGeometry = dCreateBox(sensorSpace, boxLengths[0],
+			boxLengths[1], boxLengths[2]);
+	osg::Vec3 pos = body_->getPosition();
+	dGeomSetPosition(sensorGeometry, pos.x(), pos.y(), pos.z());
+
+
+	TouchData data;
+	data.touching = false;
+	data.body = body_;
+	dSpaceCollide2((dGeomID) collideSpace_, (dGeomID) sensorSpace,
+			(void*) &data, TouchSensor::collisionCallback);
+	// clean up, will automatically delete geom as well
+	dSpaceDestroy(sensorSpace);
+
+	return data.touching;
 }
 
 void TouchSensor::collisionCallback(void *data, dGeomID o1, dGeomID o2){
 	dContactGeom cont;
-	*((bool*)data) = !!dCollide(o1, o2, 1, &cont, sizeof(cont));
+	TouchData *touchData = ((TouchData*) data);
+
+	// ignore collisions with any other geom that is part of this body
+	// this will be the paired touch sensor as well as the touch sensor base
+	dBodyID b = touchData->body->getBody();
+	dGeomID g = dBodyGetFirstGeom(b);
+	while(g) {
+		if (o1 ==  g || o2 == g) {
+			return;
+		}
+		g = dBodyGetNextGeom(g);
+	}
+
+	touchData->touching = !!dCollide(o1, o2, 1, &cont, sizeof(cont));
+
 }
 
 }

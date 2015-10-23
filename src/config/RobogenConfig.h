@@ -61,7 +61,8 @@ public:
 			std::string startPosFile, float lightSourceHeight,
 			float sensorNoiseLevel, float motorNoiseLevel,
 			bool capAcceleration, float maxLinearAcceleration,
-			float maxAngularAcceleration, int maxDirectionShiftsPerSecond) :
+			float maxAngularAcceleration, int maxDirectionShiftsPerSecond,
+			osg::Vec3 gravity) :
 				scenario_(scenario), timeSteps_(timeSteps),
 				timeStepLength_(timeStepLength),
 				actuationPeriod_(actuationPeriod),
@@ -75,7 +76,8 @@ public:
 				capAcceleration_(capAcceleration),
 				maxLinearAcceleration_(maxLinearAcceleration),
 				maxAngularAcceleration_(maxAngularAcceleration),
-				maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond) {
+				maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond),
+				gravity_(gravity) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -218,6 +220,13 @@ public:
 	}
 
 	/**
+	 * @return gravity vector
+	 */
+	osg::Vec3 getGravity() {
+		return gravity_;
+	}
+
+	/**
 	 * Convert configuration into configuration message.
 	 */
 	robogenMessage::SimulatorConf serialize() const{
@@ -229,17 +238,20 @@ public:
 		} else if (scenario_ == RACING) {
 			ret.set_scenario("racing");
 		}
-		ret.set_terrainlength(terrain_->getLength());
-		ret.set_terrainwidth(terrain_->getWidth());
+
 		ret.set_timestep(timeStepLength_);
 		ret.set_actuationperiod(actuationPeriod_);
-		ret.set_terrainfriction(terrain_->getFriction());
 		ret.set_sensornoiselevel(sensorNoiseLevel_);
 		ret.set_motornoiselevel(motorNoiseLevel_);
 		ret.set_capacceleration(capAcceleration_);
 		ret.set_maxlinearacceleration(maxLinearAcceleration_);
 		ret.set_maxangularacceleration(maxAngularAcceleration_);
 		ret.set_maxdirectionshiftspersecond(maxDirectionShiftsPerSecond_);
+		ret.set_gravityx(gravity_.x());
+		ret.set_gravityy(gravity_.y());
+		ret.set_gravityz(gravity_.z());
+
+		terrain_->serialize(ret);
 
 		obstacles_->serialize(ret);
 		startPositions_->serialize(ret);
@@ -334,6 +346,11 @@ private:
 	 *  Maximum allowed direction shifts per second (if specified)
 	 */
 	int maxDirectionShiftsPerSecond_;
+
+	/**
+	 * Gravity
+	 */
+	osg::Vec3 gravity_;
 };
 
 }

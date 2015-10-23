@@ -480,4 +480,34 @@ std::string NeuralNetworkRepresentation::toString() {
 	return str.str();
 }
 
+int NeuralNetworkRepresentation::getNumInputs() {
+	int numInputs = 0;
+	for (NeuronMap::iterator it = neurons_.begin(); it != neurons_.end();
+				++it) {
+		if(it->second->getLayer() == NeuronRepresentation::INPUT)
+			numInputs++;
+	}
+	return numInputs;
+}
+
+int NeuralNetworkRepresentation::getNumHidden() {
+	int numHidden = 0;
+	for (NeuronMap::iterator it = neurons_.begin(); it != neurons_.end();
+				++it) {
+		if(it->second->getLayer() == NeuronRepresentation::HIDDEN)
+			numHidden++;
+	}
+	return numHidden;
+}
+
+int NeuralNetworkRepresentation::getNumOutputs() {
+	int numOutputs = 0;
+	for (NeuronMap::iterator it = neurons_.begin(); it != neurons_.end();
+				++it) {
+		if(it->second->getLayer() == NeuronRepresentation::OUTPUT)
+			numOutputs++;
+	}
+	return numOutputs;
+}
+
 } /* namespace robogen */

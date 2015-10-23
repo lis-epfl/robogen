@@ -74,8 +74,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// Create ODE world
 		odeWorld = dWorldCreate();
 
-		// Set gravity [mm/s]
-		dWorldSetGravity(odeWorld, 0, 0, -9.81);
+		// Set gravity from config
+		osg::Vec3 gravity = configuration->getGravity();
+		dWorldSetGravity(odeWorld, gravity.x(), gravity.y(), gravity.z());
 
 		dWorldSetERP(odeWorld, 0.1);
 		dWorldSetCFM(odeWorld, 10e-6);
@@ -86,6 +87,10 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 		// Create contact group
 		odeContactGroup = dJointGroupCreate(0);
+
+		// wrap all this in block so things get cleaned up before shutting down
+		// ode
+		{
 
 		// ---------------------------------------
 		// Generate Robot
@@ -212,10 +217,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		int count = 0;
 		double t = 0;
 
-
 		bool ctrnn = (neuralNetwork->types[0] == CTRNN_SIGMOID);
-		boost::shared_ptr<CollisionData> collisionData( new CollisionData() );
-		collisionData->config = configuration;
+		boost::shared_ptr<CollisionData> collisionData(
+				new CollisionData(scenario) );
 
 		double step = configuration->getTimeStepLength();
 		while ((t < configuration->getSimulationTime())
@@ -244,7 +248,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 			if (configuration->isCapAlleration()) {
 				dBodyID rootBody =
-						robot->getCoreComponent()->getRoot();
+						robot->getCoreComponent()->getRoot()->getBody();
 				const dReal *angVel, *linVel;
 
 				angVel = dBodyGetAngularVel(rootBody);
@@ -391,6 +395,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				}
 			}
 
+			bool motorBurntOut = false;
 			for (unsigned int i = 0; i < motors.size(); ++i) {
 				if (boost::dynamic_pointer_cast<ServoMotor>(
 						motors[i])) {
@@ -404,14 +409,15 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					// TODO find a cleaner way to do this
 					// for now will reuse accel cap infrastructure
 					if (motor->isBurntOut()) {
-						std::cout << "Motor burnt out, will return 0 "
-								<< "fitness" << std::endl;
-						accelerationCapExceeded = true;
+						std::cout << "Motor burnt out, will terminate now "
+								<< std::endl;
+						motorBurntOut = true;
+						//accelerationCapExceeded = true;
 					}
 				}
 			}
 
-			if(accelerationCapExceeded) {
+			if(accelerationCapExceeded || motorBurntOut) {
 				break;
 			}
 
@@ -450,10 +456,10 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		if(webGLlogger) {
 			webGLlogger.reset();
 		}
+		} // end code block protecting objects for ode code clean up
 
-		// Destroy robot (because of associated ODE joint group)
-		robot.reset();
-		// has shared pointer in scenario, so destroy that too
+
+		// scenario has a shared ptr to the robot, so need to prune it
 		scenario->prune();
 
 		// Destroy the joint group

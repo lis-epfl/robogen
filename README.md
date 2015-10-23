@@ -4,7 +4,7 @@ Joshua Auerbach (joshua.auerbach@epfl.ch)
 
 Laboratory of Intelligent Systems, EPFL
 
-**Read carefully this document and the online documentation: http://www.robogen.org/wiki/index.php/Documentation
+**Read carefully this document and the online documentation: http://robogen.org/docs/robogen-software-suite/
 before starting to do anything!**
 
 **Please check at the end of the file for some tricks you might try in order**
@@ -103,7 +103,7 @@ to install the required dependencies.
 ### Windows
 
 To assist the compilation of ROBOGEN on Windows, we preship an archive containing all the already compiled 
-dependencies (x86, 32bits, available http://www.robogen.org/robogen-dev-Windows.zip). 
+dependencies (x86, 32bits, available http://robogen.org/docs/get-started/robogen-windows/). 
 To avoid problems, download and install Visual Studio Express 2010 (http://www.microsoft.com/visualstudio/eng/downloads).
 
 ### MAC OS X
@@ -124,7 +124,7 @@ under a standard path (e.g. /usr/lib) you do not need to update the correspondin
 On Linux, you'll probably not modify anything on this file, except if you have the ODE library installed in non-default paths. 
 In this case, you will have to modify the lines related to the ODE installation paths in CustomPath.cmake (Look for the Linux section).
 
-On Windows, you need to download and extract the content of the precompiled libraries archive (http://www.robogen.org/robogen-dev-Windows.zip) and uncomment the fist line of CustomPath.cmake pointing it to the utils/ folder contained
+On Windows, you need to download and extract the content of the precompiled libraries archive (http://robogen.org/docs/get-started/robogen-windows/) and uncomment the fist line of CustomPath.cmake pointing it to the utils/ folder contained
 in the archive. Watch out that when you extract the archive you might generate a containing folder named as the archive.
 For example you might end up having a structure like:
 
@@ -187,18 +187,18 @@ your run.
     
 where PORT is the port on which the server will listen for connections (we recommend 8001).
 
-See http://www.robogen.org/wiki/index.php/Usage_examples for more details.
+See http://robogen.org/docs/usage-examples/ for more details.
     
 ### Configuration file
 
-See http://www.robogen.org/wiki/index.php/Evolution_configuration for in depth documentation.
+See http://robogen.org/docs/evolution-configuration/ for in depth documentation.
 
 ## Running the Robogen Simulator
 
 Check in the ROBOGEN_HOME/examples/ folder for sample configuration files and example robots that can be visualized.
 
 On Windows, you need to copy your executables and model folder in the run/ folder contained in the utils.zip archive
-that you downloaded from http://www.robogen.org/robogen-dev-Windows.zip
+that you downloaded from http://robogen.org/docs/get-started/robogen-windows/
 
 ## Scenario descriptions
 

@@ -43,5 +43,6 @@
 #include "render/objects/BoxObstacleRender.h"
 #include "render/objects/LightSourceRender.h"
 #include "render/objects/TerrainRender.h"
+#include "render/RenderModel.h"
 
 #endif /* ROBOGEN_RENDER_MODELS_H_ */
