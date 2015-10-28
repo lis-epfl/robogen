@@ -309,6 +309,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 						networkInput[i] =
 								boost::dynamic_pointer_cast<
 										TouchSensor>(sensors[i])->read();
+					} else if (boost::dynamic_pointer_cast<IrSensor>(
+							sensors[i])) {
+						networkInput[i] =
+								boost::dynamic_pointer_cast<
+										IrSensor>(sensors[i])->read();
 					} else if (boost::dynamic_pointer_cast<
 							LightSensor>(sensors[i])) {
 						networkInput[i] =

@@ -31,7 +31,9 @@
 
 #include <boost/shared_ptr.hpp>
 #include "model/PerceptiveComponent.h"
-#include "model/sensors/LightSensor.h"
+
+//#include "model/sensors/LightSensor.h"
+#include "model/sensors/IrSensor.h"
 
 namespace robogen {
 
@@ -86,7 +88,7 @@ private:
 
 	boost::shared_ptr<SimpleBody> sensorRoot_;
 
-	boost::shared_ptr<LightSensor> sensor_;
+	boost::shared_ptr<IrSensor> sensor_;
 
 };
 
