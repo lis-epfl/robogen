@@ -82,6 +82,8 @@ void step(NeuralNetwork* network, float time) {
 
 	unsigned int i = 0;
 	unsigned int j = 0;
+	unsigned int baseIndexOutputWeigths =
+			network->nNonInputs * network->nInputs;
 
 	if (network->nOutputs == 0) {
 		return;
@@ -92,13 +94,12 @@ void step(NeuralNetwork* network, float time) {
 	for (i = 0; i < network->nNonInputs; ++i) { 
 
 		network->activations[i] = 0;
-		unsigned int baseIndexOutputWeigths = -1;
 
 		for (j = 0; j < network->nInputs; ++j) {
 			network->activations[i] += network->weight[network->nNonInputs * j + i]
 					* network->input[j];
 		}
-		baseIndexOutputWeigths = network->nNonInputs * network->nInputs;
+
 		for (j = 0; j < network->nNonInputs; ++j) {
 			network->activations[i] += network->weight[baseIndexOutputWeigths
 					+ network->nNonInputs * j + i]
