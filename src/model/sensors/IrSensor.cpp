@@ -115,7 +115,10 @@ float IrSensor::read() {
 
 	float distance = SENSOR_RANGE;
 
-	if(data.isColliding) {
+	// ray should be capped at SENSOR_RANGE, but just to make sure we don't
+	// allow bigger values here
+	if(data.isColliding &&
+			(data.collisionPoint - position_).length() < SENSOR_RANGE) {
 		distance = (data.collisionPoint - position_).length();
 
 		//std::cout << "pos: " << position_.x() << " " << position_.y() <<  " " << position_.z() << std::endl;
