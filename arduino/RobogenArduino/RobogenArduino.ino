@@ -33,6 +33,7 @@
 //
 // Changelog:
 // 2011-10-07 - initial release
+// 2015-11-06 - modified by Alice for the IR sensors
 
 /* ============================================
 I2Cdev device library code is placed under the MIT license
@@ -98,7 +99,6 @@ THE SOFTWARE.
 #include "I2Cdev.h"
 #include "MPU6050.h"
 
-
 #define D9 (9)
 #define D10 (10)
 #define D5 (5)
@@ -122,6 +122,8 @@ THE SOFTWARE.
 #include "IMU.h"
 #include "quaternions.h"
 
+// Include the Library for the IR sensors
+#include "SparkFun_VL6180X.h"
 
 /* Define Neural network*/
 NeuralNetwork network;
@@ -141,6 +143,12 @@ float servoOffsets[] = {0,5,3,3,0,0,0,0};
 
 float servoPosition, servoSpeed;
 int lightInput;
+
+/* Define IR sensors */
+//To begin with, they all have the same address then it will be changed in setup()
+VL6180x sensor0(0x29),sensor1(0x29),sensor2(0x29),sensor3(0x29);
+VL6180x IRsensor[]={sensor0,sensor1,sensor2,sensor3};
+int sensorAdresses[] = {0x28,0x27,0x26,0x25};
 
 
 /* Keep elapsed time */
@@ -175,8 +183,55 @@ void setup() {
   for(int i=0;i<NB_INPUTS;i++)
   {  
     // Initialize pin for all sensors except IMU (which has no pin)
+    // The pins are used to enable/disable the sensor for initialization. They are set to OUTPUT. 
     if(inputTab[i][1] != 2)
-      pinMode(inputTab[i][0], INPUT);
+      pinMode(inputTab[i][0], OUTPUT); //changed to OUTPUT
+  }
+  
+  /* Initialize IR sensors : */
+  //set each one to HIGH in turn and change the address.
+  for(int i=0;i<NB_INPUTS;i++)
+  {
+    // Index 0 is for Light Sensing, and 1 is for touch --> distance now
+    if(inputTab[i][1] == 0 || inputTab[i][1] == 0) 
+    {
+      Serial.print("Init sensor");
+      Serial.println(i);
+        for(int j=0;j<NB_INPUTS;j++)
+        {
+          if(i==j)
+            digitalWrite(inputTab[j][0],HIGH);
+          else
+            digitalWrite(inputTab[j][0],LOW);
+        }
+  
+        if(IRsensor[i].VL6180xInit() != 0)
+        {
+      Serial.print("FAILED TO INITIALIZE SENSOR "); //Initialize device and check for errors
+      Serial.println(i);
+        }
+        else
+        {
+      Serial.print("INITIALIZED SENSOR ");
+      Serial.println(i);
+        }
+     
+    Serial.println(IRsensor[i]._i2caddress);
+    IRsensor[i].changeAddress(0x29,sensorAdresses[i]);
+    Serial.println(IRsensor[i]._i2caddress);
+    IRsensor[i].VL6180xDefautSettings(); //Load default settings to get started.
+    }
+  }
+
+  //Set all sensors to HIGH and Readjust a few parameters.
+  for(int i=0;i<NB_INPUTS;i++)
+  {
+    if(inputTab[i][1] == 0 || inputTab[i][1] == 0)
+    {
+      digitalWrite(inputTab[i][0],HIGH);
+      delay(10); // This is required to let the chip realise that it is enabled !!
+      IRsensor[i].VL6180xReadjustParameters(); // Readjust the parameters of the sensors
+    }
   }
   
   /* Assigns servos motors port and set initial command to activate full rotation motors */
@@ -366,25 +421,28 @@ void loop() {
     t = millis();
     
     /* read sensors */
-    for(int i=0;i<NB_INPUTS;i++)
+  for(int i=0;i<NB_INPUTS;i++)
     {  
       if(inputTab[i][1]==0)//Type lightSensor
       {
-        //To comply with the simulator we cast this sensor output into a float between 0.0 and 1. with 1 = maxLight
+        /*//To comply with the simulator we cast this sensor output into a float between 0.0 and 1. with 1 = maxLight
         analogRead(inputTab[i][0]);
         //In order to properly read value need to delay 1 ms and read again
         delay(1);
         lightInput = analogRead(inputTab[i][0]);
         
-        
         //you can set a certain threshold 
         if(lightInput > (LIGHT_SENSOR_THRESHOLD))
           networkInput[i] = float(lightInput)/1000.0;
         else
-          networkInput[i] = 0.0;
+          networkInput[i] = 0.0;*/
+          //New computation of light for VL6180 IR sensors
+          networkInput[i] = IRsensor[i].getAmbientLight(GAIN_1)/20764.0;
       }
-      else if(inputTab[i][1]==1) { //Type touchSensor
-        networkInput[i] = !digitalRead(inputTab[i][0]);
+      else if(inputTab[i][1]==1) { //Type touchSensor --> distance sensing!!!
+        //networkInput[i] = !digitalRead(inputTab[i][0]);
+        //New computation of distance for VL6180 IR sensors
+        networkInput[i] = 1.0 - IRsensor[i].getDistance()/255.0;
       }
       else if(inputTab[i][1]==2)//Type is accelerometer and gyroscope
       {
@@ -415,7 +473,7 @@ void loop() {
     // SENSOR_NOISE_LEVEL * actualValue
     for(int i=0;i<NB_INPUTS;i++) {
         networkInput[i] += (randn(0,1) * SENSOR_NOISE_LEVEL * networkInput[i]);
-    }    
+    }  
     #endif
 
     #ifdef USE_SERIAL
