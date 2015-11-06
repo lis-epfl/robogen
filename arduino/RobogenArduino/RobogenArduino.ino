@@ -560,11 +560,11 @@ void initNetwork(NeuralNetwork* network, unsigned int nInputs,
 		unsigned int nOutputs, unsigned int nHidden) {
 
 	unsigned int i = 0;
-        
+
 	network->nNonInputs = nOutputs + nHidden;
 
 	/* Initialize states */
-	for (i = 0; i < network->nNonInputs * 2; ++i) {
+	for (i = 0; i < network->nNonInputs; ++i) {
 		network->state[i] = 0.0;
 	}
 
@@ -576,8 +576,6 @@ void initNetwork(NeuralNetwork* network, unsigned int nInputs,
 	network->nInputs = nInputs;
 	network->nOutputs = nOutputs;
 	network->nHidden = nHidden;
-
-	network->curStateStart = 0;
         
 
 }
@@ -602,55 +600,49 @@ float getParam(int index) {
 }
 
 void step(NeuralNetwork* network, float time) {
-        unsigned int nextState;
 	unsigned int i = 0;
 	unsigned int j = 0;
+	unsigned int baseIndexOutputWeigths =
+			network->nNonInputs * network->nInputs;
 
 	if (network->nOutputs == 0) {
 		return;
 	}
 
-	/* For each output neuron, sum the state of all the incoming connection */
-	nextState = (network->curStateStart + network->nNonInputs)
-			% network->nNonInputs;
+	/* For each hidden and output neuron, sum the state of all the incoming connection */
 
- 
-        
+	for (i = 0; i < network->nNonInputs; ++i) { 
 
-
-	for (i = 0; i < network->nNonInputs; ++i) { /*testing just updating state of outputs*/
-
-
-		float curNeuronActivation = 0;
-		unsigned int baseIndexOutputWeigths = -1;
-                
+		network->activations[i] = 0;
 
 		for (j = 0; j < network->nInputs; ++j) {
-                        curNeuronActivation += getWeight(network->nNonInputs * j + i)
+			network->activations[i] += getWeight(network->nNonInputs * j + i)
 					* network->input[j];
 		}
-		baseIndexOutputWeigths = network->nNonInputs * network->nInputs;
+
 		for (j = 0; j < network->nNonInputs; ++j) {
-			
-  
-                    curNeuronActivation += getWeight(baseIndexOutputWeigths
+			network->activations[i] += getWeight(baseIndexOutputWeigths
 					+ network->nNonInputs * j + i)
-					* network->state[network->curStateStart + j];
+					* network->state[j];
 		}
+	}
+
+	/* Now add in biases and calculate new network state (or do appropriate operation for neuron type*/
+	for (i = 0; i < network->nNonInputs; ++i) { 
 
 		/* Save next state */
 		if (EATypes[i] == SIGMOID) {
 			/* params are bias, gain */
-			curNeuronActivation -= getParam(MAX_PARAMS*i);
-			network->state[nextState + i] = 1.0
+			network->activations[i] -= getParam(MAX_PARAMS*i);
+			network->state[i] = 1.0
 				/ (1.0 + exp(-getParam(MAX_PARAMS*i+1) *
-						curNeuronActivation));
+						network->activations[i]));
 		} else if (EATypes[i] == SIMPLE) {
 			/* linear, params are bias, gain */
 
-			curNeuronActivation -= getParam(MAX_PARAMS*i);
-			network->state[nextState + i] = getParam(MAX_PARAMS*i+1) *
-					curNeuronActivation;
+			network->activations[i] -= getParam(MAX_PARAMS*i);
+			network->state[i] = getParam(MAX_PARAMS*i+1) *
+					network->activations[i];
 
 		} else if (EATypes[i] == OSCILLATOR) {
 			/* TODO should this consider inputs too?? */
@@ -660,17 +652,15 @@ void step(NeuralNetwork* network, float time) {
 			float period = getParam(MAX_PARAMS*i);
 			float phaseOffset = getParam(MAX_PARAMS*i + 1);
 			float gain = getParam(MAX_PARAMS*i + 2);
-			network->state[nextState + i] = ((sin( (2.0*PI/period) *
+			network->state[i] = ((sin( (2.0*PI/period) *
 				 (time - period * phaseOffset))) + 1.0) / 2.0;
 
 			/* set output to be in [0.5 - gain/2, 0.5 + gain/2] */
-			network->state[nextState + i] = (0.5 - (gain/2.0) +
-					network->state[nextState + i] * gain);
+			network->state[i] = (0.5 - (gain/2.0) +
+					network->state[i] * gain);
 
 		}
 	}
-        
-	network->curStateStart = nextState;
 }
 
 /**
@@ -683,7 +673,7 @@ void fetch(const NeuralNetwork* network, float *output) {
 
 	unsigned int i = 0;
 	for (i = 0; i < network->nOutputs; ++i) {
-            float rawOutput = network->state[network->curStateStart + i];
+            float rawOutput = network->state[i];
             #ifdef MOTOR_NOISE_LEVEL
             // Add motor noise:
             // uniform in range +/- MOTOR_NOISE_LEVEL * actualValue
