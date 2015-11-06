@@ -28,6 +28,8 @@
  */
 #include "model/components/perceptive/LightSensorModel.h"
 
+
+
 namespace robogen {
 
 const float LightSensorModel::MASS = inGrams(2);
@@ -74,7 +76,9 @@ bool LightSensorModel::initModel() {
 
 	this->fixBodies(platform, cylinder);
 
-	this->sensor_.reset(new LightSensor(this->getCollisionSpace(),
+	//this->sensor_.reset(new LightSensor(this->getCollisionSpace(),
+	//		this->getBodies(), this->getId()));
+	this->sensor_.reset(new IrSensor(this->getCollisionSpace(),
 			this->getBodies(), this->getId()));
 
 	return true;

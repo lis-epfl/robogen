@@ -88,6 +88,10 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// Create contact group
 		odeContactGroup = dJointGroupCreate(0);
 
+		// wrap all this in block so things get cleaned up before shutting down
+		// ode
+		{
+
 		// ---------------------------------------
 		// Generate Robot
 		// ---------------------------------------
@@ -305,6 +309,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 						networkInput[i] =
 								boost::dynamic_pointer_cast<
 										TouchSensor>(sensors[i])->read();
+					} else if (boost::dynamic_pointer_cast<IrSensor>(
+							sensors[i])) {
+						networkInput[i] =
+								boost::dynamic_pointer_cast<
+										IrSensor>(sensors[i])->read();
 					} else if (boost::dynamic_pointer_cast<
 							LightSensor>(sensors[i])) {
 						networkInput[i] =
@@ -379,6 +388,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				}
 			}
 
+			bool motorBurntOut = false;
 			for (unsigned int i = 0; i < motors.size(); ++i) {
 				if (boost::dynamic_pointer_cast<ServoMotor>(
 						motors[i])) {
@@ -392,14 +402,15 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					// TODO find a cleaner way to do this
 					// for now will reuse accel cap infrastructure
 					if (motor->isBurntOut()) {
-						std::cout << "Motor burnt out, will return 0 "
-								<< "fitness" << std::endl;
-						accelerationCapExceeded = true;
+						std::cout << "Motor burnt out, will terminate now "
+								<< std::endl;
+						motorBurntOut = true;
+						//accelerationCapExceeded = true;
 					}
 				}
 			}
 
-			if(accelerationCapExceeded) {
+			if(accelerationCapExceeded || motorBurntOut) {
 				break;
 			}
 
@@ -438,13 +449,10 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		if(webGLlogger) {
 			webGLlogger.reset();
 		}
+		} // end code block protecting objects for ode code clean up
 
-		collisionData.reset();
 
-
-		// Destroy robot (because of associated ODE joint group)
-		robot.reset();
-		// has shared pointer in scenario, so destroy that too
+		// scenario has a shared ptr to the robot, so need to prune it
 		scenario->prune();
 
 		// Destroy the joint group
