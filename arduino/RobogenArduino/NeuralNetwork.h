@@ -74,7 +74,11 @@
 	2 for Accelerometer and Gyroscope
 	3 for IR sensor
 */
+
+
 const int inputTab[][2] = { {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {A0, 3}, {A1, 3}, {A2, 3}, {A3, 3} };
+const int irIndices[] = { -1, -1, -1, -1, -1, -1, 0, 1, 2, 3 };
+
 
 /* double dimension Tab
 * outputTab[i][0] is the value of the output port
