@@ -229,12 +229,11 @@ void setup() {
   }
 
   //Set all sensors to HIGH and Readjust a few parameters.
+  delay(10); // This is required to let the chip realise that it is enabled !!
   for(int i=0;i<NB_INPUTS;i++)
   {
     if(inputTab[i][1] == 3)
     {
-      digitalWrite(inputTab[i][0],HIGH);
-      delay(10); // This is required to let the chip realise that it is enabled !!
       irSensors[irIndices[i]].VL6180xReadjustParameters(); // Readjust the parameters of the sensors
     }
   }
