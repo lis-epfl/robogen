@@ -291,11 +291,26 @@ bool Mutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
 	b->getBrainGenome(weights[1], types[1], params[1]);
 
 	// 2. select crossover point
-	unsigned int maxpoint = weights[0].size() + params[0].size() - 1;
-	if (maxpoint != weights[1].size() + params[1].size() - 1) {
+	unsigned int genomeSizeA = weights[0].size() + params[0].size();
+	unsigned int genomeSizeB = weights[1].size() + params[1].size();
+	if (genomeSizeA != genomeSizeB) {
 		//TODO error handling, TODO what if sum same, but not parts?
-		std::cout << "Genomes not of same size!" << std::endl;
+		std::cout << "Genomes not of same size! " << genomeSizeA << " " <<
+				genomeSizeB << std::endl;
+
+		std::cout << a->getBrain()->toString() << std::endl << std::endl;
+		std::cout << b->getBrain()->toString() << std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
+
+	if (genomeSizeA < 2) {
+		//nothing to crossover
+		return false;
+	}
+
+	unsigned int maxpoint = genomeSizeA - 1;
+
+
 	boost::random::uniform_int_distribution<unsigned int> pointSel(1, maxpoint);
 	int selectedPoint = pointSel(rng_);
 
