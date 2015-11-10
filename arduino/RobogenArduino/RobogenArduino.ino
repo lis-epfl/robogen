@@ -228,7 +228,7 @@ void setup() {
     }
   }
 
-  //Set all sensors to HIGH and Readjust a few parameters.
+  //All sensors are on HIGH. Readjust a few parameters.
   delay(10); // This is required to let the chip realise that it is enabled !!
   for(int i=0;i<NB_INPUTS;i++)
   {
