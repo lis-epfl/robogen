@@ -187,15 +187,17 @@ void setup() {
       pinMode(inputTab[i][0], INPUT);
   }
   
-  /* Define the IR sensor pins as output*/
+    /* Define the IR sensor pins as output*/
     for(int i=0;i<NB_INPUTS;i++)
   {  
     // The pins are used to enable/disable the IR sensor for initialization. They are set to OUTPUT. 
     if(inputTab[i][1] == 3)
+    {
       pinMode(inputTab[i][0], OUTPUT);
       digitalWrite(inputTab[i][0], LOW);
+    }
   }
-  
+  delay(3000);
   /* Initialize IR sensors : */
   //set each one to HIGH in turn and change the address.
   for(int i=0;i<NB_INPUTS;i++)
@@ -204,32 +206,33 @@ void setup() {
     {
       Serial.print("Init IR sensor");
       Serial.println(irIndices[i]);
-        for(int j=0;j<NB_INPUTS;j++)
-        {
-          if(i==j)
+        for(int j=0;j<NB_INPUTS;j++){
+          if(i==j){
             digitalWrite(inputTab[j][0],HIGH);
+          }
+            
         }
+        delay(10); // This is required to let the chip realise that it is enabled !!
   
         if(irSensors[irIndices[i]].VL6180xInit() != 0)
         {
-      Serial.print("FAILED TO INITIALIZE SENSOR "); //Initialize device and check for errors
-      Serial.println(irIndices[i]);
+          Serial.print("FAILED TO INITIALIZE SENSOR "); //Initialize device and check for errors
+          Serial.println(irIndices[i]);
         }
         else
         {
-      Serial.print("INITIALIZED SENSOR ");
-      Serial.println(irIndices[i]);
+          Serial.print("INITIALIZED SENSOR ");
+          Serial.println(irIndices[i]);
         }
      
     Serial.println(irSensors[irIndices[i]]._i2caddress);
-    irSensors[irIndices[i]].changeAddress(0x29,sensorAdresses[i]);
+    irSensors[irIndices[i]].changeAddress(0x29,sensorAdresses[irIndices[i]]);
     Serial.println(irSensors[irIndices[i]]._i2caddress);
     irSensors[irIndices[i]].VL6180xDefautSettings(); //Load default settings to get started.
     }
   }
 
   //All sensors are on HIGH. Readjust a few parameters.
-  delay(10); // This is required to let the chip realise that it is enabled !!
   for(int i=0;i<NB_INPUTS;i++)
   {
     if(inputTab[i][1] == 3)
