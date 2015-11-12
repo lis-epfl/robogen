@@ -2,9 +2,10 @@
  * @(#) NeuralNetworkRepresentation.cpp   1.0   Aug 28, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -242,7 +243,8 @@ std::string NeuralNetworkRepresentation::insertNeuron(ioPair identification,
 		}
 		// generate outgoing (no need to worry about double declaration of the
 		// recursion, as we deal with a map!)
-		if (!it->second->isInput())
+		if (!it->second->isInput() &&
+				(it->second->getType() != NeuronRepresentation::OSCILLATOR))
 			weights_[StringPair(neuron->getId(), it->second->getId())] = 0.;
 	}
 	return neuron->getId();

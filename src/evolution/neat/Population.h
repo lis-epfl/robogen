@@ -41,6 +41,8 @@
 #include "Parameters.h"
 #include "Random.h"
 
+//#define NEAT_DEBUG
+
 namespace NEAT
 {
 

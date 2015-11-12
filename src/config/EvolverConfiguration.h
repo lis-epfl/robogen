@@ -2,9 +2,10 @@
  * @(#) EvolverConfiguration.h 1.0   Sep 2, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -280,7 +281,7 @@ typedef struct EvolverConfiguration {
 	 */
 	std::string neatParamsFile;
 
-
+	double pOscillatorNeuron;
 
 
 } EvolverConfiguration;

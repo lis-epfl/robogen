@@ -230,6 +230,17 @@ void Species::CountOffspring()
     }
 }
 
+//call after sorting the species
+
+void Species::UpdateBestFitnessAndStagnation()
+{
+	// update the best fitness and stagnation counter
+	if (m_Individuals[0].GetFitness() > m_BestFitness)
+	{
+		m_BestFitness = m_Individuals[0].GetFitness();
+		m_GensNoImprovement = 0;
+	}
+}
 
 // this method performs fitness sharing
 // it also boosts the fitness of the young and penalizes old species
@@ -248,13 +259,6 @@ void Species::AdjustFitness(Parameters& a_Parameters)
 
         // this prevents the fitness to be below zero
         if (t_fitness <= 0) t_fitness = 0.0001;
-
-        // update the best fitness and stagnation counter
-        if (t_fitness > m_BestFitness)
-        {
-            m_BestFitness = t_fitness;
-            m_GensNoImprovement = 0;
-        }
 
         // boost the fitness up to some young age
         if (m_Age < a_Parameters.YoungAgeTreshold)
@@ -351,6 +355,11 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
 
     int t_offspring_count = Rounded(GetOffspringRqd());
     int elite_offspring = Rounded(a_Parameters.Elitism*m_Individuals.size());
+
+#ifdef NEAT_DEBUG
+    std::cout << "elite_offspring: " << elite_offspring << std::endl;
+#endif
+
     //ensure we have a champ
     int elite_count = 0;
     // no offspring?! yikes.. dead species!
@@ -366,20 +375,35 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
     // Spawn t_offspring_count babies
     bool t_champ_chosen = false;
     bool t_baby_exists_in_pop = false;
+
+    int t_champ_new_species_id = ID();
+    int t_champ_new_species_idx = -1;
+
     while(t_offspring_count--)
     {
+    	bool t_on_champ = false;
+		bool t_new_individual = true;
         // if the champ was not chosen, do it now..
         
         if (!t_champ_chosen)
         { 
+        	t_on_champ = true;
             t_champ_chosen = true;
             t_baby = m_Individuals[0];
+			t_new_individual = false;
+#ifdef NEAT_DEBUG
+			std::cout << "champ!" << " " << m_Individuals[0].GetFitness() << " " << std::endl;
+#endif
         }
 
         else if (elite_count < elite_offspring)
         {
             t_baby = m_Individuals[elite_count+1];
             elite_count++;
+			t_new_individual = false;
+#ifdef NEAT_DEBUG
+			std::cout << "elite!" << std::endl;
+#endif
         }
 
         else
@@ -510,25 +534,27 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
         if ((t_baby.NumLinks() == 0) || t_baby.HasDeadEnds())
         {
             t_baby = GetIndividual(a_Parameters, a_RNG);
+            t_new_individual = false;
         }
 
+		if (t_new_individual) {
+		    // We have a new offspring now
+		    // give the offspring a new ID
+		    t_baby.SetID(a_Pop.GetNextGenomeID());
+		    a_Pop.IncrementNextGenomeID();
 
-        // We have a new offspring now
-        // give the offspring a new ID
-        t_baby.SetID(a_Pop.GetNextGenomeID());
-        a_Pop.IncrementNextGenomeID();
+		    // sort the baby's genes
+		    t_baby.SortGenes();
 
-        // sort the baby's genes
-        t_baby.SortGenes();
+		    // clear the baby's fitness
+		    t_baby.SetFitness(0);
+		    t_baby.SetAdjFitness(0);
+		    t_baby.SetOffspringAmount(0);
+		    t_baby.SetPerformance(0.0);
+		    t_baby.SetLength(0.0);
 
-        // clear the baby's fitness
-        t_baby.SetFitness(0);
-        t_baby.SetAdjFitness(0);
-        t_baby.SetOffspringAmount(0);
-        t_baby.SetPerformance(0.0);
-        t_baby.SetLength(0.0);
-
-        t_baby.ResetEvaluated();
+		    t_baby.ResetEvaluated();
+		}
 
 
         //////////////////////////////////
@@ -541,10 +567,12 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
         // after all reproduction completes, the original species will be replaced back
 
         bool t_found = false;
-        std::vector<Species>::iterator t_cur_species = a_Pop.m_TempSpecies.begin();
+        //std::vector<Species>::iterator t_cur_species = a_Pop.m_TempSpecies.begin();
+
+        unsigned int t_cur_species_index = 0;
 
         // No species yet?
-        if (t_cur_species == a_Pop.m_TempSpecies.end())
+        if (t_cur_species_index == a_Pop.m_TempSpecies.size())
         {
             // create the first species and place the baby there
             a_Pop.m_TempSpecies.push_back( Species(t_baby, a_Pop.GetNextSpeciesID()));
@@ -553,24 +581,52 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
         else
         {
             // try to find a compatible species
-            Genome t_to_compare = t_cur_species->GetRepresentative();
+            Genome t_to_compare = a_Pop.m_TempSpecies[t_cur_species_index
+                                                      ].GetRepresentative();
+
+#ifdef NEAT_DEBUG
+            std::cout << "compatability threshold: " << a_Parameters.CompatTreshold;
+            std::cout << ", dists: ";
+#endif
 
             t_found = false;
-            while((t_cur_species != a_Pop.m_TempSpecies.end()) && (!t_found))
+            while((t_cur_species_index != a_Pop.m_TempSpecies.size())
+            		&& (!t_found))
             {
+#ifdef NEAT_DEBUG
+            	std::cout << "(" << t_cur_species_index << ", "
+            			<< t_baby.CompatibilityDistance(t_to_compare,
+            					a_Parameters) << ") ";
+#endif
+
+
                 if (t_baby.IsCompatibleWith( t_to_compare, a_Parameters))
                 {
                     // found a compatible species
-                    t_cur_species->AddIndividual(t_baby);
+#ifdef NEAT_DEBUG
+                	std::cout << "adding to species " << t_cur_species_index
+                			<< " "
+                			<< a_Pop.m_TempSpecies[t_cur_species_index].ID()
+                			<< std::endl;
+#endif
+                	a_Pop.m_TempSpecies[t_cur_species_index
+                	                    ].AddIndividual(t_baby);
                     t_found = true; // the search is over
+                    if (t_on_champ) {
+                    	t_champ_new_species_id = a_Pop.m_TempSpecies[t_cur_species_index
+                    	                  	                    ].ID();
+                    	t_champ_new_species_idx = t_cur_species_index;
+                    }
+
                 }
                 else
                 {
                     // keep searching for a matching species
-                    t_cur_species++;
-                    if (t_cur_species != a_Pop.m_TempSpecies.end())
+                    t_cur_species_index++;
+                    if (t_cur_species_index != a_Pop.m_TempSpecies.size())
                     {
-                        t_to_compare = t_cur_species->GetRepresentative();
+                        t_to_compare = a_Pop.m_TempSpecies[t_cur_species_index
+                                   	                    ].GetRepresentative();
                     }
                 }
             }
@@ -578,9 +634,41 @@ void Species::Reproduce(Population &a_Pop, Parameters& a_Parameters, RNG& a_RNG)
             // if couldn't find a match, make a new species
             if (!t_found)
             {
+#ifdef NEAT_DEBUG
+            	std::cout << "\tno species found, creating new one!" << std::endl;
+#endif
                 a_Pop.m_TempSpecies.push_back( Species(t_baby, a_Pop.GetNextSpeciesID()));
+                if (t_on_champ) {
+					t_champ_new_species_id = a_Pop.GetNextSpeciesID();
+					t_champ_new_species_idx = a_Pop.m_TempSpecies.size() - 1;
+				}
                 a_Pop.IncrementNextSpeciesID();
+
             }
+
+			if (IsBestSpecies() && t_on_champ &&
+					(t_champ_new_species_id != ID())) {
+
+				for (size_t i = 0; i<a_Pop.m_TempSpecies.size(); ++i) {
+					if (a_Pop.m_TempSpecies[i].IsBestSpecies()) {
+						if(a_Pop.m_TempSpecies[i].m_Individuals.empty()) {
+#ifdef NEAT_DEBUG
+							std::cout << i << " " << a_Pop.m_TempSpecies[i].ID() <<
+									" NO LONGER BEST" << std::endl;
+#endif
+							a_Pop.m_TempSpecies[i].SetBestSpecies(false);
+
+						}
+						break;
+					}
+				}
+				a_Pop.m_TempSpecies[t_champ_new_species_idx].SetBestSpecies(true);
+#ifdef NEAT_DEBUG
+				std::cout << "NEW BEST SPECIES " << t_champ_new_species_idx << " " <<
+						t_champ_new_species_id << std::endl;
+#endif
+
+			}
         }
     }
 }
