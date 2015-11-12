@@ -32,6 +32,7 @@ if ("${ODE_INCLUDE_PATH}" STREQUAL "" OR "${ODE_LIBRARIES}" STREQUAL "")
 	
 endif()
 
+include_directories("${CMAKE_SOURCE_DIR}/socket.io-client-cpp/src/")
 
 if(UNIX)
 	# Compiler options
@@ -128,6 +129,9 @@ target_link_libraries(robogen-server robogen ${ROBOGEN_DEPENDENCIES})
 add_executable(robogen-file-viewer viewer/FileViewer.cpp)
 target_link_libraries(robogen-file-viewer robogen ${ROBOGEN_DEPENDENCIES})
 
+# Robogen simulator server with socket.io
+add_executable(robogen-server-sio RobogenServer.cpp)
+target_link_libraries(robogen-server-sio robogen ${ROBOGEN_DEPENDENCIES} "${CMAKE_SOURCE_DIR}/socket.io-client-cpp/libsioclient.a" "${CMAKE_SOURCE_DIR}/socket.io-client-cpp/libsioclient_tls.a")
 
 
 # Tests
