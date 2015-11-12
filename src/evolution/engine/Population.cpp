@@ -2,9 +2,10 @@
  * @(#) Population.cpp   1.0   Sep 1, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -62,7 +63,7 @@ bool Population::init(boost::shared_ptr<RobotRepresentation> robot, int popSize,
 				mutator->randomizeBrain(this->back());
 			}
 		} else { // i > 0 and !randomizeBrains, create mutated copy of seed
-			this->push_back( mutator->mutate(robot, robot) );
+			this->push_back( mutator->createOffspring(robot)[0] );
 		}
 
 		if (growBodies) {

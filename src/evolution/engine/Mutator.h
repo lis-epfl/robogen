@@ -2,9 +2,10 @@
  * @(#) Mutator.h   1.0   Sep 2, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -60,9 +61,10 @@ public:
 	/**
 	 * Performs mutation and crossover on a pair of robots
 	 */
-	boost::shared_ptr<RobotRepresentation> mutate(
+	std::vector<boost::shared_ptr<RobotRepresentation> > createOffspring(
 			boost::shared_ptr<RobotRepresentation> parent1,
-			boost::shared_ptr<RobotRepresentation> parent2);
+			boost::shared_ptr<RobotRepresentation> parent2 =
+					boost::shared_ptr<RobotRepresentation>());
 
 	void growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot);
 	void randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot);
@@ -125,6 +127,8 @@ private:
 	boost::random::bernoulli_distribution<double> nodeInsertDist_;
 	boost::random::bernoulli_distribution<double> nodeRemovalDist_;
 	boost::random::bernoulli_distribution<double> paramMutateDist_;
+
+	boost::random::bernoulli_distribution<double> oscillatorNeuronDist_;
 
 };
 
