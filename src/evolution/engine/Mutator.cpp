@@ -3,9 +3,10 @@
  *
  * Titus Cieslewski (dev@titus-c.ch)
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2015 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -66,6 +67,8 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 				boost::random::bernoulli_distribution<double>(
 						conf->bodyOperatorProbability
 						[EvolverConfiguration::PARAMETER_MODIFICATION]);
+		oscillatorNeuronDist_ = boost::random::bernoulli_distribution<double>(
+				conf->pOscillatorNeuron);
 	}
 
 }
@@ -73,24 +76,30 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 Mutator::~Mutator() {
 }
 
-boost::shared_ptr<RobotRepresentation> Mutator::mutate(
-		boost::shared_ptr<RobotRepresentation> parent1,
-		boost::shared_ptr<RobotRepresentation> parent2) {
+std::vector<boost::shared_ptr<RobotRepresentation> > Mutator::createOffspring(
+			boost::shared_ptr<RobotRepresentation> parent1,
+			boost::shared_ptr<RobotRepresentation> parent2) {
 
-	boost::shared_ptr<RobotRepresentation> offspring1 = boost::shared_ptr<
-			RobotRepresentation>(new RobotRepresentation(*parent1.get()));
-	boost::shared_ptr<RobotRepresentation> offspring2 = boost::shared_ptr<
-			RobotRepresentation>(new RobotRepresentation(*parent2.get()));
+	std::vector<boost::shared_ptr<RobotRepresentation> > offspring;
+
+	offspring.push_back(boost::shared_ptr<RobotRepresentation>(new
+			RobotRepresentation(*parent1.get())));
+
 
 	// only allow crossover if doing just brain mutation
-	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER) {
-		this->crossover(offspring1, offspring2);
+	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
+			&& parent2) {
+		offspring.push_back(boost::shared_ptr<RobotRepresentation>(new
+				RobotRepresentation(*parent2.get())));
+		this->crossover(offspring[0], offspring[1]);
 	}
 
 	// Mutate
-	this->mutate(offspring1);
+	for(size_t i = 0; i < offspring.size(); ++i) {
+		this->mutate(offspring[i]);
+	}
 
-	return offspring1;
+	return offspring;
 }
 
 void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
@@ -592,7 +601,8 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	// there were previously parts attached to the parent's chosen slot
 
 	return robot->insertPart(parent->first, parentSlot, newPart, newPartSlot,
-							 NeuronRepresentation::SIGMOID);
+			oscillatorNeuronDist_(rng_) ? NeuronRepresentation::OSCILLATOR :
+					NeuronRepresentation::SIGMOID); //todo other types?
 
 }
 

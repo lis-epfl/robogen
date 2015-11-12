@@ -2,9 +2,10 @@
  * @(#) DeterministicTournament.cpp   1.0   Sep 10, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014
+ * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -48,9 +49,8 @@ void DeterministicTournament::initPopulation(
 }
 
 // http://sureshamrita.wordpress.com/2011/08/27/random_shuffle-boost-generator/
-bool DeterministicTournament::select(
-		std::pair<boost::shared_ptr<RobotRepresentation>,
-				boost::shared_ptr<RobotRepresentation> > &selected) {
+bool DeterministicTournament::select(boost::shared_ptr<RobotRepresentation>
+								&selected) {
 
 	if (!population_) {
 		std::cout << "Trying to perform selection, but no "
@@ -68,29 +68,20 @@ bool DeterministicTournament::select(
 	for (unsigned int i = 0; i < population_->size(); i++) {
 		shuffVec.push_back(population_->at(i));
 	}
-	// for both parents, let tSize_ robots "compete"
-	for (int p = 0; p < 2; p++) {
+	// let tSize_ robots "compete"
 
-		unsigned int selectionIndex = 0;
-		// shuffle robots -> first tSize are in tournament
-		std::random_shuffle(shuffVec.begin(), shuffVec.end(), randomNumber);
-		for (unsigned int i = 1; i < tSize_; i++) {
-			if (shuffVec[i]->getFitness()
-					> shuffVec[selectionIndex]->getFitness()) {
-				selectionIndex = i;
-			}
+	unsigned int selectionIndex = 0;
+	// shuffle robots -> first tSize are in tournament
+	std::random_shuffle(shuffVec.begin(), shuffVec.end(), randomNumber);
+	for (unsigned int i = 1; i < tSize_; i++) {
+		if (shuffVec[i]->getFitness()
+				> shuffVec[selectionIndex]->getFitness()) {
+			selectionIndex = i;
 		}
-
-		if (p == 0) {
-			selected.first = shuffVec[selectionIndex];
-		} else {
-			selected.second = shuffVec[selectionIndex];
-		}
-
-		// remove selected parent from robots competing for other position
-		shuffVec.erase(shuffVec.begin() + selectionIndex);
-
 	}
+
+	selected = shuffVec[selectionIndex];
+
 
 	return true;
 }

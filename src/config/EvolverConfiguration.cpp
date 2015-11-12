@@ -2,9 +2,10 @@
  * @(#) EvolverConfiguration.cpp   1.0   Sep 2, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -199,7 +200,11 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				"EA: Basic or HyperNEAT")
 		("neatParamsFile",
 				boost::program_options::value<std::string>(&neatParamsFile),
-				"File for NEAT/HyperNEAT specific params");
+				"File for NEAT/HyperNEAT specific params")
+		("pOscillatorNeuron",
+				boost::program_options::value<double>(
+				&pOscillatorNeuron), "Probability of new neuron being oscillator"
+		);
 	// generate body operator probability options from contraptions in header
 	for (unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		desc.add_options()(
@@ -414,6 +419,17 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				<< " not between 0 and 1!" << std::endl;
 		return false;
 	}
+
+	if (vm.count("pOscillatorNeuron") == 0) {
+		pOscillatorNeuron = 0.0;
+	}
+
+	if (pOscillatorNeuron > 1. || pOscillatorNeuron < 0.) {
+		std::cout << "Oscillator neuron probability parameter " <<
+				pOscillatorNeuron << " not between 0 and 1!" << std::endl;
+		return false;
+	}
+
 	for(unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		if (bodyOperatorProbability[i] > 1. || bodyOperatorProbability[i] < 0.){
 			std::cout << BodyMutationOperatorsProbabilityCodes[i] <<

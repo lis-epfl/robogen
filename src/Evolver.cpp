@@ -2,9 +2,10 @@
  * @(#) BrainEvolver.cpp   1.0   Sep 2, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -270,15 +271,42 @@ int main(int argc, char *argv[]) {
 			population->sort(true);
 		} else {
 			selector->initPopulation(population);
-			for (unsigned int i = 0; i < conf->lambda; i++) {
+			unsigned int numOffspring = 0;
+			while (numOffspring < conf->lambda) {
+
 				std::pair<boost::shared_ptr<RobotRepresentation>,
 						boost::shared_ptr<RobotRepresentation> > selection;
-				if (!selector->select(selection)) {
+				if (!selector->select(selection.first)) {
 					std::cerr << "Selector::select() failed." << std::endl;
 					exitRobogen(EXIT_FAILURE);
 				}
-				children.push_back(
-						mutator->mutate(selection.first, selection.second));
+				unsigned int tries = 0;
+				do {
+					if (tries > 10000) {
+						std::cerr << "Selecting second parent failed after "
+								"10000 tries, giving up.";
+						exitRobogen(EXIT_FAILURE);
+					}
+					if (!selector->select(selection.second)) {
+						std::cerr << "Selector::select() failed." << std::endl;
+						exitRobogen(EXIT_FAILURE);
+					}
+					tries++;
+				} while (selection.first == selection.second);
+
+				std::vector<boost::shared_ptr<RobotRepresentation> > offspring
+					= mutator->createOffspring(selection.first,
+											   selection.second);
+
+				// no crossover, or can fit both new individuals
+				if ( (numOffspring + offspring.size()) <= conf->lambda ) {
+					children.insert(children.end(), offspring.begin(),
+													offspring.end() );
+					numOffspring += offspring.size();
+				} else { // crossover, but can only fit one
+					children.push_back(offspring[0]);
+					numOffspring++;
+				}
 			}
 
 			// evaluate children
