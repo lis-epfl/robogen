@@ -237,9 +237,12 @@ void Species::UpdateBestFitnessAndStagnation()
 	// update the best fitness and stagnation counter
 	if (m_Individuals[0].GetFitness() > m_BestFitness)
 	{
-		m_BestFitness = m_Individuals[0].GetFitness();
 		m_GensNoImprovement = 0;
 	}
+	// always reset best fitness to current best fitness in species
+	// in case the best guy moved (also should work for non-deterministic
+	// fitness evaluations)
+	m_BestFitness = m_Individuals[0].GetFitness();
 }
 
 // this method performs fitness sharing

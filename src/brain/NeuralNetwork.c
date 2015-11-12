@@ -206,9 +206,7 @@ void fetch(const NeuralNetwork* network, float *output) {
 	unsigned int i = 0;
 	for (i = 0; i < network->nOutputs; ++i) {
 		if (network->types[0] == CTRNN_SIGMOID) {
-			/* CTRNN stores state before logistic applied, and doesn't use
-			 * startState
-			 */
+			/* CTRNN stores state before logistic applied */
 			float bias = network->params[MAX_PARAMS*i];
 			float gain = network->params[MAX_PARAMS*i + 2];
 			output[i] = 1./( 1. + exp( -gain * (network->state[i] - bias) ) );
