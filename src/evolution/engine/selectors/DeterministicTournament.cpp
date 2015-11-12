@@ -27,7 +27,7 @@
  * @(#) $Id$
  */
 
-#include "evolution/engine/Selectors/DeterministicTournament.h"
+#include "DeterministicTournament.h"
 #include <algorithm>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
