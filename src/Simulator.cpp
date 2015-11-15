@@ -58,12 +58,12 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::random::mt19937 &rng,
 		bool onlyOnce, boost::shared_ptr<FileViewerLog> log) {
 
-	bool accelerationCapExceeded = false;
+	bool constraintViolated = false;
 
 	boost::random::normal_distribution<float> normalDistribution;
 	boost::random::uniform_01<float> uniformDistribution;
 
-	while (scenario->remainingTrials() && (!accelerationCapExceeded)) {
+	while (scenario->remainingTrials() && (!constraintViolated)) {
 
 		// ---------------------------------------
 		// Simulator initialization
@@ -270,7 +270,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 						printf(" Angular accel: %f, Linear accel: %f.\n",
 								angAccel, linAccel);
 						printf("Will give %f fitness.\n", MIN_FITNESS);
-						accelerationCapExceeded = true;
+						constraintViolated = true;
 						break;
 					}
 
@@ -338,6 +338,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				if (log) {
 					log->logSensors(networkInput, sensors.size());
 				}
+
+
 				::feed(neuralNetwork.get(), &networkInput[0]);
 			}
 
@@ -412,12 +414,12 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 						std::cout << "Motor burnt out, will terminate now "
 								<< std::endl;
 						motorBurntOut = true;
-						//accelerationCapExceeded = true;
+						//constraintViolated = true;
 					}
 				}
 			}
 
-			if(accelerationCapExceeded || motorBurntOut) {
+			if(constraintViolated || motorBurntOut) {
 				break;
 			}
 
@@ -474,8 +476,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// Destroy the ODE engine
 		dCloseODE();
 
-		if(accelerationCapExceeded)
-			return ACCELERATION_CAP_EXCEEDED;
+		if(constraintViolated)
+			return CONSTRAINT_VIOLATED;
 
 		if(onlyOnce) {
 			break;
