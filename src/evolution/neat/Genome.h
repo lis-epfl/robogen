@@ -29,14 +29,21 @@
 // File:        Genome.h
 // Description: Definition for the Genome class.
 ///////////////////////////////////////////////////////////////////////////////
-#ifdef PYTHON_ENABLED
+
+#ifdef USE_BOOST_PYTHON
+
 #include <boost/python.hpp>
-#endif
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/shared_ptr.hpp>
+
+#endif
+
+#include <boost/shared_ptr.hpp>
 
 #include <vector>
+#include <queue>
 
 #include "NeuralNetwork.h"
 #include "Substrate.h"
@@ -127,6 +134,11 @@ public:
     // used in steady state evolution
     bool m_Evaluated;
 
+    double Length;
+
+    // Sometimes fitness and performance on a task differ.
+    double Performance;
+
     // A pointer to a class representing the phenotype's behavior
     // Used in novelty searches
     PhenotypeBehavior* m_PhenotypeBehavior;
@@ -145,7 +157,9 @@ public:
 
     // comparison operator (nessesary for boost::python)
     // todo: implement a better comparison technique
-    bool operator==(Genome const& other) const { return m_ID == other.m_ID; }
+    bool operator==(Genome const& other) const {
+        return m_ID == other.m_ID;
+    }
 
     // Builds this genome from a file
     Genome(const char* a_filename);
@@ -156,7 +170,7 @@ public:
     // This creates a standart minimal genome - perceptron-like structure
     Genome(unsigned int a_ID,
            unsigned int a_NumInputs,
-           unsigned int a_NumHidden, // ignored for type == 1, specifies number of hidden units if type == 0
+           unsigned int a_NumHidden, // ignored for seed_type == 0, specifies number of hidden units if seed_type == 1
            unsigned int a_NumOutputs,
            bool a_FS_NEAT, ActivationFunction a_OutputActType,
            ActivationFunction a_HiddenActType,
@@ -167,12 +181,34 @@ public:
     /////////////
     // Other possible constructors for different types of networks go here
     // TODO
+
     /////////////
+    // Alternative constructor for dealing with LEO, Gaussian seed etc.
+    // empty means only bias is connected to outputs
+    Genome(unsigned int a_ID,
+           unsigned int a_NumInputs,
+           unsigned int a_NumOutputs,
+           bool empty,
+           ActivationFunction a_OutputActType,
+           ActivationFunction a_HiddenActType,
+           const Parameters& a_Parameters);
+
 
     ////////////////////////////
     // Destructor
     ////////////////////////////
-
+    void SetPerformance(double perf)
+    {
+        Performance = perf;
+    }
+    void SetLength(double len)
+    {
+        Length = len;
+    }
+    double GetPerformance()
+    {
+        return Performance;
+    }
     ////////////////////////////
     // Methods
     ////////////////////////////
@@ -217,10 +253,22 @@ public:
     // A little helper function to find the index of a link, given its innovation ID
     int GetLinkIndex(unsigned int a_innovid) const;
 
-    unsigned int NumNeurons() const { return static_cast<unsigned int>(m_NeuronGenes.size()); }
-    unsigned int NumLinks() const { return static_cast<unsigned int>(m_LinkGenes.size()); }
-    unsigned int NumInputs() const { return m_NumInputs; }
-    unsigned int NumOutputs() const { return m_NumOutputs; }
+    unsigned int NumNeurons() const
+    {
+        return static_cast<unsigned int>(m_NeuronGenes.size());
+    }
+    unsigned int NumLinks() const
+    {
+        return static_cast<unsigned int>(m_LinkGenes.size());
+    }
+    unsigned int NumInputs() const
+    {
+        return m_NumInputs;
+    }
+    unsigned int NumOutputs() const
+    {
+        return m_NumOutputs;
+    }
 
     void SetNeuronXY(unsigned int a_idx, int a_x, int a_y)
     {
@@ -240,22 +288,52 @@ public:
     }
 
 
-    double GetFitness() const { return m_Fitness; }
-    double GetAdjFitness() const { return m_AdjustedFitness; }
-    void SetFitness(double a_f) { m_Fitness = a_f; }
-    void SetAdjFitness(double a_af) { m_AdjustedFitness = a_af; }
+    double GetFitness() const
+    {
+        return m_Fitness;
+    }
+    double GetAdjFitness() const
+    {
+        return m_AdjustedFitness;
+    }
+    void SetFitness(double a_f)
+    {
+        m_Fitness = a_f;
+    }
+    void SetAdjFitness(double a_af)
+    {
+        m_AdjustedFitness = a_af;
+    }
 
-    unsigned int GetID() const { return m_ID; }
-    void SetID(int a_id) { m_ID = a_id; }
+    unsigned int GetID() const
+    {
+        return m_ID;
+    }
+    void SetID(int a_id)
+    {
+        m_ID = a_id;
+    }
 
-    unsigned int GetDepth() const { return m_Depth; }
-    void SetDepth(int a_d) { m_Depth = a_d; }
+    unsigned int GetDepth() const
+    {
+        return m_Depth;
+    }
+    void SetDepth(int a_d)
+    {
+        m_Depth = a_d;
+    }
 
     // Returns true if there is any dead end in the network
     bool HasDeadEnds() const;
 
-    double GetOffspringAmount() const { return m_OffspringAmount; }
-    void SetOffspringAmount(double a_oa) { m_OffspringAmount = a_oa; }
+    double GetOffspringAmount() const
+    {
+        return m_OffspringAmount;
+    }
+    void SetOffspringAmount(double a_oa)
+    {
+        m_OffspringAmount = a_oa;
+    }
 
     // This builds a fastnetwork structure out from the genome
     void BuildPhenotype(NeuralNetwork& net) const;
@@ -379,9 +457,141 @@ public:
     ////////////////////
     // new stuff
 
-    bool IsEvaluated() const { return m_Evaluated; }
-    void SetEvaluated() { m_Evaluated = true; }
-    void ResetEvaluated() { m_Evaluated = false; }
+    bool IsEvaluated() const
+    {
+        return m_Evaluated;
+    }
+    void SetEvaluated()
+    {
+        m_Evaluated = true;
+    }
+    void ResetEvaluated()
+    {
+        m_Evaluated = false;
+    }
+
+
+    /////////////////////////////////////////////
+    // Evolvable Substrate HyperNEAT
+    ////////////////////////////////////////////
+
+    // A connection between two points. Stores weight and the coordinates of the points
+    struct TempConnection
+    {
+    	std::vector<double> source;
+    	std::vector<double> target;
+    	double weight;
+
+    	TempConnection()
+    	{
+    		source.reserve(3);
+    		target.reserve(3);
+    		weight = 0;
+    	}
+
+    	TempConnection( std::vector<double> t_source, std::vector<double> t_target,
+    					double t_weight)
+    	{
+    		source = t_source;
+    		target = t_target;
+    		weight = t_weight;
+    		source.reserve(3);
+    		target.reserve(3);
+    	}
+
+    	~TempConnection() {};
+
+    	bool operator==(const TempConnection& rhs) const
+    	{   return (source == rhs.source && target == rhs.target);
+    	}
+
+    	bool operator!=(const TempConnection& rhs) const
+    	{   return (source != rhs.source && target != rhs.target);
+    	}
+    };
+
+    // A quadpoint in the HyperCube.
+    struct QuadPoint
+    {
+    	double x;
+    	double y;
+    	double z;
+    	double width;
+    	double weight;
+    	double height;
+    	double variance;
+    	unsigned int level;
+    	// Do I use this?
+    	double leo;
+
+
+    	std::vector<boost::shared_ptr<QuadPoint> > children;
+
+    	QuadPoint()
+    	{
+    		x = y = z = width = height = weight = variance = leo = 0;
+    		level = 0;
+    		children.reserve(4);
+    	}
+
+    	QuadPoint(double t_x, double t_y, double t_width, double t_height, int t_level)
+    	{   x = t_x;
+    		y = t_y;
+    		z = 0.0;
+    		width = t_width;
+    		height = t_height;
+    		level = t_level;
+    		weight = 0.0;
+    		leo = 0.0;
+    		variance = 0.0;
+    		children.reserve(4);
+    		children.clear();
+    	}
+
+    	// Mind the Z
+    	QuadPoint(double t_x, double t_y, double t_z, double t_width, double t_height,
+    			  int t_level)
+    	{
+    		x = t_x;
+    		y = t_y;
+    		z = t_z;
+    		width = t_width;
+    		height = t_height;
+    		level = t_level;
+    		weight = 0.0;
+    		variance = 0.0;
+    		leo = 0.0;
+    		children.reserve(4);
+    		children.clear();
+    	}
+
+    	~QuadPoint()
+    	{
+    	};
+    };
+
+    void Build_ES_Phenotype(NeuralNetwork& a_net, Substrate& subst, Parameters& params);
+    void DivideInitialize(const std::vector<double>& node,
+    		              boost::shared_ptr<QuadPoint>& root,
+						  NeuralNetwork& cppn, Parameters& params,
+						  const bool& outgoing, const double& z_coord);
+
+    void PruneExpress(const std::vector<double>& node,
+                      boost::shared_ptr<QuadPoint>& root, NeuralNetwork& cppn,
+                      Parameters& params, std::vector<Genome::TempConnection>& connections,
+                      const bool& outgoing);
+
+    void CollectValues(std::vector<double>& vals, boost::shared_ptr<QuadPoint>& point);
+
+    double Variance( boost::shared_ptr<QuadPoint> &point);
+    void Clean_Net( std::vector<Connection>& connections, unsigned int input_count,
+                    unsigned int output_count, unsigned int hidden_count);
+
+#ifdef USE_BOOST_PYTHON
+    py::list GetPoints(py::tuple& node, Parameters& params, bool outgoing);
+#endif
+
+#ifdef USE_BOOST_PYTHON
 
     // Serialization
     friend class boost::serialization::access;
@@ -400,15 +610,22 @@ public:
         ar & m_Evaluated;
         //ar & m_PhenotypeBehavior; // todo: think about how we will handle the behaviors with pickle
     }
+
+#endif
+
 };
 
-#ifdef PYTHON_ENABLED
+
+
+
+#ifdef USE_BOOST_PYTHON
+
 struct Genome_pickle_suite : py::pickle_suite
 {
     static py::object getstate(const Genome& a)
     {
         std::ostringstream os;
-        boost::archive::binary_oarchive oa(os);
+        boost::archive::text_oarchive oa(os);
         oa << a;
         return py::str (os.str());
     }
@@ -419,15 +636,17 @@ struct Genome_pickle_suite : py::pickle_suite
         std::string st = py::extract<std::string> (s)();
         std::istringstream is (st);
 
-        boost::archive::binary_iarchive ia (is);
+        boost::archive::text_iarchive ia (is);
         ia >> a;
     }
 };
+
 #endif
 
 #define DBG(x) { std::cerr << x << "\n"; }
 
+
+
 } // namespace NEAT
 
 #endif
-

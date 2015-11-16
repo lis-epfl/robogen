@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -94,18 +94,13 @@ typedef struct {
 	#ifndef ARDUINO
 	float params[MAX_PARAMS * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 	#endif
+
 	/*
 	 * One state for each output and hidden neuron
-	 * The state has double the space to store also the next
-	 * value.
+	 * activations will be used to temporarily store summed inputs before updating states
 	 */
-	float state[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)*2];
-
-	/**
-	 * Indicates at which index of the state array the current state starts
-	 * (alternatively curStateStart = 0 or curStateStart = n/2)
-	 */
-	int curStateStart;
+	float state[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
+	float activations[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 
 	/**
 	 * One input state for each input neuron
@@ -138,6 +133,15 @@ typedef struct {
 	 * The number of non-inputs (i.e. nOutputs + nHidden)
 	 */
 	unsigned int nNonInputs;
+
+	/**
+	 * Arrays for storing intermediary states for RungeKutta
+	 */
+	float currY[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn1[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn2[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn3[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
+	float kn4[MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS];
 
 } NeuralNetwork;
 
@@ -178,6 +182,10 @@ void step(NeuralNetwork* network, float time);
  * @param output the output of the neural network, must point to an area of memory of at least size n
  */
 void fetch(const NeuralNetwork* network, float *output);
+
+
+void updateCTRNN(NeuralNetwork* network, float stepSize);
+void updateNeurons(NeuralNetwork* network, float *kn);
 
 
 #endif /* ROBOGEN_NEURAL_NETWORK_H_ */

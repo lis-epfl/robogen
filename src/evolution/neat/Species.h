@@ -132,6 +132,8 @@ public:
     bool IsWorstSpecies() const { return m_WorstSpecies; }
     void SetRepresentative(Genome& a_G) { m_Representative = a_G; }
 
+    void UpdateBestFitnessAndStagnation();
+
     // returns the leader (the member having the best fitness, representing the species)
     Genome GetLeader() const;
 

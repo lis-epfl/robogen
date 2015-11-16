@@ -78,7 +78,7 @@ public:
 	 * @param bodyParts a map that maps body part id's to amount of ioIds
 	 */
 	NeuralNetworkRepresentation(std::map<std::string,int> &sensorParts,
-			std::map<std::string,int> &motorParts);
+			std::map<std::string,int> &motorParts, bool continuousTime=false);
 
 	// Copy constructor should be provided by the compiler. As there is no
 	// pointing going on, this should not cause any problems.

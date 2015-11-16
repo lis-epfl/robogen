@@ -36,7 +36,7 @@
 #include <string>
 #include <iostream>
 #include "NeuralNetwork.h"
-#include "assert.h"
+#include "Assert.h"
 #include "Utils.h"
 
 //#define NULL 0
@@ -61,7 +61,6 @@ inline double af_sigmoid_signed(double aX, double aSlope, double aShift)
     double tY = af_sigmoid_unsigned(aX, aSlope, aShift);
     return (tY - 0.5) * 2.0;
 }
-
 
 inline double af_tanh(double aX, double aSlope, double aShift)
 {
@@ -90,7 +89,7 @@ inline double af_step_signed(double aX, double aShift)
 
 inline double af_step_unsigned(double aX, double aShift)
 {
-    if (aX > aShift)
+    if (aX > (0.5+aShift))
     {
         return 1.0;
     }
@@ -102,7 +101,7 @@ inline double af_step_unsigned(double aX, double aShift)
 
 inline double af_gauss_signed(double aX, double aSlope, double aShift)
 {
-    double tY = exp( - aSlope * aX * aX + aShift);
+    double tY = exp( - aSlope * aX * aX + aShift); // TODO: Need separate a, b per activation function
     return (tY-0.5)*2.0;
 }
 
@@ -128,20 +127,23 @@ inline double af_sine_unsigned(double aX, double aFreq, double aShift)
     return (tY + 1.0) / 2.0;
 }
 
-inline double af_square_signed(double aX, double aHighPulseSize, double aLowPulseSize)
-{
-    return 0.0;    // TODO
-}
-inline double af_square_unsigned(double aX, double aHighPulseSize, double aLowPulseSize)
-{
-    return 0.0;    // TODO
-}
 
 inline double af_linear(double aX, double aShift)
 {
     return (aX + aShift);
 }
 
+
+inline double af_relu(double aX)
+{
+    return (aX > 0)?aX:0;
+}
+
+
+inline double af_softplus(double aX)
+{
+    return log(1 + exp(aX));
+}
 
 
 double unsigned_sigmoid_derivative(double x)
@@ -385,18 +387,19 @@ void NeuralNetwork::Activate()
         case UNSIGNED_SINE:
             y = af_sine_unsigned(x, m_neurons[i].m_a, m_neurons[i].m_b);
             break;
-        case SIGNED_SQUARE:
-            y = af_square_signed(x, m_neurons[i].m_a, m_neurons[i].m_b);
-            break;
-        case UNSIGNED_SQUARE:
-            y = af_square_unsigned(x, m_neurons[i].m_a, m_neurons[i].m_b);
-            break;
         case LINEAR:
             y = af_linear(x, m_neurons[i].m_b);
+            break;
+        case RELU:
+            y = af_relu(x);
+            break;
+        case SOFTPLUS:
+            y = af_softplus(x);
             break;
         default:
             y = af_sigmoid_unsigned(x, m_neurons[i].m_a, m_neurons[i].m_b);
             break;
+
         }
         m_neurons[i].m_activation = y;
     }
@@ -464,14 +467,14 @@ void NeuralNetwork::ActivateUseInternalBias()
         case UNSIGNED_SINE:
             y = af_sine_unsigned(x, m_neurons[i].m_a, m_neurons[i].m_b);
             break;
-        case SIGNED_SQUARE:
-            y = af_square_signed(x, m_neurons[i].m_a, m_neurons[i].m_b);
-            break;
-        case UNSIGNED_SQUARE:
-            y = af_square_unsigned(x, m_neurons[i].m_a, m_neurons[i].m_b);
-            break;
         case LINEAR:
             y = af_linear(x, m_neurons[i].m_b);
+            break;
+        case RELU:
+            y = af_relu(x);
+            break;
+        case SOFTPLUS:
+            y = af_softplus(x);
             break;
         default:
             y = af_sigmoid_unsigned(x, m_neurons[i].m_a, m_neurons[i].m_b);
@@ -551,14 +554,14 @@ void NeuralNetwork::ActivateLeaky(double a_dtime)
         case UNSIGNED_SINE:
             y = af_sine_unsigned(x, m_neurons[i].m_a, m_neurons[i].m_b);
             break;
-        case SIGNED_SQUARE:
-            y = af_square_signed(x, m_neurons[i].m_a, m_neurons[i].m_b);
-            break;
-        case UNSIGNED_SQUARE:
-            y = af_square_unsigned(x, m_neurons[i].m_a, m_neurons[i].m_b);
-            break;
         case LINEAR:
             y = af_linear(x, m_neurons[i].m_b);
+            break;
+        case RELU:
+            y = af_relu(x);
+            break;
+        case SOFTPLUS:
+            y = af_softplus(x);
             break;
         default:
             y = af_sigmoid_unsigned(x, m_neurons[i].m_a, m_neurons[i].m_b);
@@ -597,7 +600,9 @@ void NeuralNetwork::Input(std::vector<double>& a_Inputs)
         m_neurons[i].m_activation = a_Inputs[i];
     }
 }
-#ifdef PYTHON_ENABLED
+
+#ifdef USE_BOOST_PYTHON
+
 void NeuralNetwork::Input_python_list(py::list& a_Inputs)
 {
     int len = py::len(a_Inputs);
@@ -629,6 +634,7 @@ void NeuralNetwork::Input_numpy(py::numeric::array& a_Inputs)
 
     Input(inp);
 }
+
 #endif
 
 std::vector<double> NeuralNetwork::Output()
@@ -932,4 +938,5 @@ bool NeuralNetwork::Load(const char *a_filename)
     return Load(t_DataFile);
 }
 
-} // namespace NEAT
+
+}; // namespace NEAT

@@ -66,7 +66,8 @@ NeuralNetworkRepresentation::NeuralNetworkRepresentation(
 
 NeuralNetworkRepresentation::NeuralNetworkRepresentation(
 		std::map<std::string, int> &sensorParts,
-		std::map<std::string, int> &motorParts) {
+		std::map<std::string, int> &motorParts,
+		bool continuousTime) {
 	// generate neurons from sensor body parts
 	for (std::map<std::string, int>::iterator it = sensorParts.begin();
 			it != sensorParts.end(); it++) {
@@ -80,7 +81,8 @@ NeuralNetworkRepresentation::NeuralNetworkRepresentation(
 			it != motorParts.end(); it++) {
 		for (int i = 0; i < it->second; i++) {
 			insertNeuron(ioPair(it->first, i), NeuronRepresentation::OUTPUT,
-					NeuronRepresentation::SIGMOID);
+					continuousTime ? NeuronRepresentation::CTRNN_SIGMOID :
+							NeuronRepresentation::SIGMOID);
 		}
 	}
 }

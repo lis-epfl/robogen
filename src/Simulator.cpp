@@ -217,6 +217,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		int count = 0;
 		double t = 0;
 
+		bool ctrnn = (neuralNetwork->types[0] == CTRNN_SIGMOID);
 		boost::shared_ptr<CollisionData> collisionData(
 				new CollisionData(scenario) );
 
@@ -300,7 +301,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				}
 			}
 
-			if(((count - 1) % configuration->getActuationPeriod()) == 0) {
+			bool shouldActuate = (((count - 1) %
+									configuration->getActuationPeriod()) == 0);
+
+
+			if (shouldActuate) {
 				// Feed neural network
 				for (unsigned int i = 0; i < sensors.size(); ++i) {
 
@@ -336,9 +341,18 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 
 				::feed(neuralNetwork.get(), &networkInput[0]);
+			}
 
+			if (ctrnn) {
+				// want to update the ctrnn every loop, even if not reading
+				// from outputs
+				::updateCTRNN(neuralNetwork.get(), step);
+			} else if (shouldActuate) {
 				// Step the neural network
 				::step(neuralNetwork.get(), t);
+			}
+
+			if(shouldActuate) {
 
 				// Fetch the neural network ouputs
 				::fetch(neuralNetwork.get(), &networkOutputs[0]);
@@ -377,11 +391,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 						}
 					}
 				}
-				//again co-opt the accel cap flag for something else :-)
+
 				if (motors.size() == 0) {
 					std::cout << "No motors, will return 0 fitness"
 							<< std::endl;
-					accelerationCapExceeded = true;
+					constraintViolated = true;
 				}
 
 				if(log) {
@@ -389,6 +403,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				}
 			}
 
+			bool motorBurntOut = false;
 			for (unsigned int i = 0; i < motors.size(); ++i) {
 				if (boost::dynamic_pointer_cast<ServoMotor>(
 						motors[i])) {
@@ -402,14 +417,15 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					// TODO find a cleaner way to do this
 					// for now will reuse accel cap infrastructure
 					if (motor->isBurntOut()) {
-						std::cout << "Motor burnt out, will return 0 "
-								<< "fitness" << std::endl;
-						constraintViolated = true;
+						std::cout << "Motor burnt out, will terminate now "
+								<< std::endl;
+						motorBurntOut = true;
+						//constraintViolated = true;
 					}
 				}
 			}
 
-			if(constraintViolated) {
+			if(constraintViolated || motorBurntOut) {
 				break;
 			}
 

@@ -4,7 +4,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014
+ * Copyright © 2013-2015 Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -25,14 +25,15 @@
  *
  * @(#) $Id$
  */
-#include "evolution/engine/neat/NeatContainer.h"
+
+#include <boost/random/uniform_int_distribution.hpp>
 #include <algorithm>
 #include <queue>
 #include "PartList.h"
 
-//#define NEAT_DEBUG
+#include "evolution/engine/neat/NeatContainer.h"
 
-//#define NEAT_DEBUG
+//#define NEAT_CONTAINER_DEBUG
 
 namespace robogen {
 
@@ -47,12 +48,11 @@ NeatContainer::NeatContainer(boost::shared_ptr<EvolverConfiguration> &evoConf,
 				EvolverConfiguration::HYPER_NEAT) {
 			// create CPPN with 7 inputs (x1, y1, io1, x2, y2, io2, bias)
 			// and 5 outputs: connection exists, weight, params
-			neatPopulation_.reset(new NEAT::Population(NEAT::Genome(0, 7, 0, 5,
-									false, NEAT::UNSIGNED_SIGMOID,
-									NEAT::UNSIGNED_SIGMOID, 0,
-									evoConf->neatParams),
-								  evoConf->neatParams, true, 1.0, seed));
-		} else {
+			neatPopulation_.reset(new NEAT::Population(NEAT::Genome(0, 7, 0, 5, false,
+							NEAT::UNSIGNED_SIGMOID,NEAT::UNSIGNED_SIGMOID, 0,
+							evoConf->neatParams),
+						  evoConf->neatParams, true, 1.0, seed));
+	} else {
 			//NEAT or FT_NEAT
 
 			boost::shared_ptr<NeuralNetworkRepresentation> brain =
@@ -220,7 +220,9 @@ bool NeatContainer::produceNextGeneration(boost::shared_ptr<Population>
 
 		boost::random::uniform_int_distribution<> dist(0, newIds.size()-1);
 		int toRemove = dist(rng_);
+#ifdef NEAT_CONTAINER_DEBUG
 		std::cout << "To remove: "  << toRemove << " " << newIds.size() << std::endl;
+#endif
 		unsigned int id = newIds[toRemove];
 		currentIds.erase(std::find(currentIds.begin(), currentIds.end(), id));
 		newIds.erase(newIds.begin() + toRemove);
@@ -267,7 +269,7 @@ bool NeatContainer::produceNextGeneration(boost::shared_ptr<Population>
 			// if evolving full bodies, but just using NEAT for the brain,
 			// then mutate the body
 			neatIdToRobotMap_[newIds[i]] =
-					mutator->mutate(unMappedRobots_[i], unMappedRobots_[i]);
+					mutator->createOffspring(unMappedRobots_[i])[0];
 
 		} else {
 			neatIdToRobotMap_[newIds[i]] = unMappedRobots_[i];
@@ -321,7 +323,7 @@ std::vector<osg::Vec3> getNeighboringPositions(
 
 bool NeatContainer::createBodyHyperNEAT(NEAT::Genome *genome,
 		boost::shared_ptr<RobotRepresentation> &robotRepresentation) {
-#ifdef NEAT_DEBUG
+#ifdef NEAT_CONTAINER_DEBUG
 	std::cout << "creating body"<< std::endl;
 #endif
 	NEAT::NeuralNetwork net;
@@ -478,7 +480,7 @@ bool NeatContainer::createBodyHyperNEAT(NEAT::Genome *genome,
     		}
     	}
     }
-#ifdef NEAT_DEBUG
+#ifdef NEAT_CONTAINER_DEBUG
 	std::cout << "body created"<< std::endl;
 #endif
     return true;
@@ -487,222 +489,234 @@ bool NeatContainer::createBodyHyperNEAT(NEAT::Genome *genome,
 
 bool NeatContainer::fillBrainHyperNEAT(NEAT::Genome *genome,
 		boost::shared_ptr<RobotRepresentation> &robotRepresentation) {
-#ifdef NEAT_DEBUG
+#ifdef NEAT_CONTAINER_DEBUG
     std::cout << "Filling brain: " << std::endl;
 #endif
 
 
-	NEAT::NeuralNetwork net;
-    genome->BuildPhenotype(net);
-
-    typedef std::map<std::string, boost::weak_ptr<NeuronRepresentation> >
-    	NeuronMap;
-
-    std::map<std::string, std::vector<double> > neuronToPositionMap;
-    NeuronMap neuronMap;
-
-    // FIRST NEED TO CREATE PHYSICAL ROBOT REP TO DETERMINE POSITIONS
-
-    // parse robot message
-	robogenMessage::Robot robotMessage = robotRepresentation->serialize();
-	// parse robot
-	boost::shared_ptr<Robot> robot(new Robot);
 	// Initialize ODE
 	dInitODE();
 	dWorldID odeWorld = dWorldCreate();
 	dWorldSetGravity(odeWorld, 0, 0, 0);
 	dSpaceID odeSpace = dHashSpaceCreate(0);
-	if (!robot->init(odeWorld, odeSpace, robotMessage)) {
-		std::cout << "Problem when initializing robot in "
-				<< "NeatContainer::fillBrainHyperNEAT!" << std::endl;
-		return false;
-	}
 
-    RobotRepresentation::IdPartMap body = robotRepresentation->getBody();
-    boost::shared_ptr<NeuralNetworkRepresentation> brain =
-    		robotRepresentation->getBrain();
+	bool returnValue = false;
 
-    // For each body part, get its position then create an entry for every
-    // neuron by adding a 4th coordinate that is the neurons ioID.
+	// code block to protect object for ODE cleanup
+	// use for loop so can break out of it -- hack, I know
+	for(unsigned int useless = 0; useless < 1; ++useless) {
+		NEAT::NeuralNetwork net;
+	    genome->BuildPhenotype(net);
 
-#ifdef NEAT_DEBUG
-    std::cout << "POSITIONS: " << std::endl;
+	    typedef std::map<std::string, boost::weak_ptr<NeuronRepresentation> >
+	    	NeuronMap;
+
+		std::map<std::string, std::vector<double> > neuronToPositionMap;
+		NeuronMap neuronMap;
+
+		// FIRST NEED TO CREATE PHYSICAL ROBOT REP TO DETERMINE POSITIONS
+
+		// parse robot message
+		robogenMessage::Robot robotMessage = robotRepresentation->serialize();
+		// parse robot
+		boost::shared_ptr<Robot> robot(new Robot);
+
+		if (!robot->init(odeWorld, odeSpace, robotMessage)) {
+			std::cout << "Problem when initializing robot in "
+					<< "NeatContainer::fillBrainHyperNEAT!" << std::endl;
+			break;
+		}
+
+		RobotRepresentation::IdPartMap body = robotRepresentation->getBody();
+		boost::shared_ptr<NeuralNetworkRepresentation> brain =
+				robotRepresentation->getBrain();
+
+		// For each body part, get its position then create an entry for every
+		// neuron by adding a 4th coordinate that is the neurons ioID.
+
+#ifdef NEAT_CONTAINER_DEBUG
+		std::cout << "POSITIONS: " << std::endl;
 #endif
-    for(RobotRepresentation::IdPartMap::iterator i = body.begin();
-    		i != body.end(); i++) {
-    	std::string id = i->first;
-    	boost::shared_ptr<PartRepresentation> part = i->second.lock();
-    	std::vector<boost::weak_ptr<NeuronRepresentation> > neurons =
-    			brain->getBodyPartNeurons(part->getId());
-    	osg::Vec3 pos = robot->getBodyPart(id)->getRootPosition();
+		for(RobotRepresentation::IdPartMap::iterator i = body.begin();
+				i != body.end(); i++) {
+			std::string id = i->first;
+			boost::shared_ptr<PartRepresentation> part = i->second.lock();
+			std::vector<boost::weak_ptr<NeuronRepresentation> > neurons =
+					brain->getBodyPartNeurons(part->getId());
+			osg::Vec3 pos = robot->getBodyPart(id)->getRootPosition();
 
-
-    	for (unsigned int j = 0; j<neurons.size(); j++) {
-    		std::vector<double> position;
-    		position.push_back(pos.x() * 10.0); //roughly something in [-1,1]
-    		position.push_back(pos.y() * 10.0);
-    		//position.push_back(pos.z());
-    		float io = neurons[j].lock()->getIoPair().second;
-    		position.push_back((io/10.0));
-    		neuronToPositionMap[neurons[j].lock()->getId()] = position;
-    		neuronMap[neurons[j].lock()->getId()] = neurons[j];
-#ifdef NEAT_DEBUG
-    		for(unsigned int cv = 0; cv<position.size(); cv++) {
-    			std::cout << position[cv] << " ";
-    		}
-    		std::cout << std::endl;
+			for (unsigned int j = 0; j<neurons.size(); j++) {
+				std::vector<double> position;
+				position.push_back(pos.x() * 10.0); //roughly something in [-1,1]
+				position.push_back(pos.y() * 10.0);
+				//position.push_back(pos.z());
+				float io = neurons[j].lock()->getIoPair().second;
+				position.push_back((io/10.0));
+				neuronToPositionMap[neurons[j].lock()->getId()] = position;
+				neuronMap[neurons[j].lock()->getId()] = neurons[j];
+#ifdef NEAT_CONTAINER_DEBUG
+				for(unsigned int cv = 0; cv<position.size(); cv++) {
+					std::cout << position[cv] << " ";
+				}
+				std::cout << std::endl;
 #endif
-    	}
-#ifdef NEAT_DEBUG
-    	std::cout << std::endl;
+			}
+#ifdef NEAT_CONTAINER_DEBUG
+			std::cout << std::endl;
 #endif
-    }
+		}
 
-    // Now go through all neurons and query for weights and params with
-    // the obtained coordinates
-#ifdef NEAT_DEBUG
-    std::cout << "**************************";
+		// Now go through all neurons and query for weights and params with
+		// the obtained coordinates
+#ifdef NEAT_CONTAINER_DEBUG
+		std::cout << "**************************";
 #endif
-    for(NeuronMap::iterator i = neuronMap.begin(); i != neuronMap.end(); i++) {
-    	std::vector<double> positionI = neuronToPositionMap[i->first];
-    	boost::shared_ptr<NeuronRepresentation> neuronI = i->second.lock();
-    	for(NeuronMap::iterator j = neuronMap.begin(); j != neuronMap.end();
-    			j++) {
-    		std::vector<double> positionJ = neuronToPositionMap[j->first];
-    		boost::shared_ptr<NeuronRepresentation> neuronJ = j->second.lock();
 
-			if (brain->connectionExists(neuronI->getId(), neuronJ->getId())) {
-    			// only set weights on existing connections
+		for(NeuronMap::iterator i = neuronMap.begin(); i != neuronMap.end(); i++) {
+			std::vector<double> positionI = neuronToPositionMap[i->first];
+			boost::shared_ptr<NeuronRepresentation> neuronI = i->second.lock();
+			for(NeuronMap::iterator j = neuronMap.begin(); j != neuronMap.end();
+					j++) {
+				std::vector<double> positionJ = neuronToPositionMap[j->first];
+				boost::shared_ptr<NeuronRepresentation> neuronJ = j->second.lock();
+
+				if (brain->connectionExists(neuronI->getId(), neuronJ->getId())) {
+					// only set weights on existing connections
+
+					net.Flush();
+					std::vector<double> inputs;
+					for (unsigned int k = 0; k < positionI.size(); k++) {
+						inputs.push_back(positionI[k]);
+					}
+					for (unsigned int k = 0; k < positionJ.size(); k++) {
+						inputs.push_back(positionJ[k]);
+					}
+					inputs.push_back(1.0); //bias
+
+#ifdef NEAT_CONTAINER_DEBUG
+					std::cout << "INPUTS: ";
+					for (unsigned int cv = 0; cv < inputs.size(); cv++) {
+						std::cout << inputs[cv] << " ";
+					}
+					std::cout << std::endl;
+#endif
+					net.Input(inputs);
+					for(int t=0; t<10; t++) {
+						net.Activate();
+					}
+					std::vector<double> outputs = net.Output();
+
+#ifdef NEAT_CONTAINER_DEBUG
+					std::cout << "OUTPUTS: ";
+					for (unsigned int cv = 0; cv < outputs.size(); cv++) {
+						std::cout << outputs[cv] << " ";
+					}
+					std::cout << std::endl;
+#endif
+
+					if (outputs[0] < 0.5) {
+						// if first output is under threshold,
+						// connection "does not exist" according to genome so set
+						// weight to 0
+						brain->setWeight(neuronI->getIoPair(),
+								neuronJ->getIoPair(), 0.0);
+					} else {
+						// otherwise use the second output
+						// translate from [0,1] to [min, max]
+						double weight = outputs[1] * (evoConf_->maxBrainWeight -
+								evoConf_->minBrainWeight) +
+								evoConf_->minBrainWeight;
+						brain->setWeight(neuronI->getIoPair(),
+								neuronJ->getIoPair(), weight);
+					}
+				}
+			}
+
+#ifdef NEAT_CONTAINER_DEBUG
+    	std::cout << "done getting weights; now get params"<< std::endl;
+#endif
+
+
+			// now query for parameters
+			if (neuronI->getLayer() != NeuronRepresentation::INPUT) {
+				// input neurons don't have params
 				net.Flush();
 				std::vector<double> inputs;
 				for (unsigned int k = 0; k < positionI.size(); k++) {
 					inputs.push_back(positionI[k]);
 				}
-				for (unsigned int k = 0; k < positionJ.size(); k++) {
-					inputs.push_back(positionJ[k]);
+				for (unsigned int k = 0; k < positionI.size(); k++) {
+					inputs.push_back(0.0); // 0 for second set of coords
 				}
 				inputs.push_back(1.0); //bias
-
-#ifdef NEAT_DEBUG
-				std::cout << "INPUTS: ";
-				for (unsigned int cv = 0; cv < inputs.size(); cv++) {
-					std::cout << inputs[cv] << " ";
-				}
-				std::cout << std::endl;
-#endif
 				net.Input(inputs);
 				for(int t=0; t<10; t++) {
 					net.Activate();
 				}
 				std::vector<double> outputs = net.Output();
-
-#ifdef NEAT_DEBUG
-				std::cout << "OUTPUTS: ";
-				for (unsigned int cv = 0; cv < outputs.size(); cv++) {
-					std::cout << outputs[cv] << " ";
-				}
-				std::cout << std::endl;
-#endif
-
-				if (outputs[0] < 0.5) {
-					// if first output is under threshold,
-					// connection "does not exist" according to genome so set
-					// weight to 0
-					brain->setWeight(neuronI->getIoPair(),
-							neuronJ->getIoPair(), 0.0);
+				std::vector<double> params;
+				if(neuronI->getType() == NeuronRepresentation::SIGMOID ||
+						neuronI->getType() == NeuronRepresentation::CTRNN_SIGMOID){
+					// bias
+					params.push_back(outputs[2] * (evoConf_->maxBrainBias -
+							evoConf_->minBrainBias) + evoConf_->minBrainBias);
+					if(neuronI->getType() == NeuronRepresentation::CTRNN_SIGMOID) {
+						// tau
+						params.push_back(outputs[3] * (evoConf_->maxBrainTau -
+								evoConf_->minBrainTau) + evoConf_->minBrainTau);
+					}
+				} else if(neuronI->getType() == NeuronRepresentation::OSCILLATOR) {
+					// period
+					params.push_back( outputs[2] * (evoConf_->maxBrainPeriod -
+							evoConf_->minBrainPeriod) + evoConf_->minBrainPeriod);
+					// phase offset
+					params.push_back( outputs[3] * (evoConf_->maxBrainPhaseOffset -
+							evoConf_->minBrainPhaseOffset) +
+							evoConf_->minBrainPhaseOffset);
+					// amplitude
+					params.push_back( outputs[4] * (evoConf_->maxBrainAmplitude -
+							evoConf_->minBrainAmplitude) +
+							evoConf_->minBrainAmplitude);
 				} else {
-					// otherwise use the second output
-					// translate from [0,1] to [min, max]
-					double weight = outputs[1] * (evoConf_->maxBrainWeight -
-							evoConf_->minBrainWeight) +
-							evoConf_->minBrainWeight;
-					brain->setWeight(neuronI->getIoPair(),
-							neuronJ->getIoPair(), weight);
+					std::cout << "INVALID TYPE ENCOUNTERED " << neuronI->getType()
+							<< std::endl;
 				}
-    		}
-    	}
-#ifdef NEAT_DEBUG
-    	std::cout << "done getting weights; now get params"<< std::endl;
-#endif
-    	// now query for parameters
-    	if (neuronI->getLayer() != NeuronRepresentation::INPUT) {
-			// input neurons don't have params
-			net.Flush();
-			std::vector<double> inputs;
-			for (unsigned int k = 0; k < positionI.size(); k++) {
-				inputs.push_back(positionI[k]);
+				neuronI->setParams(params);
 			}
-			for (unsigned int k = 0; k < positionI.size(); k++) {
-				inputs.push_back(0.0); // 0 for second set of coords
-			}
-			inputs.push_back(1.0); //bias
-			net.Input(inputs);
-			for(int t=0; t<10; t++) {
-				net.Activate();
-			}
-			std::vector<double> outputs = net.Output();
-			std::vector<double> params;
-			if(neuronI->getType() == NeuronRepresentation::SIGMOID ||
-					neuronI->getType() == NeuronRepresentation::CTRNN_SIGMOID){
-				// bias
-				params.push_back(outputs[2] * (evoConf_->maxBrainBias -
-						evoConf_->minBrainBias) + evoConf_->minBrainBias);
-				if(neuronI->getType() == NeuronRepresentation::CTRNN_SIGMOID) {
-					// tau
-					params.push_back(outputs[3] * (evoConf_->maxBrainTau -
-							evoConf_->minBrainTau) + evoConf_->minBrainTau);
-				}
-			} else if(neuronI->getType() == NeuronRepresentation::OSCILLATOR) {
-				// period
-				params.push_back( outputs[2] * (evoConf_->maxBrainPeriod -
-						evoConf_->minBrainPeriod) + evoConf_->minBrainPeriod);
-				// phase offset
-				params.push_back( outputs[3] * (evoConf_->maxBrainPhaseOffset -
-						evoConf_->minBrainPhaseOffset) +
-						evoConf_->minBrainPhaseOffset);
-				// amplitude
-				params.push_back( outputs[4] * (evoConf_->maxBrainAmplitude -
-						evoConf_->minBrainAmplitude) +
-						evoConf_->minBrainAmplitude);
-			} else {
-				std::cout << "INVALID TYPE ENCOUNTERED " << neuronI->getType()
-						<< std::endl;
-			}
-			neuronI->setParams(params);
-    	}
-    }
-#ifdef NEAT_DEBUG
-    	std::cout << "done getting params"<< std::endl;
-#endif
-    return true;
+		}
+		returnValue = true;
+	}
+	// Destroy ODE space
+	dSpaceDestroy(odeSpace);
+
+	// Destroy ODE world
+	dWorldDestroy(odeWorld);
+
+	// Destroy the ODE engine
+	dCloseODE();
+
+	return returnValue;
 
 }
+
 
 bool NeatContainer::fillBrainNEAT(NEAT::Genome *genome,
 		boost::shared_ptr<RobotRepresentation> &robotRepresentation) {
-
 	typedef std::map<std::string, boost::weak_ptr<NeuronRepresentation> >
-    	NeuronMap;
-
-    NeuronMap neuronMap;
-
-    std::vector<double*> weights;
-    std::vector<double*> params;
-    std::vector<unsigned int> types;
-    robotRepresentation->getBrainGenome(weights, types, params);
-
-    for(unsigned int i = 0; i < weights.size(); i++) {
-    	*weights[i] = genome->GetLinkByIndex(i).GetWeight();
-    }
-
-    // get biases, assume they come after other links for now
-    for(unsigned int i = 0; i < params.size(); i++) {
-    	*params[i] = genome->GetLinkByIndex(i + weights.size()).GetWeight();
-    }
-    return true;
-
+		NeuronMap;
+	NeuronMap neuronMap;
+	std::vector<double*> weights;
+	std::vector<double*> params;
+	std::vector<unsigned int> types;
+	robotRepresentation->getBrainGenome(weights, types, params);
+	for(unsigned int i = 0; i < weights.size(); i++) {
+		*weights[i] = genome->GetLinkByIndex(i).GetWeight();
+	}
+	// get biases, assume they come after other links for now
+	for(unsigned int i = 0; i < params.size(); i++) {
+		*params[i] = genome->GetLinkByIndex(i + weights.size()).GetWeight();
+	}
+	return true;
 }
-
-
 
 } /* namespace robogen */

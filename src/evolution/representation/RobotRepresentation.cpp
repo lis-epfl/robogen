@@ -348,7 +348,7 @@ RobotRepresentation &RobotRepresentation::operator=(
 	return *this;
 }
 
-bool RobotRepresentation::init() {
+bool RobotRepresentation::init(bool continuousTime) {
 
 	// Generate a core component
 	boost::shared_ptr<PartRepresentation> corePart = PartRepresentation::create(
@@ -384,12 +384,13 @@ bool RobotRepresentation::init() {
 
 	}
 
-	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
+	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap,
+							continuousTime));
 
 	return true;
 }
 
-bool RobotRepresentation::init(std::string robotTextFile) {
+bool RobotRepresentation::init(std::string robotTextFile, bool continuousTime) {
 
 	// open file
 	std::ifstream file;
@@ -481,7 +482,8 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 
 	}
 
-	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
+	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap,
+								continuousTime));
 	unsigned int neuronType;
 	// add new neurons
 

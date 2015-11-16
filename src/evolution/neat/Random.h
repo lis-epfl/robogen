@@ -1,5 +1,5 @@
-#ifndef _RANDOM_H
-#define _RANDOM_H
+#ifndef _RANDOMNESS_HEADER_H
+#define _RANDOMNESS_HEADER_H
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //    MultiNEAT - Python/C++ NeuroEvolution of Augmenting Topologies Library
@@ -27,20 +27,27 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // File:        Random.h
-// Description: Declarations for some global functions dealing with random numbers.
+// Description: Declarations for a class dealing with random numbers.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <stdlib.h>
-#include <boost/random.hpp>
+#ifdef USE_BOOST_RANDOM
+    #include <boost/random.hpp>
+#else
+    #include <stdlib.h>
+#endif
 
-
+#include <vector>
+#include <limits>
 
 namespace NEAT
 {
 
 class RNG
 {
+    
+#ifdef USE_BOOST_RANDOM
     boost::random::mt19937 gen;
+#endif
 
 public:
     // Seeds the random number generator with this value
