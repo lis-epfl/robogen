@@ -482,13 +482,12 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// Destroy the ODE engine
 		dCloseODE();
 
-		if(constraintViolated)
-			return CONSTRAINT_VIOLATED;
-
-		if(onlyOnce) {
+		if(constraintViolated || onlyOnce) {
 			break;
 		}
 	}
+	if(constraintViolated)
+		return CONSTRAINT_VIOLATED;
 	return SIMULATION_SUCCESS;
 }
 
