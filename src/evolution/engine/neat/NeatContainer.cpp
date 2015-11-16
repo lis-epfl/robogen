@@ -292,29 +292,41 @@ std::vector<osg::Vec3> getNeighboringPositions(
 		std::string id) {
 
 	std::vector<osg::Vec3> positions;
-
-	// FIRST NEED TO CREATE PHYSICAL ROBOT REP TO DETERMINE POSITIONS
-
-	// parse robot message
-	robogenMessage::Robot robotMessage = robotRepresentation->serialize();
-	// parse robot
-	boost::shared_ptr<Robot> robot(new Robot);
 	// Initialize ODE
 	dInitODE();
 	dWorldID odeWorld = dWorldCreate();
 	dWorldSetGravity(odeWorld, 0, 0, 0);
 	dSpaceID odeSpace = dHashSpaceCreate(0);
-	if (!robot->init(odeWorld, odeSpace, robotMessage)) {
-		std::cout << "Problem when initializing robot in "
-				<< "NeatContainer::getNeighboringPositions" << std::endl;
-		return positions;
-	}
 
-	for (unsigned int i=0;
-			i<robotRepresentation->getBody().at(id).lock()->getArity();
-			i++) {
-		positions.push_back(robot->getBodyPart(id)->getSlotPosition(i));
+	// code block to protect object for ODE cleanup
+	{
+		// FIRST NEED TO CREATE PHYSICAL ROBOT REP TO DETERMINE POSITIONS
+
+		// parse robot message
+		robogenMessage::Robot robotMessage = robotRepresentation->serialize();
+		// parse robot
+		boost::shared_ptr<Robot> robot(new Robot);
+
+		if (!robot->init(odeWorld, odeSpace, robotMessage)) {
+			std::cout << "Problem when initializing robot in "
+					<< "NeatContainer::getNeighboringPositions" << std::endl;
+			return positions;
+		}
+
+		for (unsigned int i=0;
+				i<robotRepresentation->getBody().at(id).lock()->getArity();
+				i++) {
+			positions.push_back(robot->getBodyPart(id)->getSlotPosition(i));
+		}
 	}
+	// Destroy ODE space
+	dSpaceDestroy(odeSpace);
+
+	// Destroy ODE world
+	dWorldDestroy(odeWorld);
+
+	// Destroy the ODE engine
+	dCloseODE();
 
 	return positions;
 
