@@ -320,11 +320,13 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			if(!parseBounds(vm["tauBounds"].as<std::string>(), minBrainTau,
 					maxBrainTau))
 				return false;
-		} else {
-			std::cout << "Must supply tauBounds if using continuous time ANNs"
-					<< std::endl;
+		}
+
+		if (minBrainTau < 0) {
+			std::cout << "Tau cannot be less than 0" << std::endl;
 			return false;
 		}
+
 	}
 
 	if(vm.count("periodBounds") > 0) {
