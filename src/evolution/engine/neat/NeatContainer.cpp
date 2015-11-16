@@ -114,7 +114,9 @@ NeatContainer::~NeatContainer() {
 }
 
 bool NeatContainer::fillPopulation(boost::shared_ptr<Population> &population) {
-
+#ifdef NEAT_CONTAINER_DEBUG
+		std::cout << "Filling population..." << std::endl;
+#endif
 	population->clear();
 	for(NeatIdToGenomeMap::iterator i = neatIdToGenomeMap_.begin();
 			i != neatIdToGenomeMap_.end(); i++) {

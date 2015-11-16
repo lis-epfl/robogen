@@ -212,13 +212,16 @@ int main(int argc, char *argv[]) {
 			EvolverConfiguration::FT_NEAT || conf->evolutionaryAlgorithm ==
 			EvolverConfiguration::NEAT);
 
-	// if using HyperNEAT for bodies, than no need to grow here
-	if (neat && conf->neatMode == EvolverConfiguration::FULL_EVOLVER) {
-		growBodies = false;
-	}
 
-	if (!population->init(referenceBot, conf->mu, mutator, growBodies,
-			(!(conf->useBrainSeed || neat)) ) ) {
+	// if using HyperNEAT for bodies, then just want to fill population
+	// with clones
+	if (neat && conf->neatMode == EvolverConfiguration::FULL_EVOLVER) {
+		if (!population->init(referenceBot, conf->mu)) {
+			std::cerr << "Error when initializing population!" << std::endl;
+			exitRobogen(EXIT_FAILURE);
+		}
+	} else if (!population->init(referenceBot, conf->mu, mutator, growBodies,
+			(!(conf->useBrainSeed /*|| neat*/)) ) ) {
 		std::cerr << "Error when initializing population!" << std::endl;
 		exitRobogen(EXIT_FAILURE);
 	}

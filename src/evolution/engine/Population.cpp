@@ -47,6 +47,16 @@ Population::Population() :
 
 }
 
+bool Population::init(boost::shared_ptr<RobotRepresentation> robot,
+		int popSize) {
+	// fill population vector
+	for (int i = 0; i < popSize; i++) {
+		this->push_back(boost::shared_ptr<RobotRepresentation>(
+								new RobotRepresentation(*robot.get())));
+	}
+	return true;
+}
+
 bool Population::init(boost::shared_ptr<RobotRepresentation> robot, int popSize,
 		boost::shared_ptr<Mutator> mutator, bool growBodies,
 		bool randomizeBrains) {

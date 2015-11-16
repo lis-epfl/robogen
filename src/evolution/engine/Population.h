@@ -52,17 +52,25 @@ public:
 	Population();
 
 	/**
-	 * Initializes a population from a given robot body, keeping the body
-	 * constant, but randomly initializing the brain.
-	 * @param robot Reference robot body
+	 * Initializes a population from a given robot
+	 * @param robot Reference robot
 	 * @param popSize chosen size for population
-	 * @param mutator Mutator for possibly growing bodies randomly
+	 * @param mutator Mutator for possibly growing bodies randomly, randomizing
+	 * 					brains or mutating seed
 	 * @param growBodies bool whether we should grow bodies or not
 	 * @param randomizeBrains bool whether we should randomize brains or not
 	 */
 	bool init(boost::shared_ptr<RobotRepresentation> robot, int popSize,
 			boost::shared_ptr<Mutator> mutator, bool growBodies,
 			bool randomizeBrains);
+
+	/**
+	 * Initializes a population with clones of a given robot
+	 * @param robot Reference robot
+	 * @param popSize chosen size for population
+	 */
+
+	bool init(boost::shared_ptr<RobotRepresentation> robot, int popSize);
 
 	/**
 	 * Creates a population from the popSize best individuals of origin.
