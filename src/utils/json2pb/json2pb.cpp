@@ -313,5 +313,6 @@ std::string pb2json(const Message &msg) {
 	char * res = json_dumps(root, JSON_INDENT(1) | JSON_PRESERVE_ORDER);
 	std::string result(res);
 	free(res);
+	json_decref(root);
 	return result;
 }

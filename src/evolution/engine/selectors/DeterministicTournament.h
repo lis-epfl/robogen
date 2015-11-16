@@ -2,9 +2,10 @@
  * @(#) DeterministicTournament.h   1.0   Sep 10, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -53,12 +54,11 @@ public:
 	virtual void initPopulation(boost::shared_ptr<Population> pop);
 
 	/**
-	 * Selects two parents from a population
+	 * Selects a parent from a population
 	 * @param pop the old population
 	 * @return the new population
 	 */
-	virtual bool select(std::pair<boost::shared_ptr<RobotRepresentation>,
-			boost::shared_ptr<RobotRepresentation> > &selected);
+	virtual bool select(boost::shared_ptr<RobotRepresentation> &selected);
 
 private:
 	/**

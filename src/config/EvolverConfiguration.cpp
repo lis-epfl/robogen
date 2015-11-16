@@ -2,9 +2,10 @@
  * @(#) EvolverConfiguration.cpp   1.0   Sep 2, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -106,8 +107,12 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	minNumInitialParts = 2;
 	maxNumInitialParts = 10;
 
+	minBrainTau = 0.1;
+	maxBrainTau = 0.5;
+	brainTauSigma = 0.1;
 
 
+	pOscillatorNeuron = 0.0;
 
 	// DON'T AUTO-INDENT THE FOLLOWING ON ECLIPSE:
 	desc.add_options()
@@ -422,9 +427,6 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		return false;
 	}
 
-	if (vm.count("pOscillatorNeuron") == 0) {
-		pOscillatorNeuron = 0.0;
-	}
 
 	if (pOscillatorNeuron > 1. || pOscillatorNeuron < 0.) {
 		std::cout << "Oscillator neuron probability parameter " <<
@@ -663,13 +665,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			}
 		}
 
-
-
-
-
 	}
-
-
 
 
 
