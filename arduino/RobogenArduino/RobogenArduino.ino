@@ -62,9 +62,9 @@ THE SOFTWARE.
 
 // comment out to prevent serial communication
 #define USE_SERIAL
-#define USE_SERIAL1
+//#define USE_SERIAL1
 
-#define SENSOR_NOISE_LEVEL 0.1
+//#define SENSOR_NOISE_LEVEL 0.1
 //#define MOTOR_NOISE_LEVEL 0.0
 
 // uncomment to check memory usage
@@ -111,6 +111,8 @@ THE SOFTWARE.
 #define AUX1 (8)
 #define D7 (7)
 #define D4 (4)
+
+#define NONE (-1)
 
 //NeuralNetwork
 #include "NeuralNetwork.h"
@@ -188,29 +190,38 @@ void setup() {
   }
   
     /* Define the IR sensor pins as output*/
-    for(int i=0;i<NB_INPUTS;i++)
+
+   for(int i=0;i<NB_INPUTS;i++)
   {  
     // The pins are used to enable/disable the IR sensor for initialization. They are set to OUTPUT. 
     if(inputTab[i][1] == 3)
     {
       pinMode(inputTab[i][0], OUTPUT);
-      digitalWrite(inputTab[i][0], LOW);
+      digitalWrite(inputTab[i][0], LOW);//i++;
+            Serial.print("LOW ");
+            Serial.println(irIndices[i]);
     }
   }
-  delay(3000);
+  
+  delay(10);  
+  
   /* Initialize IR sensors : */
-  //set each one to HIGH in turn and change the address.
-  for(int i=0;i<NB_INPUTS;i++)
+  // Set each one to HIGH in turn and change the address.
+  // WARNING!!!!
+  // Do not put a sensor pin back to LOW, this will reinitialize 
+  // it and return the address to default 0x29
+for(int i=0;i<NB_INPUTS;i++)
   {
     if(inputTab[i][1] == 3) 
     {
-      Serial.print("Init IR sensor");
+      Serial.print("Init IR sensor ");
       Serial.println(irIndices[i]);
         for(int j=0;j<NB_INPUTS;j++){
           if(i==j){
             digitalWrite(inputTab[j][0],HIGH);
-          }
-            
+            Serial.print("HIGH ");
+            Serial.println(irIndices[j]);
+          } 
         }
         delay(10); // This is required to let the chip realise that it is enabled !!
   
@@ -229,6 +240,7 @@ void setup() {
     irSensors[irIndices[i]].changeAddress(0x29,sensorAdresses[irIndices[i]]);
     Serial.println(irSensors[irIndices[i]]._i2caddress);
     irSensors[irIndices[i]].VL6180xDefautSettings(); //Load default settings to get started.
+    //i++;
     }
   }
 
@@ -237,7 +249,7 @@ void setup() {
   {
     if(inputTab[i][1] == 3)
     {
-      irSensors[irIndices[i]].VL6180xReadjustParameters(); // Readjust the parameters of the sensors
+      irSensors[irIndices[i]].VL6180xReadjustParameters();//i++; // Readjust the parameters of the sensors
     }
   }
   
@@ -251,7 +263,6 @@ void setup() {
       myservo[i].write(90 + servoOffsets[i]);    
   } 
   
-  delay(4000);  
 
   /* initialize acceleromoter and gyroscope */
   #ifdef USE_SERIAL
@@ -426,6 +437,18 @@ void loop() {
       startTime = millis();
     }
     t = millis();
+
+    /* launch IR sensor measure */
+  for(int i=0;i<NB_INPUTS;i++)
+    {
+      if(inputTab[i][1] == 3) 
+      {
+        //irSensors[irIndices[i]].VL6180xReadjustParameters2(); // Readjust the parameters of the sensor
+        irSensors[irIndices[i]].setSingleRange();//i++;
+        //Serial.print("indices ");
+        //Serial.println(irIndices[i]);
+      }
+    }
     
     /* read sensors */
   for(int i=0;i<NB_INPUTS;i++)
@@ -469,11 +492,17 @@ void loop() {
         networkInput[i] = imu.scaledGyro[2]; 
       }
       else if(inputTab[i][1]==3) // Type is IR sensor 
-      //FOR NOW IT ONLY GETS DISTANCE. FOR LIGHT SENSING, SOME CHANGES ARE NECESSARY.
+      // 
       {
-        networkInput[i] = 1.0 - (irSensors[irIndices[i]].getDistance()/255.0);
+        //irSensors[irIndices[i]].setSingleShot();
+        int distance = irSensors[irIndices[i]].getDistance2();
+        Serial.print("\t R ");
+        Serial.print(distance);
+        networkInput[i] = 1.0 - (distance/255.0); //i++;
+        networkInput[i] = 0.0; // give light value in [0,1]
       }
     }
+  Serial.println();
     
     // add noise
     #ifdef SENSOR_NOISE_LEVEL
