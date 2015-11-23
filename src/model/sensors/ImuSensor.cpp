@@ -82,7 +82,7 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	attitude_ = attitude;
 	dAttitude.getRotate(angle, rotaxis);
 	rotaxis.normalize(); // should be the case, but let's be safe
-	rotVelocity_ = rotaxis * angle / timeElapsed;
+
 
 	/*
 	 * We were having problems with sign switches in the quaternions
@@ -94,6 +94,8 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	while (angle > M_PI) {
 		angle -= (2*M_PI);
 	}
+
+	rotVelocity_ = rotaxis * angle / timeElapsed;
 
 
 	// =======================
