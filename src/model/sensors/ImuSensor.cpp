@@ -95,6 +95,10 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 		angle -= (2*M_PI);
 	}
 
+	while (angle < (-M_PI)) {
+		angle += (2*M_PI);
+	}
+
 	rotVelocity_ = rotaxis * angle / timeElapsed;
 
 
