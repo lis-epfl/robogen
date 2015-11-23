@@ -84,6 +84,18 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	rotaxis.normalize(); // should be the case, but let's be safe
 	rotVelocity_ = rotaxis * angle / timeElapsed;
 
+	/*
+	 * We were having problems with sign switches in the quaternions
+	 * leading to thinking that we had huge changes of orientations
+	 * So we just assume that we never are rotating more than PI radians
+	 * in one time step, and adjust the angle accordingly
+	 */
+
+	while (angle > M_PI) {
+		angle -= (2*M_PI);
+	}
+
+
 	// =======================
 	// 2. create unit vectors for IMU reference system
 	// =======================
