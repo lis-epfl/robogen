@@ -2,9 +2,10 @@
  * @(#) BodyCallback.cpp   1.0   Feb 9, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -43,8 +44,8 @@ void BodyCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
    osg::ref_ptr<osg::PositionAttitudeTransform> pat =
          node->asTransform()->asPositionAttitudeTransform();
 
-   pat->setAttitude(model_->getBodyAttitude(bodyId_));
-   pat->setPosition(fromOde(model_->getBodyPosition(bodyId_)));
+   pat->setAttitude(model_.lock()->getBodyAttitude(bodyId_));
+   pat->setPosition(fromOde(model_.lock()->getBodyPosition(bodyId_)));
 
    traverse(node, nv);
 }

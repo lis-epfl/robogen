@@ -127,7 +127,7 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 	float actuation_period_ms = config.getActuationPeriod() *
 			config.getTimeStepLength() * 1000.0;
 
-	file << "#define ACTUATION_PERIOD "  << ((int) actuation_period_ms)
+	file << "#define ACTUATION_PERIOD "  << ((int) round(actuation_period_ms))
 			<< std::endl << std::endl;
 
 	file << "/* double dimension Tab" << std::endl;

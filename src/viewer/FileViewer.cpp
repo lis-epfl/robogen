@@ -466,7 +466,7 @@ int main(int argc, char *argv[]) {
 	// Compute fitness
 	// ---------------------------------------
 	double fitness;
-	if (simulationResult == ACCELERATION_CAP_EXCEEDED) {
+	if (simulationResult == CONSTRAINT_VIOLATED) {
 		fitness = MIN_FITNESS;
 	} else {
 		fitness = scenario->getFitness();

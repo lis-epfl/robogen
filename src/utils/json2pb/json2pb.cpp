@@ -7,7 +7,6 @@
 
 #include <errno.h>
 #include <jansson.h>
-#include <iostream>
 
 #include <google/protobuf/message.h>
 #include <google/protobuf/descriptor.h>
@@ -303,16 +302,17 @@ void json2pb(Message &msg, const char *buf, size_t size) {
 	_json2pb(msg, root);
 }
 
-int json_dump_std_string(const char *buf, size_t size, void *data) {
-	std::string *s = (std::string *) data;
-	s->append(buf, size);
-	return 0;
-}
-
 std::string pb2json(const Message &msg) {
-	std::string r;
+	/* replaced Pavel's method with the following since we were having a
+	 	 problem with callback not getting called from js
+	*/
+
 
 	json_t *root = _pb2json(msg);
-	json_dump_callback(root, json_dump_std_string, &r, JSON_INDENT(1));
-	return r;
+
+	char * res = json_dumps(root, JSON_INDENT(1) | JSON_PRESERVE_ORDER);
+	std::string result(res);
+	free(res);
+	json_decref(root);
+	return result;
 }

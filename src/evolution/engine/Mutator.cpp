@@ -3,9 +3,10 @@
  *
  * Titus Cieslewski (dev@titus-c.ch)
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2015 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -66,6 +67,8 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 				boost::random::bernoulli_distribution<double>(
 						conf->bodyOperatorProbability
 						[EvolverConfiguration::PARAMETER_MODIFICATION]);
+		oscillatorNeuronDist_ = boost::random::bernoulli_distribution<double>(
+				conf->pOscillatorNeuron);
 	}
 
 }
@@ -73,24 +76,30 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 Mutator::~Mutator() {
 }
 
-boost::shared_ptr<RobotRepresentation> Mutator::mutate(
-		boost::shared_ptr<RobotRepresentation> parent1,
-		boost::shared_ptr<RobotRepresentation> parent2) {
+std::vector<boost::shared_ptr<RobotRepresentation> > Mutator::createOffspring(
+			boost::shared_ptr<RobotRepresentation> parent1,
+			boost::shared_ptr<RobotRepresentation> parent2) {
 
-	boost::shared_ptr<RobotRepresentation> offspring1 = boost::shared_ptr<
-			RobotRepresentation>(new RobotRepresentation(*parent1.get()));
-	boost::shared_ptr<RobotRepresentation> offspring2 = boost::shared_ptr<
-			RobotRepresentation>(new RobotRepresentation(*parent2.get()));
+	std::vector<boost::shared_ptr<RobotRepresentation> > offspring;
+
+	offspring.push_back(boost::shared_ptr<RobotRepresentation>(new
+			RobotRepresentation(*parent1.get())));
+
 
 	// only allow crossover if doing just brain mutation
-	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER) {
-		this->crossover(offspring1, offspring2);
+	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
+			&& parent2) {
+		offspring.push_back(boost::shared_ptr<RobotRepresentation>(new
+				RobotRepresentation(*parent2.get())));
+		this->crossover(offspring[0], offspring[1]);
 	}
 
 	// Mutate
-	this->mutate(offspring1);
+	for(size_t i = 0; i < offspring.size(); ++i) {
+		this->mutate(offspring[i]);
+	}
 
-	return offspring1;
+	return offspring;
 }
 
 void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
@@ -237,7 +246,7 @@ bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 				mutated = true;
 				*params[paramCounter+1] += (normalDistribution_(rng_) *
 						conf_->brainTauSigma);
-				*params[paramCounter+1] = clip(*params[paramCounter],
+				*params[paramCounter+1] = clip(*params[paramCounter+1],
 						conf_->minBrainTau, conf_->maxBrainTau);
 			}
 			paramCounter += 2;
@@ -253,14 +262,14 @@ bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 				mutated = true;
 				*params[paramCounter+1] += (normalDistribution_(rng_) *
 						conf_->brainPhaseOffsetSigma);
-				*params[paramCounter+1] = clip(*params[paramCounter],
+				*params[paramCounter+1] = clip(*params[paramCounter+1],
 						conf_->minBrainPhaseOffset, conf_->maxBrainPhaseOffset);
 			}
 			if (brainMutate_(rng_)) {
 				mutated = true;
 				*params[paramCounter+2] += (normalDistribution_(rng_) *
 						conf_->brainAmplitudeSigma);
-				*params[paramCounter+2] = clip(*params[paramCounter],
+				*params[paramCounter+2] = clip(*params[paramCounter+2],
 						conf_->minBrainAmplitude, conf_->maxBrainAmplitude);
 			}
 			paramCounter += 3;
@@ -291,11 +300,26 @@ bool Mutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
 	b->getBrainGenome(weights[1], types[1], params[1]);
 
 	// 2. select crossover point
-	unsigned int maxpoint = weights[0].size() + params[0].size() - 1;
-	if (maxpoint != weights[1].size() + params[1].size() - 1) {
+	unsigned int genomeSizeA = weights[0].size() + params[0].size();
+	unsigned int genomeSizeB = weights[1].size() + params[1].size();
+	if (genomeSizeA != genomeSizeB) {
 		//TODO error handling, TODO what if sum same, but not parts?
-		std::cout << "Genomes not of same size!" << std::endl;
+		std::cout << "Genomes not of same size! " << genomeSizeA << " " <<
+				genomeSizeB << std::endl;
+
+		std::cout << a->getBrain()->toString() << std::endl << std::endl;
+		std::cout << b->getBrain()->toString() << std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
+
+	if (genomeSizeA < 2) {
+		//nothing to crossover
+		return false;
+	}
+
+	unsigned int maxpoint = genomeSizeA - 1;
+
+
 	boost::random::uniform_int_distribution<unsigned int> pointSel(1, maxpoint);
 	int selectedPoint = pointSel(rng_);
 
@@ -577,7 +601,8 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 	// there were previously parts attached to the parent's chosen slot
 
 	return robot->insertPart(parent->first, parentSlot, newPart, newPartSlot,
-							 NeuronRepresentation::SIGMOID);
+			oscillatorNeuronDist_(rng_) ? NeuronRepresentation::OSCILLATOR :
+					NeuronRepresentation::SIGMOID); //todo other types?
 
 }
 

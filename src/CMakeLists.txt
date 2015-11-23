@@ -227,11 +227,7 @@ else()
 		arduino/*.cpp
 		brain/*.c
 		config/*.cpp
-		evolution/engine/*.cpp
-		evolution/engine/neat/*.cpp
-		evolution/neat/*.cpp
-		evolution/representation/*.cpp
-		evolution/representation/parts/*.cpp
+		evolution/*.cpp
 		model/*.cpp
 		printing/*.cpp
 		render/*.cpp
