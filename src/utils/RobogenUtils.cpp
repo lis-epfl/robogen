@@ -485,17 +485,28 @@ typedef std::map<TypeAndId, osg::Quat> RelativeAttitudeMap;
 
 ModelMeshMap initModelMeshMap() {
 	ModelMeshMap modelMeshMap;
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
+#ifdef ALLOW_CARDANS
 	// ActiveCardan
 	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
 			static_cast<unsigned int>(ActiveCardanModel::B_SLOT_A_ID))]
-	= "ActiveCardanHinge_Servo_Holder.stl";
+	             = "ActiveCardanHinge_Servo_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
 			static_cast<unsigned int>(ActiveCardanModel::B_SLOT_A_ID))]
-	= "ActiveCardanHinge_Servo_Holder.stl";
+	             = "ActiveCardanHinge_Servo_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
 			static_cast<unsigned int>(ActiveCardanModel::B_CROSS_PART_A_ID))]
-	= "ActiveCardan_CrossShaft.stl";
+	             = "ActiveCardan_CrossShaft.stl";
+	// Cardan
+	modelMeshMap[std::make_pair(&typeid(CardanModel),
+			static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
+	             = "PassiveCardan_Frame.stl";
+	modelMeshMap[std::make_pair(&typeid(CardanModel),
+			static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
+	             = "PassiveCardan_Frame.stl";
+	// the callback for this works a little differently though!
+	modelMeshMap[std::make_pair(&typeid(CardanModel),
+			static_cast<unsigned int>(CardanModel::B_CONNECTION_A_ID))]
+	             = "PassiveCardan_Cross.stl";
 #endif
 	// ActiveHinge
 	modelMeshMap[std::make_pair(&typeid(ActiveHingeModel),
@@ -508,30 +519,34 @@ ModelMeshMap initModelMeshMap() {
 	// Active Wheel
 	modelMeshMap[std::make_pair(&typeid(ActiveWheelModel),
 			static_cast<unsigned int>(ActiveWheelModel::B_SLOT_ID))]
-	= "ActiveRotation_Motor_Holder.stl";
+	             = "ActiveRotation_Motor_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveWheelModel),
 			static_cast<unsigned int>(ActiveWheelModel::B_WHEEL_ID))]
-	= "ActiveRotation_Wheel.stl";
+	             = "ActiveRotation_Wheel.stl";
 
 	// Active Wheg
 	modelMeshMap[std::make_pair(&typeid(ActiveWhegModel),
 			static_cast<unsigned int>(ActiveWhegModel::B_SLOT_ID))]
-	= "ActiveRotation_Motor_Holder.stl";
+	             = "ActiveRotation_Motor_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveWhegModel),
 			static_cast<unsigned int>(ActiveWhegModel::B_WHEG_BASE))]
-	= "ActiveRotation_Wheg.stl";
+	             = "ActiveRotation_Wheg.stl";
 
-	// Cardan
-	modelMeshMap[std::make_pair(&typeid(CardanModel),
-			static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
-	= "PassiveCardan_Frame.stl";
-	modelMeshMap[std::make_pair(&typeid(CardanModel),
-			static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
-	= "PassiveCardan_Frame.stl";
-	// the callback for this works a little differently though!
-	modelMeshMap[std::make_pair(&typeid(CardanModel),
-			static_cast<unsigned int>(CardanModel::B_CONNECTION_A_ID))]
-	= "PassiveCardan_Cross.stl";
+	// Passive Wheel
+	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
+			static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))]
+	             = "PassiveRotation_Frame.stl";
+	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
+			static_cast<unsigned int>(PassiveWheelModel::B_WHEEL_ID))]
+	             = "PassiveRotation_Wheel.stl";
+
+	// Rotate Joint
+	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
+			static_cast<unsigned int>(RotateJointModel::B_SLOT_ID))]
+	             = "ActiveRotation_Motor_Holder.stl";
+	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
+			static_cast<unsigned int>(RotateJointModel::B_JOINT_CONNECTION_ID))]
+	             = "ActiveRotation_Connection.stl";
 #endif
 	// Core
 	modelMeshMap[std::make_pair(&typeid(CoreComponentModel),
@@ -547,23 +562,7 @@ ModelMeshMap initModelMeshMap() {
 			"PassiveHinge.stl";
 
 	// Parametric has no stl files for now
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
-	// Passive Wheel
-	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
-			static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))]
-	= "PassiveRotation_Frame.stl";
-	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
-			static_cast<unsigned int>(PassiveWheelModel::B_WHEEL_ID))]
-	= "PassiveRotation_Wheel.stl";
 
-	// Rotate Joint
-	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
-			static_cast<unsigned int>(RotateJointModel::B_SLOT_ID))]
-	= "ActiveRotation_Motor_Holder.stl";
-	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
-			static_cast<unsigned int>(RotateJointModel::B_JOINT_CONNECTION_ID))]
-	= "ActiveRotation_Connection.stl";
-#endif
 	// Touch Sensor
 	modelMeshMap[std::make_pair(&typeid(TouchSensorModel),
 			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))] =
@@ -579,8 +578,10 @@ ModelMeshMap initModelMeshMap() {
 
 RelativePositionMap initRelativePositionMap() {
 	RelativePositionMap relativePositionMap;
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
+#ifdef ALLOW_CARDANS
 	// TODO ActiveCardan
+
+	// TODO Cardan
 #endif
 	// ActiveHinge
 
@@ -603,11 +604,35 @@ RelativePositionMap initRelativePositionMap() {
 			fromOde(osg::Vec3(-(ActiveHingeModel::SERVO_LENGTH) / 2,
 					-2 * ActiveHingeModel::SERVO_POSITION_OFFSET, 0));
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
-	// TODO Active Wheel
+	// Active Wheel
+
+	// x = 0 is midpoint of slot, so  -SLOT_THICKNESS/2 is edge of motor
+	// and motor is (SERVO_LENGTH + SLOT_THICKNESS) long
+	// so (SERVO_LENGTH + SLOT_THICKNESS)/2 -SLOT_THICKNESS/2 =
+	// SERVOR_LENGTH/2
+	relativePositionMap[std::make_pair(&typeid(ActiveWheelModel),
+				static_cast<unsigned int>(ActiveWheelModel::B_SLOT_ID))] =
+	         fromOde(osg::Vec3(ActiveWheelModel::SERVO_LENGTH/2,
+	            		   0,0));
+
+	// x=0 is midpoint of wheel, but need to account for attachment part
+	// (WHEEL_ATTACHMENT_THICKNESS + WHEEL_THICKNESS) - WHEEL_THICKNESS/2
+	relativePositionMap[std::make_pair(&typeid(ActiveWheelModel),
+				static_cast<unsigned int>(ActiveWheelModel::B_WHEEL_ID))] =
+			fromOde(osg::Vec3(0,
+					0, ActiveWheelModel::WHEEL_ATTACHMENT_THICKNESS/2));
+
 
 	// TODO Active Wheg
 
-	// TODO Cardan
+	// TODO Passive Wheel
+	relativePositionMap[std::make_pair(&typeid(PassiveWheelModel),
+				static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))] =
+			fromOde(osg::Vec3(PassiveWheelModel::AXEL_LENGTH/2,
+									   0,0));
+
+	// TODO Rotate Joint
+
 #endif
 	// Core needs no position offset
 
@@ -620,11 +645,7 @@ RelativePositionMap initRelativePositionMap() {
 			osg::Vec3(-(HingeModel::CONNNECTION_PART_LENGTH / 2), 0, 0));
 
 	// Parametric has no stl files for now
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
-	// TODO Passive Wheel
 
-	// TODO Rotate Joint
-#endif
 	// Touch Sensor
 
 	// x = 0 is midpoint of base, so  -SENSOR_BASE_THICKNESS/2 is edge of base
@@ -657,8 +678,10 @@ RelativePositionMap initRelativePositionMap() {
 
 RelativeAttitudeMap initRelativeAttitudeMap() {
 	RelativeAttitudeMap relativeAttitudeMap;
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
+#ifdef ALLOW_CARDANS
 	// TODO ActiveCardan
+
+	// TODO Cardan
 #endif
 	// ActiveHinge
 
@@ -671,11 +694,25 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 			osg::Quat(osg::inDegrees(270.0), osg::Vec3(1, 0, 0));
 
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
-	// TODO Active Wheel
+	// Active Wheel
+	relativeAttitudeMap[std::make_pair(&typeid(ActiveWheelModel),
+			static_cast<unsigned int>(ActiveWheelModel::B_SLOT_ID))] =
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
+
+	relativeAttitudeMap[std::make_pair(&typeid(ActiveWheelModel),
+			static_cast<unsigned int>(ActiveWheelModel::B_WHEEL_ID))] =
+			osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 0, 1)) *
+			osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0));
 
 	// TODO Active Wheg
 
-	// TODO Cardan
+	// Passive Wheel
+	relativeAttitudeMap[std::make_pair(&typeid(PassiveWheelModel),
+			static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))] =
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
+
+
+	// TODO Rotate Joint
 #endif
 	// Core
 
@@ -698,11 +735,6 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 			static_cast<unsigned int>(ParametricBrickModel::B_CYLINDER_ID))] =
 			osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
 
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
-	// TODO Passive Wheel
-
-	// TODO Rotate Joint
-#endif
 	// Touch Sensor
 	relativeAttitudeMap[std::make_pair(&typeid(TouchSensorModel),
 			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))] =

@@ -30,14 +30,18 @@
 
 namespace robogen {
 
-const float PassiveWheelModel::MASS_SLOT = inGrams(2.5);
+const float PassiveWheelModel::MASS_SLOT = inGrams(2);
+const float PassiveWheelModel::MASS_AXEL = inGrams(2); //TODO verify
 const float PassiveWheelModel::MASS_WHEEL = inGrams(4);
 
 const float PassiveWheelModel::SLOT_WIDTH = inMm(34);
-const float PassiveWheelModel::SLOT_THICKNESS = inMm(10.75);
-const float PassiveWheelModel::SLOT_CONNECTION_THICKNESS = inMm(1.5);
-const float PassiveWheelModel::SLOT_WHEEL_OFFSET = inMm(7.5);
+const float PassiveWheelModel::SLOT_THICKNESS = inMm(1.5);
+
 const float PassiveWheelModel::WHEEL_THICKNESS = inMm(3);
+const float PassiveWheelModel::WHEEL_AXEL_OFFSET = inMm(4.625);
+
+const float PassiveWheelModel::AXEL_RADIUS = inMm(5);
+const float PassiveWheelModel::AXEL_LENGTH = inMm(9.25);
 
 PassiveWheelModel::PassiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace,
       std::string id, float radius) :
@@ -62,8 +66,13 @@ bool PassiveWheelModel::initModel() {
    wheelRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
          SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_ID);
 
-   dReal xWheel = SLOT_THICKNESS/2 - (SLOT_THICKNESS +
-		   SLOT_CONNECTION_THICKNESS - SLOT_WHEEL_OFFSET);
+   dReal xAxel =  SLOT_THICKNESS / 2 + AXEL_LENGTH / 2;
+
+   boost::shared_ptr<SimpleBody> axel = this->addCylinder(MASS_AXEL,
+   		   osg::Vec3(xAxel, 0, 0), 1,
+   		   AXEL_RADIUS, AXEL_LENGTH, B_AXEL_ID);
+
+   dReal xWheel = SLOT_THICKNESS/2  + WHEEL_AXEL_OFFSET;;
 
    boost::shared_ptr<SimpleBody> wheel = this->addCylinder(MASS_WHEEL,
 		   osg::Vec3(xWheel, 0, 0), 1,
@@ -71,8 +80,9 @@ bool PassiveWheelModel::initModel() {
 
    // Create joints to hold pieces in position
 
-   // slot <(hinge)> wheel
-   this->attachWithHinge(wheelRoot_, wheel, osg::Vec3( 1, 0, 0),
+   this->fixBodies(wheelRoot_, axel);
+
+   this->attachWithHinge(axel, wheel, osg::Vec3( 1, 0, 0),
 		   osg::Vec3(xWheel, 0, 0) );
 
    return true;
