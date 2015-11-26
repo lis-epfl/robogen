@@ -42,16 +42,21 @@ public:
 
    static const float MASS_SLOT;
    static const float MASS_WHEEL;
+   static const float MASS_AXEL;
+
    static const float SLOT_WIDTH;
    static const float SLOT_THICKNESS;
-   static const float SLOT_WHEEL_OFFSET;
-   static const float SLOT_CONNECTION_THICKNESS;
+
+   static const float WHEEL_AXEL_OFFSET;
    static const float WHEEL_THICKNESS;
 
-   static const unsigned int SLOT_A = 0;
+   static const float AXEL_RADIUS;
+   static const float AXEL_LENGTH;
+
 
    static const unsigned int B_SLOT_ID = 0;
    static const unsigned int B_WHEEL_ID = 1;
+   static const unsigned int B_AXEL_ID = 2;
 
    PassiveWheelModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id,
 		   float radius);
