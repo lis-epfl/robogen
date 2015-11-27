@@ -19,6 +19,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 # Pass source dir to preprocessor
 add_definitions(-DSOURCE_DIR=${CMAKE_SOURCE_DIR})
 
+# Tell NEAT to use boost random
+add_definitions(-DUSE_BOOST_RANDOM)
+
 if(TARGET_JS) 
 	# macro to find subdirectories
 	MACRO(SUBDIRLIST result curdir)

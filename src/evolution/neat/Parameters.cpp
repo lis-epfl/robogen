@@ -68,7 +68,7 @@ void Parameters::Reset()
     // there will be more chances the same individual to mutate in different ways.
     // The drawback is greatly increased time for reproduction. If you want to
     // search quickly, yet less efficient, leave this to true.
-    AllowClones = false;
+    AllowClones = true;
 
 
 
@@ -107,22 +107,22 @@ void Parameters::Reset()
     KillWorstAge = 10;
 
     // Percent of best individuals that are allowed to reproduce. 1.0 = 100%
-    SurvivalRate = 0.25;
+    SurvivalRate = 0.2;
 
     // Probability for a baby to result from sexual reproduction (crossover/mating). 1.0 = 100%
     // If asexual reprodiction is chosen, the baby will be mutated 100%
-    CrossoverRate = 0.75;
+    CrossoverRate = 0.7;
 
     // If a baby results from sexual reproduction, this probability determines if mutation will
     // be performed after crossover. 1.0 = 100% (always mutate after crossover)
     OverallMutationRate = 0.25;
 
     // Probability for a baby to result from inter-species mating.
-    InterspeciesCrossoverRate = 0.001;
+    InterspeciesCrossoverRate = 0.0001;
 
     // Probability for a baby to result from Multipoint Crossover when mating. 1.0 = 100%
     // The default is the Average mating.
-    MultipointCrossoverRate = 0.5;
+    MultipointCrossoverRate = 0.75;
 
     // Performing roulette wheel selection or not?
     RouletteWheelSelection = false;
@@ -205,14 +205,14 @@ void Parameters::Reset()
     SplitLoopedRecurrent = true;
 
     // Probability for a baby to be mutated with the Add-Link mutation
-    MutateAddLinkProb = 0.07;
+    MutateAddLinkProb = 0.03;
 
     // Probability for a new incoming link to be from the bias neuron;
     // This enforces it. A value of 0.0 doesn't mean there will not be such links
     MutateAddLinkFromBiasProb = 0.0;
 
     // Probability for a baby to be mutated with the Remove-Link mutation
-    MutateRemLinkProb = 0.01;
+    MutateRemLinkProb = 0.0;
 
     // Probability for a baby that a simple neuron will be replaced with a link
     MutateRemSimpleNeuronProb = 0.0;
@@ -238,7 +238,7 @@ void Parameters::Reset()
     MutateWeightsProb = 0.90;
 
     // Probability for a severe (shaking) weight mutation
-    MutateWeightsSevereProb = 0.5;
+    MutateWeightsSevereProb = 0.25;
 
     // Probability for a particular gene's weight to be mutated. 1.0 = 100%
     WeightMutationRate = 1.0;
@@ -312,9 +312,9 @@ void Parameters::Reset()
     ActivationFunction_Abs_Prob = 0.0;
     ActivationFunction_SignedSine_Prob = 0.0;
     ActivationFunction_UnsignedSine_Prob = 0.0;
-    ActivationFunction_SignedSquare_Prob = 0.0;
-    ActivationFunction_UnsignedSquare_Prob = 0.0;
     ActivationFunction_Linear_Prob = 0.0;
+    ActivationFunction_Relu_Prob = 0.0;
+    ActivationFunction_Softplus_Prob = 0.0;
 
 
 
@@ -330,7 +330,7 @@ void Parameters::Reset()
     ExcessCoeff = 1.0;
 
     // Average weight difference importance
-    WeightDiffCoeff = 1.5;
+    WeightDiffCoeff = 0.5;
 
     // Node-specific activation parameter A difference importance
     ActivationADiffCoeff = 0.0;
@@ -363,6 +363,54 @@ void Parameters::Reset()
     // Per how many evaluations to change the treshold
     // (used in steady state mode)
     CompatTreshChangeInterval_Evaluations = 10;
+
+
+    DivisionThreshold = 0.03;
+
+    VarianceThreshold = 0.03;
+
+    // Used for Band prunning.
+    BandThreshold = 0.3;
+
+    // Max and Min Depths of the quadtree
+    InitialDepth = 3;
+
+    MaxDepth = 3;
+
+    // How many hidden layers before connecting nodes to output. At 0 there is
+    // one hidden layer. At 1, there are two and so on.
+    IterationLevel = 1;
+
+    // The Bias value for the CPPN queries.
+    CPPN_Bias = -1;
+
+    // Quadtree Dimensions
+    // The range of the tree. Typically set to 2,
+    Width = 2.0;
+
+    Height = 2.0;
+
+    // The (x, y) coordinates of the tree
+    Qtree_X = 0.0;
+
+    Qtree_Y = 0.0;
+
+    // Use Link Expression output
+    Leo = false;
+
+    // Threshold above which a connection is expressed
+    LeoThreshold = 0.1;
+
+    // Use geometric seeding. Currently only along the X axis. 1
+    LeoSeed = false;
+
+    GeometrySeed = false;
+
+    // Binary tournament selection
+    TournamentSize = 2; 
+
+    Elitism = 0.1;
+
 }
 Parameters::Parameters()
 {
@@ -377,16 +425,10 @@ int Parameters::Load(std::ifstream& a_DataFile)
     {
         a_DataFile >> s;
     }
-    while (s != "NEAT_ParametersStart" && !a_DataFile.eof());
-
-    if(a_DataFile.eof())
-    	return(-1);
+    while (s != "NEAT_ParametersStart");
 
     while(s != "NEAT_ParametersEnd")
     {
-    	if(a_DataFile.eof()) {
-    		return(-1);
-    	}
         a_DataFile >> s;
 
         if (s == "PopulationSize")
@@ -675,12 +717,12 @@ int Parameters::Load(std::ifstream& a_DataFile)
             a_DataFile >> ActivationFunction_SignedSine_Prob;
         if (s == "ActivationFunction_UnsignedSine_Prob")
             a_DataFile >> ActivationFunction_UnsignedSine_Prob;
-        if (s == "ActivationFunction_SignedSquare_Prob")
-            a_DataFile >> ActivationFunction_SignedSquare_Prob;
-        if (s == "ActivationFunction_UnsignedSquare_Prob")
-            a_DataFile >> ActivationFunction_UnsignedSquare_Prob;
         if (s == "ActivationFunction_Linear_Prob")
             a_DataFile >> ActivationFunction_Linear_Prob;
+        if (s == "ActivationFunction_Relu_Prob")
+            a_DataFile >> ActivationFunction_Relu_Prob;
+        if (s == "ActivationFunction_Softplus_Prob")
+            a_DataFile >> ActivationFunction_Softplus_Prob;
 
         if (s == "DisjointCoeff")
             a_DataFile >> DisjointCoeff;
@@ -720,6 +762,73 @@ int Parameters::Load(std::ifstream& a_DataFile)
 
         if (s == "CompatTreshChangeInterval_Evaluations")
             a_DataFile >> CompatTreshChangeInterval_Evaluations;
+
+        if (s == "DivisionThreshold")
+            a_DataFile >> DivisionThreshold;
+
+        if (s == "VarianceThreshold")
+            a_DataFile >> VarianceThreshold;
+
+        if (s == "BandThreshold")
+            a_DataFile >> BandThreshold;
+
+        if (s == "InitialDepth")
+            a_DataFile >> InitialDepth;
+
+        if (s == "MaxDepth")
+            a_DataFile >> MaxDepth;
+
+        if (s == "IterationLevel")
+            a_DataFile >> IterationLevel;
+
+        if (s == "TournamentSize")
+            a_DataFile >> TournamentSize;
+
+        if (s == "CPPN_Bias")
+            a_DataFile >> CPPN_Bias;
+
+        if (s == "Width")
+            a_DataFile >> Width;
+
+        if (s == "Height")
+            a_DataFile >> Height;
+
+        if (s == "Qtree_X")
+            a_DataFile >> Qtree_X;
+
+        if (s == "Qtree_Y")
+            a_DataFile >> Qtree_Y;
+
+        if (s == "Leo")
+        {  a_DataFile >> tf;
+           if (tf == "true" || tf == "1" || tf == "1.0")
+                Leo = true;
+            else
+                Leo = false;
+        }
+        if (s == "GeometrySeed")
+        {  a_DataFile >> tf;
+           if (tf == "true" || tf == "1" || tf == "1.0")
+                GeometrySeed = true;
+            else
+                GeometrySeed = false;
+        }
+
+        if (s == "LeoThreshold")
+            a_DataFile >> LeoThreshold;
+
+        if (s == "LeoSeed")
+        {
+            a_DataFile >> tf;
+           if (tf == "true" || tf == "1" || tf == "1.0")
+                LeoSeed = true;
+            else
+                LeoSeed = false;
+        }
+        if (s == "TournamentSize")
+            a_DataFile >> TournamentSize;
+        if (s == "Elitism")
+            a_DataFile >> Elitism;
     }
 
     return 0;
@@ -823,9 +932,9 @@ void Parameters::Save(FILE* a_fstream)
     fprintf(a_fstream, "ActivationFunction_Abs_Prob %3.20f\n", ActivationFunction_Abs_Prob);
     fprintf(a_fstream, "ActivationFunction_SignedSine_Prob %3.20f\n", ActivationFunction_SignedSine_Prob);
     fprintf(a_fstream, "ActivationFunction_UnsignedSine_Prob %3.20f\n", ActivationFunction_UnsignedSine_Prob);
-    fprintf(a_fstream, "ActivationFunction_SignedSquare_Prob %3.20f\n", ActivationFunction_SignedSquare_Prob);
-    fprintf(a_fstream, "ActivationFunction_UnsignedSquare_Prob %3.20f\n", ActivationFunction_UnsignedSquare_Prob);
     fprintf(a_fstream, "ActivationFunction_Linear_Prob %3.20f\n", ActivationFunction_Linear_Prob);
+    fprintf(a_fstream, "ActivationFunction_Relu_Prob %3.20f\n", ActivationFunction_Relu_Prob);
+    fprintf(a_fstream, "ActivationFunction_Softplus_Prob %3.20f\n", ActivationFunction_Softplus_Prob);
     fprintf(a_fstream, "MutateNeuronTimeConstantsProb %3.20f\n", MutateNeuronTimeConstantsProb);
     fprintf(a_fstream, "MutateNeuronBiasesProb %3.20f\n", MutateNeuronBiasesProb);
     fprintf(a_fstream, "MinNeuronTimeConstant %3.20f\n", MinNeuronTimeConstant);
@@ -845,6 +954,24 @@ void Parameters::Save(FILE* a_fstream)
     fprintf(a_fstream, "CompatTresholdModifier %3.20f\n", CompatTresholdModifier);
     fprintf(a_fstream, "CompatTreshChangeInterval_Generations %d\n", CompatTreshChangeInterval_Generations);
     fprintf(a_fstream, "CompatTreshChangeInterval_Evaluations %d\n", CompatTreshChangeInterval_Evaluations);
+    fprintf(a_fstream, "DivisionThreshold %3.20f\n", DivisionThreshold);
+    fprintf(a_fstream, "VarianceThreshold %3.20f\n", VarianceThreshold);
+    fprintf(a_fstream, "BandThreshold %3.20f\n", BandThreshold);
+    fprintf(a_fstream, "InitialDepth %d\n", InitialDepth);
+    fprintf(a_fstream, "MaxDepth %d\n", MaxDepth);
+    fprintf(a_fstream, "IterationLevel %d\n", IterationLevel);
+    fprintf(a_fstream, "TournamentSize %d\n", TournamentSize);
+    fprintf(a_fstream, "CPPN_Bias %3.20f\n", CPPN_Bias);
+    fprintf(a_fstream, "Width %3.20f\n", Width);
+    fprintf(a_fstream, "Height %3.20f\n", Height);
+    fprintf(a_fstream, "Qtree_X %3.20f\n", Qtree_X);
+    fprintf(a_fstream, "Qtree_Y %3.20f\n", Qtree_Y);
+    fprintf(a_fstream, "Leo %s\n", Leo==true?"true":"false");
+    fprintf(a_fstream, "LeoThreshold %3.20f\n", LeoThreshold);
+    fprintf(a_fstream, "LeoSeed %s\n", LeoSeed==true?"true":"false");
+    fprintf(a_fstream, "GeometrySeed %s\n", GeometrySeed==true?"true":"false");
+
+    fprintf(a_fstream, "Elitism %3.20f\n", Elitism);
 
     fprintf(a_fstream, "NEAT_ParametersEnd\n");
 }
