@@ -36,10 +36,10 @@ endif()
 if(UNIX)
 	# Compiler options
 	if (CMAKE_BUILD_TYPE STREQUAL "Release")
-		add_definitions(-ansi -pedantic -fPIC )
+		add_definitions(-std=c++11 -pedantic -fPIC )
 	else()
 		# Turn on warnings in debug mode
-		add_definitions(-ansi -pedantic -Wno-long-long -Wall -Wextra -Wformat=2
+		add_definitions(-std=c++11 -pedantic -Wno-long-long -Wall -Wextra -Wformat=2
 		                -Wredundant-decls -Wwrite-strings -Wmissing-include-dirs 
 		                -Wswitch-enum -Wuninitialized 
 		                -Wswitch-default -Winit-self -Wshadow -Wfloat-equal -fPIC )
@@ -96,6 +96,8 @@ find_package(ZLIB REQUIRED)
 find_package(PNG REQUIRED)
 find_package(OpenSceneGraph REQUIRED osg osgViewer osgDB osgGA osgTerrain osgUtil)
 find_package(Jansson REQUIRED)
+find_package(Qt5Core REQUIRED)
+
 
 include_directories(${CMAKE_SOURCE_DIR} ${ODE_INCLUDE_PATH} ${OPENSCENEGRAPH_INCLUDE_DIRS} ${PNG_INCLUDE_PATH} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${PROTOBUF_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS} ${JANSSON_INCLUDE_DIRS} )
 
@@ -113,21 +115,26 @@ set(ROBOGEN_DEPENDENCIES ${ODE_LIBRARIES} ${OPENSCENEGRAPH_LIBRARIES} ${ZLIB_LIB
 message(STATUS ${ROBOGEN_DEPENDENCIES})
 
 # Robogen base library
-add_library(robogen ${ROBOGEN_SRC} ${PROTO_SRCS} )
-target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
+#add_library(robogen ${ROBOGEN_SRC} ${PROTO_SRCS} )
+#target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
 
 # Evolver executable
-add_executable(robogen-evolver Evolver.cpp)
-target_link_libraries(robogen-evolver robogen ${ROBOGEN_DEPENDENCIES})
+#add_executable(robogen-evolver Evolver.cpp)
+#target_link_libraries(robogen-evolver robogen ${ROBOGEN_DEPENDENCIES})
 
 # Robogen simulator server
-add_executable(robogen-server RobogenServer.cpp)
-target_link_libraries(robogen-server robogen ${ROBOGEN_DEPENDENCIES})
+#add_executable(robogen-server RobogenServer.cpp)
+#target_link_libraries(robogen-server robogen ${ROBOGEN_DEPENDENCIES})
 
 # Robot Viewer (from file)
-add_executable(robogen-file-viewer viewer/FileViewer.cpp)
-target_link_libraries(robogen-file-viewer robogen ${ROBOGEN_DEPENDENCIES})
+#add_executable(robogen-file-viewer viewer/FileViewer.cpp)
+#target_link_libraries(robogen-file-viewer robogen ${ROBOGEN_DEPENDENCIES})
 
+set(CMAKE_AUTOMOC ON)
+
+add_executable(js-test JsTest.cpp Exposable.h)
+target_link_libraries(js-test ${ROBOGEN_DEPENDENCIES})
+qt5_use_modules(js-test Core Script)
 
 
 # Tests
