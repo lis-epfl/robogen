@@ -75,12 +75,32 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 	acceleration_ -= gravity;
 	velocity_ = velocity;
 	// rotation
-
-
+	double angle;
+	osg::Vec3 rotaxis;
 	osg::Quat dAttitude = attitude / attitude_; // this is attitude_.inverse() * attitude
-	rotVelocity_ = getRPYfromQuat(dAttitude) / timeElapsed;
-
+	// in particular, no need to project!
 	attitude_ = attitude;
+	dAttitude.getRotate(angle, rotaxis);
+	rotaxis.normalize(); // should be the case, but let's be safe
+
+
+	/*
+	 * We were having problems with sign switches in the quaternions
+	 * leading to thinking that we had huge changes of orientations
+	 * So we just assume that we never are rotating more than PI radians
+	 * in one time step, and adjust the angle accordingly
+	 */
+
+	while (angle > M_PI) {
+		angle -= (2*M_PI);
+	}
+
+	while (angle < (-M_PI)) {
+		angle += (2*M_PI);
+	}
+
+	rotVelocity_ = rotaxis * angle / timeElapsed;
+
 
 	// =======================
 	// 2. create unit vectors for IMU reference system
