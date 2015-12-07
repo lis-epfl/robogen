@@ -36,6 +36,7 @@
 #include <QTextStream>
 #include <boost/shared_ptr.hpp>
 
+#include <iostream>
 
 
 // just a utility function to read a file...
@@ -72,6 +73,6 @@ int main(int argc, char** argv) {
 	engine.evaluate(program);
 
 	// calling methods from the script
-	qDebug() << "fitness = " << engine.evaluate("getFitness()").toNumber();
+	std::cout << "fitness = " << engine.evaluate("getFitness()").toNumber() << std::endl;
 	return 0;
 }
