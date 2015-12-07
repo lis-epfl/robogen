@@ -95,7 +95,7 @@ double EMSCRIPTEN_KEEPALIVE evaluate(int ptr, int length) {
 	// Compute fitness
 	// ---------------------------------------
 	double fitness;
-	if (simulationResult == ACCELERATION_CAP_EXCEEDED) {
+	if (simulationResult == CONSTRAINT_VIOLATED) {
 		fitness = MIN_FITNESS;
 	} else {
 		fitness = scenario->getFitness();
