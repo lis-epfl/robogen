@@ -32,6 +32,14 @@
 #include "Robot.h"
 #include "Models.h"
 
+#ifdef EMSCRIPTEN
+#include "emscripten.h"
+#include <emscripten/bind.h>
+
+
+using namespace emscripten;
+#endif
+
 namespace robogen {
 
 RacingScenario::RacingScenario(boost::shared_ptr<RobogenConfig> robogenConfig) :
@@ -81,7 +89,6 @@ bool RacingScenario::endSimulation() {
 }
 
 double RacingScenario::getFitness() {
-
 	double fitness = 1000000;
 	for (unsigned int i = 0; i < distances_.size(); ++i) {
 		if (distances_[i] < fitness)

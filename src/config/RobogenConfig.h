@@ -45,14 +45,10 @@ class RobogenConfig {
 
 public:
 
-	enum SimulationScenario {
-		CHASING, RACING
-	};
-
 	/**
 	 * Initializes a robogen config object from configuration parameters
 	 */
-	RobogenConfig(SimulationScenario scenario, unsigned int timeSteps,
+	RobogenConfig(std::string scenario, unsigned int timeSteps,
 			float timeStepLength, int actuationPeriod,
 			boost::shared_ptr<TerrainConfig> terrain,
 			boost::shared_ptr<ObstaclesConfig> obstacles,
@@ -98,7 +94,7 @@ public:
 	/**
 	 * @return the simulation scenario
 	 */
-	SimulationScenario getScenario() const {
+	std::string getScenario() const {
 		return scenario_;
 	}
 
@@ -233,12 +229,7 @@ public:
 		robogenMessage::SimulatorConf ret;
 		ret.set_lightsourceheight(lightSourceHeight_);
 		ret.set_ntimesteps(timeSteps_);
-		if (scenario_ == CHASING) {
-			ret.set_scenario("chasing");
-		} else if (scenario_ == RACING) {
-			ret.set_scenario("racing");
-		}
-
+		ret.set_scenario(scenario_);
 		ret.set_timestep(timeStepLength_);
 		ret.set_actuationperiod(actuationPeriod_);
 		ret.set_sensornoiselevel(sensorNoiseLevel_);
@@ -263,7 +254,7 @@ private:
 	/**
 	 * The simulation scenario
 	 */
-	SimulationScenario scenario_;
+	std::string scenario_;
 
 	/**
 	 * Total number of simulation timesteps

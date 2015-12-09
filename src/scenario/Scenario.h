@@ -149,12 +149,14 @@ public:
 	 */
 	virtual int getCurTrial() const = 0;
 
-protected:
-
 	/**
 	 * @return the current trial starting position
 	 */
 	boost::shared_ptr<StartPosition> getCurrentStartPosition();
+
+	void setRobogenConfig(boost::shared_ptr<RobogenConfig> robogenConfig) {
+		robogenConfig_ = robogenConfig;
+	}
 
 private:
 

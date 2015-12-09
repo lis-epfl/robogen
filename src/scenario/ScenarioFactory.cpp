@@ -31,6 +31,19 @@
 #include "scenario/ScenarioFactory.h"
 #include "scenario/RacingScenario.h"
 
+#ifdef EMSCRIPTEN
+#include <emscripten/bind.h>
+#include <emscripten.h>
+#include "scenario/JSScenario.h"
+
+#endif
+#include <sstream>
+#include <algorithm>
+#include <boost/uuid/uuid.hpp>            // uuid class
+#include <boost/uuid/uuid_generators.hpp> // generators
+#include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
+
+
 namespace robogen {
 
 ScenarioFactory::ScenarioFactory() {
@@ -41,15 +54,68 @@ ScenarioFactory::~ScenarioFactory() {
 
 }
 
+#ifdef EMSCRIPTEN
+void log(std::string s) {
+	std::stringstream ss;
+	ss << "console.log(\"" << s << "\")";
+	emscripten_run_script(ss.str().c_str());
+}
+#endif
+
+
+
+boost::uuids::random_generator generator;
+
 boost::shared_ptr<Scenario> ScenarioFactory::createScenario(boost::shared_ptr<RobogenConfig> config) {
 
-	if (config->getScenario() == RobogenConfig::RACING) {
+	if (config->getScenario() == "racing") {
 		return boost::shared_ptr<Scenario>(new RacingScenario(config));
-	} else if (config->getScenario() == RobogenConfig::CHASING) {
+	} else if (config->getScenario() == "chasing") {
 		return boost::shared_ptr<Scenario>(new ChasingScenario(config));
 	} else {
-		std::cout << "Cannot allocate the specified scenario. Quit."
-				<< std::endl;
+		// we are getting scenario in js
+#ifdef EMSCRIPTEN
+
+
+		// super hacky -- first we generate uuid
+		std::string id;
+		{
+			boost::uuids::uuid uuid = generator();
+			std::stringstream ss;
+			ss << "_myUUID_" << uuid;
+			id = ss.str();
+			std::replace( id.begin(), id.end(), '-', '_'); // replace all 'x' to 'y'
+		}
+
+		log("using id: ");
+		log(id);
+
+		// now call the provided js with creating a new object at the end
+		// and registering it with the given uuid
+		{
+			std::stringstream ss;
+			ss << id << " = function () {\n";
+			ss << config->getScenario() << "\n";
+			ss << "}();";
+			ss << id << ".setId('" << id << "');";
+			emscripten_run_script(ss.str().c_str());
+		}
+
+		//finally use the uuid to get the pointer to the create object
+		JSScenario *scenario = JSScenario::getScenario(id);
+		if (scenario == NULL) {
+			log("Scenario is NULL!");
+		} else {
+			log("Scenario is not NULL!");
+		}
+		scenario->setRobogenConfig(config);
+
+    	return boost::shared_ptr<Scenario>(scenario);
+#else
+		std::cout << "JS scenarios not available in C++ version" << std::endl;
+		std::cout << config->getScenario() << std::endl;
+
+#endif
 	}
 
 	return boost::shared_ptr<Scenario>();

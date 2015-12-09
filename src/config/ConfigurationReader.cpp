@@ -73,7 +73,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 			("obstaclesConfigFile", boost::program_options::value<std::string>(),
 					"Obstacles configuration file")
 			("scenario", boost::program_options::value<std::string>(),
-					"Experiment scenario")
+					"Experiment scenario: (racing, chasing, "
+											"or a provided js file)")
 			("lightSourceHeight", boost::program_options::value<float>(),
 					"Height of light source")
 			("timeStep", boost::program_options::value<float>(),
@@ -271,23 +272,42 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		return boost::shared_ptr<RobogenConfig>();
 	}
 
-	// Read generic parameters
+	// Read scenario
 	if (!vm.count("scenario")) {
 		std::cerr << "Undefined 'scenario' parameter in '" << fileName << "'"
 				<< std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
 	std::string scenario = vm["scenario"].as<std::string>();
-	RobogenConfig::SimulationScenario simulationScenario;
 
-	if (scenario.compare("racing") == 0) {
-		simulationScenario = RobogenConfig::RACING;
-	} else if (scenario.compare("chasing") == 0) {
-		simulationScenario = RobogenConfig::CHASING;
-	} else {
-		std::cerr << "Undefined 'scenario' parameter in '" << fileName << "'"
-				<< std::endl;
-		return boost::shared_ptr<RobogenConfig>();
+	if (scenario.compare("racing") != 0 && scenario.compare("chasing") != 0) {
+		const boost::filesystem::path scenarioFilePath(scenario);
+		if (!scenarioFilePath.is_absolute()) {
+			const boost::filesystem::path absolutePath =
+					boost::filesystem::absolute(scenarioFilePath,
+							filePath.parent_path());
+			scenario = absolutePath.string();
+		}
+		if(boost::filesystem::path(scenario).extension().string().compare(".js")
+				== 0) {
+
+			//read entire js file into string buffer
+
+			std::ifstream file(scenario.c_str());
+			if (!file.is_open()) {
+				std::cout << "Cannot find scenario js: '" << scenario << "'"
+						<< std::endl;
+				return boost::shared_ptr<RobogenConfig>();
+			}
+
+
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			scenario = buffer.str();
+		} else {
+			std::cerr << "Invalid 'scenario' parameter" << std::endl;
+			return boost::shared_ptr<RobogenConfig>();
+		}
 	}
 
 	float lightSourceHeight = DEFAULT_LIGHT_SOURCE_HEIGHT;
@@ -385,7 +405,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	}
 
 	return boost::shared_ptr<RobogenConfig>(
-			new RobogenConfig(simulationScenario, nTimesteps,
+			new RobogenConfig(scenario, nTimesteps,
 					timeStep, actuationPeriod, terrain,
 					obstacles, obstaclesConfigFile, startPositions,
 					startPositionFile, lightSourceHeight, sensorNoiseLevel,
@@ -582,17 +602,14 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 	}
 
 	// Decode simulator configuration
-	RobogenConfig::SimulationScenario simulationScenario;
 	std::string scenario = simulatorConf.scenario();
 
-	if (scenario.compare("racing") == 0) {
-		simulationScenario = RobogenConfig::RACING;
-	} else if (scenario.compare("chasing") == 0) {
-		simulationScenario = RobogenConfig::CHASING;
-	} else {
-		std::cout << "Undefined 'scenario' parameter" << std::endl;
-		return boost::shared_ptr<RobogenConfig>();
-	}
+	//todo with js check!!
+
+	//if (scenario.compare("racing") != 0 && scenario.compare("chasing") != 0) {
+	//	std::cerr << "Undefined 'scenario' parameter" << std::endl;
+	//	return boost::shared_ptr<RobogenConfig>();
+	//}
 
 	unsigned int timeSteps = simulatorConf.ntimesteps();
 	float timeStepLength = simulatorConf.timestep();
@@ -600,7 +617,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 	int actuationPeriod = simulatorConf.actuationperiod();
 
 	return boost::shared_ptr<RobogenConfig>(
-			new RobogenConfig(simulationScenario, timeSteps, timeStepLength,
+			new RobogenConfig(scenario, timeSteps, timeStepLength,
 					actuationPeriod, terrain, obstacles, "",
 					boost::shared_ptr<StartPositionConfig>(
 							new StartPositionConfig(startPositions)), "",
