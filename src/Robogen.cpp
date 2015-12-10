@@ -52,6 +52,23 @@ void getRotationMatrixOde(osg::Quat quat, dQuaternion rotationMatrixOde) {
 
 }
 
+osg::Vec3 getRPYfromQuat(osg::Quat quat){
+	// Implemented based on
+	// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles#Conversion
+
+	double q0 = quat.w();
+	double q1 = quat.x();
+	double q2 = quat.y();
+	double q3 = quat.z();
+
+	double roll = atan2( 2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2));
+	double pitch = asin( 2 * (q0 * q2 - q3 * q1));
+	double yaw = atan2(  2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3));
+
+	return osg::Vec3d( roll, pitch, yaw );
+}
+
+
 int modulo(int x, int y) {
 	while(x < 0) {
 		x += y;
