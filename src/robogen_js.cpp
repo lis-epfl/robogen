@@ -12,6 +12,8 @@
 #include <viewer/JSViewer.h>
 #include <scenario/JSScenario.h>
 
+#include "model/objects/BoxObstacle.h"
+
 /***** WARNING ******
  * WE ARE INCLUDING .cpp files !!
  * This file is "merging" cpp files and expose functions to the javascript world
@@ -156,6 +158,12 @@ emscripten::val getObservableAttitude(boost::shared_ptr<PositionObservable>
 	return js::valFromQuat(observable->getAttitude());
 }
 
+emscripten::val getBoxSize(boost::shared_ptr<BoxObstacle> boxObstacle) {
+	return js::valFromVec3(boxObstacle->getSize());
+}
+
+
+
 emscripten::val getMotorId(boost::shared_ptr<Motor> motor) {
 	emscripten::val result(emscripten::val::object());
 	ioPair id = motor->getId();
@@ -233,10 +241,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
         .function("getId", &JSScenario::getId)
         .function("printRobotPosition", &JSScenario::printRobotPosition)
         .allow_subclass<ScenarioWrapper>("ScenarioWrapper")
-
 		;
-
-	// TODO obstacles
 
 	emscripten::class_<PositionObservable>("PositionObservable")
 		.function("getPosition", &getObservablePosition)
@@ -245,6 +250,16 @@ EMSCRIPTEN_BINDINGS(my_module) {
 
 	emscripten::class_<LightSource,  emscripten::base<PositionObservable>>("LightSource")
 		.smart_ptr<boost::shared_ptr<LightSource> >("shared_ptr<LightSource>")
+		.function("getIntensity", &LightSource::getIntensity)
+		;
+
+	emscripten::class_<Obstacle,  emscripten::base<PositionObservable>>("Obstacle")
+		.smart_ptr<boost::shared_ptr<Obstacle> >("shared_ptr<Obstacle>")
+		;
+
+	emscripten::class_<BoxObstacle,  emscripten::base<Obstacle>>("BoxObstacle")
+		.smart_ptr<boost::shared_ptr<BoxObstacle> >("shared_ptr<BoxObstacle>")
+		.function("getSize", &getBoxSize)
 		;
 
 	emscripten::class_<Environment>("Environment")
@@ -252,6 +267,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		//.function("getTimeElapsed")
 		.function("getLightSources", &Environment::getLightSources)
 		.function("getAmbientLight", &Environment::getAmbientLight)
+		.function("getObstacles", &Environment::getObstacles)
 		;
 
 #ifdef TEST_EM
