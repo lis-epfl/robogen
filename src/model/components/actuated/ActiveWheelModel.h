@@ -46,17 +46,11 @@ public:
 
    static const float SLOT_WIDTH;
    static const float SLOT_THICKNESS;
-   static const float SERVO_Z_OFFSET;
    static const float SERVO_WIDTH;
    static const float SERVO_LENGTH;
    static const float SERVO_HEIGHT;
    static const float WHEEL_THICKNESS;
-
-   static const float SEPARATION;
-   static const float X_SERVO;
-   static const float X_WHEEL;
-
-   static const unsigned int SLOT_A = 0;
+   static const float WHEEL_ATTACHMENT_THICKNESS;
 
    static const unsigned int B_SLOT_ID = 0;
    static const unsigned int B_SERVO_ID = 1;

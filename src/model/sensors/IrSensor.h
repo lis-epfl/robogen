@@ -1,11 +1,10 @@
 /*
- * @(#) LightSensor.h   1.0   Feb 25, 2013
+ * @(#) LightSensor.h   1.0   Oct 27, 2015
  *
- * Andrea Maesani (andrea.maesani@epfl.ch)
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2015 Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -26,8 +25,8 @@
  *
  * @(#) $Id$
  */
-#ifndef ROBOGEN_LIGHT_SENSOR_H_
-#define ROBOGEN_LIGHT_SENSOR_H_
+#ifndef ROBOGEN_IR_SENSOR_H_
+#define ROBOGEN_IR_SENSOR_H_
 
 #include <boost/shared_ptr.hpp>
 #include <vector>
@@ -35,59 +34,62 @@
 
 #include "Robogen.h"
 #include "model/sensors/Sensor.h"
-#include "model/objects/LightSource.h"
 #include "model/SimpleBody.h"
-
-#include "scenario/Environment.h"
+#include "SensorGroup.h"
 
 namespace robogen {
 
-class LightSensor: public Sensor {
+
+
+class IrSensorElement : public Sensor {
+public:
+	enum Type {
+		IR,
+		AMBIENT_LIGHT
+	};
+
+	inline IrSensorElement(std::string baseLabel, Type type) :
+			Sensor(baseLabel + ((type == IR) ?  "-Infrared" :
+										"-AmbientLight")),
+			baseLabel_(baseLabel), type_(type) {
+	}
+
+	inline Type getType() { return type_; }
+	inline const std::string &getBaseLabel() { return baseLabel_; }
+
+private:
+	std::string baseLabel_;
+	Type type_;
+
+};
+
+class IrSensor: public SensorGroup {
 
 public:
 
-	/**
-	 * Minimum and maximum intensity value that is provided
-	 * as output of the sensor
-	 */
-	static const float MIN_INTENSITY_VALUE;
-	static const float MAX_INTENSITY_VALUE;
-
-	/**
-	 * Minimum and maximum intensity value mapped to the
-	 * sensor outputs
-	 */
-	static const double MIN_INTENSITY;
-	static const double MAX_INTENSITY;
-
-	/**
-	 * Half aperture, in degrees
-	 */
-	static const double HALF_APERTURE;
+	static const float SENSOR_RANGE;
 
 	/**
 	 * Initializes a light sensor
 	 */
-	LightSensor(dSpaceID odeSpace,
+	IrSensor(dSpaceID odeSpace,
 			std::vector<boost::shared_ptr<SimpleBody> > sensorBodies,
-			std::string label);
+			std::string baseLabel);
 
 	/**
 	 * Destructor
 	 */
-	virtual ~LightSensor();
+	virtual ~IrSensor();
 
 	/**
 	 * Update the light sensor
 	 */
-	void update(const osg::Vec3& position, const osg::Quat& attitude,
-			boost::shared_ptr<Environment> env);
+	void update(const osg::Vec3& position, const osg::Quat& attitude);
 
 	/**
 	 * Callback for collision handling between rays and the ODE space
 	 */
 	static void collisionCallback(void *data, dGeomID o1, dGeomID o2);
-
 
 private:
 	/**
@@ -107,13 +109,14 @@ private:
 	 */
 	dSpaceID odeSpace_;
 
+
 	/**
-	 * Position of the light sensor
+	 * Position of the IR sensor
 	 */
 	osg::Vec3 position_;
 
 	/**
-	 * Attitude of the light sensor
+	 * Attitude of the IR sensor
 	 */
 	osg::Quat attitude_;
 
@@ -128,7 +131,7 @@ private:
 	float lastReadOutput_;
 
 	/**
-	 * ODE bodies of the light sensor
+	 * ODE bodies of the IR sensor
 	 */
 	std::vector<dGeomID> sensorGeoms_;
 
@@ -136,4 +139,4 @@ private:
 
 }
 
-#endif /* ROBOGEN_LIGHT_SENSOR_H_ */
+#endif /* ROBOGEN_IR_SENSOR_H_ */

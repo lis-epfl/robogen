@@ -69,13 +69,22 @@ std::string WebGLLogger::getFormatedStringForCylinder(double radius,
 }
 
 void WebGLLogger::writeObstaclesDefinition() {
-	std::vector<boost::shared_ptr<BoxObstacle> > obstacles =
-			this->scenario->getObstacles();
-	for (std::vector<boost::shared_ptr<BoxObstacle> >::iterator it =
+	std::vector<boost::shared_ptr<Obstacle> > obstacles =
+			this->scenario->getEnvironment()->getObstacles();
+	for (std::vector<boost::shared_ptr<Obstacle> >::iterator it =
 			obstacles.begin(); it != obstacles.end(); ++it) {
+
+		boost::shared_ptr<BoxObstacle> boxObstacle =
+						boost::dynamic_pointer_cast<BoxObstacle> ((*it));
+
+		if(!boxObstacle) {
+			std::cerr << "Invalid obstacle!!" << std::endl;
+			exitRobogen(EXIT_FAILURE);
+		}
+
 		json_t* json_size = json_array();
 		json_array_append(this->jsonObstaclesDefinition, json_size);
-		osg::Vec3 size = (*it)->getSize();
+		osg::Vec3 size = boxObstacle->getSize();
 		json_array_append(json_size, json_real(size.x()));
 		json_array_append(json_size, json_real(size.y()));
 		json_array_append(json_size, json_real(size.z()));
@@ -184,7 +193,7 @@ void WebGLLogger::writeJSONHeaders() {
 }
 
 void WebGLLogger::generateMapInfo() {
-	boost::shared_ptr<Terrain> terrain = scenario->getTerrain();
+	boost::shared_ptr<Terrain> terrain = scenario->getEnvironment()->getTerrain();
 	json_t *dims = json_array();
 	json_object_set_new(this->jsonMap, WebGLLogger::MAP_DIM_TAG, dims);
 	json_array_append(dims, json_real(terrain->getWidth()));
@@ -282,12 +291,12 @@ void WebGLLogger::log(double dt) {
 
 		}
 
-		std::vector < boost::shared_ptr<BoxObstacle> > obstacles =
-				this->scenario->getObstacles();
+		std::vector<boost::shared_ptr<Obstacle> > obstacles =
+				this->scenario->getEnvironment()->getObstacles();
 		json_t* obstacles_positions = json_array();
 		json_object_set_new(this->jsonObstaclesLog, obKey.c_str(),
 				obstacles_positions);
-		for (std::vector<boost::shared_ptr<BoxObstacle> >::iterator it =
+		for (std::vector<boost::shared_ptr<Obstacle> >::iterator it =
 				obstacles.begin(); it != obstacles.end(); ++it) {
 			json_t* obstacleLog = json_array();
 			json_t* attitude = json_array();

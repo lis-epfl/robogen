@@ -68,7 +68,6 @@ bool PassiveWheelRenderModel::initRenderModel() {
 
    if (isDebugActive()) {
       this->showDebugView();
-      return true;
    }
 
    // We need to rescale the wheel
@@ -80,22 +79,22 @@ bool PassiveWheelRenderModel::initRenderModel() {
    float scale = radius/BASE_RADIUS;
    partB_->rescaleMesh(scale, scale, 1);
 
-   partA_->setColor(osg::Vec4(1, 0, 0, 1));
-   partB_->setColor(osg::Vec4(0, 1, 0, 1));
+   partA_->setColor(osg::Vec4(1, 0, 0, 0.5));
+   partB_->setColor(osg::Vec4(0, 1, 0, 0.5));
 
    // SLOT
    osg::ref_ptr<osg::PositionAttitudeTransform> slot = this->partA_->getMesh();
-   slot->setAttitude(osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0)));
-   slot->setPosition(
-         fromOde(
-               osg::Vec3(-PassiveWheelModel::SLOT_CONNECTION_THICKNESS,
-            		   0,0)));
+   slot->setPosition(RobogenUtils::getRelativePosition(this->getModel(),
+			  PassiveWheelModel::B_SLOT_ID));
+
+   slot->setAttitude(RobogenUtils::getRelativeAttitude(this->getModel(),
+		   PassiveWheelModel::B_SLOT_ID));
 
    osg::ref_ptr<osg::PositionAttitudeTransform> patSlot(
          new osg::PositionAttitudeTransform());
    patSlot->addChild(slot);
 
-   this->getRootNode()->addChild(patSlot.get());
+   this->getMeshes()->addChild(patSlot.get());
    patSlot->setUpdateCallback(
          new BodyCallback(this->getModel(), PassiveWheelModel::B_SLOT_ID));
 
@@ -106,9 +105,16 @@ bool PassiveWheelRenderModel::initRenderModel() {
          new osg::PositionAttitudeTransform());
    patWheel->addChild(wheel.get());
 
-   this->getRootNode()->addChild(patWheel.get());
+   this->getMeshes()->addChild(patWheel.get());
    patWheel->setUpdateCallback(
          new BodyCallback(this->getModel(), PassiveWheelModel::B_WHEEL_ID));
+
+	if(isDebugActive()) {
+		attachAxis(patWheel);
+		this->activateTransparency(patSlot->getOrCreateStateSet());
+		this->activateTransparency(patWheel->getOrCreateStateSet());
+	}
+
 
    return true;
 
@@ -116,32 +122,7 @@ bool PassiveWheelRenderModel::initRenderModel() {
 
 void PassiveWheelRenderModel::showDebugView() {
 
-   this->attachBox(PassiveWheelModel::B_SLOT_ID,
-         PassiveWheelModel::SLOT_THICKNESS, PassiveWheelModel::SLOT_WIDTH,
-         PassiveWheelModel::SLOT_WIDTH);
-
-   osg::ref_ptr<osg::Geode> wheel = this->getCylinder(
-         fromOde(
-               boost::dynamic_pointer_cast < PassiveWheelModel
-                     > (this->getModel())->getRadius()),
-         fromOde(PassiveWheelModel::WHEEL_THICKNESS),
-         osg::Vec4(1,0,0,1));
-
-   // Wheel rotation
-   osg::ref_ptr<osg::PositionAttitudeTransform> wheelRotation(
-         new osg::PositionAttitudeTransform());
-   wheelRotation->addChild(wheel);
-
-   // WHEEL
-   osg::ref_ptr<osg::PositionAttitudeTransform> patWheel(
-         new osg::PositionAttitudeTransform());
-   patWheel->addChild(wheelRotation);
-
-   this->getRootNode()->addChild(patWheel.get());
-   patWheel->setUpdateCallback(
-         new BodyCallback(this->getModel(), PassiveWheelModel::B_WHEEL_ID));
-
-   attachAxis(patWheel);
+	this->attachGeoms();
 
 }
 

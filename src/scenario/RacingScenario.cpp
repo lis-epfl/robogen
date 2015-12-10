@@ -2,9 +2,10 @@
  * @(#) RacingScenario.cpp   1.0   Mar 13, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2013 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -36,9 +37,6 @@ namespace robogen {
 
 RacingScenario::RacingScenario(boost::shared_ptr<RobogenConfig> robogenConfig) :
 		Scenario(robogenConfig), curTrial_(0) {
-
-	this->setEnvironment(boost::shared_ptr<Environment>(new Environment()));
-
 }
 
 RacingScenario::~RacingScenario() {

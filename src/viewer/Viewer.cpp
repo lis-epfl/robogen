@@ -33,6 +33,8 @@
 #include <sstream>
 #include <osgDB/WriteFile>
 
+#include "model/objects/BoxObstacle.h"
+
 namespace robogen{
 
 class SnapImageDrawCallback : public osg::Camera::DrawCallback {
@@ -176,15 +178,25 @@ bool Viewer::configureScene(std::vector<boost::shared_ptr<Model> > bodyParts,
 
 	// Terrain render model
 	boost::shared_ptr<TerrainRender> terrainRender(
-			new TerrainRender(scenario->getTerrain()));
+			new TerrainRender(scenario->getEnvironment()->getTerrain()));
 	this->root->addChild(terrainRender->getRootNode());
 
 	// Obstacles render model
-	const std::vector<boost::shared_ptr<BoxObstacle> >& obstacles =
-			scenario->getObstacles();
+	const std::vector<boost::shared_ptr<Obstacle> >& obstacles =
+			scenario->getEnvironment()->getObstacles();
 	for (unsigned int i = 0; i < obstacles.size(); ++i) {
+		boost::shared_ptr<BoxObstacle> boxObstacle =
+										boost::dynamic_pointer_cast<
+										BoxObstacle>(obstacles[i]);
+
+
+		if(!boxObstacle) {
+			std::cerr << "Invalid obstacle!!" << std::endl;
+			return false;
+		}
+
 		boost::shared_ptr<BoxObstacleRender> obstacleRender(
-				new BoxObstacleRender(obstacles[i]));
+				new BoxObstacleRender(boxObstacle));
 		this->root->addChild(obstacleRender->getRootNode());
 	}
 

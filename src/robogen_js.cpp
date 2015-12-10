@@ -185,17 +185,14 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.smart_ptr<boost::shared_ptr<Model> >("shared_ptr<Model>");
 
 	emscripten::class_<Sensor>("Sensor")
-		.smart_ptr<boost::shared_ptr<Sensor> >("shared_ptr<Sensor>");
+		.smart_ptr<boost::shared_ptr<Sensor> >("shared_ptr<Sensor>")
+		.function("getLabel", &Sensor::getLabel)
+		.function("read", &Sensor::read)
+		;
 
 	emscripten::class_<Motor>("Motor")
 		.smart_ptr<boost::shared_ptr<Motor> >("shared_ptr<Motor>")
 		.function("getId", &getMotorId);
-
-	emscripten::class_<SimpleSensor, emscripten::base<Sensor>>("SimpleSensor")
-		.smart_ptr<boost::shared_ptr<SimpleSensor> >("shared_ptr<SimpleSensor>")
-		.function("getLabel", &SimpleSensor::getLabel)
-		.function("read", &SimpleSensor::read)
-		;
 
 	emscripten::class_<ServoMotor, emscripten::base<Motor>>("ServoMotor")
 		.smart_ptr<boost::shared_ptr<ServoMotor> >("shared_ptr<ServoMotor>")

@@ -28,21 +28,40 @@
 #ifndef ROBOGEN_SENSOR_H_
 #define ROBOGEN_SENSOR_H_
 
+#include <string>
+
 namespace robogen {
 
 class Sensor {
 
 public:
 
-	virtual ~Sensor() {}
 
-	/**
-	 * Needs to be defined, else compilation errors!
-	 * @return Label of sensor for data analysis
-	 * @todo use IO Ids
-	 */
-	virtual std::string &getLabel() = 0;
+	inline Sensor(std::string label) : label_(label), value_(0) {
 
+	}
+
+	const std::string &getLabel(){
+		return label_;
+	}
+
+	virtual ~Sensor () {
+
+	}
+
+	void updateValue(double value) {
+		value_ = value;
+	}
+
+	double read() {
+		return value_;
+	}
+
+private:
+
+	double value_;
+
+	const std::string label_;
 };
 
 }

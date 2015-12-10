@@ -1,10 +1,10 @@
 /*
- * @(#) SimpleSensor.h   1.0   Mar 6, 2013
+ * @(#) Obstacle.h   1.0   Dec 10, 2015
  *
- * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -25,46 +25,21 @@
  *
  * @(#) $Id$
  */
-#ifndef ROBOGEN_SIMPLE_SENSOR_H_
-#define ROBOGEN_SIMPLE_SENSOR_H_
+#ifndef ROBOGEN_OBSTACLE_H_
+#define ROBOGEN_OBSTACLE_H_
 
-#include <string>
-#include "model/sensors/Sensor.h"
+#include "model/PositionObservable.h"
 
 namespace robogen {
 
-class SimpleSensor : public Sensor {
+class Obstacle : public PositionObservable {
+	/**
+	 * Remove from world
+	 */
+	virtual void remove() = 0;
 
-public:
-
-	SimpleSensor(std::string label) : label_(label) {
-
-	}
-
-	virtual std::string &getLabel(){
-		return label_;
-	}
-
-	virtual ~SimpleSensor () {
-
-	}
-
-	void update(float value) {
-		value_ = value;
-	}
-
-	float read() {
-		return value_;
-	}
-
-private:
-
-	float value_;
-
-	std::string label_;
 };
 
 }
 
-
-#endif /* ROBOGEN_SIMPLE_SENSOR_H_ */
+#endif /* ROBOGEN_OBSTACLE_H_ */

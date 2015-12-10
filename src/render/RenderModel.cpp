@@ -111,6 +111,8 @@ boost::shared_ptr<Model> RenderModel::getModel() {
  */
 void RenderModel::attachAxis(osg::Transform* transform) {
 
+	std::cout << "Displaying axis: x=red, y=green, z=blue" << std::endl;
+
 	osg::TessellationHints* hints = new osg::TessellationHints;
 
 	double height = 100;

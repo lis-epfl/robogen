@@ -36,11 +36,22 @@
 
 namespace robogen {
 
-class SimpleSensor;
+class ImuSensorElement : public Sensor {
+public:
+	inline ImuSensorElement(std::string label) : Sensor(label) {}
+};
 
 class ImuSensor: public SensorGroup {
 
 public:
+
+	/**
+	 * Collection of sensors for accel + gyro
+	 * When call getSensors will get a sensors for each acceleration outputs
+	 * (acceleration along the three axis)
+	 * and gyro outputs (+/- 360°) (rotational velocity)
+	 * (x-acc, y-acc, z-acc, x-gryo, y-gyro, z-gryo)
+	 */
 
 	ImuSensor();
 
@@ -55,12 +66,8 @@ public:
 	void update(const osg::Vec3& position, const osg::Quat& attitude,
 			float timeElapsed, const osg::Vec3& gravity);
 
-	/**
-	 * Return a sensors for each acceleration outputs (acceleration along the three axis)
-	 * and gyro outputs (+/- 360°) (rotational velocity) (x-acc, y-acc, z-acc, x-gryo, y-gyro, z-gryo)
-	 * @param sensors
-	 */
-	virtual void getSensors(std::vector<boost::shared_ptr<Sensor> >& sensors);
+
+
 
 private:
 
@@ -93,8 +100,6 @@ private:
 	 * True after first call of update()
 	 */
 	bool initialized_;
-
-	std::vector<boost::shared_ptr<SimpleSensor> > sensors_;
 
 };
 

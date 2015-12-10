@@ -46,7 +46,6 @@ std::map<std::string, JSScenario*> JSScenario::scenarios;
 
 JSScenario::JSScenario() : Scenario(boost::shared_ptr<RobogenConfig>()),
 		curTrial_(0) {
-	this->setEnvironment(boost::shared_ptr<Environment>(new Environment()));
 }
 
 JSScenario::~JSScenario() {

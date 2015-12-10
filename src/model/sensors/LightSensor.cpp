@@ -77,7 +77,7 @@ double LightSensor::getIntensity(double angle, double lightIntensity,
 
 LightSensor::LightSensor(dSpaceID odeSpace,
 		std::vector<boost::shared_ptr<SimpleBody> > sensorBodies,
-		std::string label):odeSpace_(odeSpace), label_(label),
+		std::string label):Sensor(label), odeSpace_(odeSpace),
 		lastReadOutput_(MIN_INTENSITY_VALUE){
 	for(unsigned int i=0; i<sensorBodies.size(); i++){
 		for (dGeomID g=dBodyGetFirstGeom(sensorBodies[i]->getBody()); g
@@ -88,17 +88,8 @@ LightSensor::LightSensor(dSpaceID odeSpace,
 	raySpace_ = dHashSpaceCreate(0);
 }
 
-std::string &LightSensor::getLabel(){
-	return label_;
-}
-
 LightSensor::~LightSensor() {
 	dSpaceDestroy(raySpace_);
-}
-
-void LightSensor::update(const osg::Vec3& position, const osg::Quat& attitude) {
-	this->position_ = position;
-	this->attitude_ = attitude;
 }
 
 struct RayTrace {
@@ -122,16 +113,18 @@ void LightSensor::collisionCallback(void *data, dGeomID o1, dGeomID o2){
 	}
 }
 
-float LightSensor::read(
-		const std::vector<boost::shared_ptr<LightSource> >& lightSources,
-		double ambientLight) {
+void LightSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
+		boost::shared_ptr<Environment> env) {
+	this->position_ = position;
+	this->attitude_ = attitude;
+
 
 	// add ambient light anyways
-	float totalLight = ambientLight;
+	float totalLight = env->getAmbientLight();
 	// For each light source, we trace a ray to the given sensor
-	for (unsigned int i=0; i<lightSources.size(); i++){
+	for (unsigned int i=0; i<env->getLightSources().size(); i++){
 		// calculations
-		osg::Vec3 lightSourcePos = lightSources[i]->getPosition();
+		osg::Vec3 lightSourcePos = env->getLightSources()[i]->getPosition();
 		osg::Vec3 sensorToLight = lightSourcePos - position_;
 		// create ray
 		dGeomID ray = dCreateRay(raySpace_, sensorToLight.length());
@@ -149,14 +142,14 @@ float LightSensor::read(
 			// ignore sensor bodies and light source body
 			data.ignoreGeoms.insert(data.ignoreGeoms.end(),
 					sensorGeoms_.begin(), sensorGeoms_.end());
-			data.ignoreGeoms.push_back(lightSources[i]->getSource());
+			data.ignoreGeoms.push_back(env->getLightSources()[i]->getSource());
 			// perform collision
 			dSpaceCollide2((dGeomID)raySpace_, (dGeomID)odeSpace_, (void*)&data,
 					LightSensor::collisionCallback);
 			// calculate intensity from angle if visible
 			if (data.visible){
 				totalLight += getIntensity(angle,
-						lightSources[i]->getIntensity(),
+						env->getLightSources()[i]->getIntensity(),
 						sensorToLight.length());
 			}
 		}
@@ -165,7 +158,7 @@ float LightSensor::read(
 
 
 	totalLight = (totalLight>1.)?1.:totalLight;
-	return totalLight;
+	updateValue( totalLight );
 }
 
 }

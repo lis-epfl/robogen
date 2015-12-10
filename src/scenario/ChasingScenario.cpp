@@ -55,14 +55,14 @@ bool ChasingScenario::init(dWorldID odeWorld, dSpaceID odeSpace, boost::shared_p
 
 	Scenario::init(odeWorld, odeSpace, robot);
 
-	boost::shared_ptr<Environment> env(new Environment());
+
 	std::vector<boost::shared_ptr<LightSource> > lightSources;
 	lightSources.push_back(boost::shared_ptr<LightSource>(
 			new LightSource(odeSpace, osg::Vec3(0, 0,
 					this->getRobogenConfig()->getLightSourceHeight()), 1.0)));
-	env->setLightSources(lightSources);
+	this->getEnvironment()->setLightSources(lightSources);
 
-	this->setEnvironment(env);
+
 	return true;
 }
 
