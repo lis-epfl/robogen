@@ -2,9 +2,10 @@
  * @(#) environment.h   1.0   Mar 6, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -29,22 +30,29 @@
 #define ROBOGEN_ENVIRONMENT_H_
 
 #include "model/objects/LightSource.h"
+#include "model/objects/Obstacle.h"
+#include "Terrain.h"
+#include "config/RobogenConfig.h"
 
 #define DEFAULT_AMBIENT_LIGHT (0.04)
 
 namespace robogen {
 
+
+/*
+ * Environment contains all info about the simulation except for the robot
+ */
+
 class Environment {
 
 public:
 
-	Environment() : timeElapsed_(0), ambientLight_(DEFAULT_AMBIENT_LIGHT) {
+	Environment(dWorldID odeWorld, dSpaceID odeSpace,
+			boost::shared_ptr<RobogenConfig> robogenConfig);
 
-	}
+	bool init();
 
-	virtual ~Environment() {
-
-	}
+	virtual ~Environment();
 
 	void setTimeElapsed(float timeElapsed) {
 		timeElapsed_ = timeElapsed;
@@ -71,7 +79,33 @@ public:
 		return ambientLight_;
 	}
 
+	void addObstacle(boost::shared_ptr<Obstacle> obstacle) {
+		obstacles_.push_back(obstacle);
+	}
+
+	boost::shared_ptr<Terrain> getTerrain() {
+		return terrain_;
+	}
+
+	std::vector<boost::shared_ptr<Obstacle> > getObstacles() {
+		return obstacles_;
+	}
+
 private:
+	/**
+	 * ODE physics world
+	 */
+	dWorldID odeWorld_;
+
+	/**
+	 * ODE collision space
+	 */
+	dSpaceID odeSpace_;
+
+	/**
+	 * Robogen config
+	 */
+	boost::shared_ptr<RobogenConfig> robogenConfig_;
 
 	/**
 	 * Time elapsed since the last "refresh" of the environment
@@ -87,6 +121,17 @@ private:
 	 * Ambient light
 	 */
 	float ambientLight_;
+
+	/**
+	 * Terrain
+	 */
+	boost::shared_ptr<Terrain> terrain_;
+
+	/**
+	 * Obstacle in the environment
+	 */
+
+	std::vector<boost::shared_ptr<Obstacle> > obstacles_;
 
 };
 

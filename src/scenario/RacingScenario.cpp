@@ -36,9 +36,6 @@ namespace robogen {
 
 RacingScenario::RacingScenario(boost::shared_ptr<RobogenConfig> robogenConfig) :
 		Scenario(robogenConfig), curTrial_(0) {
-
-	this->setEnvironment(boost::shared_ptr<Environment>(new Environment()));
-
 }
 
 RacingScenario::~RacingScenario() {
