@@ -178,6 +178,15 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			return SIMULATION_FAILURE;
 		}
 
+		//TODO make this behavior configurable
+		if(scenario->wereObstaclesRemoved()) {
+			std::cout << "Obstacles were removed, will return min fitness" <<
+					std::endl;
+			constraintViolated = true;
+			break;
+		}
+
+
 		// Setup environment
 		boost::shared_ptr<Environment> env =
 				scenario->getEnvironment();
@@ -245,6 +254,12 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			// Empty contact groups used for collisions handling
 			dJointGroupEmpty(odeContactGroup);
 
+			// todo make configurable!
+			if (collisionData->hasObstacleCollisions()) {
+				constraintViolated = true;
+				break;
+			}
+
 			if (configuration->isCapAlleration()) {
 				dBodyID rootBody =
 						robot->getCoreComponent()->getRoot()->getBody();
@@ -303,25 +318,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			if(((count - 1) % configuration->getActuationPeriod()) == 0) {
 				// Feed neural network
 				for (unsigned int i = 0; i < sensors.size(); ++i) {
+					networkInput[i] = sensors[i]->read();
 
-					if (boost::dynamic_pointer_cast<TouchSensor>(
-							sensors[i])) {
-						networkInput[i] =
-								boost::dynamic_pointer_cast<
-										TouchSensor>(sensors[i])->read();
-					} else if (boost::dynamic_pointer_cast<
-							LightSensor>(sensors[i])) {
-						networkInput[i] =
-								boost::dynamic_pointer_cast<
-										LightSensor>(sensors[i])->read(
-										env->getLightSources(),
-										env->getAmbientLight());
-					} else if (boost::dynamic_pointer_cast<
-							SimpleSensor>(sensors[i])) {
-						networkInput[i] =
-								boost::dynamic_pointer_cast<
-										SimpleSensor>(sensors[i])->read();
-					}
 					// Add sensor noise: Gaussian with std dev of
 					// sensorNoiseLevel * actualValue
 					if (configuration->getSensorNoiseLevel() > 0.0) {

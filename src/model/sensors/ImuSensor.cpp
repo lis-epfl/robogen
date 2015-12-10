@@ -29,7 +29,7 @@
 
 #include <cmath>
 #include "model/sensors/ImuSensor.h"
-#include "model/sensors/SimpleSensor.h"
+#include "model/sensors/Sensor.h"
 #include "utils/RobogenUtils.h"
 
 namespace robogen {
@@ -40,7 +40,7 @@ ImuSensor::ImuSensor() :
 			"z-acceleration", "Roll", "Pitch", "Yaw" };
 	for (unsigned int i = 0; i < 6; ++i) {
 		sensors_.push_back(
-				boost::shared_ptr<SimpleSensor>(new SimpleSensor(labels[i])));
+				boost::shared_ptr<Sensor>(new ImuSensorElement(labels[i])));
 	}
 }
 
@@ -121,19 +121,15 @@ void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 		accVal[ref] = acceleration_ * imuRef[ref];
 	}
 
-	sensors_[0]->update(accVal.x());
-	sensors_[1]->update(accVal.y());
-	sensors_[2]->update(accVal.z());
-	sensors_[3]->update(rotVelocity_.x());
-	sensors_[4]->update(rotVelocity_.y());
-	sensors_[5]->update(rotVelocity_.z());
+	sensors_[0]->updateValue(accVal.x());
+	sensors_[1]->updateValue(accVal.y());
+	sensors_[2]->updateValue(accVal.z());
+	sensors_[3]->updateValue(rotVelocity_.x());
+	sensors_[4]->updateValue(rotVelocity_.y());
+	sensors_[5]->updateValue(rotVelocity_.z());
 
 }
 
-void ImuSensor::getSensors(std::vector<boost::shared_ptr<Sensor> >& sensors) {
-	sensors.clear();
-	sensors.insert(sensors.begin(), sensors_.begin(), sensors_.end());
-}
 
 }
 

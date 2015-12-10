@@ -62,7 +62,8 @@ const std::string analogOrder[] = {"A0", "A1", "A2", "A3"};
 enum inputType{
 	LIGHT_SENSOR,
 	TOUCH_SENSOR,
-	IMU
+	IMU,
+	IR_SENSOR
 };
 
 /**

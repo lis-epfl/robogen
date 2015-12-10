@@ -34,29 +34,11 @@
 namespace robogen {
 
 TouchSensor::TouchSensor(dSpaceID odeSpace, boost::shared_ptr<SimpleBody> body,
-		std::string label) :
-				collideSpace_(odeSpace), body_(body), label_(label) {
-
-	/*
-	// create own space to avoid physical collisions with other objects
-	sensorSpace_ = dHashSpaceCreate(0);
-	// copy Sensor geom to this different space
-	dVector3 boxLengths;
-	dGeomBoxGetLengths(body->getGeom(), boxLengths);
-
-	sensorGeometry_ = dCreateBox(sensorSpace_, boxLengths[0],
-			boxLengths[1], boxLengths[2]);
-	dBodySetPosition(sensorBody, pos.x(), pos.y(), pos.z());
-	dGeomSetPosition(sensorGeometry_, pos.x(), pos.y(), pos.z());
-	dGeomSetBody(sensorGeometry_, sensorBody);
-	*/
+		std::string label) : Sensor(label), collideSpace_(odeSpace),
+				body_(body) {
 }
 
 TouchSensor::~TouchSensor() {
-}
-
-std::string &TouchSensor::getLabel(){
-	return label_;
 }
 
 struct TouchData {
@@ -64,7 +46,7 @@ struct TouchData {
 	bool touching;
 };
 
-bool TouchSensor::read() {
+void TouchSensor::update() {
 
 	// make a temporary space for checking touches
 	dSpaceID sensorSpace = dHashSpaceCreate(0);
@@ -85,7 +67,7 @@ bool TouchSensor::read() {
 	// clean up, will automatically delete geom as well
 	dSpaceDestroy(sensorSpace);
 
-	return data.touching;
+	updateValue( data.touching );
 }
 
 void TouchSensor::collisionCallback(void *data, dGeomID o1, dGeomID o2){

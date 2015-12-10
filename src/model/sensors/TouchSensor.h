@@ -50,9 +50,10 @@ public:
 	TouchSensor(dSpaceID odeSpace, boost::shared_ptr<SimpleBody> body,
 			std::string label);
 
-	virtual std::string &getLabel();
 
 	virtual ~TouchSensor();
+
+	void update();
 
 	/**
 	 * Read sensor output
@@ -76,11 +77,6 @@ private:
 	 * Body representing this touch sensor
 	 */
 	boost::shared_ptr<SimpleBody> body_;
-
-	/**
-	 * The label of the sensor, for data analysis
-	 */
-	std::string label_;
 
 
 };

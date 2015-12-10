@@ -29,10 +29,9 @@
 #define ROBOGEN_SENSOR_GROUP_H_
 
 #include <boost/shared_ptr.hpp>
+#include "Sensor.h"
 
 namespace robogen {
-
-class Sensor;
 
 class SensorGroup {
 
@@ -40,8 +39,15 @@ public:
 
 	virtual ~SensorGroup() {}
 
-	virtual void getSensors(std::vector<boost::shared_ptr<Sensor> >& sensors) = 0;
+	void inline getSensors(std::vector<boost::shared_ptr<Sensor> >&
+			sensors) {
+		sensors.clear();
+		sensors.insert(sensors.begin(), sensors_.begin(), sensors_.end());
+	}
 
+protected:
+
+	std::vector<boost::shared_ptr<Sensor> > sensors_;
 };
 
 }

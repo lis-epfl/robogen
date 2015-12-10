@@ -160,7 +160,7 @@ void LightSensorModel::getSensors(
 	sensors[0] = sensor_;
 }
 
-void LightSensorModel::updateSensors(boost::shared_ptr<Environment>& /*env*/) {
+void LightSensorModel::updateSensors(boost::shared_ptr<Environment>& env) {
 
 	// Axis
 	osg::Quat quat = this->sensorRoot_->getAttitude();
@@ -168,7 +168,7 @@ void LightSensorModel::updateSensors(boost::shared_ptr<Environment>& /*env*/) {
 	osg::Vec3 curPos = this->sensorRoot_->getPosition();
 	osg::Vec3 axis(1, 0, 0);
 	osg::Vec3 sensorPos = curPos + quat * axis * SENSOR_DISPLACEMENT;
-	this->sensor_->update(sensorPos, this->sensorRoot_->getAttitude());
+	this->sensor_->update(sensorPos, this->sensorRoot_->getAttitude(), env);
 }
 
 }

@@ -163,7 +163,8 @@ void TouchSensorModel::getSensors(
 }
 
 void TouchSensorModel::updateSensors(boost::shared_ptr<Environment>& /*env*/) {
-	// Do nothing
+	this->sensorLeft_->update();
+	this->sensorRight_->update();
 }
 
 }
