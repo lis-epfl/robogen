@@ -51,6 +51,7 @@ public:
 
 	JSScenario();
 
+
 	/**
 	 * Destructor
 	 */
@@ -61,23 +62,15 @@ public:
 	 * Methods inherited from {@link #Scenario}
 	 */
 
-
-	emscripten::val getRobotPosition();
-
 	// for now do nothing on any of these except getFitness, which
 	// will be pure virtual here
-	virtual bool setupSimulation() = 0;
+	virtual bool setupSimulation() { return true; }
 	virtual bool afterSimulationStep() { return true; }
-	virtual bool endSimulation() { curTrial_++; return endSimulationJS();}
-	virtual bool endSimulationJS() = 0;
+	virtual bool endSimulation();
+	virtual bool endSimulationJS() { return true; }
 	virtual double getFitness() = 0;
-	virtual bool remainingTrials() {
-		//TODO make do something more useful
-		return curTrial_ < 1;
-	}
-	virtual int getCurTrial() const {
-		return curTrial_;
-	}
+	virtual bool remainingTrials();
+	virtual int getCurTrial() const;
 
 	std::string getId() {
 		return id_;
@@ -96,21 +89,6 @@ public:
 	}
 
 	void printRobotPosition();
-
-
-	/*std::string getPointerString() {
-		  char buff[100];
-		  std::sprintf(buff, "%p", (void *) this);
-		  std::string r = buff;
-		  return r;
-	}
-
-	static JSScenario *fromPointerString(char * str) {
-		void *p;
-		std::sscanf(str, "%p", &p );
-		return (JSScenario *) p;
-	}*/
-
 
 private:
 	std::string id_;

@@ -29,8 +29,11 @@
 #ifdef EMSCRIPTEN
 
 #include "scenario/JSScenario.h"
+#include "config/RobogenConfig.h"
+#include "config/StartPositionConfig.h"
 #include "scenario/Environment.h"
 #include "Robot.h"
+#include "utils/JSUtils.h"
 
 #include <sstream>
 
@@ -47,33 +50,16 @@ JSScenario::JSScenario() : Scenario(boost::shared_ptr<RobogenConfig>()),
 }
 
 JSScenario::~JSScenario() {
-	std::stringstream ss;
-	ss << "console.log(\"" << "destroying jsScenario!" << "\")";
-	emscripten_run_script(ss.str().c_str());
+	js::log("destroying jsScenario!");
+	scenarios.erase(id_);
+	js::log("removed from map");
 
 }
 
-emscripten::val valFromVec3(osg::Vec3 vec) {
-	emscripten::val result(emscripten::val::object());
-	result.set("x", vec.x());
-	result.set("y", vec.y());
-	result.set("z", vec.z());
-	return result;
-}
-
-emscripten::val valFromQuat(osg::Quat quat) {
-	emscripten::val result(emscripten::val::object());
-	result.set("x", quat.x());
-	result.set("y", quat.y());
-	result.set("z", quat.z());
-	result.set("w", quat.w());
-	return result;
-}
-
-
-
-emscripten::val JSScenario::getRobotPosition(){
-	return valFromVec3(this->getRobot()->getCoreComponent()->getRootPosition());
+bool JSScenario::endSimulation() {
+	curTrial_++;
+	this->setStartingPosition(curTrial_);
+	return endSimulationJS();
 }
 
 void JSScenario::printRobotPosition() {
@@ -81,6 +67,15 @@ void JSScenario::printRobotPosition() {
 	std::stringstream ss;
 	ss << "console.log(\"" << pos[0] << " " <<pos[1] << " " << pos[2] << "\")";
 	emscripten_run_script(ss.str().c_str());
+}
+
+bool JSScenario::remainingTrials() {
+	boost::shared_ptr<StartPositionConfig> startPos = this->getRobogenConfig()->getStartingPos();
+	return curTrial_ < startPos->getStartPosition().size();
+}
+
+int JSScenario::getCurTrial() const {
+	return curTrial_;
 }
 
 }

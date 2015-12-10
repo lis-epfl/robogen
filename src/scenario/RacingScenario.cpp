@@ -32,14 +32,6 @@
 #include "Robot.h"
 #include "Models.h"
 
-#ifdef EMSCRIPTEN
-#include "emscripten.h"
-#include <emscripten/bind.h>
-
-
-using namespace emscripten;
-#endif
-
 namespace robogen {
 
 RacingScenario::RacingScenario(boost::shared_ptr<RobogenConfig> robogenConfig) :

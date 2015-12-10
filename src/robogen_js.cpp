@@ -7,6 +7,8 @@
 #include <iostream>
 #include <emscripten/bind.h>
 #include <emscripten.h>
+#include "utils/JSUtils.h"
+
 #include <viewer/JSViewer.h>
 #include <scenario/JSScenario.h>
 
@@ -122,14 +124,44 @@ struct ScenarioWrapper : public emscripten::wrapper<JSScenario> {
     bool setupSimulation() {
     	return call<bool>("setupSimulation");
     }
+
+    bool afterSimulationStep() {
+    	return call<bool>("afterSimulationStep");
+    }
+
+
 };
 
+#define TEST_EM
+#ifdef TEST_EM
+#include "emscripten_test.cpp"
+#endif
 
-std::vector<float> testReturnVector() {
-	std::vector<float> a;
-	a.push_back(2.3);
-	a.push_back(4.5);
-	return a;
+
+// helper functions
+emscripten::val getModelRootPosition(boost::shared_ptr<Model> model) {
+	return js::valFromVec3(model->getRootPosition());
+}
+emscripten::val getModelRootAttitude(boost::shared_ptr<Model> model) {
+	return js::valFromQuat(model->getRootAttitude());
+}
+
+emscripten::val getObservablePosition(boost::shared_ptr<PositionObservable>
+		observable) {
+	return js::valFromVec3(observable->getPosition());
+}
+
+emscripten::val getObservableAttitude(boost::shared_ptr<PositionObservable>
+		observable) {
+	return js::valFromQuat(observable->getAttitude());
+}
+
+emscripten::val getMotorId(boost::shared_ptr<Motor> motor) {
+	emscripten::val result(emscripten::val::object());
+	ioPair id = motor->getId();
+	result.set("partId", id.first);
+	result.set("ioId", id.second);
+	return result;
 }
 
 
@@ -142,21 +174,113 @@ EMSCRIPTEN_BINDINGS(my_module) {
 
 	emscripten::register_vector<float>("FloatVector");
 	emscripten::register_vector<boost::shared_ptr<Model> >("ModelVector");
-	emscripten::function("testReturnVector", &testReturnVector);
+	emscripten::register_vector<boost::shared_ptr<Sensor> >("SensorVector");
+	emscripten::register_vector<boost::shared_ptr<Motor> >("MotorVector");
+	emscripten::register_vector<boost::shared_ptr<Robot> >("Robot");
+	emscripten::register_vector<boost::shared_ptr<Robot> >("LightSources");
 
-	emscripten::class_<JSScenario>("JSScenario")
-        .function("getFitness", &JSScenario::getFitness, emscripten::pure_virtual())
-        .function("setupSimulation", &JSScenario::setupSimulation, emscripten::pure_virtual())
-        .function("endSimulation", &JSScenario::endSimulationJS, emscripten::pure_virtual())
-        .function("setId", &JSScenario::setId)
-        .function("getId", &JSScenario::getId)
-        //.function("getRobot", )
-        .function("getRobotPosition", &JSScenario::getRobotPosition)
-        .function("printRobotPosition", &JSScenario::printRobotPosition)
-        .allow_subclass<ScenarioWrapper>("ScenarioWrapper");
+	emscripten::class_<Model>("Model")
+		.function("getRootPosition", &getModelRootPosition)
+		.function("getRootAttitude", &getModelRootAttitude)
+		.smart_ptr<boost::shared_ptr<Model> >("shared_ptr<Model>");
+
+	emscripten::class_<Sensor>("Sensor")
+		.smart_ptr<boost::shared_ptr<Sensor> >("shared_ptr<Sensor>");
+
+	emscripten::class_<Motor>("Motor")
+		.smart_ptr<boost::shared_ptr<Motor> >("shared_ptr<Motor>")
+		.function("getId", &getMotorId);
+
+	emscripten::class_<SimpleSensor, emscripten::base<Sensor>>("SimpleSensor")
+		.smart_ptr<boost::shared_ptr<SimpleSensor> >("shared_ptr<SimpleSensor>")
+		.function("getLabel", &SimpleSensor::getLabel)
+		.function("read", &SimpleSensor::read)
+		;
+
+	emscripten::class_<ServoMotor, emscripten::base<Motor>>("ServoMotor")
+		.smart_ptr<boost::shared_ptr<ServoMotor> >("shared_ptr<ServoMotor>")
+		.function("isVelocityDriven", &ServoMotor::isVelocityDriven)
+		.function("getVelocity", &ServoMotor::getVelocity)
+		.function("getPosition", &ServoMotor::getPosition)
+		.function("getTorque", &ServoMotor::getTorque)
+		;
 
 	emscripten::class_<Robot>("Robot")
-		.function("getBodyParts", &Robot::getBodyParts);
+		.smart_ptr<boost::shared_ptr<Robot> >("shared_ptr<Robot>")
+		.function("getBodyParts", &Robot::getBodyParts)
+		.function("getCoreComponent", &Robot::getCoreComponent)
+		.function("getSensors", &Robot::getSensors)
+		;
+
+
+	emscripten::class_<Scenario>("Scenario")
+		.function("getRobot", &Scenario::getRobot)
+		.function("getEnvironment", &Scenario::getEnvironment)
+		;
+
+	emscripten::class_<JSScenario, emscripten::base<Scenario>>("JSScenario")
+        .function("getFitness", &JSScenario::getFitness, emscripten::pure_virtual())
+        .function("afterSimulationStep",
+        		emscripten::optional_override([](JSScenario& self) {
+							return self.JSScenario::afterSimulationStep();
+						}))
+		.function("setupSimulation",
+				emscripten::optional_override([](JSScenario& self) {
+							return self.JSScenario::setupSimulation();
+						}))
+		.function("endSimulation",
+				emscripten::optional_override([](JSScenario& self) {
+							return self.JSScenario::endSimulationJS();
+						}))
+        .function("setId", &JSScenario::setId)
+        .function("getId", &JSScenario::getId)
+        .function("printRobotPosition", &JSScenario::printRobotPosition)
+        .allow_subclass<ScenarioWrapper>("ScenarioWrapper")
+
+		;
+
+	// TODO obstacles
+
+	emscripten::class_<PositionObservable>("PositionObservable")
+		.function("getPosition", &getObservablePosition)
+		.function("getAttitude", &getObservableAttitude)
+		;
+
+	emscripten::class_<LightSource,  emscripten::base<PositionObservable>>("LightSource")
+		.smart_ptr<boost::shared_ptr<LightSource> >("shared_ptr<LightSource>")
+		;
+
+	emscripten::class_<Environment>("Environment")
+		.smart_ptr<boost::shared_ptr<Environment> >("shared_ptr<Environment>")
+		//.function("getTimeElapsed")
+		.function("getLightSources", &Environment::getLightSources)
+		.function("getAmbientLight", &Environment::getAmbientLight)
+		;
+
+#ifdef TEST_EM
+
+	emscripten::class_<Base>("Base")
+		.function("doSomething", &Base::doSomething);
+		;
+
+
+	emscripten::class_<Derived, emscripten::base<Base>>("Derived")
+	    .constructor()
+	    ;
+
+	emscripten::function("testReturnVec3", &testReturnVec3);
+
+	emscripten::function("testReturnVector", &testReturnVector);
+	emscripten::function("testReturnSharedPtr", &testReturnSharedPtr);
+	emscripten::function("testReturnRawPtr", &testReturnRawPtr, emscripten::allow_raw_pointers());
+	emscripten::function("runEmBindTest", &runEmBindTest);
+	emscripten::function("printTestStruct", &printTestStruct, emscripten::allow_raw_pointers());
+
+	emscripten::class_<TestStruct>("TestStruct")
+			//.constructor<float>()
+			.property("a", &TestStruct::a)
+			.smart_ptr<boost::shared_ptr<TestStruct> >("shared_ptr<TestStruct>");
+#endif
 
 }
 #endif

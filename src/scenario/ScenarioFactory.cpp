@@ -35,7 +35,7 @@
 #include <emscripten/bind.h>
 #include <emscripten.h>
 #include "scenario/JSScenario.h"
-
+#include "utils/JSUtils.h"
 #endif
 #include <sstream>
 #include <algorithm>
@@ -54,13 +54,7 @@ ScenarioFactory::~ScenarioFactory() {
 
 }
 
-#ifdef EMSCRIPTEN
-void log(std::string s) {
-	std::stringstream ss;
-	ss << "console.log(\"" << s << "\")";
-	emscripten_run_script(ss.str().c_str());
-}
-#endif
+
 
 
 
@@ -84,11 +78,12 @@ boost::shared_ptr<Scenario> ScenarioFactory::createScenario(boost::shared_ptr<Ro
 			std::stringstream ss;
 			ss << "_myUUID_" << uuid;
 			id = ss.str();
-			std::replace( id.begin(), id.end(), '-', '_'); // replace all 'x' to 'y'
+			// replace all '-' with '_' to make valid var name
+			std::replace( id.begin(), id.end(), '-', '_');
 		}
 
-		log("using id: ");
-		log(id);
+		js::log("using id: ");
+		js::log(id);
 
 		// now call the provided js with creating a new object at the end
 		// and registering it with the given uuid
@@ -104,9 +99,9 @@ boost::shared_ptr<Scenario> ScenarioFactory::createScenario(boost::shared_ptr<Ro
 		//finally use the uuid to get the pointer to the create object
 		JSScenario *scenario = JSScenario::getScenario(id);
 		if (scenario == NULL) {
-			log("Scenario is NULL!");
+			js::log("Scenario is NULL!");
 		} else {
-			log("Scenario is not NULL!");
+			js::log("Scenario is not NULL!");
 		}
 		scenario->setRobogenConfig(config);
 
