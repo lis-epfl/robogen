@@ -43,7 +43,7 @@ CoreComponentModel::CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace,
 		PerceptiveComponent(odeWorld, odeSpace, id), hasSensors_(hasSensors) {
 
 	if (hasSensors) {
-		sensor_.reset(new ImuSensor());
+		sensor_.reset(new ImuSensor(id + "-IMU"));
 	}
 
 }
