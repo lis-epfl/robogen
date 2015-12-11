@@ -2,10 +2,11 @@
  * @(#) ImuSensor.h   1.0   Mar 6, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
- *
+ * Copyright © 2012-2015 Andrea Maesani, Titus Cieslewski, Joshua Auerbach
  * Laboratory of Intelligent Systems, EPFL
  *
  * This file is part of the ROBOGEN Framework.
@@ -53,7 +54,7 @@ public:
 	 * (x-acc, y-acc, z-acc, x-gryo, y-gyro, z-gryo)
 	 */
 
-	ImuSensor();
+	ImuSensor(std::string partId);
 
 	virtual ~ImuSensor();
 

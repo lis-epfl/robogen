@@ -1,11 +1,12 @@
 /*
- * @(#) CoreComponentModel.cpp   1.0   Mar 6, 2013
+ * @(#) ImuSensor.cpp   1.0   Mar 6, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
  * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -34,13 +35,14 @@
 
 namespace robogen {
 
-ImuSensor::ImuSensor() :
+ImuSensor::ImuSensor(std::string partId) :
 		initialized_(false) {
 	std::string labels[] = { "x-acceleration", "y-acceleration",
 			"z-acceleration", "Roll", "Pitch", "Yaw" };
 	for (unsigned int i = 0; i < 6; ++i) {
 		sensors_.push_back(
-				boost::shared_ptr<Sensor>(new ImuSensorElement(labels[i])));
+				boost::shared_ptr<Sensor>(
+						new ImuSensorElement(partId + "-" + labels[i])));
 	}
 }
 
