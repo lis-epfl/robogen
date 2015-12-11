@@ -184,8 +184,9 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::register_vector<boost::shared_ptr<Model> >("ModelVector");
 	emscripten::register_vector<boost::shared_ptr<Sensor> >("SensorVector");
 	emscripten::register_vector<boost::shared_ptr<Motor> >("MotorVector");
-	emscripten::register_vector<boost::shared_ptr<Robot> >("Robot");
-	emscripten::register_vector<boost::shared_ptr<Robot> >("LightSources");
+	emscripten::register_vector<boost::shared_ptr<Robot> >("RobotVector");
+	emscripten::register_vector<boost::shared_ptr<LightSource> >("LightSourceVector");
+	emscripten::register_vector<boost::shared_ptr<Obstacle> >("ObstacleVector");
 
 	emscripten::class_<Model>("Model")
 		.function("getRootPosition", &getModelRootPosition)
@@ -272,13 +273,14 @@ EMSCRIPTEN_BINDINGS(my_module) {
 
 #ifdef TEST_EM
 
-	emscripten::class_<Base>("Base")
-		.function("doSomething", &Base::doSomething);
-		;
+	//emscripten::class_<Base>("Base")
+	//	.function("doSomething", &Base::doSomething);
+	//	;
 
 
-	emscripten::class_<Derived, emscripten::base<Base>>("Derived")
+	emscripten::class_<Derived>("Derived")
 	    .constructor()
+	    .function("doSomething",static_cast<void(Derived::*)()>(&Base::doSomething))//;// &Base::doSomething)
 	    ;
 
 	emscripten::function("testReturnVec3", &testReturnVec3);
