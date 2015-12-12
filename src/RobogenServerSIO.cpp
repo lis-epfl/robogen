@@ -28,6 +28,7 @@
  * @(#) $Id$
  */
 #include <iostream>
+#include <chrono>
 #include "socket.io-client-cpp/src/sio_client.h"
 #include "socket.io-client-cpp/src/sio_message.h"
 #include "socket.io-client-cpp/src/sio_socket.h"
@@ -59,92 +60,87 @@ dJointGroupID odeContactGroup;
 
 bool interrupted;
 
-int main(int argc, char* argv[]) {
+#include <functional>
+#include <iostream>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <string>
 
-	startRobogen();
 
-	sio::client h;
-	h.connect("http://52.29.69.237:3000");
-	h.socket()->emit("ping");
+using namespace sio;
+using namespace std;
+std::mutex _lock;
 
-	interrupted = false;
+std::condition_variable_any _cond;
+bool connect_finish = false;
 
-	if (argc < 2) {
-		std::cerr << "Please, provide server port." << std::endl;
-		exitRobogen(EXIT_FAILURE);
-	} 
+class connection_listener
+{
+	sio::client &handler;
 
-	// Parameters: <PORT>
-	int port = std::atoi(argv[1]);
-	if (!port) {
-		std::cerr << "The first argument must be a server port." << std::endl;
-		exitRobogen(EXIT_FAILURE);
-	}
+	public:
 
-	bool visualize = false;	
-	bool startPaused = false;
-	for (int currentArg=2; currentArg<argc; currentArg++) {
-		if (std::string(argv[currentArg]).compare("--visualization") == 0) {
-			visualize = true;
-		} else if (std::string(argv[currentArg]).compare("--pause") == 0) {
-			startPaused = true;
-		}
-	}
-
-	if (startPaused && !visualize) {
-		std::cerr << "Cannot start paused without visualization enabled." <<
-				std::endl;
-		exitRobogen(EXIT_FAILURE);
+	connection_listener(sio::client& h):
+		handler(h)
+	{
 	}
 
 
-	TcpSocket socket;
-	bool rc = socket.create(port);
-	if (!rc) {
-		std::cerr << "Cannot listen for incoming connections on port " << port
-				<< std::endl;
-		exitRobogen(EXIT_FAILURE);
+	void on_connected()
+	{
+		_lock.lock();
+		_cond.notify_all();
+		connect_finish = true;
+		_lock.unlock();
+	}
+	void on_close(client::close_reason const& reason)
+	{
+		std::cout<<"sio closed "<<std::endl;
+		exit(0);
 	}
 
+	void on_fail()
+	{
+		std::cout<<"sio failed "<<std::endl;
+		exit(0);
+	}
+};
 
-	boost::random::mt19937 rng;
-	rng.seed(port);
+int participants = -1;
 
-	while (!interrupted) {
+boost::random::mt19937 rng;
+socket::ptr current_socket;
 
-		// Wait for client to connect
-		std::cout << "Waiting for clients..." << std::endl;
+void bind_events(socket::ptr &socket)
+{
+	current_socket->on("requestTask", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
+				{
+				_lock.lock();
+				const std::string id = data->get_map()["id"]->get_string();
+				std::cout << "I have a new task (id:" << id << ")" << std::endl;
+				std::vector<message::ptr> content = data->get_map()["content"]->get_map()["packet"]->get_vector();
+				std::cout << content.size() << " bytes received" <<  std::endl;;
+				size_t headerSize = ProtobufPacket<robogenMessage::EvaluationRequest>::HEADER_SIZE;
+				std::vector<unsigned char> headerBuffer;
+				for (unsigned int i = 0; i < headerSize; ++i) {
+					headerBuffer.push_back(content.at(i)->get_int());
+				}
 
-		rc = socket.accept();
+				ProtobufPacket<robogenMessage::EvaluationRequest> packet;
+				unsigned int packSize = packet.decodeHeader(headerBuffer);
 
-		if (rc) {
+				std::vector<unsigned char> payloadBuffer;
+				for (unsigned int i = headerSize; i < content.size(); ++i) {
+					payloadBuffer.push_back(content.at(i)->get_int());
+				}
 
-			std::cout << "Client connected..." << std::endl;
+				std::cout << payloadBuffer.size() << std::endl;
+				packet.decodePayload(payloadBuffer);
 
-			while (true) {
+				std::cout << "packet decoded" << std::endl;
+				
 
-				try {
-
-					// ---------------------------------------
-					// Decode solution
-					// ---------------------------------------
-
-					ProtobufPacket<robogenMessage::EvaluationRequest> packet;
-
-					// 1) Read packet header
-					std::vector<unsigned char> headerBuffer;
-					socket.read(headerBuffer,
-							ProtobufPacket<robogenMessage::EvaluationRequest>::HEADER_SIZE);
-					unsigned int packetSize = packet.decodeHeader(headerBuffer);
-
-					// 2) Read packet size
-					std::vector<unsigned char> payloadBuffer;
-					socket.read(payloadBuffer, packetSize);
-					packet.decodePayload(payloadBuffer);
-
-					// ---------------------------------------
-					//  Decode configuration file
-					// ---------------------------------------
 
 					boost::shared_ptr<RobogenConfig> configuration =
 							ConfigurationReader::parseRobogenMessage(
@@ -173,18 +169,10 @@ int main(int argc, char* argv[]) {
 					// ---------------------------------------
 					// Run simulations
 					// ---------------------------------------
-					Viewer *viewer = NULL;
-					if(visualize) {
-						viewer = new Viewer(startPaused);
-					}
 
 					unsigned int simulationResult = runSimulations(scenario,
 							configuration, packet.getMessage()->robot(),
-							viewer, rng);
-
-					if(viewer != NULL) {
-						delete viewer;
-					}
+							nullptr, rng);
 
 
 					if (simulationResult == SIMULATION_FAILURE) {
@@ -200,38 +188,48 @@ int main(int argc, char* argv[]) {
 					} else {
 						fitness = scenario->getFitness();
 					}
+
+					message::ptr output = object_message::create();
+					output->get_map()["id"] = string_message::create(id);
+					output->get_map()["content"] = object_message::create();
+					output->get_map()["content"]->get_map()["fitness"] = double_message::create(fitness);
+					output->get_map()["content"]->get_map()["ptr"] = data->get_map()["content"]->get_map()["ptr"];
+					current_socket->emit("responseTask", output);
 					std::cout << "Fitness for the current solution: " << fitness
 							<< std::endl << std::endl;
 
-					// ---------------------------------------
-					// Send reply to EA
-					// ---------------------------------------
-					boost::shared_ptr<robogenMessage::EvaluationResult> evalResultPacket(
-							new robogenMessage::EvaluationResult());
-					evalResultPacket->set_fitness(fitness);
-					evalResultPacket->set_id(packet.getMessage()->robot().id());
-					ProtobufPacket<robogenMessage::EvaluationResult> evalResult;
-					evalResult.setMessage(evalResultPacket);
 
-					std::vector<unsigned char> sendBuffer;
-					evalResult.forge(sendBuffer);
+				_lock.unlock();
+				}));
+}
 
-					socket.write(sendBuffer);
+int main(int argc ,const char* args[])
+{
 
-				} catch (boost::system::system_error& e) {
-					socket.close();
-					exitRobogen(EXIT_FAILURE);
-				}
+	rng.seed(3000);
+	sio::client h;
+	connection_listener l(h);
 
-			}
-
-		} else {
-			std::cerr << "Cannot connect to client. Exiting." << std::endl;
-			socket.close();
-			exitRobogen(EXIT_FAILURE);
-		}
-
+	h.set_open_listener(std::bind(&connection_listener::on_connected, &l));
+	h.set_close_listener(std::bind(&connection_listener::on_close, &l,std::placeholders::_1));
+	h.set_fail_listener(std::bind(&connection_listener::on_fail, &l));
+	h.connect("http://192.168.1.5:3000");
+	current_socket = h.socket();
+	bind_events(current_socket);
+	_lock.lock();
+	if(!connect_finish)
+	{
+		_cond.wait(_lock);
 	}
-
-	exitRobogen(EXIT_SUCCESS);
+	_lock.unlock();
+	message::ptr capabilities = object_message::create();
+	// declare capabilities (1 thread)
+	capabilities->get_map()["totalNodes"] = int_message::create(1);
+	current_socket->emit("computationDeclaration", capabilities);
+	_lock.lock();
+	_cond.wait(_lock);
+	_lock.unlock();
+	h.sync_close();
+	h.clear_con_listeners();
+	return 0;
 }
