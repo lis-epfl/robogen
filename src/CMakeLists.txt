@@ -60,10 +60,10 @@ include_directories("${CMAKE_SOURCE_DIR}/socket.io-client-cpp/src/")
 if(UNIX)
 	# Compiler options
 	if (CMAKE_BUILD_TYPE STREQUAL "Release")
-		add_definitions(-ansi -pedantic -fPIC )
+		add_definitions(-pedantic -fPIC )
 	else()
 		# Turn on warnings in debug mode
-		add_definitions(-ansi -pedantic -Wno-long-long -Wall -Wextra -Wformat=2
+		add_definitions(-pedantic -Wno-long-long -Wall -Wextra -Wformat=2
 		                -Wredundant-decls -Wwrite-strings -Wmissing-include-dirs 
 		                -Wswitch-enum -Wuninitialized 
 		                -Wswitch-default -Winit-self -Wshadow -Wfloat-equal -fPIC )
