@@ -246,7 +246,7 @@ bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 				mutated = true;
 				*params[paramCounter+1] += (normalDistribution_(rng_) *
 						conf_->brainTauSigma);
-				*params[paramCounter+1] = clip(*params[paramCounter],
+				*params[paramCounter+1] = clip(*params[paramCounter+1],
 						conf_->minBrainTau, conf_->maxBrainTau);
 			}
 			paramCounter += 2;
@@ -262,14 +262,14 @@ bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 				mutated = true;
 				*params[paramCounter+1] += (normalDistribution_(rng_) *
 						conf_->brainPhaseOffsetSigma);
-				*params[paramCounter+1] = clip(*params[paramCounter],
+				*params[paramCounter+1] = clip(*params[paramCounter+1],
 						conf_->minBrainPhaseOffset, conf_->maxBrainPhaseOffset);
 			}
 			if (brainMutate_(rng_)) {
 				mutated = true;
 				*params[paramCounter+2] += (normalDistribution_(rng_) *
 						conf_->brainAmplitudeSigma);
-				*params[paramCounter+2] = clip(*params[paramCounter],
+				*params[paramCounter+2] = clip(*params[paramCounter+2],
 						conf_->minBrainAmplitude, conf_->maxBrainAmplitude);
 			}
 			paramCounter += 3;

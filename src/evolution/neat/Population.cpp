@@ -41,24 +41,16 @@
 #include "Utils.h"
 #include "Assert.h"
 
-//#define NEAT_DEBUG
 
 namespace NEAT
 {
 
 // The constructor
-Population::Population(const Genome& a_Seed, const Parameters& a_Parameters, bool a_RandomizeWeights, double a_RandomizationRange, int a_RandomSeed = -1)
+Population::Population(const Genome& a_Seed, const Parameters& a_Parameters,
+		               bool a_RandomizeWeights, double a_RandomizationRange, int a_RNG_seed)
 {
-	if (a_RandomSeed == -1)
-	{
-		m_RNG.TimeSeed();
-	}
-	else
-	{
-		m_RNG.Seed(a_RandomSeed);
-	}
-
-	m_BestFitnessEver = 0.0;
+    m_RNG.Seed(a_RNG_seed);
+    m_BestFitnessEver = 0.0;
     m_Parameters = a_Parameters;
 
     m_Generation = 0;
@@ -84,21 +76,10 @@ Population::Population(const Genome& a_Seed, const Parameters& a_Parameters, boo
 
         //m_Genomes[i].CalculateDepth();
     }
-
-    // Initialize the innovation database
-    m_InnovationDatabase.Init(a_Seed);
-
     // Speciate
     Speciate();
-    m_BestGenome = m_Species[0].GetLeader();
 
-    Sort();
-
-
-    // Set up the phased search variables
-    CalculateMPC();
-    m_BaseMPC = m_CurrentMPC;
-    m_OldMPC = m_BaseMPC;
+    // set these phased search variables now since used in MutateGenome
     if (m_Parameters.PhasedSearching)
     {
         m_SearchMode = COMPLEXIFYING;
@@ -107,6 +88,32 @@ Population::Population(const Genome& a_Seed, const Parameters& a_Parameters, boo
     {
         m_SearchMode = BLENDED;
     }
+
+    // initial mutation
+    for (unsigned int i = 0; i < m_Species.size(); i++)
+    {
+        for (unsigned int j = 0; j < m_Species[i].m_Individuals.size(); j++)
+        {
+            m_Species[i].MutateGenome( true, *this, m_Species[i].m_Individuals[j], m_Parameters, m_RNG );
+        }
+    }
+
+    Speciate();
+    
+    // Initialize the innovation database
+    m_InnovationDatabase.Init(a_Seed);
+
+    m_BestGenome = m_Species[0].GetLeader();
+
+    Sort();
+
+
+    // Set up the rest of the phased search variables
+    CalculateMPC();
+    m_BaseMPC = m_CurrentMPC;
+    m_OldMPC = m_BaseMPC;
+
+    m_InnovationDatabase.m_Innovations.reserve(50000);
 }
 
 
@@ -216,6 +223,10 @@ void Population::Speciate()
     // iterate through the genome list and speciate
     // at least 1 genome must be present
     ASSERT(m_Genomes.size() > 0);
+
+    // first clear out the species
+    m_Species.clear();
+
 
     bool t_added = false;
 
@@ -354,12 +365,10 @@ void Population::CountOffspring()
     for(unsigned int i=0; i<m_Species.size(); i++)
     {
         m_Species[i].CountOffspring();
-
-		#ifdef NEAT_DEBUG
-        std::cout << "Species " << m_Species[i].ID() << " should have " <<
-        		m_Species[i].GetOffspringRqd() << " offspring" << std::endl;
-		#endif
-
+#ifdef NEAT_DEBUG
+        std::cout << i << " " <<  m_Species[i].ID() << " " << m_Species[i].GetBestFitness() << " " <<
+        		m_Species[i].GetOffspringRqd() << " offspring rqd" << std::endl;
+#endif
     }
 }
 
@@ -374,10 +383,12 @@ void Population::Sort()
     ASSERT(m_Species.size() > 0);
 
     // Step through each species and sort its members by fitness
+	// and then update best fitness and stagnation counters
     for(unsigned int i=0; i<m_Species.size(); i++)
     {
         ASSERT(m_Species[i].NumIndividuals() > 0);
         m_Species[i].SortIndividuals();
+		m_Species[i].UpdateBestFitnessAndStagnation();
     }
 
     // Now sort the species by fitness (best first)
@@ -392,21 +403,14 @@ void Population::UpdateSpecies()
     // search for the current best species ID if not at generation #0
     int t_oldbestid = -1, t_newbestid = -1;
     int t_oldbestidx = -1;
-
-	#ifdef NEAT_DEBUG
-    std::cout << m_Generation << " " << m_Species.size() << std::endl;
-	#endif
-
     if (m_Generation > 0)
     {
         for(unsigned int i=0; i<m_Species.size(); i++)
         {
-
-			#ifdef NEAT_DEBUG
-        	std::cout << "Best Fitness " << i << " " << m_Species[i].ID() << " " << m_Species[i].GetBestFitness()
-        			<< " " << m_BestFitnessEver << " " << m_Species[i].IsBestSpecies() << std::endl;
-			#endif
-
+#ifdef NEAT_DEBUG
+        	std::cout << i << " " << m_Species[i].ID() << " " << m_Species[i].GetBestFitness() << " " <<
+        			m_Species[i].IsBestSpecies() << " " << m_Species[i].m_Individuals.size() << std::endl;
+#endif
             if (m_Species[i].IsBestSpecies())
             {
                 t_oldbestid  = m_Species[i].ID();
@@ -434,16 +438,31 @@ void Population::UpdateSpecies()
         // Mark the best species so it is guaranteed to survive
         // Only one species will be marked - in case several species
         // have equally best fitness
+
+#ifdef NEAT_DEBUG
+        std::cout << "species " << i << " " << m_Species[i].ID() << std::endl;
+        std::cout << "best fitness " << m_Species[i].GetBestFitness() <<
+                			", best fitness ever " << m_BestFitnessEver << std::endl;
+#endif
         if ((m_Species[i].GetBestFitness() >= m_BestFitnessEver) && (!t_marked))
         {
+#ifdef NEAT_DEBUG
+        	std::cout << "best species!!!!" << std::endl;
+#endif
+
             m_Species[i].SetBestSpecies(true);
             t_marked = true;
             t_newbestid = m_Species[i].ID();
         }
     }
-	#ifdef NEAT_DEBUG
-    std::cout << "+++++++++++++++++++" << t_marked << " " << m_BestFitnessEver << std::endl;
-	#endif
+#ifdef NEAT_DEBUG
+    if(!t_marked) {
+    	std::cout << "NO BEST SPECIES MARKED!!!!\n";
+    	std::cout << "OLD BEST WAS " << t_oldbestidx << " " << t_oldbestid << std::endl;
+    	std::cout << "best fitness " << m_Species[t_oldbestidx].GetBestFitness() <<
+    			", best fitness ever " << m_BestFitnessEver << std::endl;
+    }
+#endif
 
     // This prevents the previous best species from sudden death
     // If the best species happened to be another one, reset the old
@@ -464,20 +483,28 @@ void Population::UpdateSpecies()
 
 // the epoch method - the heart of the GA
 void Population::Epoch()
-{
+{   
+#ifdef NEAT_DEBUG
+	std::cout << "  -------------------- EPOCH -------------------------------" <<std::endl;
+#endif
     // So, all genomes are evaluated..
     for(unsigned int i=0; i<m_Species.size(); i++)
     {
+#ifdef NEAT_DEBUG
+    	std::cout << "Species: " << i << " " << m_Species[i].ID() <<
+    			", " << "best fit: " << m_Species[i].GetBestFitness() << ", all fits:";
+#endif
+
         for(unsigned int j=0; j<m_Species[i].m_Individuals.size(); j++)
         {
+#ifdef NEAT_DEBUG
+        	std::cout << " " << m_Species[i].m_Individuals[j].GetFitness();
+#endif
             m_Species[i].m_Individuals[j].SetEvaluated();
-			
-			#ifdef NEAT_DEBUG
-	    	std::cout << "A: " << m_Species[i].m_Individuals[j].GetFitness() << " "
-            		<< m_Species[i].m_Individuals[j].GetAdjFitness() << std::endl;
-			#endif
-
         }
+#ifdef NEAT_DEBUG
+        std::cout << std::endl;
+#endif
     }
 
     // Sort each species's members by fitness and the species by fitness
@@ -498,7 +525,6 @@ void Population::Epoch()
 
     // Incrementing the global stagnation counter, we can check later for global stagnation
     m_GensSinceBestFitnessLastChanged++;
-
     // Find and save the best genome and fitness
     for(unsigned int i=0; i<m_Species.size(); i++)
     {
@@ -510,11 +536,6 @@ void Population::Epoch()
             // Make sure all are evaluated as we don't run in realtime
             m_Species[i].m_Individuals[j].SetEvaluated();
 
-			#ifdef NEAT_DEBUG
-		    std::cout << "B: " << m_Species[i].m_Individuals[j].GetFitness() << " "
-                        << m_Species[i].m_Individuals[j].GetAdjFitness() << std::endl;
-			#endif
-
             const double t_Fitness = m_Species[i].m_Individuals[j].GetFitness();
             if (m_BestFitnessEver < t_Fitness)
             {
@@ -523,14 +544,13 @@ void Population::Epoch()
                 {
                     m_GensSinceBestFitnessLastChanged = 0;
                 }
+#ifdef NEAT_DEBUG
+                std::cout << "SETTING NEW BEST FITNESS EVER " << t_Fitness << " in species "
+                		<< i << " " << m_Species[i].ID() << std::endl;
+#endif
 
                 m_BestFitnessEver = t_Fitness;
                 m_BestGenomeEver  = m_Species[i].m_Individuals[j];
-
-				#ifdef NEAT_DEBUG
-                std::cout << "New Best in species " << m_Species[i].ID() << ", fitness = " << t_Fitness << std::endl;
-				#endif
-
             }
         }
     }
@@ -548,7 +568,6 @@ void Population::Epoch()
             }
         }
     }
-
 
     // adjust the compatibility threshold
     if (m_Parameters.DynamicCompatibility == true)
@@ -709,28 +728,13 @@ void Population::Epoch()
 
     for(unsigned int i=0; i<m_Species.size(); i++)
     {
-
-		#ifdef NEAT_DEBUG
-    	std::cout << "(A) Species " << m_Species[i].ID() << " now has " <<
-    	        		m_Species[i].m_Individuals.size() << " individuals" << std::endl;
-    	std::cout << "(B) Species " << m_TempSpecies[i].ID() << " now has " <<
-    	        		m_TempSpecies[i].m_Individuals.size() << " individuals" << std::endl;
-		#endif
-
+#ifdef NEAT_DEBUG
+    	std::cout << std::endl << "********  reproducing species " << i << " " << m_Species[i].ID() << std::endl;
+#endif
         m_Species[i].Reproduce(*this, m_Parameters, m_RNG);
-
-		#ifdef NEAT_DEBUG
-        std::cout << "(C) Species " << m_Species[i].ID() << " now has " <<
-        		m_Species[i].m_Individuals.size() << " individuals" << std::endl;
-        std::cout << "(D) Species " << m_TempSpecies[i].ID() << " now has " <<
-        		m_TempSpecies[i].m_Individuals.size() << " individuals" << std::endl;
-		#endif
-
     }
 
     m_Species = m_TempSpecies;
-
-
 
 
     // Now we kill off the old parents
@@ -740,16 +744,16 @@ void Population::Epoch()
 
     // Here we kill off any empty species too
     // Remove all empty species (cleanup routine for every case..)
+#ifdef NEAT_DEBUG
+    std::cout << "after reproduction *******************" << std::endl;
+#endif
+
     for(unsigned int i=0; i<m_Species.size(); i++)
     {
-		
-		#ifdef NEAT_DEBUG
-    	std::cout << "(E) Species " << m_Species[i].ID() << " now has " <<
-    	        		m_Species[i].m_Individuals.size() << " individuals" << std::endl;
-    	std::cout << "(F) Species " << m_TempSpecies[i].ID() << " now has " <<
-    	        		m_TempSpecies[i].m_Individuals.size() << " individuals" << std::endl;
-		#endif
-
+#ifdef NEAT_DEBUG
+    	std::cout << "species " << i << " " << m_Species[i].ID() << " " << m_Species[i].IsBestSpecies() <<
+    			" " << m_Species[i].m_Individuals.size() << std::endl;
+#endif
         if (m_Species[i].m_Individuals.size() == 0)
         {
             m_Species.erase(m_Species.begin() + i);
@@ -1366,3 +1370,4 @@ bool Population::NoveltySearchTick(Genome& a_SuccessfulGenome)
 
 
 } // namespace NEAT
+
