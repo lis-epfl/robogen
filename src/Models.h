@@ -32,7 +32,6 @@
 #include "model/objects/LightSource.h"
 #include "model/sensors/ImuSensor.h"
 #include "model/sensors/LightSensor.h"
-#include "model/sensors/SimpleSensor.h"
 #include "model/sensors/TouchSensor.h"
 
 #include "model/components/actuated/ActiveCardanModel.h"

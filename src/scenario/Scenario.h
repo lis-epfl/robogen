@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -95,20 +95,10 @@ public:
 	 */
 	boost::shared_ptr<Environment> getEnvironment();
 
-	/**
-	 * @return the terrain
-	 */
-	boost::shared_ptr<Terrain> getTerrain();
 
-	/**
-	 * @return the obstacles
-	 */
-	std::vector<boost::shared_ptr<BoxObstacle> > getObstacles();
-
-	/**
-	 * Set the environment
-	 */
-	void setEnvironment(boost::shared_ptr<Environment> env);
+	inline bool wereObstaclesRemoved() {
+		return obstaclesRemoved_;
+	}
 
 	/**
 	 * Sets the starting position id
@@ -159,16 +149,6 @@ protected:
 private:
 
 	/**
-	 * ODE physics world
-	 */
-	dWorldID odeWorld_;
-
-	/**
-	 * ODE collision space
-	 */
-	dSpaceID odeSpace_;
-
-	/**
 	 * Robot
 	 */
 	boost::shared_ptr<Robot> robot_;
@@ -179,16 +159,6 @@ private:
 	boost::shared_ptr<RobogenConfig> robogenConfig_;
 
 	/**
-	 * Terrain
-	 */
-	boost::shared_ptr<Terrain> terrain_;
-
-	/**
-	 * Obstacles
-	 */
-	std::vector<boost::shared_ptr<BoxObstacle> > obstacles_;
-
-	/**
 	 * The current id of starting position
 	 */
 	int startPositionId_;
@@ -197,6 +167,8 @@ private:
 	 * The environment
 	 */
 	boost::shared_ptr<Environment> environment_;
+
+	bool obstaclesRemoved_;
 
 };
 

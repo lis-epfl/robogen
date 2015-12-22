@@ -52,11 +52,19 @@ public :
 	}
 	bool ignoreCollision(dGeomID o1, dGeomID o2);
 
+	bool isPartOfBody(dGeomID o1);
+
+	inline bool hasObstacleCollisions() {
+		return hasObstacleCollisions_;
+	}
+	void testObstacleCollisons(dGeomID o1, dGeomID o2);
+
 	//unsigned int numCulled ;
 
 private :
 	boost::shared_ptr<Scenario> scenario_;
 	std::map<dGeomID, boost::shared_ptr<Model> > geomModelMap_;
+	bool hasObstacleCollisions_;
 
 };
 

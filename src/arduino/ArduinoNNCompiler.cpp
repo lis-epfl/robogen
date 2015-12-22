@@ -41,7 +41,8 @@
 #include "model/sensors/Sensor.h"
 #include "model/sensors/LightSensor.h"
 #include "model/sensors/TouchSensor.h"
-#include "model/sensors/SimpleSensor.h"
+#include "model/sensors/IrSensor.h"
+#include "model/sensors/ImuSensor.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
 
 #define STRINGIFY(x) #x
@@ -55,6 +56,16 @@ ArduinoNNCompiler::ArduinoNNCompiler() {
 ArduinoNNCompiler::~ArduinoNNCompiler() {
 }
 
+std::string getPin(int &nDigital, int &nAnalog) {
+	std::string pin;
+	if (nDigital < MAX_DIGITAL_PINS) {
+		pin = arduino::digitalOrder[nDigital++];
+	} else {
+		pin = arduino::analogOrder[nAnalog++];
+	}
+	return pin;
+}
+
 void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 		std::ofstream &file){
 
@@ -62,9 +73,11 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 
 	file << headerFooter.first << std::endl << std::endl;
 
-	int nLight = 0, nTouch = 0, nServo = 0;
+	int nDigital = 0, nAnalog = 0, nServo = 0, nLight = 0, nTouch = 0,
+			nIr = 0;
 	std::vector<int> input;
 	std::vector<std::string> inputPins;
+	std::vector<std::string> irIndices;
 	std::vector<std::string> outputPins;
 	std::vector<boost::shared_ptr<Sensor> > sensors = robot.getSensors();
 	std::vector<boost::shared_ptr<Motor> > motors = robot.getMotors();
@@ -75,9 +88,10 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 
 	for (unsigned int i=0; i<motors.size(); ++i){
 		ioPair id = motors[i]->getId();
-		outputPins.push_back(arduino::digitalOrder[nServo]);
+		outputPins.push_back(arduino::digitalOrder[nDigital]);
 		file << "// Branch " << id.first << " " << id.second  << " to " <<
-				arduino::digitalOrder[nServo++] << std::endl;
+				arduino::digitalOrder[nDigital++] << std::endl;
+		nServo++;
 	}
 
 
@@ -87,32 +101,50 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 		if (boost::dynamic_pointer_cast<LightSensor>(
 				sensors[i])){
 			input.push_back(arduino::LIGHT_SENSOR);
-			inputPins.push_back(arduino::analogOrder[nLight]);
+			inputPins.push_back(arduino::analogOrder[nAnalog]);
 			file << "// Branch " << sensors[i]->getLabel() << " to " <<
-					arduino::analogOrder[nLight++] << std::endl;
-		}
-		// touch sensor
-		if (boost::dynamic_pointer_cast<TouchSensor>(
+					arduino::analogOrder[nAnalog++] << std::endl;
+			irIndices.push_back("NONE");
+			nLight++;
+		} else if (boost::dynamic_pointer_cast<TouchSensor>(
 				sensors[i])){
 			input.push_back(arduino::TOUCH_SENSOR);
-			std::string pin;
-			if ((nServo + nTouch) < MAX_DIGITAL_PINS) {
-				pin = arduino::digitalOrder[nServo + nTouch];
-			} else {
-				pin = arduino::analogOrder[nLight +
-				                           ((nServo + nTouch) -
-				                        		   MAX_DIGITAL_PINS )];
-			}
+			std::string pin = getPin(nDigital, nAnalog);
 			inputPins.push_back(pin);
 			file << "// Branch " << sensors[i]->getLabel() << " to " <<
 					pin << std::endl;
+			irIndices.push_back("NONE");
 			nTouch++;
-		}
-		// IMU sensor
-		if (boost::dynamic_pointer_cast<SimpleSensor>(
+		} else if (boost::dynamic_pointer_cast<IrSensorElement>(
+				sensors[i])){
+			// Only need one pin for IR_SENSOR even though two "sensors"
+			boost::shared_ptr<IrSensorElement> sensor =
+					boost::dynamic_pointer_cast<IrSensorElement>(sensors[i]);
+
+			std::string pin;
+			input.push_back(arduino::IR_SENSOR);
+			int index;
+			if (sensor->getType() == IrSensorElement::IR) {
+				pin = getPin(nDigital, nAnalog);
+				file << "// Branch " << sensor->getBaseLabel() << " to " <<
+						pin << std::endl;
+				index = nIr++;
+			} else {
+				// assume that this always comes right after IR part
+				pin = inputPins[inputPins.size() - 1];
+				index = nIr - 1;
+			}
+			std::stringstream ss;
+			ss << index;
+			irIndices.push_back(ss.str());
+			inputPins.push_back(pin);
+
+
+		} else if (boost::dynamic_pointer_cast<ImuSensorElement>(
 				sensors[i])){
 			input.push_back(arduino::IMU);
 			inputPins.push_back("0");
+			irIndices.push_back("NONE");
 		}
 	}
 
@@ -120,6 +152,7 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 	file << std::endl;
 	file << "#define NB_LIGHTSENSORS " << nLight << std::endl;
 	file << "#define NB_TOUCH_SENSORS " << nTouch << std::endl;
+	file << "#define NB_IR_SENSORS " << nIr << std::endl;
 	file << "#define NB_SERVOS_MOTORS " << nServo << std::endl;
 	file << "#define NB_ACC_GYRO_SENSORS 6" << std::endl;
 	file << std::endl;
@@ -136,11 +169,22 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 	file << "\t0 for lightSensor," << std::endl;
 	file << "\t1 for Touch sensor, and" << std::endl;
 	file << "\t2 for Accelerometer and Gyroscope" << std::endl;
+	file << "\t3 for IR sensor" << std::endl;
 	file << "*/" << std::endl;
 
 	file << "const int inputTab[][2] = { ";
 	for (unsigned int i=0; i<input.size(); ++i) {
 		file << (i?", ":"") << "{" << inputPins[i] << ", " << input[i] << "}";
+	}
+	file << " };" << std::endl << std::endl;
+
+	file << "/* irIndices " << std::endl;
+	file << "* NONE if not irSensor" << std::endl;
+	file << "* otherwise index of irSensor" << std::endl;
+	file << "*/" << std::endl;
+	file << "const int irIndices[] = { ";
+	for (size_t i = 0; i<irIndices.size(); ++i) {
+		file << (i?", ":"") << irIndices[i];
 	}
 	file << " };" << std::endl << std::endl;
 

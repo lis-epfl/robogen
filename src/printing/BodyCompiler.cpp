@@ -43,7 +43,6 @@
 #include "model/sensors/Sensor.h"
 #include "model/sensors/LightSensor.h"
 #include "model/sensors/TouchSensor.h"
-#include "model/sensors/SimpleSensor.h"
 #include "robogen.pb.h"
 #include "PartList.h"
 #include "evolution/representation/RobotRepresentation.h"

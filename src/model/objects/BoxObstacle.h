@@ -30,7 +30,7 @@
 
 #include <osg/Quat>
 #include <osg/Vec3>
-#include "model/PositionObservable.h"
+#include "Obstacle.h"
 #include "Robogen.h"
 
 namespace robogen {
@@ -38,14 +38,9 @@ namespace robogen {
 /**
  * A simple obstacle made of a box of specified size
  */
-class BoxObstacle : public PositionObservable {
+class BoxObstacle : public Obstacle {
 
 public:
-
-	/**
-	 * Density of box obstacles
-	 */
-	static const float DENSITY;
 
 	/**
 	 * Initializes a box obstacle
@@ -57,7 +52,7 @@ public:
 	/**
 	 * Remove from world
 	 */
-	void remove();
+	virtual void remove();
 
 	/**
 	 * Destructor
