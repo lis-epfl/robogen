@@ -118,25 +118,25 @@ set(ROBOGEN_DEPENDENCIES ${ODE_LIBRARIES} ${OPENSCENEGRAPH_LIBRARIES} ${ZLIB_LIB
 message(STATUS ${ROBOGEN_DEPENDENCIES})
 
 # Robogen base library
-#add_library(robogen ${ROBOGEN_SRC} ${PROTO_SRCS} )
-#target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
+add_library(robogen ${ROBOGEN_SRC} ${PROTO_SRCS} )
+target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
 
 # Evolver executable
-#add_executable(robogen-evolver Evolver.cpp)
-#target_link_libraries(robogen-evolver robogen ${ROBOGEN_DEPENDENCIES})
+add_executable(robogen-evolver Evolver.cpp)
+target_link_libraries(robogen-evolver robogen ${ROBOGEN_DEPENDENCIES})
 
 # Robogen simulator server
-#add_executable(robogen-server RobogenServer.cpp)
-#target_link_libraries(robogen-server robogen ${ROBOGEN_DEPENDENCIES})
+add_executable(robogen-server RobogenServer.cpp)
+target_link_libraries(robogen-server robogen ${ROBOGEN_DEPENDENCIES})
 
 # Robot Viewer (from file)
-#add_executable(robogen-file-viewer viewer/FileViewer.cpp)
-#target_link_libraries(robogen-file-viewer robogen ${ROBOGEN_DEPENDENCIES})
+add_executable(robogen-file-viewer viewer/FileViewer.cpp)
+target_link_libraries(robogen-file-viewer robogen ${ROBOGEN_DEPENDENCIES})
 
 set(CMAKE_AUTOMOC ON)
 
 add_executable(js-test JsTest.cpp Exposable.h)
-target_link_libraries(js-test ${ROBOGEN_DEPENDENCIES})
+target_link_libraries(js-test robogen ${ROBOGEN_DEPENDENCIES})
 qt5_use_modules(js-test Core Script)
 
 
