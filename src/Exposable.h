@@ -28,15 +28,17 @@
 #ifndef EXPOSABLE_H_
 #define EXPOSABLE_H_
 
-#include <boost/shared_ptr.hpp>
+//#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <QCoreApplication>
+#include <QScriptEngine>
 
-Q_DECLARE_SMART_POINTER_METATYPE(boost::shared_ptr)
+
 
 class Exposable : public QObject {
 	Q_OBJECT
 	int a, b;
-	boost::shared_ptr<Exposable> child;
+	std::shared_ptr<Exposable> child;
 
  public:
 	Exposable() : a(5), b(7), child(new Exposable(2, 3)) {}
@@ -52,11 +54,13 @@ class Exposable : public QObject {
 	int getA() { return a; }
 	int getB() { return b; }
 	QObject* getChild() { return child.get(); }
-	boost::shared_ptr<Exposable> getChild2() { return child; }
+	std::shared_ptr<Exposable> getChild2() { return child; }
 	Exposable* getChild3() { return child.get(); }
-	boost::shared_ptr<QObject> getChild4() { return child; }
+	std::shared_ptr<QObject> getChild4() { return child; }
+	QSharedPointer<QObject> getChild5() { return QSharedPointer<QObject>(getChild()); }
 };
 
-Q_DECLARE_METATYPE(Exposable*)
+
+
 
 #endif /* EXPOSABLE_H_ */

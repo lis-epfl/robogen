@@ -39,6 +39,17 @@
 #include <iostream>
 
 
+Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr)
+Q_DECLARE_METATYPE(Exposable)
+
+QScriptValue exposableToScriptValue(QScriptEngine *engine, Exposable* const &in) {
+	return engine->newQObject(in);
+}
+
+void exposableFromScriptValue(const QScriptValue &object, Exposable* &out) {
+	out = qobject_cast<Exposable*>(object.toQObject());
+}
+
 // just a utility function to read a file...
 QString readFile(const QString& path) {
 	QFile f(path);
@@ -60,6 +71,8 @@ int main(int argc, char** argv) {
 	// app + engine init
 	QCoreApplication a(argc, argv);
 	QScriptEngine engine;
+
+	qScriptRegisterMetaType(&engine, exposableToScriptValue, exposableFromScriptValue);
 
 	// creating an instance of the API exposing class
 	boost::shared_ptr<QObject> stuff(new Exposable());
