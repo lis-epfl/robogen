@@ -58,14 +58,16 @@ bool Environment::init() {
 				terrainConfig->getWidth())) {
 			return false;
 		}
-	} else if (terrainConfig->getType() == TerrainConfig::ROUGH) {
+	}
+#ifndef DISABLE_HEIGHT_MAP
+	else if (terrainConfig->getType() == TerrainConfig::ROUGH) {
 		if(!terrain_->initRough(terrainConfig->getHeightFieldFileName(),
 				terrainConfig->getLength(), terrainConfig->getWidth(),
 				terrainConfig->getHeight())) {
 			return false;
 		}
 	}
-
+#endif
 
 	return true;
 }

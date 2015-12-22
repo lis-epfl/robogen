@@ -79,7 +79,6 @@ bool RacingScenario::endSimulation() {
 }
 
 double RacingScenario::getFitness() {
-
 	double fitness = 1000000;
 	for (unsigned int i = 0; i < distances_.size(); ++i) {
 		if (distances_[i] < fitness)

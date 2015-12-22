@@ -122,7 +122,7 @@ public:
 	 * @param socket
 	 * @param robotConf
 	 */
-	void evaluate(TcpSocket *socket,
+	void evaluate(Socket *socket,
 			boost::shared_ptr<RobogenConfig> robotConf);
 
 	/**
@@ -208,6 +208,12 @@ public:
 	 * dangling body parts/neurons
 	 */
 	bool check();
+
+	/**
+	 * Set the fiteness and evaluated field when doing an asynchronous evaluation
+	 * @param fitness the fitness to set
+	 */
+	void asyncEvaluateResult(double fitness);
 
 	/**
 	 * @return a string representation of the robot

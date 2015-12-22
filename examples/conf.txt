@@ -1,4 +1,4 @@
-scenario=racing
+scenario=js_test.js
 obstaclesConfigFile=no-obstacles.txt
 startPositionConfigFile=startPos.txt
 timeStep=0.005

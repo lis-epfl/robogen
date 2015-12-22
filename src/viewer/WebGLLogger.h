@@ -31,6 +31,8 @@
 #ifndef WEBGLLOGGER_H_
 #define WEBGLLOGGER_H_
 
+#define JSON_TAGS JSON_REAL_PRECISION(10) | JSON_COMPACT
+
 #include <boost/shared_ptr.hpp>
 #include "Robot.h"
 #include <string>
@@ -48,7 +50,6 @@ struct BodyDescriptor {
 };
 
 class WebGLLogger {
-
 public:
 	WebGLLogger(std::string inFileName, boost::shared_ptr<Scenario> in_scenario,
 			double targetFramerate = 120.0);
@@ -68,6 +69,11 @@ public:
 	static const char* OBSTACLE_DEF_TAG;
 	static const char* OBSTACLE_LOG_TAG;
 	static const char* LIGHT_TAGS;
+
+	std::string getStructureJSON();
+	std::string getObstaclesDefinitionJSON();
+	std::string getLightsJSON();
+	std::string getLastLogJSON();
 
 private:
 	double frameRate;

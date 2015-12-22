@@ -28,7 +28,6 @@
 
 #include "Simulator.h"
 #include "utils/RobogenCollision.h"
-#include "viewer/Viewer.h"
 #include "Models.h"
 #include "Robot.h"
 #include "viewer/WebGLLogger.h"
@@ -46,7 +45,7 @@ namespace robogen{
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
 		const robogenMessage::Robot &robotMessage,
-		Viewer *viewer, boost::random::mt19937 &rng) {
+		IViewer *viewer, boost::random::mt19937 &rng) {
 	boost::shared_ptr<FileViewerLog> log;
 	return runSimulations(scenario, configuration,
 			robotMessage, viewer, rng, false, log);
@@ -54,7 +53,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
-		const robogenMessage::Robot &robotMessage, Viewer *viewer,
+		const robogenMessage::Robot &robotMessage, IViewer *viewer,
 		boost::random::mt19937 &rng,
 		bool onlyOnce, boost::shared_ptr<FileViewerLog> log) {
 

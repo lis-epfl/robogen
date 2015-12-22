@@ -63,7 +63,7 @@ public:
 		return message;
 	}
 
-	void evaluate(TcpSocket *socket, std::string conf){
+	void evaluate(Socket *socket, std::string conf){
 
 	}
 

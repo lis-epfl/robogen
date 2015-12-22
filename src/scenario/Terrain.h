@@ -69,6 +69,7 @@ public:
 	 */
 	bool initFlat(float width, float depth);
 
+#ifndef DISABLE_HEIGHT_MAP
 	/**
 	 * Initializes a rough terrain
 	 *
@@ -80,6 +81,7 @@ public:
 	 */
 	bool initRough(const std::string& heightMapFileName, float width,
 			float depth, float height);
+#endif
 
 	/**
 	 * @return the heightfield data

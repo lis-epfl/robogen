@@ -33,6 +33,7 @@
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
 #include "viewer/KeyboardHandler.h"
+#include "viewer/IViewer.h"
 #include "scenario/Scenario.h"
 #include "model/Model.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
@@ -52,7 +53,7 @@ namespace robogen{
  * FileViewer.  This involved a lot of duplicate code, so this class aims to be
  * a plugin to enable visualization or not.
  */
-class Viewer{
+class Viewer : public robogen::IViewer{
 public:
 	Viewer(bool startPaused);
 	Viewer(bool startPaused, bool debugActive);
