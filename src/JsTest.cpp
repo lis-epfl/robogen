@@ -39,16 +39,17 @@
 #include <iostream>
 
 
-Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr)
-Q_DECLARE_METATYPE(Exposable)
+Q_DECLARE_METATYPE(boost::shared_ptr<Exposable>)
 
-QScriptValue exposableToScriptValue(QScriptEngine *engine, Exposable* const &in) {
-	return engine->newQObject(in);
+/*QScriptValue exposableToScriptValue(QScriptEngine *engine, boost::shared_ptr<Exposable> const &in) {
+	return engine->newQObject(in.get());
 }
 
-void exposableFromScriptValue(const QScriptValue &object, Exposable* &out) {
-	out = qobject_cast<Exposable*>(object.toQObject());
-}
+void exposableFromScriptValue(const QScriptValue &object, boost::shared_ptr<Exposable> &out) {
+	out = qobject_cast<Exposable*>(object.toQObject())->getShared();
+}*/
+
+
 
 // just a utility function to read a file...
 QString readFile(const QString& path) {
@@ -59,6 +60,11 @@ QString readFile(const QString& path) {
 	}
 	QTextStream in(&f);
 	return in.readAll();
+}
+
+QScriptValue Exposable_ctor(QScriptContext *ctx, QScriptEngine *eng)
+{
+    return eng->newQObject(new Exposable());
 }
 
 int main(int argc, char** argv) {
@@ -72,20 +78,63 @@ int main(int argc, char** argv) {
 	QCoreApplication a(argc, argv);
 	QScriptEngine engine;
 
-	qScriptRegisterMetaType(&engine, exposableToScriptValue, exposableFromScriptValue);
+	//qScriptRegisterMetaType(&engine, exposableToScriptValue, exposableFromScriptValue);
 
 	// creating an instance of the API exposing class
-	boost::shared_ptr<QObject> stuff(new Exposable());
-	QScriptValue objectValue = engine.newQObject(stuff.get());
+	//boost::shared_ptr<QObject> stuff(new Exposable());
+
+	//QScriptValue module = engine.newObject();
 
 	// assigning it to the global variable "myAPI" in the javascript code
-	engine.globalObject().setProperty("myAPI", objectValue);
+	//engine.globalObject().setProperty("Module", module);
+	//module.setProperty("myAPI", engine.newQObject(stuff.get()));
+	//boost::shared_ptr<QObject> interface(new Interface());
+	//module.setProperty("Interface", engine.newQObject(interface.get()));
 
+
+	//QScriptValue exposableClass = engine.scriptValueFromQMetaObject<Exposable>();
+
+	Exposable* exposable = new Exposable();
+
+	engine.globalObject().setProperty("Exposable", engine.newQObject(exposable));//engine.newFunction(Exposable_ctor));
+
+	//engine.globalObject().setProperty("TestType", engine.newFunction(myQObjectConstructor));
 	// reading / precompiling the script
 	QScriptProgram program(script);
 	engine.evaluate(program);
 
-	// calling methods from the script
-	std::cout << "fitness = " << engine.evaluate("getFitness()").toNumber() << std::endl;
+	//std::cout << "a" << std::endl;
+
+	QScriptValue userObject = engine.globalObject().property("Exposable");//.construct();
+
+
+
+//	std::cout << userObject.property("invoke").isValid() << std::endl;
+
+	exposable->setA(99);
+	exposable->setUserObject(userObject);
+	exposable->invoke();
+
+	userObject.setProperty("foo", 27);
+
+	exposable->setA(103);
+	exposable->invoke();
+
+
+
+	//boost::shared_ptr<Exposable> userImpl(new Exposable());
+
+	//userImpl->setA(999);
+
+	//std::cout << "c" << std::endl;
+
+	//userImpl->setUserObject(userObject);
+	//userImpl->invoke();
+
+
+
+
+
+
 	return 0;
 }

@@ -190,10 +190,10 @@ else()
 	if(UNIX)
 		# Compiler options
 		if (CMAKE_BUILD_TYPE STREQUAL "Release")
-			add_definitions(-c++11 -pedantic -fPIC )
+			add_definitions(-std=c++11 -pedantic -fPIC )
 		else()
 			# Turn on warnings in debug mode
-			add_definitions(-c++11 -pedantic -Wno-long-long -Wall -Wextra -Wformat=2
+			add_definitions(-std=c++11 -pedantic -Wno-long-long -Wall -Wextra -Wformat=2
 				-Wredundant-decls -Wwrite-strings -Wmissing-include-dirs 
 				-Wswitch-enum -Wuninitialized 
 				-Wswitch-default -Winit-self -Wshadow -Wfloat-equal -fPIC )
@@ -235,6 +235,7 @@ else()
 		printing/*.cpp
 		render/*.cpp
 		scenario/*.cpp
+		scripting/*.cpp
 		utils/*.cpp
 		viewer/*.cpp
 		Robot.cpp
@@ -250,7 +251,14 @@ else()
 	find_package(PNG REQUIRED)
 	find_package(OpenSceneGraph REQUIRED osg osgViewer osgDB osgGA osgUtil osgTerrain)
 	find_package(Jansson REQUIRED)
-	find_package(Qt5Core REQUIRED)
+	find_package(Qt5Core)
+
+	if (Qt5Core_FOUND)
+		set(CMAKE_AUTOMOC ON)
+		add_definitions("-DQT5_ENABLED")
+	else()
+		message(STATUS "Qt5Core Not Found, will not be able to use scritped scenarios!")
+	endif()
 
 	include_directories(${CMAKE_SOURCE_DIR} ${ODE_INCLUDE_PATH} ${OPENSCENEGRAPH_INCLUDE_DIRS} ${PNG_INCLUDE_PATH} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${PROTOBUF_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS} ${JANSSON_INCLUDE_DIRS} )
 
@@ -282,11 +290,13 @@ else()
 	add_executable(robogen-file-viewer viewer/FileViewer.cpp)
 	target_link_libraries(robogen-file-viewer robogen ${ROBOGEN_DEPENDENCIES})
 
-	set(CMAKE_AUTOMOC ON)
-	
-	add_executable(js-test JsTest.cpp Exposable.h)
-	target_link_libraries(js-test robogen ${ROBOGEN_DEPENDENCIES})
-	qt5_use_modules(js-test Core Script)
+	if (Qt5Core_FOUND)
+		add_executable(js-test JsTest.cpp Exposable.h)
+		target_link_libraries(js-test robogen ${ROBOGEN_DEPENDENCIES})
+		qt5_use_modules(js-test Core Script)
+		
+		qt5_use_modules(robogen Core Script)
+	endif()
 
 	# Tests
 	#add_executable(robogen-server-viewer-test viewer/ServerViewerTest.cpp)

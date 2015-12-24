@@ -52,6 +52,10 @@
 
 #include "Simulator.h"
 
+#ifdef QT5_ENABLED
+#include <QCoreApplication>
+#endif
+
 using namespace robogen;
 
 #ifdef EMSCRIPTEN
@@ -234,6 +238,10 @@ void printUsage(char *argv[]) {
 #ifndef EMSCRIPTEN
 int main(int argc, char *argv[]) {
 	startRobogen();
+
+#ifdef QT5_ENABLED
+	QCoreApplication a(argc, argv);
+#endif
 
 	if (argc > 1 && std::string(argv[1]) == "--help") {
 		printUsage(argv);

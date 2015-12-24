@@ -216,6 +216,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.function("getBodyParts", &Robot::getBodyParts)
 		.function("getCoreComponent", &Robot::getCoreComponent)
 		.function("getSensors", &Robot::getSensors)
+		.function("getMotors", &Robot::getMotors)
 		;
 
 

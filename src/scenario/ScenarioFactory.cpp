@@ -26,6 +26,7 @@
  * @(#) $Id$
  */
 #include <iostream>
+#include <sstream>
 #include "config/RobogenConfig.h"
 #include "scenario/ChasingScenario.h"
 #include "scenario/ScenarioFactory.h"
@@ -36,12 +37,23 @@
 #include <emscripten.h>
 #include "scenario/JSScenario.h"
 #include "utils/JSUtils.h"
-#endif
-#include <sstream>
+
 #include <algorithm>
 #include <boost/uuid/uuid.hpp>            // uuid class
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
+
+
+boost::uuids::random_generator generator;
+
+
+#elif defined(QT5_ENABLED)
+#include <QScriptEngine>
+#include "QScriptScenario.h"
+#endif
+
+
+
 
 
 namespace robogen {
@@ -53,12 +65,6 @@ ScenarioFactory::ScenarioFactory() {
 ScenarioFactory::~ScenarioFactory() {
 
 }
-
-
-
-
-
-boost::uuids::random_generator generator;
 
 boost::shared_ptr<Scenario> ScenarioFactory::createScenario(boost::shared_ptr<RobogenConfig> config) {
 
@@ -106,8 +112,17 @@ boost::shared_ptr<Scenario> ScenarioFactory::createScenario(boost::shared_ptr<Ro
 		scenario->setRobogenConfig(config);
 
     	return boost::shared_ptr<Scenario>(scenario);
+
+
+#elif defined(QT5_ENABLED)
+    	// more hacks!! :-)
+
+    	std::cout << "Qt5 enabled, using scripted scenario!" << std::endl;
+    	return boost::shared_ptr<Scenario>(new QScriptScenario(config));
+
+
 #else
-		std::cout << "JS scenarios not available in C++ version" << std::endl;
+		std::cout << "JS scenarios not available in C++ version w/out Qt5!" << std::endl;
 		std::cout << config->getScenario() << std::endl;
 
 #endif

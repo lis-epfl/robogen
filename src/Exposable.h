@@ -28,36 +28,60 @@
 #ifndef EXPOSABLE_H_
 #define EXPOSABLE_H_
 
-//#include <boost/shared_ptr.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <memory>
 #include <QCoreApplication>
 #include <QScriptEngine>
+#include <QScriptable>
 
-
-
-class Exposable : public QObject {
+class Exposable : public QObject, public QScriptable,
+					public boost::enable_shared_from_this<Exposable> {
 	Q_OBJECT
-	int a, b;
-	std::shared_ptr<Exposable> child;
+	int a_, b_;
+	boost::shared_ptr<Exposable> child_;
+	QScriptValue userObject_;
 
  public:
-	Exposable() : a(5), b(7), child(new Exposable(2, 3)) {}
-	Exposable(int a, int b) : a(a), b(b) {}
-	Exposable(const Exposable& exposable) :
-		QObject(),
+	Exposable() : a_(5), b_(7), child_(new Exposable(2, 3)) {}
+	Exposable(int a, int b) : a_(a), b_(b) {}
+	/*Exposable(const Exposable& exposable) :
+		QObject(), boost::enable_shared_from_this<Exposable>(),
 		a(exposable.a), b(exposable.b), child(exposable.child) {
-	}
+	}*/
+
+
 	~Exposable() {}
+	boost::shared_ptr<Exposable> getShared() { return shared_from_this(); }
+	void setUserObject(QScriptValue userObject) {
+		userObject_ = userObject;
+	}
+
+	void invoke() { //const std::string& str) {
+		QScriptValue function = userObject_.property("invoke");
+		if(!function.isValid()) {
+			std::cout << "NOT DEFINED!!" << std::endl;
+		}
+		function.call(userObject_);
+	}
+	void setA(int a) { a_ = a; }
 
 
  public slots:
-	int getA() { return a; }
-	int getB() { return b; }
-	QObject* getChild() { return child.get(); }
-	std::shared_ptr<Exposable> getChild2() { return child; }
-	Exposable* getChild3() { return child.get(); }
-	std::shared_ptr<QObject> getChild4() { return child; }
-	QSharedPointer<QObject> getChild5() { return QSharedPointer<QObject>(getChild()); }
+	int getA() { return a_; }
+	int getB() { return b_; }
+
+	QScriptValue getBar() {
+		QScriptValue result = engine()->newObject();
+		result.setProperty("bar", 23);
+		return result;
+	}
+
+	QObject* getChild() { return child_.get(); }
+	boost::shared_ptr<Exposable> getChild2() { return child_; }
+	Exposable* getChild3() { return child_.get(); }
+	boost::shared_ptr<QObject> getChild4() { return child_; }
+	//QSharedPointer<QObject> getChild5() { return QSharedPointer<QObject>(getChild()); }
 };
 
 
