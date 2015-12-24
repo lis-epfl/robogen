@@ -203,7 +203,7 @@ void bind_events(socket::ptr &socket)
 				}));
 }
 
-int main(int argc ,const char* args[])
+int main(int argc ,const char* argv[])
 {
 
 	rng.seed(3000);
@@ -213,7 +213,7 @@ int main(int argc ,const char* args[])
 	h.set_open_listener(std::bind(&connection_listener::on_connected, &l));
 	h.set_close_listener(std::bind(&connection_listener::on_close, &l,std::placeholders::_1));
 	h.set_fail_listener(std::bind(&connection_listener::on_fail, &l));
-	h.connect("http://192.168.1.5:3000");
+	h.connect(argv[1]);
 	current_socket = h.socket();
 	bind_events(current_socket);
 	_lock.lock();
