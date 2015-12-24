@@ -239,6 +239,9 @@ void ServoMotor::testBurnout(float stepSize) {
 	}
 	internalCounter_++;
 
+	if(previousSignals_.size() < 2)
+		return;
+
 	unsigned int numDirectionFlips = 0;
 
 	if(isVelocityDriven()) {
