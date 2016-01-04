@@ -52,7 +52,20 @@ QScriptScenario::QScriptScenario(boost::shared_ptr<RobogenConfig> config) :
 	   <<  "}";
 
 	ss << "var userScenario = ";
-	ss << config->getScenario();
+
+	std::string userCode = config->getScenario();
+
+	const std::string from = "console.log";
+	const std::string to = "print";
+
+	std::string::size_type n = 0;
+	while ( ( n = userCode.find( from, n ) ) != std::string::npos )
+	{
+		userCode.replace( n, from.size(), to );
+	    n += to.size();
+	}
+
+	ss << userCode;
 	ss << "\n";
 	// here we extend our scenario with the user's stuff
 	ss << "extend(qScriptScenario, userScenario);\n";

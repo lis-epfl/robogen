@@ -58,6 +58,8 @@ public:
 	virtual ~JSScenario();
 
 
+	static boost::shared_ptr<Scenario> createScenario(boost::shared_ptr<RobogenConfig> config);
+
 	/**
 	 * Methods inherited from {@link #Scenario}
 	 */

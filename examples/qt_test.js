@@ -9,12 +9,17 @@
 
 	afterSimulationStep : function() {
 		/*var sensors = this.getRobot().getSensors();
-		var tmp = ""
+		var tmp = "";
 		for (var i = 0; i < sensors.length; i++) {
 			tmp += sensors[i].getLabel() + " " + sensors[i].read() + " ";
 		}
+		print(tmp);
+		tmp = "";
+		var motors = this.getRobot().getMotors();
+		for (var i = 0; i < motors.length; i++) {
+			tmp += motors[i].getId().partId + " " + motors[i].getId().ioId + " " + motors[i].getPosition() + " " ;
+		}
 		print(tmp);*/
-
 		return true;
 	},
 
@@ -24,7 +29,7 @@
 		var minDistance = Number.MAX_VALUE;
 		
 		var bodyParts = this.getRobot().getBodyParts();
-		print(bodyParts.length + " body parts");
+		//print(bodyParts.length + " body parts");
 		for (var i = 0; i < bodyParts.length; i++) {
 			var xDiff = (bodyParts[i].getRootPosition().x - this.startPos.x);
 			var yDiff = (bodyParts[i].getRootPosition().y - this.startPos.y);

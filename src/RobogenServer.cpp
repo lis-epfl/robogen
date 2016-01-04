@@ -45,6 +45,10 @@
 #include "viewer/Viewer.h"
 #include "Simulator.h"
 
+#ifdef QT5_ENABLED
+#include <QCoreApplication>
+#endif
+
 using namespace robogen;
 
 // ODE World
@@ -101,6 +105,11 @@ int main(int argc, char* argv[]) {
 
 	boost::random::mt19937 rng;
 	rng.seed(port);
+
+#ifdef QT5_ENABLED
+	QCoreApplication a(argc, argv);
+#endif
+
 
 	while (!interrupted) {
 

@@ -35,8 +35,14 @@
 #include "Robot.h"
 #include "utils/JSUtils.h"
 
+#include <boost/uuid/uuid.hpp>            // uuid class
+#include <boost/uuid/uuid_generators.hpp> // generators
+#include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
+
 #include <sstream>
 
+
+boost::uuids::random_generator generator;
 
 namespace robogen {
 
@@ -53,6 +59,49 @@ JSScenario::~JSScenario() {
 	scenarios.erase(id_);
 	js::log("removed from map");
 
+}
+
+boost::shared_ptr<Scenario> JSScenario::createScenario(
+		boost::shared_ptr<RobogenConfig> config) {
+
+
+	// super hacky -- first we generate uuid
+	std::string id;
+	{
+		boost::uuids::uuid uuid = generator();
+		std::stringstream ss;
+		ss << "_myUUID_" << uuid;
+		id = ss.str();
+		// replace all '-' with '_' to make valid var name
+		std::replace( id.begin(), id.end(), '-', '_');
+	}
+
+	js::log("using id: ");
+	js::log(id);
+
+	// now call the provided js with creating a new object at the end
+	// and registering it with the given uuid
+	{
+		std::stringstream ss;
+		ss << id << " = function () {\n";
+		ss << "var UserScenario_" << id << " = Module.JSScenario.extend(\"JSScenario\",";
+		ss << config->getScenario() << "\n";
+		ss << ");\n" << "return new UserScenario_" << id << ";";
+		ss << "}();";
+		ss << id << ".setId('" << id << "');";
+		emscripten_run_script(ss.str().c_str());
+	}
+
+	//finally use the uuid to get the pointer to the create object
+	JSScenario *scenario = JSScenario::getScenario(id);
+	if (scenario == NULL) {
+		js::log("Scenario is NULL!");
+	} else {
+		js::log("Scenario is not NULL!");
+	}
+	scenario->setRobogenConfig(config);
+
+	return boost::shared_ptr<Scenario>(scenario);
 }
 
 bool JSScenario::endSimulation() {

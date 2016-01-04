@@ -13,6 +13,7 @@
 #include <scenario/JSScenario.h>
 
 #include "model/objects/BoxObstacle.h"
+#include <vector>
 
 /***** WARNING ******
  * WE ARE INCLUDING .cpp files !!
@@ -162,8 +163,6 @@ emscripten::val getBoxSize(boost::shared_ptr<BoxObstacle> boxObstacle) {
 	return js::valFromVec3(boxObstacle->getSize());
 }
 
-
-
 emscripten::val getMotorId(boost::shared_ptr<Motor> motor) {
 	emscripten::val result(emscripten::val::object());
 	ioPair id = motor->getId();
@@ -172,6 +171,34 @@ emscripten::val getMotorId(boost::shared_ptr<Motor> motor) {
 	return result;
 }
 
+template<typename VectorType>
+emscripten::val toArray(std::vector<VectorType> v) {
+	emscripten::val result(emscripten::val::array());
+	for(size_t i = 0; i < v.size(); ++i) {
+		result.set(i, v[i]);
+	}
+	return result;
+}
+
+emscripten::val getBodyParts(boost::shared_ptr<Robot> robot) {
+	return toArray< boost::shared_ptr<Model> >(robot->getBodyParts());
+}
+
+emscripten::val getSensors(boost::shared_ptr<Robot> robot) {
+	return toArray< boost::shared_ptr<Sensor> >(robot->getSensors());
+}
+
+emscripten::val getMotors(boost::shared_ptr<Robot> robot) {
+	return toArray< boost::shared_ptr<Motor> >(robot->getMotors());
+}
+
+emscripten::val getLightSources(boost::shared_ptr<Environment> environment) {
+	return toArray< boost::shared_ptr<LightSource> >(environment->getLightSources());
+}
+
+emscripten::val getObstacles(boost::shared_ptr<Environment> environment) {
+	return toArray< boost::shared_ptr<Obstacle> >(environment->getObstacles());
+}
 
 EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::function("simulationViewer", &simulationViewer);
@@ -179,14 +206,6 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::function("evaluate", &evaluate);
 	emscripten::function("evaluationResultAvailable", &evaluationResultAvailable);
 	emscripten::function("evaluationIsDone", &evaluationIsDone);
-
-	emscripten::register_vector<float>("FloatVector");
-	emscripten::register_vector<boost::shared_ptr<Model> >("ModelVector");
-	emscripten::register_vector<boost::shared_ptr<Sensor> >("SensorVector");
-	emscripten::register_vector<boost::shared_ptr<Motor> >("MotorVector");
-	emscripten::register_vector<boost::shared_ptr<Robot> >("RobotVector");
-	emscripten::register_vector<boost::shared_ptr<LightSource> >("LightSourceVector");
-	emscripten::register_vector<boost::shared_ptr<Obstacle> >("ObstacleVector");
 
 	emscripten::class_<Model>("Model")
 		.function("getRootPosition", &getModelRootPosition)
@@ -213,10 +232,10 @@ EMSCRIPTEN_BINDINGS(my_module) {
 
 	emscripten::class_<Robot>("Robot")
 		.smart_ptr<boost::shared_ptr<Robot> >("shared_ptr<Robot>")
-		.function("getBodyParts", &Robot::getBodyParts)
+		.function("getBodyParts", &getBodyParts)
 		.function("getCoreComponent", &Robot::getCoreComponent)
-		.function("getSensors", &Robot::getSensors)
-		.function("getMotors", &Robot::getMotors)
+		.function("getSensors", &getSensors)
+		.function("getMotors", &getMotors)
 		;
 
 
@@ -267,9 +286,9 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::class_<Environment>("Environment")
 		.smart_ptr<boost::shared_ptr<Environment> >("shared_ptr<Environment>")
 		//.function("getTimeElapsed")
-		.function("getLightSources", &Environment::getLightSources)
+		.function("getLightSources", &getLightSources)
 		.function("getAmbientLight", &Environment::getAmbientLight)
-		.function("getObstacles", &Environment::getObstacles)
+		.function("getObstacles", &getObstacles)
 		;
 
 #ifdef TEST_EM
@@ -287,6 +306,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::function("testReturnVec3", &testReturnVec3);
 
 	emscripten::function("testReturnVector", &testReturnVector);
+	emscripten::function("testReturnArray", &testReturnArray);
 	emscripten::function("testReturnSharedPtr", &testReturnSharedPtr);
 	emscripten::function("testReturnRawPtr", &testReturnRawPtr, emscripten::allow_raw_pointers());
 	emscripten::function("runEmBindTest", &runEmBindTest);

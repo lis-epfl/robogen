@@ -37,6 +37,12 @@ public:
 	//void doSomething() { Base::doSomething(); }
 };
 
+emscripten::val testReturnArray() {
+	emscripten::val result(emscripten::val::array());
+	result.set(0, 2.3);
+	result.set(1, 4.3);
+	return result;
+}
 
 std::vector<float> testReturnVector() {
 	std::vector<float> a;

@@ -39,12 +39,10 @@
 #include "utils/JSUtils.h"
 
 #include <algorithm>
-#include <boost/uuid/uuid.hpp>            // uuid class
-#include <boost/uuid/uuid_generators.hpp> // generators
-#include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 
 
-boost::uuids::random_generator generator;
+
+
 
 
 #elif defined(QT5_ENABLED)
@@ -76,43 +74,7 @@ boost::shared_ptr<Scenario> ScenarioFactory::createScenario(boost::shared_ptr<Ro
 		// we are getting scenario in js
 #ifdef EMSCRIPTEN
 
-
-		// super hacky -- first we generate uuid
-		std::string id;
-		{
-			boost::uuids::uuid uuid = generator();
-			std::stringstream ss;
-			ss << "_myUUID_" << uuid;
-			id = ss.str();
-			// replace all '-' with '_' to make valid var name
-			std::replace( id.begin(), id.end(), '-', '_');
-		}
-
-		js::log("using id: ");
-		js::log(id);
-
-		// now call the provided js with creating a new object at the end
-		// and registering it with the given uuid
-		{
-			std::stringstream ss;
-			ss << id << " = function () {\n";
-			ss << config->getScenario() << "\n";
-			ss << "}();";
-			ss << id << ".setId('" << id << "');";
-			emscripten_run_script(ss.str().c_str());
-		}
-
-		//finally use the uuid to get the pointer to the create object
-		JSScenario *scenario = JSScenario::getScenario(id);
-		if (scenario == NULL) {
-			js::log("Scenario is NULL!");
-		} else {
-			js::log("Scenario is not NULL!");
-		}
-		scenario->setRobogenConfig(config);
-
-    	return boost::shared_ptr<Scenario>(scenario);
-
+		return JSScenario::createScenario(config);
 
 #elif defined(QT5_ENABLED)
     	// more hacks!! :-)

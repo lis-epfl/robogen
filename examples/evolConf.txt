@@ -1,7 +1,7 @@
 simulatorConfFile=conf.txt
 referenceRobotFile=simpleRobot.txt
-mu=10
-lambda=10
+mu=20
+lambda=20
 selection=deterministic-tournament
 replacement=plus
 tournamentSize=2
@@ -20,3 +20,6 @@ amplitudeBounds=0:1
 evolutionaryAlgorithm=HyperNEAT
 neatParamsFile=neatParams.txt
 socket=127.0.0.1:8001
+socket=127.0.0.1:8002
+socket=127.0.0.1:8003
+socket=127.0.0.1:8004

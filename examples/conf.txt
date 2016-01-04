@@ -1,4 +1,4 @@
-scenario=qt_test.js
+scenario=racing_scenario.js
 obstaclesConfigFile=no-obstacles.txt
 startPositionConfigFile=startPos.txt
 timeStep=0.005

@@ -1,4 +1,4 @@
-var RacingScenario = Module.JSScenario.extend("JSScenario", {
+{
     // here we define a variable for record keeping
     distances : [],    
     // optional function called at the beginning of the simulation
@@ -19,10 +19,10 @@ var RacingScenario = Module.JSScenario.extend("JSScenario", {
 	var minDistance = Number.MAX_VALUE;
 	        
 	bodyParts = this.getRobot().getBodyParts();
-	console.log(bodyParts.size() + " body parts");
-	for (var i = 0; i < bodyParts.size(); i++) {
-		var xDiff = (bodyParts.get(i).getRootPosition().x - this.startPos.x);
-		var yDiff = (bodyParts.get(i).getRootPosition().y - this.startPos.y);
+	console.log(bodyParts.length + " body parts");
+	for (var i = 0; i < bodyParts.length; i++) {
+		var xDiff = (bodyParts[i].getRootPosition().x - this.startPos.x);
+		var yDiff = (bodyParts[i].getRootPosition().y - this.startPos.y);
 		var dist = Math.sqrt(Math.pow(xDiff,2) + Math.pow(yDiff,2));
                 
 		if (dist < minDistance) {
@@ -41,11 +41,7 @@ var RacingScenario = Module.JSScenario.extend("JSScenario", {
 		if (this.distances[i] < fitness)
 			fitness = this.distances[i];
 	}
-
-	console.log(this.getId() + " " + fitness);
         return fitness;
     },
 
-});
-
-return new RacingScenario;
+}
