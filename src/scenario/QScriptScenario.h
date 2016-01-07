@@ -69,7 +69,8 @@ public:
 	virtual int getCurTrial() const;
 
 public slots:
-	QScriptValue getRobot() { return qrobot_; }
+	QScriptValue getRobot() { return qRobot_; }
+	QScriptValue getEnvironment() { return qEnvironment_; }
 
 
 private:
@@ -83,7 +84,7 @@ private:
 	QScriptValue userScenario_;
 	std::map<std::string, bool> implementedMethods_;
 
-	QScriptValue qrobot_;
+	QScriptValue qRobot_, qEnvironment_;
 
 };
 

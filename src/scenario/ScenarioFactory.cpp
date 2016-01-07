@@ -77,14 +77,12 @@ boost::shared_ptr<Scenario> ScenarioFactory::createScenario(boost::shared_ptr<Ro
 		return JSScenario::createScenario(config);
 
 #elif defined(QT5_ENABLED)
-    	// more hacks!! :-)
-
     	std::cout << "Qt5 enabled, using scripted scenario!" << std::endl;
     	return boost::shared_ptr<Scenario>(new QScriptScenario(config));
 
 
 #else
-		std::cout << "JS scenarios not available in C++ version w/out Qt5!" << std::endl;
+		std::cout << "JS scenarios are not available in C++ version w/out Qt5!" << std::endl;
 		std::cout << config->getScenario() << std::endl;
 
 #endif

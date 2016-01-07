@@ -99,7 +99,7 @@ QScriptScenario::QScriptScenario(boost::shared_ptr<RobogenConfig> config) :
 	}
 
 	// now check all (include getFitness, so user does not get confused
-	// 				  by its ommision)
+	// 				  by its omission)
 	std::string methods[] = {"setupSimulation", "afterSimulationStep",
 								"endSimulation", "getFitness" };
 	size_t numMethods = 4;
@@ -121,7 +121,10 @@ QScriptScenario::~QScriptScenario() {
 bool QScriptScenario::setupSimulation() {
 
 	// set up exposed stuff before user's setup
-	qrobot_ = engine_->newQObject(new qscript::QRobot(Scenario::getRobot()),
+	qRobot_ = engine_->newQObject(new qscript::QRobot(Scenario::getRobot()),
+			QScriptEngine::ScriptOwnership);
+	qEnvironment_ = engine_->newQObject(
+			new qscript::QEnvironment(Scenario::getEnvironment()),
 			QScriptEngine::ScriptOwnership);
 
 	if(implementedMethods_["setupSimulation"]) {

@@ -93,7 +93,7 @@ boost::shared_ptr<EvolverLog> log;
 bool neat;
 boost::shared_ptr<Selector> selector;
 boost::shared_ptr<Mutator> mutator;
-int generation;
+unsigned int generation;
 boost::random::mt19937 rng;
 
 std::vector<Socket*> sockets;
