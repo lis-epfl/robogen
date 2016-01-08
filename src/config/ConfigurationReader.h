@@ -38,6 +38,7 @@ class ObstaclesConfig;
 class RobogenConfig;
 class StartPositionConfig;
 class TerrainConfig;
+class LightSourcesConfig;
 
 /**
  * Read configuration files
@@ -84,6 +85,8 @@ private:
 	 * X_POSITION	Y_POSITION
 	 */
 	static boost::shared_ptr<StartPositionConfig> parseStartPositionFile(const std::string& fileName);
+
+	static boost::shared_ptr<LightSourcesConfig> parseLightSourcesFile(const std::string& fileName);
 
 };
 

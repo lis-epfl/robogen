@@ -56,11 +56,11 @@ bool ChasingScenario::init(dWorldID odeWorld, dSpaceID odeSpace, boost::shared_p
 	Scenario::init(odeWorld, odeSpace, robot);
 
 
-	std::vector<boost::shared_ptr<LightSource> > lightSources;
-	lightSources.push_back(boost::shared_ptr<LightSource>(
-			new LightSource(odeSpace, osg::Vec3(0, 0,
-					this->getRobogenConfig()->getLightSourceHeight()), 1.0)));
-	this->getEnvironment()->setLightSources(lightSources);
+	if(this->getEnvironment()->getLightSources().size() == 0) {
+		std::cerr << "At least 1 light source is required for the "
+				<< "chasing scenario." << std::endl;
+		return false;
+	}
 
 
 	return true;

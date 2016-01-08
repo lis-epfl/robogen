@@ -150,6 +150,28 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 
 	}
 
+	// Setup light sources
+	boost::shared_ptr<LightSourcesConfig> lightSourcesConfig =
+			robogenConfig_->getLightSourcesConfig();
+
+	// todo do we need to do overlap check with light sources??
+
+	std::vector<boost::shared_ptr<LightSource> > lightSources;
+	this->getEnvironment()->setLightSources(lightSources);
+
+	std::vector<osg::Vec3> lightSourcesCoordinates =
+			lightSourcesConfig->getCoordinates();
+	std::vector<float> lightSourcesIntensities =
+				lightSourcesConfig->getIntensities();
+	for (unsigned int i = 0; i < lightSourcesCoordinates.size(); ++i) {
+		lightSources.push_back(boost::shared_ptr<LightSource>(
+					new LightSource(odeSpace, lightSourcesCoordinates[i],
+							lightSourcesIntensities[i])));
+
+	}
+	environment_->setLightSources(lightSources);
+
+
 	// optimize the physics!  replace all fixed joints with composite bodies
 	robot->optimizePhysics();
 

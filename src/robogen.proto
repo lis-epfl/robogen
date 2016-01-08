@@ -68,6 +68,13 @@ message Obstacle {
   required float rotationAngle = 11;
 }
 
+message LightSource {
+  required float x = 1;
+  required float y = 2;
+  required float z = 3;
+  required float intensity = 7;
+}
+
 message StartPosition {
   required float x = 1;
   required float y = 2;
@@ -79,7 +86,7 @@ message SimulatorConf {
   required float terrainLength = 2;
   repeated Obstacle obstacles = 3;
   required string scenario = 4;
-  required float lightSourceHeight = 5;
+  repeated LightSource lightSources = 5;
   required float timeStep = 6;
   required int32 nTimeSteps = 7;
   repeated StartPosition startPositions = 8;
@@ -97,6 +104,7 @@ message SimulatorConf {
   required int32 terrainType = 20;
   required float terrainHeight = 21;
   required string terrainHeightFieldFileName = 22;
+  
 }
 
 message EvaluationRequest {

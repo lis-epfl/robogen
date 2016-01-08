@@ -59,6 +59,7 @@ public:
 		std::string confFile,
 		std::string obstacleFile,
 		std::string startPosFile,
+		std::string lightSourceFile,
 		std::string logFolder,
 		bool overwrite = false,
 		bool writeWebGL = false);
@@ -108,6 +109,7 @@ private:
 	std::string confFile_;
 	std::string obstacleFile_;
 	std::string startPosFile_;
+	std::string lightSourceFile_;
 	std::string logFolder_;
 
 	bool overwrite_;

@@ -34,6 +34,7 @@
 #include "config/ObstaclesConfig.h"
 #include "config/StartPositionConfig.h"
 #include "config/TerrainConfig.h"
+#include "config/LightSourcesConfig.h"
 #include "robogen.pb.h"
 
 namespace robogen {
@@ -54,7 +55,9 @@ public:
 			boost::shared_ptr<ObstaclesConfig> obstacles,
 			std::string obstacleFile,
 			boost::shared_ptr<StartPositionConfig> startPositions,
-			std::string startPosFile, float lightSourceHeight,
+			std::string startPosFile,
+			boost::shared_ptr<LightSourcesConfig> lightSources,
+			std::string lightSourceFile,
 			float sensorNoiseLevel, float motorNoiseLevel,
 			bool capAcceleration, float maxLinearAcceleration,
 			float maxAngularAcceleration, int maxDirectionShiftsPerSecond,
@@ -66,7 +69,8 @@ public:
 				obstacleFile_(obstacleFile),
 				startPositions_(startPositions),
 				startPosFile_(startPosFile),
-				lightSourceHeight_(lightSourceHeight),
+				lightSources_(lightSources),
+				lightSourceFile_(lightSourceFile),
 				sensorNoiseLevel_(sensorNoiseLevel),
 				motorNoiseLevel_(motorNoiseLevel),
 				capAcceleration_(capAcceleration),
@@ -110,6 +114,13 @@ public:
 	 */
 	boost::shared_ptr<ObstaclesConfig> getObstaclesConfig() {
 		return obstacles_;
+	}
+
+	/**
+	 * @return the light sources configuration
+	 */
+	boost::shared_ptr<LightSourcesConfig> getLightSourcesConfig() {
+		return lightSources_;
 	}
 
 	/**
@@ -162,10 +173,10 @@ public:
 	}
 
 	/**
-	 * @return the desired height of the light source
+	 * @return the light source configuration file
 	 */
-	float getLightSourceHeight(){
-		return lightSourceHeight_;
+	std::string getLightSourceFile(){
+		return lightSourceFile_;
 	}
 
 	/**
@@ -227,7 +238,7 @@ public:
 	 */
 	robogenMessage::SimulatorConf serialize() const{
 		robogenMessage::SimulatorConf ret;
-		ret.set_lightsourceheight(lightSourceHeight_);
+
 		ret.set_ntimesteps(timeSteps_);
 		ret.set_scenario(scenario_);
 		ret.set_timestep(timeStepLength_);
@@ -246,6 +257,8 @@ public:
 
 		obstacles_->serialize(ret);
 		startPositions_->serialize(ret);
+		lightSources_->serialize(ret);
+
 		return ret;
 	}
 
@@ -297,9 +310,14 @@ private:
 	std::string startPosFile_;
 
 	/**
-	 * Height of light source in chasing scenario
+	 * Light sources configuration
 	 */
-	float lightSourceHeight_;
+	boost::shared_ptr<LightSourcesConfig> lightSources_;
+
+	/**
+	 * Light sources configuration file location
+	 */
+	std::string lightSourceFile_;
 
 	/**
 	 * Simulation time

@@ -61,6 +61,7 @@ FileViewerLog::FileViewerLog(std::string robotFile,
 		std::string confFile,
 		std::string obstacleFile,
 		std::string startPosFile,
+		std::string lightSourceFile,
 		std::string logFolder,
 		bool overwrite,
 		bool writeWebGL) :
@@ -68,6 +69,7 @@ FileViewerLog::FileViewerLog(std::string robotFile,
 			confFile_(confFile),
 			obstacleFile_(obstacleFile),
 			startPosFile_(startPosFile),
+			lightSourceFile_(lightSourceFile),
 			logFolder_(logFolder),
 			overwrite_(overwrite),
 			writeWebGL_(writeWebGL) {
@@ -170,31 +172,51 @@ bool FileViewerLog::init(boost::shared_ptr<Robot> robot,
 				<< std::endl;
 		return false;
 	}
+
 	// copy obstacle file
-	boost::filesystem::path obsFrom(this->obstacleFile_);
-	ss.str(""); ss.clear();
-	ss << logPath_ << "/" << obsFrom.filename().string();
-	boost::filesystem::path obsTo(ss.str());
-	try{
-		boost::filesystem::copy_file(obsFrom, obsTo);
-	} catch (boost::filesystem::filesystem_error &err){
-		std::cout << "Can't copy obstacle file\n"<< std::endl << err.what() <<
-				std::endl;
-		return false;
-	}
-	// copy starting position file
-	boost::filesystem::path staPoFrom(this->startPosFile_);
-	ss.str(""); ss.clear();
-	ss << logPath_ << "/" << staPoFrom.filename().string();
-	boost::filesystem::path staPoTo(ss.str());
-	try{
-		boost::filesystem::copy_file(staPoFrom, staPoTo);
-	} catch (boost::filesystem::filesystem_error &err){
-		std::cout << "Can't copy starting position file" << std::endl <<
-				err.what() << std::endl;
-		return false;
+	if (this->obstacleFile_.length() > 0) {
+		boost::filesystem::path obsFrom(this->obstacleFile_);
+		ss.str(""); ss.clear();
+		ss << logPath_ << "/" << obsFrom.filename().string();
+		boost::filesystem::path obsTo(ss.str());
+		try{
+			boost::filesystem::copy_file(obsFrom, obsTo);
+		} catch (boost::filesystem::filesystem_error &err){
+			std::cout << "Can't copy obstacle file\n"<< std::endl << err.what() <<
+					std::endl;
+			return false;
+		}
 	}
 
+	// copy starting position file
+	if (this->startPosFile_.length() > 0) {
+		boost::filesystem::path staPoFrom(this->startPosFile_);
+		ss.str(""); ss.clear();
+		ss << logPath_ << "/" << staPoFrom.filename().string();
+		boost::filesystem::path staPoTo(ss.str());
+		try{
+			boost::filesystem::copy_file(staPoFrom, staPoTo);
+		} catch (boost::filesystem::filesystem_error &err){
+			std::cout << "Can't copy starting position file" << std::endl <<
+					err.what() << std::endl;
+			return false;
+		}
+	}
+
+	// copy light source file
+	if (this->lightSourceFile_.length() > 0) {
+		boost::filesystem::path lightSourcesFrom(this->lightSourceFile_);
+		ss.str(""); ss.clear();
+		ss << logPath_ << "/" << lightSourcesFrom.filename().string();
+		boost::filesystem::path lightSourcesTo(ss.str());
+		try{
+			boost::filesystem::copy_file(lightSourcesFrom, lightSourcesTo);
+		} catch (boost::filesystem::filesystem_error &err){
+			std::cout << "Can't copy light sources file" << std::endl <<
+					err.what() << std::endl;
+			return false;
+		}
+	}
 	// copy any m files
 	for (boost::filesystem::directory_iterator
 			it(boost::filesystem::current_path());

@@ -117,6 +117,7 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFile
 				new FileViewerLog(robotFileString, configFile,
 						configuration->getObstacleFile(),
 						configuration->getStartPosFile(),
+						configuration->getLightSourceFile(),
 						std::string(outputDirectory), overwriteLogs,
 						enableWebGLLog));
 	}
@@ -445,6 +446,7 @@ int main(int argc, char *argv[]) {
 				new FileViewerLog(std::string(argv[1]), std::string(argv[2]),
 						configuration->getObstacleFile(),
 						configuration->getStartPosFile(),
+						configuration->getLightSourceFile(),
 						std::string(outputDirectoryName), overwrite,
 						writeWebGL));
 	}

@@ -106,6 +106,8 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 	copyConfFile(conf->simulatorConfFile);
 	// copy obstacle configuration file
 	copyConfFile(robotConf->getObstacleFile());
+	// copy light source configuration file
+	copyConfFile(robotConf->getLightSourceFile());
 	// copy start pos configuration file
 	copyConfFile(robotConf->getStartPosFile());
 	// copy robot file if doing just brain evolution
@@ -181,6 +183,9 @@ bool EvolverLog::logGeneration(int generation, Population &population) {
 }
 
 void EvolverLog::copyConfFile(std::string fileName) {
+	if (fileName.length() == 0)
+		return;
+
 	boost::filesystem::path confFrom(fileName);
 	std::stringstream ss;
 	ss << logPath_ << "/" << confFrom.filename().string();
