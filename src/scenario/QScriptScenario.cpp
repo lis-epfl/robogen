@@ -43,13 +43,14 @@ QScriptScenario::QScriptScenario(boost::shared_ptr<RobogenConfig> config) :
 	engine_->globalObject().setProperty("qScriptScenario",
 			engine_->newQObject(this));
 
-	// add custom stuff to user provided script
+	// add custom stuff to user provided script (no newlines so that
+	// errors will report proper line!)
 	std::stringstream ss;
 	ss << "function extend(target, source){"
 	   <<	"for(prop in source){"
 	   <<      "target[prop] = source[prop];"
 	   <<   "}"
-	   <<  "}";
+	   <<  "} ";
 
 	ss << "var userScenario = ";
 
@@ -82,7 +83,13 @@ QScriptScenario::QScriptScenario(boost::shared_ptr<RobogenConfig> config) :
 		std::cerr << std::endl << "Problem with the provided scenario script!"
 				<< std::endl << std::endl
 				<< engine_->uncaughtException().toString().toStdString()
+				<< " at line " << engine_->uncaughtExceptionLineNumber()
 				<< std::endl << std::endl;
+		QStringList backtrace = engine_->uncaughtExceptionBacktrace();
+		for(int i = 0; i < backtrace.size(); ++i) {
+			std::cerr << backtrace[i].toStdString() << std::endl;
+		}
+		std::cerr << std::endl;
 		exitRobogen(EXIT_FAILURE);
 	}
 
@@ -145,13 +152,14 @@ bool QScriptScenario::afterSimulationStep() {
 }
 
 bool QScriptScenario::endSimulation() {
-	curTrial_++;
-	this->setStartingPosition(curTrial_);
-
 	if(implementedMethods_["endSimulation"]) {
 		QScriptValue function = userScenario_.property("endSimulation");
 		return function.call(userScenario_).toBool();
 	}
+
+	curTrial_++;
+	this->setStartingPosition(curTrial_);
+
 	return true;
 }
 

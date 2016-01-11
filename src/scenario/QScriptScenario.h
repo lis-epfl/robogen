@@ -66,11 +66,12 @@ public:
 	virtual bool endSimulation();
 	virtual double getFitness();
 	virtual bool remainingTrials();
-	virtual int getCurTrial() const;
+
 
 public slots:
 	QScriptValue getRobot() { return qRobot_; }
 	QScriptValue getEnvironment() { return qEnvironment_; }
+	virtual int getCurTrial() const;
 
 
 private:
