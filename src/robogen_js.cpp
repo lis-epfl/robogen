@@ -142,26 +142,6 @@ struct ScenarioWrapper : public emscripten::wrapper<JSScenario> {
 
 
 // helper functions
-emscripten::val getModelRootPosition(boost::shared_ptr<Model> model) {
-	return js::valFromVec3(model->getRootPosition());
-}
-emscripten::val getModelRootAttitude(boost::shared_ptr<Model> model) {
-	return js::valFromQuat(model->getRootAttitude());
-}
-
-emscripten::val getObservablePosition(boost::shared_ptr<PositionObservable>
-		observable) {
-	return js::valFromVec3(observable->getPosition());
-}
-
-emscripten::val getObservableAttitude(boost::shared_ptr<PositionObservable>
-		observable) {
-	return js::valFromQuat(observable->getAttitude());
-}
-
-emscripten::val getBoxSize(boost::shared_ptr<BoxObstacle> boxObstacle) {
-	return js::valFromVec3(boxObstacle->getSize());
-}
 
 emscripten::val getMotorId(boost::shared_ptr<Motor> motor) {
 	emscripten::val result(emscripten::val::object());
@@ -207,9 +187,22 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::function("evaluationResultAvailable", &evaluationResultAvailable);
 	emscripten::function("evaluationIsDone", &evaluationIsDone);
 
+	//emscripten::register_vector<boost::shared_ptr<LightSource> >("LightSourceVector");
+
+
+	// not sure why the casting is necessary, but would not compile without it
+	// and works like this
+	// exposes x,y,z as read only properties
+	emscripten::class_<osg::Vec3>("Vec3")
+			.constructor<float, float, float>()
+			.property("x",static_cast<float(osg::Vec3::*)() const>(&osg::Vec3::x))
+			.property("y",static_cast<float(osg::Vec3::*)() const>(&osg::Vec3::y))
+			.property("z",static_cast<float(osg::Vec3::*)() const>(&osg::Vec3::z))
+			;
+
 	emscripten::class_<Model>("Model")
-		.function("getRootPosition", &getModelRootPosition)
-		.function("getRootAttitude", &getModelRootAttitude)
+		.function("getRootPosition", &Model::getRootPosition)
+		.function("getRootAttitude", &Model::getRootAttitude)
 		.smart_ptr<boost::shared_ptr<Model> >("shared_ptr<Model>");
 
 	emscripten::class_<Sensor>("Sensor")
@@ -261,12 +254,14 @@ EMSCRIPTEN_BINDINGS(my_module) {
         .function("setId", &JSScenario::setId)
         .function("getId", &JSScenario::getId)
         .function("printRobotPosition", &JSScenario::printRobotPosition)
+        .function("getCurTrial", &JSScenario::getCurTrial)
         .allow_subclass<ScenarioWrapper>("ScenarioWrapper")
 		;
 
 	emscripten::class_<PositionObservable>("PositionObservable")
-		.function("getPosition", &getObservablePosition)
-		.function("getAttitude", &getObservableAttitude)
+		.smart_ptr<boost::shared_ptr<PositionObservable> >("shared_ptr<PositionObservable>")
+		.function("getPosition", &PositionObservable::getPosition)
+		.function("getAttitude", &PositionObservable::getAttitude)
 		;
 
 	emscripten::class_<LightSource,  emscripten::base<PositionObservable>>("LightSource")
@@ -280,13 +275,14 @@ EMSCRIPTEN_BINDINGS(my_module) {
 
 	emscripten::class_<BoxObstacle,  emscripten::base<Obstacle>>("BoxObstacle")
 		.smart_ptr<boost::shared_ptr<BoxObstacle> >("shared_ptr<BoxObstacle>")
-		.function("getSize", &getBoxSize)
+		.function("getSize", &BoxObstacle::getSize)
 		;
 
 	emscripten::class_<Environment>("Environment")
 		.smart_ptr<boost::shared_ptr<Environment> >("shared_ptr<Environment>")
 		//.function("getTimeElapsed")
 		.function("getLightSources", &getLightSources)
+		//.function("getLightSourcesVector", &Environment::getLightSources)
 		.function("getAmbientLight", &Environment::getAmbientLight)
 		.function("getObstacles", &getObstacles)
 		;

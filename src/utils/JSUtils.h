@@ -39,8 +39,6 @@ namespace robogen {
 namespace js {
 
 void log(std::string s);
-emscripten::val valFromVec3(osg::Vec3 vec);
-emscripten::val valFromQuat(osg::Quat quat);
 
 
 }

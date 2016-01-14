@@ -45,25 +45,6 @@ void log(std::string s) {
 	emscripten_run_script(ss.str().c_str());
 }
 
-emscripten::val valFromVec3(osg::Vec3 vec) {
-	emscripten::val result(emscripten::val::object());
-	result.set("x", vec.x());
-	result.set("y", vec.y());
-	result.set("z", vec.z());
-	return result;
-}
-
-emscripten::val valFromQuat(osg::Quat quat) {
-	emscripten::val result(emscripten::val::object());
-	result.set("x", quat.x());
-	result.set("y", quat.y());
-	result.set("z", quat.z());
-	result.set("w", quat.w());
-	return result;
-}
-
-
-
 }
 }
 

@@ -57,8 +57,8 @@ struct TestStruct {
 
 };
 
-emscripten::val testReturnVec3() {
-	return js::valFromVec3(osg::Vec3(2.3, 4.4, 6.7));
+osg::Vec3 testReturnVec3() {
+	return osg::Vec3(2.3, 4.4, 6.7);
 }
 
 boost::shared_ptr<TestStruct> testReturnSharedPtr() {
