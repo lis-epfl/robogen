@@ -180,6 +180,11 @@ emscripten::val getObstacles(boost::shared_ptr<Environment> environment) {
 	return toArray< boost::shared_ptr<Obstacle> >(environment->getObstacles());
 }
 
+void setLightSourcePosition(boost::shared_ptr<LightSource> lightSource,
+		float x, float y, float z) {
+	lightSource->setPosition(osg::Vec3(x,y,z));
+}
+
 EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::function("simulationViewer", &simulationViewer);
 	emscripten::function("runEvolution", &runEvolution);
@@ -194,7 +199,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	// and works like this
 	// exposes x,y,z as read only properties
 	emscripten::class_<osg::Vec3>("Vec3")
-			.constructor<float, float, float>()
+			//.constructor<float, float, float>()
 			.property("x",static_cast<float(osg::Vec3::*)() const>(&osg::Vec3::x))
 			.property("y",static_cast<float(osg::Vec3::*)() const>(&osg::Vec3::y))
 			.property("z",static_cast<float(osg::Vec3::*)() const>(&osg::Vec3::z))
@@ -267,6 +272,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::class_<LightSource,  emscripten::base<PositionObservable>>("LightSource")
 		.smart_ptr<boost::shared_ptr<LightSource> >("shared_ptr<LightSource>")
 		.function("getIntensity", &LightSource::getIntensity)
+		.function("setPosition", &setLightSourcePosition)
 		;
 
 	emscripten::class_<Obstacle,  emscripten::base<PositionObservable>>("Obstacle")
