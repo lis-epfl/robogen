@@ -105,9 +105,10 @@ boost::shared_ptr<Scenario> JSScenario::createScenario(
 }
 
 bool JSScenario::endSimulation() {
+	if(!endSimulationJS()) return false;
 	curTrial_++;
 	this->setStartingPosition(curTrial_);
-	return endSimulationJS();
+	return true;
 }
 
 void JSScenario::printRobotPosition() {
