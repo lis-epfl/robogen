@@ -92,6 +92,8 @@ public:
 
 	void printRobotPosition();
 
+	float vectorDistance(emscripten::val vector1, emscripten::val vector2);
+
 private:
 	std::string id_;
 	unsigned int curTrial_;

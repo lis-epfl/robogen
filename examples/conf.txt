@@ -1,8 +1,7 @@
-scenario=racing_scenario.js
-obstaclesConfigFile=no-obstacles.txt
-startPositionConfigFile=startPos.txt
+scenario=chasing_scenario.js
 timeStep=0.005
 actuationFrequency=25
+lightSourcesConfigFile=light-sources.txt
 nTimeSteps=1600
 terrainType=flat
 terrainLength=2

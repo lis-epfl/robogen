@@ -184,6 +184,49 @@ bool QScriptScenario::isValidFunction(std::string name) {
 	return function.isValid();
 }
 
+float QScriptScenario::vectorDistance(QScriptValue vector1,
+		QScriptValue vector2) {
+	if (vector1.property("x").isNumber() && vector2.property("x").isNumber()) {
+
+		if (vector1.property("y").isNumber() &&
+				vector2.property("y").isNumber()) {
+
+			if (vector1.property("z").isNumber() &&
+					vector2.property("z").isNumber()) {
+				return (osg::Vec3(vector1.property("x").toNumber(),
+							vector1.property("y").toNumber(),
+							vector1.property("z").toNumber()) -
+						osg::Vec3(vector2.property("x").toNumber(),
+							vector2.property("y").toNumber(),
+							vector2.property("z").toNumber())).length();
+			} else if(vector1.property("z").isNumber() ||
+					vector2.property("z").isNumber()) {
+				std::cerr << "Problem computing vector distance!  Both vectors"
+						<< " must have same dimension!!" << std::endl;
+				exitRobogen(EXIT_FAILURE);
+			} else {
+				return (osg::Vec2(vector1.property("x").toNumber(),
+							vector1.property("y").toNumber()) -
+						osg::Vec2(vector2.property("x").toNumber(),
+							vector2.property("y").toNumber())).length();
+			}
+		} else if(vector1.property("y").isNumber() ||
+				vector2.property("y").isNumber()) {
+			std::cerr << "Problem computing vector distance!  Both vectors"
+					<< " must have same dimension!!" << std::endl;
+			exitRobogen(EXIT_FAILURE);
+		} else {
+			return fabs(vector1.property("x").toNumber() -
+					vector2.property("x").toNumber());
+		}
+	}
+
+	std::cerr << "Problem computing vector distance!  Must provide two "
+			"equal dimensional vectors!!" << std::endl;
+	exitRobogen(EXIT_FAILURE);
+	return NAN;
+}
+
 
 }
 

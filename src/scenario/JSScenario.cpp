@@ -127,6 +127,51 @@ int JSScenario::getCurTrial() const {
 	return curTrial_;
 }
 
+float JSScenario::vectorDistance(emscripten::val vector1,
+		emscripten::val vector2) {
+
+	if ((!vector1["x"].isUndefined()) && (!vector2["x"].isUndefined())) {
+
+		if ((!vector1["y"].isUndefined()) && (!vector2["y"].isUndefined())) {
+
+			if ((!vector1["z"].isUndefined()) &&
+					(!vector2["z"].isUndefined())) {
+
+				return (osg::Vec3(vector1["x"].as<float>(),
+							vector1["y"].as<float>(),
+							vector1["z"].as<float>()) -
+						osg::Vec3(vector2["x"].as<float>(),
+							vector2["y"].as<float>(),
+							vector2["z"].as<float>())).length();
+
+			} else if ((!vector1["z"].isUndefined()) ||
+					(!vector2["z"].isUndefined())) {
+				std::cerr << "Problem computing vector distance!  Both vectors"
+						<< " must have same dimension!!" << std::endl;
+				exitRobogen(EXIT_FAILURE);
+			} else {
+				return (osg::Vec2(vector1["x"].as<float>(),
+							vector1["y"].as<float>()) -
+						osg::Vec2(vector2["x"].as<float>(),
+							vector2["y"].as<float>())).length();
+			}
+		}else if ((!vector1["y"].isUndefined()) ||
+				(!vector2["y"].isUndefined())) {
+			std::cerr << "Problem computing vector distance!  Both vectors"
+					<< " must have same dimension!!" << std::endl;
+			exitRobogen(EXIT_FAILURE);
+		} else {
+			return fabs(vector1["x"].as<float>() - vector2["x"].as<float>());
+		}
+	}
+
+	std::cerr << "Problem computing vector distance!  Must provide two "
+			"equal dimensional vectors!!" << std::endl;
+	exitRobogen(EXIT_FAILURE);
+	return NAN;
+}
+
+
 }
 
 #endif

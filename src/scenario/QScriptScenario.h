@@ -72,6 +72,7 @@ public slots:
 	QScriptValue getRobot() { return qRobot_; }
 	QScriptValue getEnvironment() { return qEnvironment_; }
 	virtual int getCurTrial() const;
+	float vectorDistance(QScriptValue vector1, QScriptValue vector2);
 
 
 private:

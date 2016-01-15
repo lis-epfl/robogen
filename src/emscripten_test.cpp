@@ -37,6 +37,14 @@ public:
 	//void doSomething() { Base::doSomething(); }
 };
 
+void testPassVal(emscripten::val v) {
+	std::stringstream ss;
+	if (!v["a"].isUndefined()) {
+		ss << v["a"].as<float>();
+		robogen::js::log(ss.str());
+	}
+}
+
 emscripten::val testReturnArray() {
 	emscripten::val result(emscripten::val::array());
 	result.set(0, 2.3);

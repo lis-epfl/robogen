@@ -260,6 +260,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
         .function("getId", &JSScenario::getId)
         .function("printRobotPosition", &JSScenario::printRobotPosition)
         .function("getCurTrial", &JSScenario::getCurTrial)
+        .function("vectorDistance", &JSScenario::vectorDistance)
         .allow_subclass<ScenarioWrapper>("ScenarioWrapper")
 		;
 
@@ -306,6 +307,8 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	    ;
 
 	emscripten::function("testReturnVec3", &testReturnVec3);
+
+	emscripten::function("testPassVal", &testPassVal);
 
 	emscripten::function("testReturnVector", &testReturnVector);
 	emscripten::function("testReturnArray", &testReturnArray);
