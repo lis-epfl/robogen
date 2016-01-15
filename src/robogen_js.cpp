@@ -274,6 +274,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.smart_ptr<boost::shared_ptr<LightSource> >("shared_ptr<LightSource>")
 		.function("getIntensity", &LightSource::getIntensity)
 		.function("setPosition", &setLightSourcePosition)
+		.function("setIntensity", &LightSource::setIntensity);
 		;
 
 	emscripten::class_<Obstacle,  emscripten::base<PositionObservable>>("Obstacle")

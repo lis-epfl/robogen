@@ -188,6 +188,11 @@ void QLightSource::setPosition(float x, float y, float z) {
 				)->setPosition(osg::Vec3(x,y,z));
 }
 
+void QLightSource::setIntensity(float intensity) {
+	boost::dynamic_pointer_cast<LightSource>(basePtr_.lock()
+				)->setIntensity(intensity);
+}
+
 // QBoxObstacle
 
 QScriptValue QBoxObstacle::getSize() {

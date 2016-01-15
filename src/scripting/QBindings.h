@@ -140,6 +140,7 @@ public :
 public slots:
 	QScriptValue getIntensity();
 	void setPosition(float x, float y, float z);
+	void setIntensity(float intensity);
 };
 
 class QObstacle : public QPositionObservable {
