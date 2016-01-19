@@ -31,7 +31,7 @@
 #include "utils/QScriptUtils.h"
 
 #include "model/sensors/Sensor.h"
-
+#include "utils/RobogenUtils.h"
 
 namespace robogen {
 namespace qscript {
@@ -92,6 +92,10 @@ QScriptValue QModel::getRootPosition() {
 QScriptValue QModel::getRootAttitude() {
 	return valFromQuat(engine(),
 			basePtr_.lock()->getRootAttitude());
+}
+
+QScriptValue QModel::getType() {
+	return QString::fromStdString(RobogenUtils::getPartType(basePtr_.lock()));
 }
 
 

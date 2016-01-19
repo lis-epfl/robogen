@@ -53,8 +53,8 @@ public:
 	};
 
 	inline IrSensorElement(std::string baseLabel, Type type) :
-			Sensor(baseLabel + ((type == IR) ?  "-Infrared" :
-										"-AmbientLight")),
+			Sensor(baseLabel /*+ ((type == IR) ?  "-Infrared" :
+										"-AmbientLight")*/),
 			baseLabel_(baseLabel), type_(type) {
 	}
 

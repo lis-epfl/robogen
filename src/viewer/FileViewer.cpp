@@ -118,6 +118,7 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFile
 						configuration->getObstacleFile(),
 						configuration->getStartPosFile(),
 						configuration->getLightSourceFile(),
+						configuration->getScenarioFile(),
 						std::string(outputDirectory), overwriteLogs,
 						enableWebGLLog));
 	}

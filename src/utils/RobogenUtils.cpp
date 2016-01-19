@@ -437,6 +437,74 @@ boost::shared_ptr<RenderModel> RobogenUtils::createRenderModel(
 	return boost::shared_ptr<RenderModel>();
 }
 
+
+std::string RobogenUtils::getPartType(boost::shared_ptr<Model> model) {
+
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(model)) {
+		if (boost::dynamic_pointer_cast<CoreComponentModel>(model)->hasSensors())
+			return PART_TYPE_CORE_COMPONENT;
+		else
+			return PART_TYPE_FIXED_BRICK;
+
+#ifdef ALLOW_CARDANS
+	} else if (boost::dynamic_pointer_cast<ActiveCardanModel>(model)) {
+
+		return PART_TYPE_ACTIVE_CARDAN;
+#endif
+	} else if (boost::dynamic_pointer_cast<ActiveHingeModel>(model)) {
+
+		return PART_TYPE_ACTIVE_HINGE;
+
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
+	} else if (boost::dynamic_pointer_cast<ActiveWheelModel>(model)) {
+
+		return PART_TYPE_ACTIVE_WHEEL;
+#endif
+
+#ifdef ALLOW_CARDANS
+	} else if (boost::dynamic_pointer_cast<CardanModel>(model)) {
+
+		return PART_TYPE_PASSIVE_CARDAN;
+#endif
+	} else if (boost::dynamic_pointer_cast<HingeModel>(model)) {
+
+		return PART_TYPE_PASSIVE_HINGE;
+
+	} else if (boost::dynamic_pointer_cast<ParametricBrickModel>(model)) {
+
+		return PART_TYPE_PARAM_JOINT;
+
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
+	} else if (boost::dynamic_pointer_cast<PassiveWheelModel>(model)) {
+
+		return PART_TYPE_PASSIVE_WHEEL;
+
+	} else if (boost::dynamic_pointer_cast<RotateJointModel>(model)) {
+
+		return PART_TYPE_ROTATOR;
+
+	} else if (boost::dynamic_pointer_cast<ActiveWhegModel>(model)) {
+
+		return PART_TYPE_ACTIVE_WHEG;
+#endif
+#ifdef IR_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<IrSensorModel>(model)) {
+
+		return PART_TYPE_IR_SENSOR;
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<TouchSensorModel>(model)) {
+
+		return PART_TYPE_TOUCH_SENSOR;
+#endif
+	} else if (boost::dynamic_pointer_cast<LightSensorModel>(model)) {
+
+		return PART_TYPE_LIGHT_SENSOR;
+
+	}
+	return "";
+}
+
 osg::Quat RobogenUtils::makeRotate(const osg::Vec3& from, const osg::Vec3& to) {
 	osg::Quat rotation;
 	rotation.makeRotate(from, to);

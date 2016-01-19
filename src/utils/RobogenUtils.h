@@ -70,6 +70,8 @@ public:
 	static boost::shared_ptr<RenderModel> createRenderModel(
 			boost::shared_ptr<Model> model);
 
+	static std::string getPartType(boost::shared_ptr<Model> model);
+
 	static std::string getMeshFile(boost::shared_ptr<Model> model,
 								const unsigned int id);
 	static osg::Vec3 getRelativePosition(boost::shared_ptr<Model> model,

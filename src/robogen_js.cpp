@@ -206,9 +206,11 @@ EMSCRIPTEN_BINDINGS(my_module) {
 			;
 
 	emscripten::class_<Model>("Model")
+		.smart_ptr<boost::shared_ptr<Model> >("shared_ptr<Model>")
 		.function("getRootPosition", &Model::getRootPosition)
 		.function("getRootAttitude", &Model::getRootAttitude)
-		.smart_ptr<boost::shared_ptr<Model> >("shared_ptr<Model>");
+		.function("getType", &RobogenUtils::getPartType)
+		;
 
 	emscripten::class_<Sensor>("Sensor")
 		.smart_ptr<boost::shared_ptr<Sensor> >("shared_ptr<Sensor>")
