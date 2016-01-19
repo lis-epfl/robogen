@@ -4,7 +4,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2015 Joshua Auerbach
+ * Copyright © 2012-2016 Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -52,10 +52,11 @@ IrSensor::IrSensor(dSpaceID odeSpace,
 	sensors_.push_back(
 		boost::shared_ptr<IrSensorElement>(new IrSensorElement(baseLabel,
 				IrSensorElement::IR)));
-	sensors_.push_back(
+	// no ambient light sensing here for now
+	/*sensors_.push_back(
 			boost::shared_ptr<IrSensorElement>(new IrSensorElement(baseLabel,
 				IrSensorElement::AMBIENT_LIGHT)));
-
+	 */
 }
 
 IrSensor::~IrSensor() {
@@ -136,8 +137,8 @@ void IrSensor::update(const osg::Vec3& position, const osg::Quat& attitude) {
 	// want 0 when nothing is seen
 	sensors_[0]->updateValue( 1.0 - (distance / SENSOR_RANGE) );
 
-	//TODO integrate light sensor
-	sensors_[1]->updateValue( 0.0 );
+	// no ambient light sensing here for now
+	//sensors_[1]->updateValue( 0.0 );
 }
 
 

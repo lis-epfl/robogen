@@ -2,9 +2,10 @@
  * @(#) Models.h   1.0   March 4, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -47,5 +48,6 @@
 #include "model/components/perceptive/CoreComponentModel.h"
 #include "model/components/perceptive/LightSensorModel.h"
 #include "model/components/perceptive/TouchSensorModel.h"
+#include "model/components/perceptive/IrSensorModel.h"
 
 #endif /* ROBOGEN_MODELS_H_ */

@@ -4,7 +4,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2015 Joshua Auerbach
+ * Copyright © 2012-2016 Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -43,6 +43,10 @@ namespace robogen {
 
 class IrSensorElement : public Sensor {
 public:
+
+	// N.B.  For now only the distance (IR) measurement is enabled
+	// in the hardware, but leaving like this in case we enable the ambient
+	// light sensing in the future
 	enum Type {
 		IR,
 		AMBIENT_LIGHT

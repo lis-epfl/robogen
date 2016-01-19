@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -54,7 +54,12 @@ std::map<char, std::string> initPartTypeMap() {
 	partTypeMap['W'] = PART_TYPE_PASSIVE_WHEEL;
 	partTypeMap['R'] = PART_TYPE_ROTATOR;
 #endif
+#ifdef IR_SENSORS_ENABLED
+	partTypeMap['D'] = PART_TYPE_IR_SENSOR;
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	partTypeMap['T'] = PART_TYPE_TOUCH_SENSOR;
+#endif
 	return partTypeMap;
 }
 
@@ -85,7 +90,12 @@ std::map<std::string, unsigned int> initPartTypeArityMap() {
 	partTypeArityMap[PART_TYPE_PASSIVE_WHEEL] = 1;
 	partTypeArityMap[PART_TYPE_ROTATOR] = 1;
 #endif
+#ifdef IR_SENSORS_ENABLED
+	partTypeArityMap[PART_TYPE_IR_SENSOR] = 0;
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	partTypeArityMap[PART_TYPE_TOUCH_SENSOR] = 0;
+#endif
 	return partTypeArityMap;
 }
 
@@ -111,7 +121,12 @@ std::map<std::string, unsigned int> initPartTypeParamCountMap() {
 	partTypeParamCountMap[PART_TYPE_PASSIVE_WHEEL] = 1;
 	partTypeParamCountMap[PART_TYPE_ROTATOR] = 0;
 #endif
+#ifdef IR_SENSORS_ENABLED
+	partTypeParamCountMap[PART_TYPE_IR_SENSOR] = 0;
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	partTypeParamCountMap[PART_TYPE_TOUCH_SENSOR] = 0;
+#endif
 	return partTypeParamCountMap;
 }
 
@@ -196,12 +211,21 @@ std::map<std::string, std::vector<std::string> > initPartTypeSensorsMap() {
 		partTypeSensorsMap[PART_TYPE_LIGHT_SENSOR] = sensors;
 	}
 
+#ifdef IR_SENSORS_ENABLED
+	{
+		std::vector<std::string> sensors;
+		sensors.push_back(PART_TYPE_IR_SENSOR);
+		partTypeSensorsMap[PART_TYPE_IR_SENSOR] = sensors;
+	}
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	{
 		std::vector<std::string> sensors;
 		sensors.push_back(PART_TYPE_TOUCH_SENSOR + std::string("-left"));
 		sensors.push_back(PART_TYPE_TOUCH_SENSOR + std::string("-right"));
 		partTypeSensorsMap[PART_TYPE_TOUCH_SENSOR] = sensors;
 	}
+#endif
 	// need to insert empty vectors for all others
 	for (std::map<char, std::string>::const_iterator  it =
 			PART_TYPE_MAP.begin(); it != PART_TYPE_MAP.end(); ++it) {

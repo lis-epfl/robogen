@@ -1,0 +1,14 @@
+scenario=racing
+obstaclesConfigFile=arenaObstacleAvoidance.txt
+startPositionConfigFile=startPosObstacleAvoidance.txt
+timeStep=0.005
+actuationFrequency=25
+nTimeSteps=6400
+terrainType=flat
+terrainLength=2
+terrainWidth=5
+terrainFriction=1.0
+sensorNoiseLevel=0.0
+motorNoiseLevel=0.0
+capAcceleration=false
+maxDirectionShiftsPerSecond=16

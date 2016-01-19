@@ -2,9 +2,10 @@
  * @(#) RobogenUtils.cpp   1.0   Feb 17, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -321,10 +322,16 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 				new ActiveWhegModel(odeWorld, odeSpace, id,
 						bodyPart.evolvableparam(0).paramvalue()));
 #endif
+#ifdef IR_SENSORS_ENABLED
+	} else if (bodyPart.type().compare(PART_TYPE_IR_SENSOR) == 0) {
+
+		model.reset(new IrSensorModel(odeWorld, odeSpace, id));
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	} else if (bodyPart.type().compare(PART_TYPE_TOUCH_SENSOR) == 0) {
 
 		model.reset(new TouchSensorModel(odeWorld, odeSpace, id));
-
+#endif
 	} else if (bodyPart.type().compare(PART_TYPE_LIGHT_SENSOR) == 0) {
 
 		model.reset(new LightSensorModel(odeWorld, odeSpace, id, false));
@@ -405,12 +412,20 @@ boost::shared_ptr<RenderModel> RobogenUtils::createRenderModel(
 				new ActiveWhegRenderModel(
 						boost::dynamic_pointer_cast<ActiveWhegModel>(model)));
 #endif
+#ifdef IR_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<IrSensorModel>(model)) {
+
+		return boost::shared_ptr<IrSensorRenderModel>(
+				new IrSensorRenderModel(
+						boost::dynamic_pointer_cast<IrSensorModel>(model)));
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	} else if (boost::dynamic_pointer_cast<TouchSensorModel>(model)) {
 
 		return boost::shared_ptr<TouchSensorRenderModel>(
 				new TouchSensorRenderModel(
 						boost::dynamic_pointer_cast<TouchSensorModel>(model)));
-
+#endif
 	} else if (boost::dynamic_pointer_cast<LightSensorModel>(model)) {
 
 		return boost::shared_ptr<LightSensorRenderModel>(
@@ -563,11 +578,18 @@ ModelMeshMap initModelMeshMap() {
 
 	// Parametric has no stl files for now
 
+#ifdef IR_SENSORS_ENABLED
+	// Touch Sensor
+	modelMeshMap[std::make_pair(&typeid(IrSensorModel),
+			static_cast<unsigned int>(IrSensorModel::B_SENSOR_BASE_ID))] =
+			"IrSensor.stl";
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	// Touch Sensor
 	modelMeshMap[std::make_pair(&typeid(TouchSensorModel),
 			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))] =
 			"TouchSensor.stl";
-
+#endif
 	// Light Sensor
 	modelMeshMap[std::make_pair(&typeid(LightSensorModel),
 			static_cast<unsigned int>(LightSensorModel::B_SENSOR_BASE_ID))] =
@@ -646,6 +668,25 @@ RelativePositionMap initRelativePositionMap() {
 
 	// Parametric has no stl files for now
 
+
+
+
+#ifdef IR_SENSORS_ENABLED
+	//IR Sensor
+
+	// x = 0 is midpoint of base, so  -SENSOR_BASE_THICKNESS/2 is edge of base
+	// and frame is (SENSOR_BASE_THICKNESS + SENSOR_PLATFORM_THICKNESS) long
+	// so (SENSOR_BASE_THICKNESS + SENSOR_PLATFORM_THICKNESS)/2
+	//    - SENSOR_BASE_THICKNESS/2 =
+	//    (SENSOR_PLATFORM_THICKNESS)/2
+	relativePositionMap[std::make_pair(&typeid(IrSensorModel),
+			static_cast<unsigned int>(IrSensorModel::B_SENSOR_BASE_ID))] =
+			fromOde(
+					osg::Vec3(
+							(IrSensorModel::SENSOR_PLATFORM_THICKNESS) / 2,
+							0, 0));
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	// Touch Sensor
 
 	// x = 0 is midpoint of base, so  -SENSOR_BASE_THICKNESS/2 is edge of base
@@ -656,7 +697,7 @@ RelativePositionMap initRelativePositionMap() {
 	relativePositionMap[std::make_pair(&typeid(TouchSensorModel),
 			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))] =
 			fromOde(osg::Vec3(TouchSensorModel::SENSOR_THICKNESS / 2, 0, 0));
-
+#endif
 	// Light Sensor
 
 	// x = 0 is midpoint of base, so  -SENSOR_BASE_THICKNESS/2 is edge of base
@@ -735,10 +776,19 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 			static_cast<unsigned int>(ParametricBrickModel::B_CYLINDER_ID))] =
 			osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
 
+#ifdef IR_SENSORS_ENABLED
+	// IR Sensor
+	relativeAttitudeMap[std::make_pair(&typeid(IrSensorModel),
+			static_cast<unsigned int>(IrSensorModel::B_SENSOR_BASE_ID))] =
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0))
+					* osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 0, 1));
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	// Touch Sensor
 	relativeAttitudeMap[std::make_pair(&typeid(TouchSensorModel),
 			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))] =
 			osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 0, 1));
+#endif
 
 	// Light Sensor
 	relativeAttitudeMap[std::make_pair(&typeid(LightSensorModel),
