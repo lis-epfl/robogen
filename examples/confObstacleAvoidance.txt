@@ -12,3 +12,4 @@ sensorNoiseLevel=0.0
 motorNoiseLevel=0.0
 capAcceleration=false
 maxDirectionShiftsPerSecond=16
+disallowObstacleCollisions=true

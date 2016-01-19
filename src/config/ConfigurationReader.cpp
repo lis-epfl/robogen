@@ -129,7 +129,13 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					"Gravity: either a single z-value for g=(0,0,z)"\
 					" or x,y,z (comma separated) for full g vector."\
 					" Specified in m/(s^2)"\
-					" Defaults to (0,0,-9.81)");
+					" Defaults to (0,0,-9.81)")
+			("disallowObstacleCollisions",
+					boost::program_options::value<bool>(),
+					"Flag to enforce no obstacle collisions."\
+					"  Any obstacle collision will be considered a constraint"\
+					" violation.")
+			;
 
 	if (fileName == "help") {
 		desc.print(std::cout);
@@ -297,23 +303,23 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		return boost::shared_ptr<RobogenConfig>();
 	}
 	std::string scenario = vm["scenario"].as<std::string>();
-
+	std::string scenarioFile = "";
 	if (scenario.compare("racing") != 0 && scenario.compare("chasing") != 0) {
 		const boost::filesystem::path scenarioFilePath(scenario);
 		if (!scenarioFilePath.is_absolute()) {
 			const boost::filesystem::path absolutePath =
 					boost::filesystem::absolute(scenarioFilePath,
 							filePath.parent_path());
-			scenario = absolutePath.string();
+			scenarioFile = absolutePath.string();
 		}
-		if(boost::filesystem::path(scenario).extension().string().compare(".js")
+		if(boost::filesystem::path(scenarioFile).extension().string().compare(".js")
 				== 0) {
 
 			//read entire js file into string buffer
 
-			std::ifstream file(scenario.c_str());
+			std::ifstream file(scenarioFile.c_str());
 			if (!file.is_open()) {
-				std::cout << "Cannot find scenario js: '" << scenario << "'"
+				std::cout << "Cannot find scenario js: '" << scenarioFile << "'"
 						<< std::endl;
 				return boost::shared_ptr<RobogenConfig>();
 			}
@@ -417,15 +423,21 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		}
 	}
 
+	bool disallowObstacleCollisions = false;
+	if(vm.count("disallowObstacleCollisions")) {
+		disallowObstacleCollisions = vm["disallowObstacleCollisions"
+		                                ].as<bool>();
+	}
+
 	return boost::shared_ptr<RobogenConfig>(
-			new RobogenConfig(scenario, nTimesteps,
+			new RobogenConfig(scenario, scenarioFile, nTimesteps,
 					timeStep, actuationPeriod, terrain,
 					obstacles, obstaclesConfigFile, startPositions,
 					startPositionFile, lightSources, lightSourcesFile,
 					sensorNoiseLevel,
 					motorNoiseLevel, capAcceleration, maxLinearAcceleration,
 					maxAngularAcceleration, maxDirectionShiftsPerSecond,
-					gravity));
+					gravity, disallowObstacleCollisions));
 
 }
 
@@ -691,7 +703,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 	int actuationPeriod = simulatorConf.actuationperiod();
 
 	return boost::shared_ptr<RobogenConfig>(
-			new RobogenConfig(scenario, timeSteps, timeStepLength,
+			new RobogenConfig(scenario, "", timeSteps, timeStepLength,
 					actuationPeriod, terrain, obstacles, "",
 					boost::shared_ptr<StartPositionConfig>(
 							new StartPositionConfig(startPositions)), "",
@@ -703,7 +715,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 					simulatorConf.maxdirectionshiftspersecond(),
 					osg::Vec3(simulatorConf.gravityx(),
 							  simulatorConf.gravityy(),
-							  simulatorConf.gravityz())
+							  simulatorConf.gravityz()),
+					simulatorConf.disallowobstaclecollisions()
 					));
 
 }

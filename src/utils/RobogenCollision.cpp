@@ -76,7 +76,7 @@ void CollisionData::testObstacleCollisons(dGeomID o1, dGeomID o2) {
 	if (	(isPartOfBody(o1) && dGeomGetClass(o2) == dBoxClass)
 			||
 			(isPartOfBody(o2) && dGeomGetClass(o1) == dBoxClass)) {
-		std::cout << "colliding with obstacle!!!" << std::endl;
+		//std::cout << "colliding with obstacle!!!" << std::endl;
 		hasObstacleCollisions_ = true;
 	}
 }

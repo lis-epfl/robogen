@@ -447,6 +447,7 @@ int main(int argc, char *argv[]) {
 						configuration->getObstacleFile(),
 						configuration->getStartPosFile(),
 						configuration->getLightSourceFile(),
+						configuration->getScenarioFile(),
 						std::string(outputDirectoryName), overwrite,
 						writeWebGL));
 	}

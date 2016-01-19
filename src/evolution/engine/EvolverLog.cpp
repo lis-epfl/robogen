@@ -52,8 +52,8 @@ bool fixed_is_directory(std::string path) {
 		return false;
 	} else if (errorCode.value() != 0) {
 		//this second call will fire the correct exception
-                std::cout << errorCode.value() << std::endl << errorCode.message() << std::endl;
-		boost::filesystem::is_directory(path);
+		std::cout << errorCode.value() << std::endl << errorCode.message() << std::endl;
+		return boost::filesystem::is_directory(path);
 	} else {
 		return result;
 	}
@@ -114,6 +114,11 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER) {
 		copyConfFile(conf->referenceRobotFile);
 	}
+	// copy scenario file if using scripted scenario
+	copyConfFile(robotConf->getScenarioFile());
+
+
+
 
 	return true;
 }

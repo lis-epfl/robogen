@@ -49,7 +49,8 @@ public:
 	/**
 	 * Initializes a robogen config object from configuration parameters
 	 */
-	RobogenConfig(std::string scenario, unsigned int timeSteps,
+	RobogenConfig(std::string scenario, std::string scenarioFile,
+			unsigned int timeSteps,
 			float timeStepLength, int actuationPeriod,
 			boost::shared_ptr<TerrainConfig> terrain,
 			boost::shared_ptr<ObstaclesConfig> obstacles,
@@ -61,8 +62,9 @@ public:
 			float sensorNoiseLevel, float motorNoiseLevel,
 			bool capAcceleration, float maxLinearAcceleration,
 			float maxAngularAcceleration, int maxDirectionShiftsPerSecond,
-			osg::Vec3 gravity) :
-				scenario_(scenario), timeSteps_(timeSteps),
+			osg::Vec3 gravity, bool disallowObstacleCollisions) :
+				scenario_(scenario), scenarioFile_(scenarioFile),
+				timeSteps_(timeSteps),
 				timeStepLength_(timeStepLength),
 				actuationPeriod_(actuationPeriod),
 				terrain_(terrain), obstacles_(obstacles),
@@ -77,7 +79,8 @@ public:
 				maxLinearAcceleration_(maxLinearAcceleration),
 				maxAngularAcceleration_(maxAngularAcceleration),
 				maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond),
-				gravity_(gravity) {
+				gravity_(gravity),
+				disallowObstacleCollisions_(disallowObstacleCollisions) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -100,6 +103,13 @@ public:
 	 */
 	std::string getScenario() const {
 		return scenario_;
+	}
+
+	/**
+	 * @return the simulation scenario file (for scripted scenario)
+	 */
+	std::string getScenarioFile() const {
+		return scenarioFile_;
 	}
 
 	/**
@@ -234,6 +244,13 @@ public:
 	}
 
 	/**
+	 * return if should disallow obstacle collisions
+	 */
+	bool isDisallowObstacleCollisions() {
+		return disallowObstacleCollisions_;
+	}
+
+	/**
 	 * Convert configuration into configuration message.
 	 */
 	robogenMessage::SimulatorConf serialize() const{
@@ -252,6 +269,7 @@ public:
 		ret.set_gravityx(gravity_.x());
 		ret.set_gravityy(gravity_.y());
 		ret.set_gravityz(gravity_.z());
+		ret.set_disallowobstaclecollisions(disallowObstacleCollisions_);
 
 		terrain_->serialize(ret);
 
@@ -268,6 +286,11 @@ private:
 	 * The simulation scenario
 	 */
 	std::string scenario_;
+
+	/**
+	 * The simulation scenario file (if using scripted scenario)
+	 */
+	std::string scenarioFile_;
 
 	/**
 	 * Total number of simulation timesteps
@@ -360,6 +383,11 @@ private:
 	 * Gravity
 	 */
 	osg::Vec3 gravity_;
+
+	/**
+	 * flag to disallow obstacle collisions
+	 */
+	bool disallowObstacleCollisions_;
 };
 
 }

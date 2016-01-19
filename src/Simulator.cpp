@@ -253,8 +253,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			// Empty contact groups used for collisions handling
 			dJointGroupEmpty(odeContactGroup);
 
-			// todo make configurable!
-			if (collisionData->hasObstacleCollisions()) {
+			if (configuration->isDisallowObstacleCollisions() &&
+					collisionData->hasObstacleCollisions()) {
 				constraintViolated = true;
 				break;
 			}

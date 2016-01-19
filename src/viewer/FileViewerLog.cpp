@@ -62,6 +62,7 @@ FileViewerLog::FileViewerLog(std::string robotFile,
 		std::string obstacleFile,
 		std::string startPosFile,
 		std::string lightSourceFile,
+		std::string scenarioFile,
 		std::string logFolder,
 		bool overwrite,
 		bool writeWebGL) :
@@ -70,6 +71,7 @@ FileViewerLog::FileViewerLog(std::string robotFile,
 			obstacleFile_(obstacleFile),
 			startPosFile_(startPosFile),
 			lightSourceFile_(lightSourceFile),
+			scenarioFile_(scenarioFile),
 			logFolder_(logFolder),
 			overwrite_(overwrite),
 			writeWebGL_(writeWebGL) {
@@ -217,6 +219,23 @@ bool FileViewerLog::init(boost::shared_ptr<Robot> robot,
 			return false;
 		}
 	}
+
+	// copy scenario file for scripted scenarios
+	if (this->scenarioFile_.length() > 0) {
+		boost::filesystem::path scenarioFrom(this->scenarioFile_);
+		ss.str(""); ss.clear();
+		ss << logPath_ << "/" << scenarioFrom.filename().string();
+		boost::filesystem::path scenarioTo(ss.str());
+		try{
+			boost::filesystem::copy_file(scenarioFrom, scenarioTo);
+		} catch (boost::filesystem::filesystem_error &err){
+			std::cout << "Can't copy scenario script file" << std::endl <<
+					err.what() << std::endl;
+			return false;
+		}
+	}
+
+
 	// copy any m files
 	for (boost::filesystem::directory_iterator
 			it(boost::filesystem::current_path());
