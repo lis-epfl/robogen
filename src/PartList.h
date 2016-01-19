@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -34,9 +34,14 @@
 #include <vector>
 #include <string>
 
-//#define ALLOW_ROTATIONAL_COMPONENTS
+#define ALLOW_ROTATIONAL_COMPONENTS
 //#define ALLOW_CARDANS
 #define ENFORCE_PLANAR
+#define IR_SENSORS_ENABLED
+#ifndef IR_SENSORS_ENABLED
+	#define TOUCH_SENSORS_ENABLED
+#endif
+
 
 namespace robogen {
 
@@ -60,7 +65,12 @@ namespace robogen {
 	#define PART_TYPE_PASSIVE_WHEEL 	"PassiveWheel"
 	#define PART_TYPE_ROTATOR 			"Rotator"
 #endif
-#define PART_TYPE_TOUCH_SENSOR 		"TouchSensor"
+#ifdef IR_SENSORS_ENABLED
+	#define PART_TYPE_IR_SENSOR			"IrSensor"
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
+	#define PART_TYPE_TOUCH_SENSOR 		"TouchSensor"
+#endif
 
 extern const std::map<char, std::string> PART_TYPE_MAP;
 extern const std::map<std::string, char> INVERSE_PART_TYPE_MAP;
