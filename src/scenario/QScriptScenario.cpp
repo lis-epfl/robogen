@@ -152,15 +152,16 @@ bool QScriptScenario::afterSimulationStep() {
 }
 
 bool QScriptScenario::endSimulation() {
+	bool result = true;
 	if(implementedMethods_["endSimulation"]) {
 		QScriptValue function = userScenario_.property("endSimulation");
-		return function.call(userScenario_).toBool();
+		result = function.call(userScenario_).toBool();
 	}
 
 	curTrial_++;
 	this->setStartingPosition(curTrial_);
 
-	return true;
+	return result;
 }
 
 bool QScriptScenario::remainingTrials() {
