@@ -1,3 +1,32 @@
+/*
+ * @(#) WebGLLogger.cpp   1.0
+ *
+ * Guillaume Leclerc (guillaume.leclerc@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
+ *
+ * The ROBOGEN Framework
+ * Copyright © 2012-2016 Guillaume Leclerc, Joshua Auerbach
+ *
+ * Laboratory of Intelligent Systems, EPFL
+ *
+ * This file is part of the ROBOGEN Framework.
+ *
+ * The ROBOGEN Framework is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License (GPL)
+ * as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @(#) $Id$
+ */
+
 #include "viewer/WebGLLogger.h"
 #include <Models.h>
 #include <model/objects/BoxObstacle.h>
@@ -154,6 +183,71 @@ void WebGLLogger::writeRobotStructure() {
 				it->model, it->bodyId) / 1000;
 		osg::Quat relativeAttitude = RobogenUtils::getRelativeAttitude(
 				it->model, it->bodyId);
+
+		// NOTE : we are still having issues with meshes displaying differently
+		// in the web viewer.    Since there is no specific code for each model
+		// in the webgl engine it is cleaner to differentiate this behavior
+		// here.
+		// todo : figure out cause and fix (this stuff should not be needed!)
+
+		std::cout << RobogenUtils::getPartType(it->model) << " " <<
+				it->bodyId;
+
+		// we rotate 180 degrees around z for :
+		//	both meshes of ActiveWheels, ActiveWhegs, Rotators
+		//  slot of PassiveWheel,
+		//  IrSensors, LightSensors
+
+		if (	boost::dynamic_pointer_cast<ActiveWheelModel>(it->model) ||
+				boost::dynamic_pointer_cast<ActiveWhegModel>(it->model) ||
+				boost::dynamic_pointer_cast<RotateJointModel>(it->model) ||
+				boost::dynamic_pointer_cast<IrSensorModel>(it->model) ||
+				boost::dynamic_pointer_cast<LightSensorModel>(it->model) ||
+				(boost::dynamic_pointer_cast<PassiveWheelModel>(it->model)
+						&& it->bodyId == PassiveWheelModel::B_SLOT_ID)) {
+
+			relativeAttitude *= osg::Quat(osg::inDegrees(180.0),
+										  osg::Vec3(0, 0, 1));
+
+			std::cout << " rotating!";
+		}
+
+		// then rotate 180 degrees around y for Active Wheel meshes
+		// and Active Wheg meshes
+		if (	(boost::dynamic_pointer_cast<ActiveWheelModel>(it->model)
+				 && it->bodyId == ActiveWheelModel::B_WHEEL_ID) ||
+				(boost::dynamic_pointer_cast<ActiveWhegModel>(it->model)
+				&& it->bodyId == ActiveWhegModel::B_WHEG_BASE)) {
+
+			relativeAttitude *= osg::Quat(osg::inDegrees(180.0),
+										  osg::Vec3(0, 1, 0));
+
+			std::cout << " rotating!";
+		}
+
+		// 180 degrees around x for LightSensors, IrSensors, ActiveHinge motors
+		// PassiveHinges
+		if (	boost::dynamic_pointer_cast<LightSensorModel>(it->model) ||
+				boost::dynamic_pointer_cast<IrSensorModel>(it->model) ||
+				(boost::dynamic_pointer_cast<ActiveHingeModel>(it->model) &&
+				 it->bodyId == ActiveHingeModel::B_SLOT_B_ID) ||
+				 boost::dynamic_pointer_cast<HingeModel>(it->model)) {
+
+			relativeAttitude *= osg::Quat(osg::inDegrees(180.0),
+										  osg::Vec3(1, 0, 0));
+
+			std::cout << " rotating!";
+		}
+
+
+
+		std::cout << std::endl
+				<< relativeAttitude.x() <<  " " << relativeAttitude.y() <<
+				" " << relativeAttitude.z() << " " << relativeAttitude.w() <<
+				std::endl;
+
+
+
 		json_t* obDescriptor = json_object();
 		json_t* relAttitude = json_array();
 		json_t* relPosition = json_array();

@@ -712,16 +712,30 @@ RelativePositionMap initRelativePositionMap() {
 			fromOde(osg::Vec3(0,
 					0, ActiveWheelModel::WHEEL_ATTACHMENT_THICKNESS/2));
 
+	// Active Wheg
 
-	// TODO Active Wheg
-
-	// TODO Passive Wheel
-	relativePositionMap[std::make_pair(&typeid(PassiveWheelModel),
-				static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))] =
-			fromOde(osg::Vec3(PassiveWheelModel::AXEL_LENGTH/2,
+	// see above
+	relativePositionMap[std::make_pair(&typeid(ActiveWhegModel),
+				static_cast<unsigned int>(ActiveWhegModel::B_SLOT_ID))] =
+			fromOde(osg::Vec3(ActiveWhegModel::SERVO_LENGTH/2,
 									   0,0));
 
-	// TODO Rotate Joint
+	// same as above, but 11.5mm offset needed
+	relativePositionMap[std::make_pair(&typeid(ActiveWhegModel),
+					static_cast<unsigned int>(ActiveWhegModel::B_WHEG_BASE))] =
+				fromOde(osg::Vec3(inMm(11.5),
+						0, ActiveWhegModel::WHEG_ATTACHMENT_THICKNESS/2));
+
+	// Passive Wheel
+	relativePositionMap[std::make_pair(&typeid(PassiveWheelModel),
+				static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))] =
+			fromOde(osg::Vec3(PassiveWheelModel::AXEL_LENGTH/2, 0,0));
+
+	// Rotate Joint
+	relativePositionMap[std::make_pair(&typeid(RotateJointModel),
+				static_cast<unsigned int>(RotateJointModel::B_SLOT_ID))] =
+			fromOde(osg::Vec3(RotateJointModel::SERVO_LENGTH/2,
+									   0,0));
 
 #endif
 	// Core needs no position offset
@@ -813,7 +827,15 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 			osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 0, 1)) *
 			osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0));
 
-	// TODO Active Wheg
+	// Active Wheg
+	relativeAttitudeMap[std::make_pair(&typeid(ActiveWhegModel),
+				static_cast<unsigned int>(ActiveWhegModel::B_SLOT_ID))] =
+				osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
+
+	relativeAttitudeMap[std::make_pair(&typeid(ActiveWhegModel),
+				static_cast<unsigned int>(ActiveWhegModel::B_WHEG_BASE))] =
+				osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 0, 1));/* *
+				osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0));*/
 
 	// Passive Wheel
 	relativeAttitudeMap[std::make_pair(&typeid(PassiveWheelModel),
@@ -821,7 +843,18 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
 
 
-	// TODO Rotate Joint
+	// Rotate Joint
+	relativeAttitudeMap[std::make_pair(&typeid(RotateJointModel),
+			static_cast<unsigned int>(RotateJointModel::B_SLOT_ID))] =
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
+
+	relativeAttitudeMap[std::make_pair(&typeid(RotateJointModel),
+				static_cast<unsigned int>(
+						RotateJointModel::B_JOINT_CONNECTION_ID))] =
+				osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 1, 0)) *
+				osg::Quat(osg::inDegrees(-90.0), osg::Vec3(1, 0, 0));
+
+
 #endif
 	// Core
 
@@ -848,8 +881,7 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 	// IR Sensor
 	relativeAttitudeMap[std::make_pair(&typeid(IrSensorModel),
 			static_cast<unsigned int>(IrSensorModel::B_SENSOR_BASE_ID))] =
-			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0))
-					* osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 0, 1));
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
 #endif
 #ifdef TOUCH_SENSORS_ENABLED
 	// Touch Sensor
@@ -861,8 +893,7 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 	// Light Sensor
 	relativeAttitudeMap[std::make_pair(&typeid(LightSensorModel),
 			static_cast<unsigned int>(LightSensorModel::B_SENSOR_BASE_ID))] =
-			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0))
-					* osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 0, 1));
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
 
 	return relativeAttitudeMap;
 }

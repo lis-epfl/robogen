@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -31,17 +31,16 @@
 
 namespace robogen {
 
-const float RotateJointModel::MASS_SLOT = inGrams(4);
-const float RotateJointModel::MASS_SERVO = inGrams(9);
+const float RotateJointModel::MASS_SLOT = inGrams(2);
+const float RotateJointModel::MASS_SERVO = inGrams(11);
 const float RotateJointModel::MASS_CONNECTION_SLOT = inGrams(2);
 
 const float RotateJointModel::SLOT_WIDTH = inMm(34);
 const float RotateJointModel::SLOT_THICKNESS = inMm(1.5);
-const float RotateJointModel::SERVO_Z_OFFSET = inMm(0); // zCenter shift respect to slot z-center
 const float RotateJointModel::SERVO_WIDTH = inMm(14);
 const float RotateJointModel::SERVO_LENGTH = inMm(36.8);
 const float RotateJointModel::SERVO_HEIGHT = inMm(14);
-const float RotateJointModel::JOINT_CONNECTION_THICKNESS = inMm(7.5);
+const float RotateJointModel::JOINT_CONNECTION_THICKNESS = inMm(9);
 const float RotateJointModel::JOINT_CONNECTION_WIDTH = inMm(34);
 
 
@@ -57,22 +56,19 @@ RotateJointModel::~RotateJointModel() {
 
 bool RotateJointModel::initModel() {
 
-	// Create the 3 components of the wheel,
+	// Create the 2 components of the rotator,
 	// now created directly with calls to this->add___
-
-	float separation = inMm(0.1);
 
 	jointRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
 			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_ID);
 
-	dReal xServo = SLOT_THICKNESS / 2 + separation + SERVO_LENGTH / 2;
-	dReal zServo = -SLOT_WIDTH / 2 + SERVO_Z_OFFSET + SERVO_HEIGHT / 2;
-	boost::shared_ptr<SimpleBody> servo = this->addBox(MASS_SERVO,
-			osg::Vec3(xServo, 0, zServo),
-			SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT,
-			B_SERVO_ID);
+	dReal xServo = SERVO_LENGTH / 2 + SLOT_THICKNESS / 2;
 
-	dReal xJointConnection = xServo + SERVO_LENGTH / 2 + separation
+	boost::shared_ptr<SimpleBody> servo = this->addBox(MASS_SERVO,
+		   osg::Vec3(xServo, 0, 0),
+		 SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT, B_SERVO_ID);
+
+	dReal xJointConnection = xServo + SERVO_LENGTH / 2
 			- JOINT_CONNECTION_THICKNESS / 2 ;
 	jointConnection_ = this->addBox(MASS_CONNECTION_SLOT,
 			osg::Vec3(xJointConnection, 0, 0), JOINT_CONNECTION_THICKNESS,

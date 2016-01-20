@@ -2,9 +2,10 @@
  * @(#) LightSensorRenderModel.cpp   1.0   Feb 9, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -84,14 +85,9 @@ bool LightSensorRenderModel::initRenderModel() {
 				RobogenUtils::getRelativePosition(this->getModel(),
 						LightSensorModel::B_SENSOR_BASE_ID));
 
-		// NOTE : For un unknown reason the webgl STL loader and the C++ loader loads this model differently.
-		//        Since there is no specific code for each model in the webgl engine it is cleaner to
-		//        differentiate this behavior here
 		partA->setAttitude(
 				RobogenUtils::getRelativeAttitude(this->getModel(),
-						LightSensorModel::B_SENSOR_BASE_ID)
-						* osg::Quat(osg::inDegrees(-180.0),
-								osg::Vec3(0, 0, 1)));
+						LightSensorModel::B_SENSOR_BASE_ID));
 	}
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patPartA(

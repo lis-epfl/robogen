@@ -69,16 +69,8 @@ bool IrSensorRenderModel::initRenderModel() {
 	partA->setPosition(RobogenUtils::getRelativePosition(this->getModel(),
 						IrSensorModel::B_SENSOR_BASE_ID));
 
-	// NOTE : For an unknown reason the webgl STL loader and the C++ loader
-	// loads this model differently.
-	// Since there is no specific code for each model in the webgl engine
-	// it is cleaner to
-	// differentiate this behavior here
-	partA->setAttitude(
-				RobogenUtils::getRelativeAttitude(this->getModel(),
-						IrSensorModel::B_SENSOR_BASE_ID)
-						* osg::Quat(osg::inDegrees(-180.0),
-								osg::Vec3(0, 0, 1)));
+	partA->setAttitude(RobogenUtils::getRelativeAttitude(this->getModel(),
+						IrSensorModel::B_SENSOR_BASE_ID));
 
 
 	osg::ref_ptr<osg::PositionAttitudeTransform> patPartA(

@@ -6,7 +6,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Andrea Maesani, Titus Cieslweski, Joshua Auerbach
+ * Copyright © 2012-2016 Andrea Maesani, Titus Cieslweski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -219,10 +219,13 @@ void printUsage(char *argv[]) {
 			<< "for noisy evaluations." << std::endl << std::endl
 			<< "      --speed <S, FLOAT>" << std::endl
 			<< "          Run visualization at S * real time "
-			<< "(default is 1)." << std::endl << std::endl << "      --webgl"
-			<< std::endl << "          Record json file for use with the WebGL "
+			<< "(default is 1)." << std::endl << std::endl
+			<< "      --webgl"
+			<< std::endl
+			<< "          Record json file for use with the WebGL "
 			<< "visualizer (only valid if --output is specified)." << std::endl
-			<< std::endl << "      Notes: " << std::endl
+			<< std::endl
+			<< "      Notes: " << std::endl
 			<< "        (a) Without visualization you cannot record frames,"
 			<< " and setting speed has no effect "
 			<< "(will always run as fast possible)." << std::endl

@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -46,7 +46,6 @@ public:
 
 	static const float SLOT_WIDTH;
 	static const float SLOT_THICKNESS;
-	static const float SERVO_Z_OFFSET;
 	static const float SERVO_WIDTH;
 	static const float SERVO_LENGTH;
 	static const float SERVO_HEIGHT;
