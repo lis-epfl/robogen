@@ -143,10 +143,17 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	}
 
 	boost::program_options::variables_map vm;
-	boost::program_options::store(
+
+	try {
+		boost::program_options::store(
 			boost::program_options::parse_config_file<char>(fileName.c_str(),
 					desc, true), vm);
-	boost::program_options::notify(vm);
+		boost::program_options::notify(vm);
+	} catch (std::exception &e) {
+		std::cerr << e.what()
+				<< std::endl;
+		return boost::shared_ptr<RobogenConfig>();
+	}
 
 	const boost::filesystem::path filePath(fileName);
 
