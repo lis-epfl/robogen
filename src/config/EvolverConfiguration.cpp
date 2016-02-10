@@ -53,7 +53,7 @@ bool parseBounds(std::string value, double &min, double &max) {
 					"^(-?\\d*[\\d\\.]\\d*):(-?\\d*[\\d\\.]\\d*)$");
 	// match[0]:whole string, match[1]:min, match[2]:max
 	if (!boost::regex_match(value.c_str(), match, boundsRegex)){
-		std::cout << "Supplied bounds argument \"" <<
+		std::cerr << "Supplied bounds argument \"" <<
 				value <<
 				"\" does not match pattern <min>:<max>" << std::endl;
 		return false;
@@ -61,7 +61,7 @@ bool parseBounds(std::string value, double &min, double &max) {
 	min = std::atof(match[1].first);
 	max = std::atof(match[2].first);
 	if (min > max) {
-		std::cout << "supplied min " << min << " is greater than supplied max "
+		std::cerr << "supplied min " << min << " is greater than supplied max "
 				<< max << std::endl;
 		return false;
 	}
@@ -231,7 +231,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		boost::program_options::notify(vm);
 	}
 	catch (boost::program_options::error& e) {
-		std::cout << "Error while processing options: " << e.what() <<
+		std::cerr << "Error while processing options: " << e.what() <<
 				std::endl;
 		return false;
 	}
@@ -241,7 +241,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		selection = DETERMINISTIC_TOURNAMENT;
 	}
 	else {
-		std::cout << "Specified selection strategy \"" <<
+		std::cerr << "Specified selection strategy \"" <<
 				vm["selection"].as<std::string>() <<
 				"\" unknown. Options are \"deterministic-tournament\" or ..."
 				 << std::endl;
@@ -256,7 +256,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		replacement = PLUS_REPLACEMENT;
 	}
 	else {
-		std::cout << "Specified replacement strategy \"" <<
+		std::cerr << "Specified replacement strategy \"" <<
 				vm["replacement"].as<std::string>() <<
 				"\" unknown. Options are \"comma\" or \"plus\"" << std::endl;
 		return false;
@@ -266,7 +266,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	if (vm["evolutionMode"].as<std::string>() == "brain"){
 		evolutionMode = BRAIN_EVOLVER;
 		if (referenceRobotFile.compare("") == 0) {
-			std::cout << "evolutionMode is \"brain\" but no referenceRobotFile"
+			std::cerr << "evolutionMode is \"brain\" but no referenceRobotFile"
 					<< " was provided" << std::endl;
 			return false;
 		}
@@ -275,7 +275,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		evolutionMode = FULL_EVOLVER;
 	}
 	else {
-		std::cout << "Specified evolution mode \"" <<
+		std::cerr << "Specified evolution mode \"" <<
 				vm["evolutionMode"].as<std::string>() <<
 				"\" unknown. Options are \"brain\" or \"full\"" << std::endl;
 		return false;
@@ -296,7 +296,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				maxBrainBias))
 			return false;
 	} else {
-		std::cout << "Must supply either brainBounds or (weightBounds and " <<
+		std::cerr << "Must supply either brainBounds or (weightBounds and " <<
 				"biasBounds) (and bounds for other brain params)" << std::endl;
 		return false;
 	}
@@ -307,8 +307,9 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		brainWeightSigma = atof(vm["weightSigma"].as<std::string>().c_str());
 		brainBiasSigma = atof(vm["biasSigma"].as<std::string>().c_str());
 	} else {
-		std::cout << "Must supply either brainSigma or (weightSigma and biasSigma)"
+		std::cerr << "Must supply either brainSigma or (weightSigma and biasSigma)"
 				<< " ( and sigmas for other brain params)" << std::endl;
+		return false;
 	}
 
 	if(vm.count("tauBounds") > 0) {
@@ -334,11 +335,11 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				minBrainAmplitude, maxBrainAmplitude))
 			return false;
 		if (minBrainAmplitude < 0) {
-			std::cout << "Amplitude cannot be less than 0" << std::endl;
+			std::cerr << "Amplitude cannot be less than 0" << std::endl;
 			return false;
 		}
 		if (maxBrainAmplitude > 1) {
-			std::cout << "Amplitude cannot be greater than 1" << std::endl;
+			std::cerr << "Amplitude cannot be greater than 1" << std::endl;
 			return false;
 		}
 	}
@@ -349,7 +350,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	if (vm.count("numInitialParts") > 0) {
 		if (!boost::regex_match(vm["numInitialParts"].as<std::string>().c_str(),
 				match, initPartsRegex)){
-			std::cout << "Supplied numInitialParts argument \"" <<
+			std::cerr << "Supplied numInitialParts argument \"" <<
 					vm["numInitialParts"].as<std::string>() <<
 					"\" does not match pattern <min>:<max>" << std::endl;
 			return false;
@@ -369,7 +370,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	for (unsigned int i = 0; i<encSocket.size(); i++){
 		// match[0]:whole string, match[1]:IP, match[2]:port
 		if (!boost::regex_match(encSocket[i].c_str(), match, socketRegex)){
-			std::cout << "Supplied socket argument \"" << encSocket[i] <<
+			std::cerr << "Supplied socket argument \"" << encSocket[i] <<
 					"\" does not match pattern <ip address>:<port>" <<
 					std::endl;
 			return false;
@@ -384,56 +385,56 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	// - if selection is deterministic tournament, 1 <= tournamentSize <= mu
 	if (selection == DETERMINISTIC_TOURNAMENT && (tournamentSize < 1 ||
 			tournamentSize > mu)){
-		std::cout << "Specified tournament size should be between 1 and mu, "\
+		std::cerr << "Specified tournament size should be between 1 and mu, "\
 				"but is " << tournamentSize << std::endl;
 		return false;
 	}
 
 	// - if replacement is comma, lambda must exceed mu
 	if (replacement == COMMA_REPLACEMENT && lambda < mu){
-		std::cout << "If replacement is comma, lambda must be bigger than mu,"\
+		std::cerr << "If replacement is comma, lambda must be bigger than mu,"\
 				"but lambda is " << lambda << " and mu is " << mu << std::endl;
 		return false;
 	}
 
 	// - brain bounds max must > min
 	if (maxBrainWeight < minBrainWeight){
-		std::cout << "Minimum brain bound " << minBrainWeight << " exceeds "\
+		std::cerr << "Minimum brain bound " << minBrainWeight << " exceeds "\
 				"maximum " << maxBrainWeight << std::endl;
 		return false;
 	}
 
 	if (vm.count("pBrainMutate") == 0) {
-		std::cout << "Must specify pBrainMutate" << std::endl;
+		std::cerr << "Must specify pBrainMutate" << std::endl;
 		return false;
 	}
 	// - 0. <= probabilities <= 1.
 	if (pBrainMutate > 1. || pBrainMutate < 0.){
-		std::cout << "Brain mutation probability parameter " << pBrainMutate <<
+		std::cerr << "Brain mutation probability parameter " << pBrainMutate <<
 				" not between 0 and 1!" << std::endl;
 		return false;
 	}
 
 	if (vm.count("pBrainCrossover") == 0) {
-		std::cout << "Must specify pBrainCrossover" << std::endl;
+		std::cerr << "Must specify pBrainCrossover" << std::endl;
 		return false;
 	}
 	if (pBrainCrossover > 1. || pBrainCrossover < 0.){
-		std::cout << "Brain crossover probability parameter " << pBrainCrossover
+		std::cerr << "Brain crossover probability parameter " << pBrainCrossover
 				<< " not between 0 and 1!" << std::endl;
 		return false;
 	}
 
 
 	if (pOscillatorNeuron > 1. || pOscillatorNeuron < 0.) {
-		std::cout << "Oscillator neuron probability parameter " <<
+		std::cerr << "Oscillator neuron probability parameter " <<
 				pOscillatorNeuron << " not between 0 and 1!" << std::endl;
 		return false;
 	}
 
 	for(unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		if (bodyOperatorProbability[i] > 1. || bodyOperatorProbability[i] < 0.){
-			std::cout << BodyMutationOperatorsProbabilityCodes[i] <<
+			std::cerr << BodyMutationOperatorsProbabilityCodes[i] <<
 					bodyOperatorProbability[i]	<< " not between 0 and 1!" <<
 					std::endl;
 			return false;
@@ -442,13 +443,13 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 	// - sigma needs to be positive
 	if (brainWeightSigma < 0.){
-		std::cout << "Weight sigma (" << brainWeightSigma << ") must be positive" <<
+		std::cerr << "Weight sigma (" << brainWeightSigma << ") must be positive" <<
 				std::endl;
 		return false;
 	}
 
 	if (brainBiasSigma < 0.){
-		std::cout << "Bias sigma (" << brainBiasSigma << ") must be positive" <<
+		std::cerr << "Bias sigma (" << brainBiasSigma << ") must be positive" <<
 				std::endl;
 		return false;
 	}
@@ -486,12 +487,12 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			if (bodyPartType.length() == 1) {
 				type = bodyPartType[0];
 				if( PART_TYPE_MAP.count(type) == 0) {
-					std::cout << "Invalid body part type: " << type
+					std::cerr << "Invalid body part type: " << type
 							<< std::endl;
 					return false;
 				}
 			} else if( INVERSE_PART_TYPE_MAP.count(bodyPartType) == 0) {
-				std::cout << "Invalid body part type: " << bodyPartType
+				std::cerr << "Invalid body part type: " << bodyPartType
 						<< std::endl;
 				return false;
 			} else {
@@ -506,7 +507,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 		// need at least one body part to be able to add
 		if ( allowedBodyPartTypes.size() == 0) {
-			std::cout << "If evolving bodies then need to define at least " <<
+			std::cerr << "If evolving bodies then need to define at least " <<
 					"one allowed body part to add." << std::endl;
 			return false;
 		}
@@ -610,7 +611,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				}
 
 				if (neatParams.Load(neatParamsFile.c_str()) < 0) {
-					std::cout << "Problem parsing neatParams file." <<
+					std::cerr << "Problem parsing neatParams file." <<
 							std::endl;
 					return false;
 				}
