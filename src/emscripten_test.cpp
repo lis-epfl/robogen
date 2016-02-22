@@ -26,6 +26,7 @@
  * @(#) $Id$
  */
 
+#include <boost/filesystem.hpp>
 
 class Base {
 public:
@@ -43,6 +44,17 @@ void testPassVal(emscripten::val v) {
 		ss << v["a"].as<float>();
 		robogen::js::log(ss.str());
 	}
+}
+
+void ls(std::string dir) {
+    boost::filesystem::path p(dir);
+
+    boost::filesystem::directory_iterator end_itr;
+
+    // cycle through the directory
+    for (boost::filesystem::directory_iterator itr(p); itr != end_itr; ++itr) {
+        robogen::js::log(itr->path().string());
+    }
 }
 
 emscripten::val testReturnArray() {

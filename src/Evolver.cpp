@@ -416,10 +416,15 @@ for (unsigned int i = 0; i < conf->sockets.size(); i++) {
 exitRobogen(EXIT_SUCCESS);
 }
 #else
-void EMSCRIPTEN_KEEPALIVE runEvolution(unsigned int seed, std::string outputDirectory, std::string confFileName,
+std::string EMSCRIPTEN_KEEPALIVE runEvolution(unsigned int seed, std::string outputDirectory, std::string confFileName,
 	bool overwrite, bool saveAll) {
-init(seed, outputDirectory, confFileName, overwrite, saveAll);
-
+try {
+	init(seed, outputDirectory, confFileName, overwrite, saveAll);
+} catch (std::exception &e) {
+	std::cerr << "Evolution failed" << std::endl;
+	return "{\"error\" : \"Error\"}";
+}
+return "{}";
 }
 #endif
 

@@ -71,24 +71,26 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFile
 		std::string configFile, int startPosition, std::string outputDirectory,
 		int seed, bool enableWebGLLog, bool overwriteLogs) {
 
-
-
 	boost::shared_ptr<RobogenConfig> configuration = NULL;
 	try {
 		configuration = ConfigurationReader::parseConfigurationFile(configFile);
-	} catch (std::exception e) { }
+	} catch (std::exception &e) { }
 	if (configuration == NULL) {
 		std::cerr << "Problems parsing the configuration file. Quit."
 		<< std::endl;
 		return "{\"error\" : \"ConfError\"}";
-		return "ConfError";
 	}
 
 	robogenMessage::Robot robotMessage;
 
 
-	if(!RobotRepresentation::createRobotMessageFromFile(robotMessage,
-			robotFileString)) {
+	bool createRobotSuccess = false;
+	try {
+		createRobotSuccess = RobotRepresentation::createRobotMessageFromFile(
+				robotMessage, robotFileString);
+	} catch(std::exception &e) { }
+	if (!createRobotSuccess) {
+		std::cerr << "Problems parsing the robot file. Quit." << std::endl;
 		return "{\"error\" : \"RobotError\"}";
 	}
 

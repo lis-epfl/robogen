@@ -82,6 +82,10 @@ void startRobogen() {
 
 void exitRobogen(int exitCode) {
 	google::protobuf::ShutdownProtobufLibrary();
+#ifdef EMSCRIPTEN
+	if (exitCode == EXIT_FAILURE)
+		throw std::runtime_error("Fatal Error.");
+#endif
 	exit(exitCode);
 }
 

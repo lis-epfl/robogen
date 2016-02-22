@@ -140,6 +140,37 @@ struct ScenarioWrapper : public emscripten::wrapper<JSScenario> {
 #include "emscripten_test.cpp"
 #endif
 
+// file utils for loading remote files
+
+bool fileExists(std::string fileName) {
+	return boost::filesystem::exists( fileName );
+}
+
+void saveFile(std::string fileName, std::string contents) {
+
+	const boost::filesystem::path filePath(fileName);
+
+	try{
+		boost::filesystem::create_directories(filePath.parent_path());
+	} catch(const boost::filesystem::filesystem_error &err){
+		js::log(err.what());
+		return;
+	}
+
+	std::ofstream out;
+
+
+	out.open(fileName.c_str());
+	if (!out.is_open()){
+		js::log("Can't open " + fileName);
+		return;
+	}
+
+	out << contents;
+	out.close();
+
+}
+
 
 // helper functions
 
@@ -297,6 +328,9 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.function("getObstacles", &getObstacles)
 		;
 
+	emscripten::function("fileExists", &fileExists);
+	emscripten::function("saveFile", &saveFile);
+
 #ifdef TEST_EM
 
 	//emscripten::class_<Base>("Base")
@@ -324,6 +358,10 @@ EMSCRIPTEN_BINDINGS(my_module) {
 			//.constructor<float>()
 			.property("a", &TestStruct::a)
 			.smart_ptr<boost::shared_ptr<TestStruct> >("shared_ptr<TestStruct>");
+
+
+	emscripten::function("ls", &ls);
+
 #endif
 
 }
