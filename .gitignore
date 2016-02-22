@@ -1,7 +1,8 @@
 # Ignore all backup files
 *~
 
-
+# Ignore pyc files
+*.pyc
 
 
 # Don't ignore this file
