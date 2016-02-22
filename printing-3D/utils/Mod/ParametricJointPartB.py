@@ -46,10 +46,10 @@ def makeJoinPartB(	angle = 40	):
 	slide = slide.cut(WiresHole2)
 	
 	#holes of the slide
-	V9 = Base.Vector(lengthSlide/2-3.5,widthSlide/2-3.5,0)
-	V10 = Base.Vector(lengthSlide/2-3.5,-widthSlide/2+3.5,0)
-	V11 = Base.Vector(-lengthSlide/2+3.5,-widthSlide/2+3.5,0)
-	V12 = Base.Vector(-lengthSlide/2+3.5,widthSlide/2-3.5,0)
+	V9 = Base.Vector(lengthSlide/2-4.5,widthSlide/2-4.5,0)
+	V10 = Base.Vector(lengthSlide/2-4.5,-widthSlide/2+4.5,0)
+	V11 = Base.Vector(-lengthSlide/2+4.5,-widthSlide/2+4.5,0)
+	V12 = Base.Vector(-lengthSlide/2+4.5,widthSlide/2-4.5,0)
 	
 	#base of the join = Box
 	JoinBase = Part.makeBox(lengthBase,widthBase,heightBase)
@@ -114,8 +114,11 @@ def makeJoinPartB(	angle = 40	):
 	edge27=slide.Edges[27]
 	edge28=slide.Edges[28]
 	edge29=slide.Edges[29]
-	slide=slide.makeChamfer(1.49,[edge1,edge6,edge27,edge28]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
-	slide=slide.makeChamfer(1,[edge15,edge16,edge17,edge18,edge19,edge20,edge21,edge22,edge23,edge24,edge25,edge26]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
+	#slide=slide.makeChamfer(1.49,[edge1])#,edge27,edge28]) #edges of plate! makeChamfer list of Edges : myBody.Edges or [Edge1,...]
+	#slide=slide.makeChamfer(1,[edge15,edge16,edge17,edge18,edge19,edge20,edge21,edge22]) #edges of holes! makeChamfer list of Edges : myBody.Edges or [Edge1,...]
+	#slide=slide.makeChamfer(1,[edge15,
+	slide=slide.makeChamfer(1.49,[edge1,edge6, edge7, edge8])#edges of plate!! makeChamfer list of Edges : myBody.Edges or [Edge1,...]
+	slide=slide.makeChamfer(1,[edge15,edge16,edge17,edge18,edge19,edge20,edge21,edge22,edge11,edge12,edge13,edge14])#,edge24,edge25,edge26]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
 	
 	return slide
 	
