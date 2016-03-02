@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -53,17 +53,14 @@
 // Branch Knee2 0 to D13
 // Branch Knee3 0 to ROLL
 // Branch Knee4 0 to PITCH
-// Branch TS1-left to YAW
-// Branch TS1-right to AUX1
-// Branch TS2-left to D7
-// Branch TS2-right to D4
-// Branch TS3-left to A0
-// Branch TS3-right to A1
-// Branch TS4-left to A2
-// Branch TS4-right to A3
+// Branch IR1 0 to A0
+// Branch IR2 0 to A1
+// Branch IR3 0 to A2
+// Branch IR4 0 to A3
 
 #define NB_LIGHTSENSORS 0
-#define NB_TOUCH_SENSORS 8
+#define NB_TOUCH_SENSORS 0
+#define NB_IR_SENSORS 4
 #define NB_SERVOS_MOTORS 8
 #define NB_ACC_GYRO_SENSORS 6
 
@@ -75,8 +72,9 @@
 	0 for lightSensor,
 	1 for Touch sensor, and
 	2 for Accelerometer and Gyroscope
+	3 for IR sensor
 */
-const int inputTab[][2] = { {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {YAW, 1}, {AUX1, 1}, {D7, 1}, {D4, 1}, {A0, 1}, {A1, 1}, {A2, 1}, {A3, 1} };
+const int inputTab[][2] = { {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {A0, 3}, {A1, 3}, {A2, 3}, {A3, 3} };
 
 /* double dimension Tab
 * outputTab[i][0] is the value of the output port
@@ -86,12 +84,12 @@ const int inputTab[][2] = { {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {YAW
 */
 const int outputTab[][2] = { {D9, 0}, {D10, 0}, {D5, 0}, {D6, 0}, {D11, 0}, {D13, 0}, {ROLL, 0}, {PITCH, 0} };
 
-#define NB_INPUTS 14
+#define NB_INPUTS 10
 #define NB_OUTPUTS 8
 #define NB_HIDDEN 0
-PROGMEM const float EAWeight[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-PROGMEM const float EAParams[] = {3.2, -0.8, 0.5, 0.8, -0.95, 1, 3.2, -0.8, 0.5, 0.8, -0.95, 1, 3.2, 0.2, 0.5, 0.8, -1, 1, 3.2, 0.2, 0.5, 0.8, -1, 1};
-unsigned int EATypes[] = {3, 3, 3, 3, 3, 3, 3, 3};
+PROGMEM const float EAWeight[] = {-0.954982, 1.36992, -0.592611, 0.128227, -1.88935, -1.55253, -2.85677, 1.13961, -3, 3, -0.50755, 3, -2.86347, -3, 3, 2.80318, -0.775389, 0.935774, -2.01265, 2.39392, -1.59137, -2.12104, 2.97308, 1.73755, -3, 1.15937, -0.634366, -1.12455, -2.33158, -3, 2.60223, 0.854548, -1.0394, -0.3426, 2.62069, -1.87422, 2.36435, -0.580556, -0.842107, -0.864754, -0.275216, 3, 1.33945, -2.58632, -2.41779, -2.89692, -0.799209, 2.41427, 2.77562, -1.2976, 0.667586, -1.53167, 0.844275, 0.993757, -1.66375, -3, 3, 2.88426, -3, -1.1428, 2.97915, 1.806, 1.3751, 0.664077, 0.963294, -2.26186, -0.852061, 0.590064, -0.555294, 1.71827, 2.87933, -1.4741, 0.807379, -0.521197, 3, 2.31551, 0.491649, 2.89991, -1.89213, 2.34626, 2.30811, 0.791636, 2.19027, -2.41695, 3, 0.653835, -1.55969, -1.0428, -0.926017, -1.75582, -0.448575, 2.27968, 2.2635, -0.54371, 3, 1.50065, -0.63042, -0.591816, -0.414812, -2.25086, 1.96233, 2.44202, 0.922459, 2.23301, 1.92757, 0.664073, 0.65519, -2.29561, -2.10958, 3, -0.779189, -3, 1.5982, -3, -3, 0.493998, 0.0370664, 1.8948, 1.75534, -2.59373, 3, -3, -0.870935, -0.063758, 0.917309, -2.04566, 0.759281, -1.90194, -0.038426, -0.69894, 2.58125, 2.07083, -0.830881, 0.752178, 0.0988835, -0.257929, -2.9084, 0.152874, -3, 1.71289, 0.503856, -2.95145, 2.49927, 0.397824};
+PROGMEM const float EAParams[] = {-2.89144, 1, 0, -1.42656, 1, 0, 1.4835, 1, 0, -2.34228, 1, 0, -1.80329, 1, 0, -3, 1, 0, -3, 1, 0, -2.81713, 1, 0};
+unsigned int EATypes[] = {1, 1, 1, 1, 1, 1, 1, 1};
 
 
 /*
@@ -142,18 +140,13 @@ typedef struct {
 	#ifndef ARDUINO
 	float params[MAX_PARAMS * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 	#endif
+
 	/*
 	 * One state for each output and hidden neuron
-	 * The state has double the space to store also the next
-	 * value.
+	 * activations will be used to temporarily store summed inputs before updating states
 	 */
-	float state[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)*2];
-
-	/**
-	 * Indicates at which index of the state array the current state starts
-	 * (alternatively curStateStart = 0 or curStateStart = n/2)
-	 */
-	int curStateStart;
+	float state[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
+	float activations[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 
 	/**
 	 * One input state for each input neuron
