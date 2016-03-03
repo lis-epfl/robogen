@@ -26,6 +26,8 @@
  * @(#) $Id$
  */
 
+#include <iostream>
+
 #include "model/motors/Motor.h"
 
 namespace robogen{
