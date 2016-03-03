@@ -36,8 +36,8 @@
 #include <boost/shared_ptr.hpp>
 #include "model/ActuatedComponent.h"
 #include "model/PerceptiveComponent.h"
-#include "model/motors/Motor.h"
 #include "model/motors/ServoMotor.h"
+#include "model/motors/RotationMotor.h"
 #include "model/sensors/Sensor.h"
 #include "model/sensors/LightSensor.h"
 #include "model/sensors/TouchSensor.h"
@@ -56,12 +56,36 @@ ArduinoNNCompiler::ArduinoNNCompiler() {
 ArduinoNNCompiler::~ArduinoNNCompiler() {
 }
 
-std::string getPin(int &nDigital, int &nAnalog) {
+
+std::string getPin(std::vector<std::string> &availableDigitalPins,
+					std::vector<std::string> &availableAnalogPins,
+					std::vector<std::string> &availablePwmPins,
+					bool isAnalog, bool isPwm) {
 	std::string pin;
-	if (nDigital < MAX_DIGITAL_PINS) {
-		pin = arduino::digitalOrder[nDigital++];
+	if (isAnalog) {
+		pin = availableAnalogPins.back();
+		availableAnalogPins.pop_back();
+	} else if(isPwm) {
+		pin = availablePwmPins.back();
+		availablePwmPins.pop_back();
+		std::vector<std::string>::iterator position =
+				std::find(availableDigitalPins.begin(),
+						availableDigitalPins.end(), pin);
+		if (position != availableDigitalPins.end()) // found
+			availableDigitalPins.erase(position);
+
+	} else if(availableDigitalPins.size() > 0){
+		pin = availableDigitalPins.back();
+		availableDigitalPins.pop_back();
+
+		std::vector<std::string>::iterator position =
+						std::find(availablePwmPins.begin(),
+								availablePwmPins.end(), pin);
+		if (position != availablePwmPins.end()) // found
+			availablePwmPins.erase(position);
 	} else {
-		pin = arduino::analogOrder[nAnalog++];
+		pin = availableAnalogPins.back();
+		availableAnalogPins.pop_back();
 	}
 	return pin;
 }
@@ -69,12 +93,26 @@ std::string getPin(int &nDigital, int &nAnalog) {
 void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 		std::ofstream &file){
 
+	std::vector<std::string> availableDigitalPins;
+	std::vector<std::string> availableAnalogPins;
+	std::vector<std::string> availablePwmPins;
+
+	// reverse order for ease of deletion
+	for (int i=MAX_DIGITAL_PINS-1; i>=0; --i) {
+		availableDigitalPins.push_back(arduino::digitalOrder[i]);
+	}
+	for (int i=MAX_ANALOG_PINS-1; i>=0; --i) {
+		availableAnalogPins.push_back(arduino::analogOrder[i]);
+	}
+	for (int i=MAX_PWM_PINS-1; i>=0; --i) {
+		availablePwmPins.push_back(arduino::pwmOrder[i]);
+	}
+
 	std::pair<std::string, std::string> headerFooter = getHeaderAndFooter();
 
 	file << headerFooter.first << std::endl << std::endl;
 
-	int nDigital = 0, nAnalog = 0, nServo = 0, nLight = 0, nTouch = 0,
-			nIr = 0;
+	int nServo = 0, nRotation = 0, nLight = 0, nTouch = 0, nIr = 0;
 	std::vector<int> input;
 	std::vector<std::string> inputPins;
 	std::vector<std::string> irIndices;
@@ -88,10 +126,24 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 
 	for (unsigned int i=0; i<motors.size(); ++i){
 		ioPair id = motors[i]->getId();
-		outputPins.push_back(arduino::digitalOrder[nDigital]);
+
+		bool isPWM = false;
+		if(boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
+			nServo++;
+		} else if(boost::dynamic_pointer_cast<RotationMotor>(motors[i])) {
+			nRotation++;
+			isPWM = true;
+		} else {
+			std::cerr << "Invalid motor type!!" << std::endl;
+			exitRobogen(EXIT_FAILURE);
+		}
+
+		std::string pin = getPin(availableDigitalPins, availableAnalogPins,
+											availablePwmPins, false, isPWM);
+		outputPins.push_back(pin);
+
 		file << "// Branch " << id.first << " " << id.second  << " to " <<
-				arduino::digitalOrder[nDigital++] << std::endl;
-		nServo++;
+				pin << std::endl;
 	}
 
 
@@ -101,15 +153,18 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 		if (boost::dynamic_pointer_cast<LightSensor>(
 				sensors[i])){
 			input.push_back(arduino::LIGHT_SENSOR);
-			inputPins.push_back(arduino::analogOrder[nAnalog]);
+			std::string pin = getPin(availableDigitalPins, availableAnalogPins,
+					availablePwmPins, true, false);
+			inputPins.push_back(pin);
 			file << "// Branch " << sensors[i]->getLabel() << " to " <<
-					arduino::analogOrder[nAnalog++] << std::endl;
+					pin << std::endl;
 			irIndices.push_back("NONE");
 			nLight++;
 		} else if (boost::dynamic_pointer_cast<TouchSensor>(
 				sensors[i])){
 			input.push_back(arduino::TOUCH_SENSOR);
-			std::string pin = getPin(nDigital, nAnalog);
+			std::string pin = getPin(availableDigitalPins, availableAnalogPins,
+					availablePwmPins, false, false);
 			inputPins.push_back(pin);
 			file << "// Branch " << sensors[i]->getLabel() << " to " <<
 					pin << std::endl;
@@ -125,14 +180,16 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 			input.push_back(arduino::IR_SENSOR);
 			int index;
 			if (sensor->getType() == IrSensorElement::IR) {
-				pin = getPin(nDigital, nAnalog);
+				pin = getPin(availableDigitalPins, availableAnalogPins,
+						availablePwmPins, true, false);
 				file << "// Branch " << sensor->getBaseLabel() << " to " <<
 						pin << std::endl;
 				index = nIr++;
 			} else {
+				// no light sensing for now
 				// assume that this always comes right after IR part
-				pin = inputPins[inputPins.size() - 1];
-				index = nIr - 1;
+				//pin = inputPins[inputPins.size() - 1];
+				//index = nIr - 1;
 			}
 			std::stringstream ss;
 			ss << index;
@@ -153,7 +210,8 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 	file << "#define NB_LIGHTSENSORS " << nLight << std::endl;
 	file << "#define NB_TOUCH_SENSORS " << nTouch << std::endl;
 	file << "#define NB_IR_SENSORS " << nIr << std::endl;
-	file << "#define NB_SERVOS_MOTORS " << nServo << std::endl;
+	file << "#define NB_SERVO_MOTORS " << nServo << std::endl;
+	file << "#define NB_ROTATION_MOTORS " << nRotation << std::endl;
 	file << "#define NB_ACC_GYRO_SENSORS 6" << std::endl;
 	file << std::endl;
 
@@ -197,21 +255,26 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 
 	file << "const int outputTab[][2] = { ";
 	for (unsigned int i = 0; i < motors.size(); ++i) {
-		file << (i?", ":"");
-		if (boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
+		bool velocityControl = false;
+		if (boost::dynamic_pointer_cast<RotationMotor>(motors[i]))
+			velocityControl = true;
 
-			boost::shared_ptr<ServoMotor> motor =
-					boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
+		file << (i?", ":"");
 			file << "{" << outputPins[i] << ", ";
-			file << (motor->isVelocityDriven() ?  arduino::VELOCITY_CONTROL :
-							arduino::POSITION_CONTROL);
+			file << ( velocityControl ?
+						arduino::VELOCITY_CONTROL :
+						arduino::POSITION_CONTROL);
 			file << "}";
-		} else {
-			std::cout << "Error: unsupported motor!!";
-			exit(EXIT_FAILURE);
-		}
+
 	}
 	file << " };" << std::endl << std::endl;
+
+	// if used any PWM pins then need the neutral one as well
+	if (availablePwmPins.size() != MAX_PWM_PINS) {
+		std::string neutralPin = getPin(availableDigitalPins,
+				availableAnalogPins, availablePwmPins, false, true);
+		file << "#define NEUTRAL_PIN " << neutralPin << std::endl << std::endl;
+	}
 
 	boost::shared_ptr<NeuralNetwork> brain = robot.getBrain();
 	file << "#define NB_INPUTS " << brain->nInputs << std::endl;

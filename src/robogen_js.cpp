@@ -251,14 +251,9 @@ EMSCRIPTEN_BINDINGS(my_module) {
 
 	emscripten::class_<Motor>("Motor")
 		.smart_ptr<boost::shared_ptr<Motor> >("shared_ptr<Motor>")
-		.function("getId", &getMotorId);
-
-	emscripten::class_<ServoMotor, emscripten::base<Motor>>("ServoMotor")
-		.smart_ptr<boost::shared_ptr<ServoMotor> >("shared_ptr<ServoMotor>")
-		.function("isVelocityDriven", &ServoMotor::isVelocityDriven)
-		.function("getVelocity", &ServoMotor::getVelocity)
-		.function("getPosition", &ServoMotor::getPosition)
-		.function("getTorque", &ServoMotor::getTorque)
+		.function("getVelocity", &Motor::getVelocity)
+		.function("getPosition", &Motor::getPosition)
+		.function("getTorque", &Motor::getTorque)
 		;
 
 	emscripten::class_<Robot>("Robot")

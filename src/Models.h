@@ -30,10 +30,12 @@
 #define ROBOGEN_MODELS_H_
 
 #include "model/motors/ServoMotor.h"
+#include "model/motors/RotationMotor.h"
 #include "model/objects/LightSource.h"
 #include "model/sensors/ImuSensor.h"
 #include "model/sensors/LightSensor.h"
 #include "model/sensors/TouchSensor.h"
+#include "model/sensors/IrSensor.h"
 
 #include "model/components/actuated/ActiveCardanModel.h"
 #include "model/components/actuated/ActiveHingeModel.h"

@@ -36,7 +36,7 @@
 #include <QScriptable>
 #include <boost/weak_ptr.hpp>
 #include "Robot.h"
-#include "model/motors/ServoMotor.h"
+#include "model/motors/Motor.h"
 #include "model/PositionObservable.h"
 #include "scenario/Environment.h"
 #include "model/objects/BoxObstacle.h"
@@ -56,22 +56,13 @@ public:
 
 public slots:
 	QScriptValue getId();
+	QScriptValue getVelocity();
+	QScriptValue getPosition();
+	QScriptValue getTorque();
 
 protected:
 	QScriptValue id_;
 	boost::weak_ptr<Motor> basePtr_;
-};
-
-class QServoMotor : public QMotor {
-	Q_OBJECT
-public:
-	QServoMotor(boost::weak_ptr<ServoMotor> basePtr) : QMotor(basePtr) { }
-
-public slots:
-	QScriptValue isVelocityDriven();
-	QScriptValue getVelocity();
-	QScriptValue getPosition();
-	QScriptValue getTorque();
 };
 
 class QSensor : public QObject, public QScriptable {

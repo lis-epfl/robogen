@@ -51,19 +51,14 @@ QScriptValue QMotor::getId() {
 	return id_;
 }
 
-// QServoMotor
-
-QScriptValue QServoMotor::isVelocityDriven() {
-	return boost::dynamic_pointer_cast<ServoMotor>(basePtr_.lock())->isVelocityDriven();
+QScriptValue QMotor::getVelocity() {
+	return basePtr_.lock()->getVelocity();
 }
-QScriptValue QServoMotor::getVelocity() {
-	return boost::dynamic_pointer_cast<ServoMotor>(basePtr_.lock())->getVelocity();
+QScriptValue QMotor::getPosition() {
+	return basePtr_.lock()->getPosition();
 }
-QScriptValue QServoMotor::getPosition() {
-	return boost::dynamic_pointer_cast<ServoMotor>(basePtr_.lock())->getPosition();
-}
-QScriptValue QServoMotor::getTorque() {
-	return boost::dynamic_pointer_cast<ServoMotor>(basePtr_.lock())->getTorque();
+QScriptValue QMotor::getTorque() {
+	return basePtr_.lock()->getTorque();
 }
 
 // QSensor
@@ -134,13 +129,7 @@ QScriptValue QRobot::getMotors() {
 	if (!motors_.isValid()) {
 		motors_ = engine()->newArray(motors.size());
 		for(size_t i = 0; i<motors.size(); ++i) {
-			boost::shared_ptr<ServoMotor> servo =
-					boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
-			QMotor* motor;
-			if (servo)
-				motor = new QServoMotor(servo);
-			else
-				motor = new QMotor(motors[i]);
+			QMotor* motor = new QMotor(motors[i]);
 			motors_.setProperty(i,  engine()->newQObject(motor,
 					QScriptEngine::ScriptOwnership));
 		}

@@ -100,9 +100,9 @@ bool ActiveHingeModel::initModel() {
 
 	// Create servo
 	this->motor_.reset(
-			new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE_SERVO,
-					ServoMotor::DEFAULT_GAIN,
-					ioPair(this->getId(),0)));
+			new ServoMotor(ioPair(this->getId(),0), joint,
+							ServoMotor::DEFAULT_MAX_FORCE_SERVO,
+							ServoMotor::DEFAULT_GAIN));
 
 
 	return true;

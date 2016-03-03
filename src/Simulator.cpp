@@ -156,12 +156,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 		// set cap for checking motor burnout
 		for(unsigned int i=0; i< motors.size(); i++) {
-			if (boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
-				boost::shared_ptr<ServoMotor> motor =
-						boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
-				motor->setMaxDirectionShiftsPerSecond(
+			motors[i]->setMaxDirectionShiftsPerSecond(
 						configuration->getMaxDirectionShiftsPerSecond());
-			}
+
 		}
 
 		// Register brain and body parts
@@ -342,37 +339,33 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 				// Send control to motors
 				for (unsigned int i = 0; i < motors.size(); ++i) {
-					if (boost::dynamic_pointer_cast<ServoMotor>(
-							motors[i])) {
 
-						// Add motor noise:
-						// uniform in range +/- motorNoiseLevel * actualValue
-						if(configuration->getMotorNoiseLevel() > 0.0) {
-							networkOutputs[i] += (
-										((uniformDistribution(rng) *
-										2.0 *
-										configuration->getMotorNoiseLevel())
-										- configuration->getMotorNoiseLevel())
-										* networkOutputs[i]);
-						}
-
-
-						boost::shared_ptr<ServoMotor> motor =
-								boost::dynamic_pointer_cast<
-										ServoMotor>(motors[i]);
-
-						if (motor->isVelocityDriven()) {
-							motor->setDesiredVelocity(networkOutputs[i], step *
-									configuration->getActuationPeriod());
-							//motor->setVelocity(networkOutputs[i], step *
-							//		configuration->getActuationPeriod());
-						} else {
-							motor->setDesiredPosition(networkOutputs[i], step *
-									configuration->getActuationPeriod());
-							//motor->setPosition(networkOutputs[i], step *
-							//		configuration->getActuationPeriod());
-						}
+					// Add motor noise:
+					// uniform in range +/- motorNoiseLevel * actualValue
+					if(configuration->getMotorNoiseLevel() > 0.0) {
+						networkOutputs[i] += (
+									((uniformDistribution(rng) *
+									2.0 *
+									configuration->getMotorNoiseLevel())
+									- configuration->getMotorNoiseLevel())
+									* networkOutputs[i]);
 					}
+
+
+					if (boost::dynamic_pointer_cast<
+							RotationMotor>(motors[i])) {
+						boost::dynamic_pointer_cast<RotationMotor>(motors[i]
+						   )->setDesiredVelocity(networkOutputs[i], step *
+								   	   	  configuration->getActuationPeriod());
+					} else if (boost::dynamic_pointer_cast<
+							ServoMotor>(motors[i])) {
+						boost::dynamic_pointer_cast<ServoMotor>(motors[i]
+						   )->setDesiredPosition(networkOutputs[i], step *
+								configuration->getActuationPeriod());
+						//motor->setPosition(networkOutputs[i], step *
+						//		configuration->getActuationPeriod());
+					}
+
 				}
 
 				if(log) {
@@ -382,24 +375,17 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 			bool motorBurntOut = false;
 			for (unsigned int i = 0; i < motors.size(); ++i) {
-				if (boost::dynamic_pointer_cast<ServoMotor>(
-						motors[i])) {
+				motors[i]->step( step ) ; //* configuration->getActuationPeriod() );
 
-					boost::shared_ptr<ServoMotor> motor =
-							boost::dynamic_pointer_cast<
-									ServoMotor>(motors[i]);
-
-					motor->step( step ) ; //* configuration->getActuationPeriod() );
-
-					// TODO find a cleaner way to do this
-					// for now will reuse accel cap infrastructure
-					if (motor->isBurntOut()) {
-						std::cout << "Motor burnt out, will terminate now "
-								<< std::endl;
-						motorBurntOut = true;
-						//constraintViolated = true;
-					}
+				// TODO find a cleaner way to do this
+				// for now will reuse accel cap infrastructure
+				if (motors[i]->isBurntOut()) {
+					std::cout << "Motor burnt out, will terminate now "
+							<< std::endl;
+					motorBurntOut = true;
+					//constraintViolated = true;
 				}
+
 			}
 
 			if(constraintViolated || motorBurntOut) {

@@ -27,7 +27,7 @@
  * @(#) $Id$
  */
 #include "model/components/actuated/ActiveWheelModel.h"
-#include "model/motors/ServoMotor.h"
+#include "model/motors/RotationMotor.h"
 
 namespace robogen {
 
@@ -96,8 +96,8 @@ bool ActiveWheelModel::initModel() {
 
 	// Create servo
 	this->motor_.reset(
-		 new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE_ROTATIONAL,
-				 ioPair(this->getId(),0)));
+		 new RotationMotor(ioPair(this->getId(),0), joint,
+				 RotationMotor::DEFAULT_MAX_FORCE_ROTATIONAL));
 
 	return true;
 
