@@ -143,8 +143,12 @@ public:
 
   // Get Range distance in (mm)
   uint8_t getDistance();
+  void setSingleRange();
+  uint8_t getDistance2();
   // Get ALS level in Lux
   float getAmbientLight(vl6180x_als_gain VL6180X_ALS_GAIN);
+  void setSingleALS(vl6180x_als_gain VL6180X_ALS_GAIN);
+  float getAmbientLight2(vl6180x_als_gain VL6180X_ALS_GAIN);
 
   //Load structure provided by the user with identification info
   //Structure example:
@@ -164,6 +168,9 @@ public:
   //sensors on the bus.  Can use up to 127 sensors. New address
   //is saved in non-volatile device memory.
   uint8_t changeAddress(uint8_t old_address, uint8_t new_address);
+
+  //uint8_t getDistance2();
+  //void setSingleShot();
 
   int _i2caddress;
 

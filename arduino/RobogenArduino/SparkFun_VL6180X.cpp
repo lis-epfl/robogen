@@ -146,27 +146,81 @@ uint8_t VL6180x::changeAddress(uint8_t old_address, uint8_t new_address){
 
 uint8_t VL6180x::getDistance()
 {
-  VL6180x_setRegister(VL6180X_SYSRANGE_START, 0x01); //Start Single shot mode
+  VL6180x_setRegister(VL6180X_SYSRANGE_START, 0x01); //Start Range Single shot mode
   delay(10);
   return VL6180x_getRegister(VL6180X_RESULT_RANGE_VAL);
   VL6180x_setRegister(VL6180X_SYSTEM_INTERRUPT_CLEAR, 0x07);
-  //	return distance;
+  //  return distance;
+}
+
+void VL6180x::setSingleRange()//////////////////////////////////////////
+{
+  VL6180x_setRegister(VL6180X_SYSRANGE_START, 0x01); //Start Range Single shot mode
+}
+
+uint8_t VL6180x::getDistance2()//////////////////////////////////////////
+{
+  return VL6180x_getRegister(VL6180X_RESULT_RANGE_VAL);
 }
 
 float VL6180x::getAmbientLight(vl6180x_als_gain VL6180X_ALS_GAIN)
-{
+{/*
   //First load in Gain we are using, do it everytime incase someone changes it on us.
-  //Note: Upper nibble shoudl be set to 0x4 i.e. for ALS gain of 1.0 write 0x46
+  //Note: Upper nibble should be set to 0x4 i.e. for ALS gain of 1.0 write 0x46
   VL6180x_setRegister(VL6180X_SYSALS_ANALOGUE_GAIN, (0x40 | VL6180X_ALS_GAIN)); // Set the ALS gain
-
+*/
   //Start ALS Measurement 
   VL6180x_setRegister(VL6180X_SYSALS_START, 0x01);
 
-    delay(100); //give it time... 
+    delay(40); //give it time...
 
   VL6180x_setRegister(VL6180X_SYSTEM_INTERRUPT_CLEAR, 0x07);
 
-  //Retrieve the Raw ALS value from the sensoe
+  //Retrieve the Raw ALS value from the sensor
+  unsigned int alsRaw = VL6180x_getRegister16bit(VL6180X_RESULT_ALS_VAL);
+  
+  //Get Integration Period for calculation, we do this everytime incase someone changes it on us.
+  unsigned int alsIntegrationPeriodRaw = VL6180x_getRegister16bit(VL6180X_SYSALS_INTEGRATION_PERIOD);
+  
+  float alsIntegrationPeriod = 100.0 / alsIntegrationPeriodRaw ;
+
+  //Calculate actual LUX from Appnotes
+
+  float alsGain = 0.0;
+  
+  switch (VL6180X_ALS_GAIN){
+    case GAIN_20: alsGain = 20.0; break;
+    case GAIN_10: alsGain = 10.32; break;
+    case GAIN_5: alsGain = 5.21; break;
+    case GAIN_2_5: alsGain = 2.60; break;
+    case GAIN_1_67: alsGain = 1.72; break;
+    case GAIN_1_25: alsGain = 1.28; break;
+    case GAIN_1: alsGain = 1.01; break;
+    case GAIN_40: alsGain = 40.0; break;
+  }
+
+//Calculate LUX from formula in AppNotes
+  
+  float alsCalculated = (float)0.32 * ((float)alsRaw / alsGain) * alsIntegrationPeriod;
+
+  return alsCalculated;
+}
+
+void VL6180x::setSingleALS(vl6180x_als_gain VL6180X_ALS_GAIN)//////////////////////////////////////////
+{
+  //First load in Gain we are using, do it everytime incase someone changes it on us.
+  //Note: Upper nibble should be set to 0x4 i.e. for ALS gain of 1.0 write 0x46
+  VL6180x_setRegister(VL6180X_SYSALS_ANALOGUE_GAIN, (0x40 | VL6180X_ALS_GAIN)); // Set the ALS gain
+  
+  //Start ALS Measurement 
+  VL6180x_setRegister(VL6180X_SYSALS_START, 0x01);
+}
+
+float VL6180x::getAmbientLight2(vl6180x_als_gain VL6180X_ALS_GAIN)//////////////////////////////////////////
+{
+  VL6180x_setRegister(VL6180X_SYSTEM_INTERRUPT_CLEAR, 0x07);
+
+  //Retrieve the Raw ALS value from the sensor
   unsigned int alsRaw = VL6180x_getRegister16bit(VL6180X_RESULT_ALS_VAL);
   
   //Get Integration Period for calculation, we do this everytime incase someone changes it on us.
