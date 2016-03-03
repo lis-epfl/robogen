@@ -45,23 +45,18 @@
 
 
 
-// Branch Hip1 0 to D9
-// Branch Hip2 0 to D10
-// Branch Hip3 0 to D5
-// Branch Hip4 0 to D6
-// Branch Knee1 0 to D11
-// Branch Knee2 0 to D13
-// Branch Knee3 0 to ROLL
-// Branch Knee4 0 to PITCH
-// Branch IR1 0 to A0
-// Branch IR2 0 to A1
-// Branch IR3 0 to A2
-// Branch IR4 0 to A3
+// Branch Wheel1 0 to D11
+// Branch Wheel2 0 to D5
+// Branch S1 to A0
+// Branch S2 to A1
+// Branch S3 to A2
+// Branch S4 to A3
 
 #define NB_LIGHTSENSORS 0
 #define NB_TOUCH_SENSORS 0
 #define NB_IR_SENSORS 4
-#define NB_SERVOS_MOTORS 8
+#define NB_SERVO_MOTORS 0
+#define NB_ROTATION_MOTORS 2
 #define NB_ACC_GYRO_SENSORS 6
 
 #define ACTUATION_PERIOD 40
@@ -74,11 +69,13 @@
 	2 for Accelerometer and Gyroscope
 	3 for IR sensor
 */
-
-
 const int inputTab[][2] = { {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {A0, 3}, {A1, 3}, {A2, 3}, {A3, 3} };
-const int irIndices[] = { -1, -1, -1, -1, -1, -1, 0, 1, 2, 3 };
 
+/* irIndices 
+* NONE if not irSensor
+* otherwise index of irSensor
+*/
+const int irIndices[] = { NONE, NONE, NONE, NONE, NONE, NONE, 0, 1, 2, 3 };
 
 /* double dimension Tab
 * outputTab[i][0] is the value of the output port
@@ -86,14 +83,16 @@ const int irIndices[] = { -1, -1, -1, -1, -1, -1, 0, 1, 2, 3 };
 	0 for position control, and
 	1 for velocity control
 */
-const int outputTab[][2] = { {D9, 0}, {D10, 0}, {D5, 0}, {D6, 0}, {D11, 0}, {D13, 0}, {ROLL, 0}, {PITCH, 0} };
+const int outputTab[][2] = { {D11, 1}, {D5, 1} };
+#define NEUTRAL_PIN D6
+
 
 #define NB_INPUTS 10
-#define NB_OUTPUTS 8
+#define NB_OUTPUTS 2
 #define NB_HIDDEN 0
-PROGMEM const float EAWeight[] = {-0.954982, 1.36992, -0.592611, 0.128227, -1.88935, -1.55253, -2.85677, 1.13961, -3, 3, -0.50755, 3, -2.86347, -3, 3, 2.80318, -0.775389, 0.935774, -2.01265, 2.39392, -1.59137, -2.12104, 2.97308, 1.73755, -3, 1.15937, -0.634366, -1.12455, -2.33158, -3, 2.60223, 0.854548, -1.0394, -0.3426, 2.62069, -1.87422, 2.36435, -0.580556, -0.842107, -0.864754, -0.275216, 3, 1.33945, -2.58632, -2.41779, -2.89692, -0.799209, 2.41427, 2.77562, -1.2976, 0.667586, -1.53167, 0.844275, 0.993757, -1.66375, -3, 3, 2.88426, -3, -1.1428, 2.97915, 1.806, 1.3751, 0.664077, 0.963294, -2.26186, -0.852061, 0.590064, -0.555294, 1.71827, 2.87933, -1.4741, 0.807379, -0.521197, 3, 2.31551, 0.491649, 2.89991, -1.89213, 2.34626, 2.30811, 0.791636, 2.19027, -2.41695, 3, 0.653835, -1.55969, -1.0428, -0.926017, -1.75582, -0.448575, 2.27968, 2.2635, -0.54371, 3, 1.50065, -0.63042, -0.591816, -0.414812, -2.25086, 1.96233, 2.44202, 0.922459, 2.23301, 1.92757, 0.664073, 0.65519, -2.29561, -2.10958, 3, -0.779189, -3, 1.5982, -3, -3, 0.493998, 0.0370664, 1.8948, 1.75534, -2.59373, 3, -3, -0.870935, -0.063758, 0.917309, -2.04566, 0.759281, -1.90194, -0.038426, -0.69894, 2.58125, 2.07083, -0.830881, 0.752178, 0.0988835, -0.257929, -2.9084, 0.152874, -3, 1.71289, 0.503856, -2.95145, 2.49927, 0.397824};
-PROGMEM const float EAParams[] = {-2.89144, 1, 0, -1.42656, 1, 0, 1.4835, 1, 0, -2.34228, 1, 0, -1.80329, 1, 0, -3, 1, 0, -3, 1, 0, -2.81713, 1, 0};
-unsigned int EATypes[] = {1, 1, 1, 1, 1, 1, 1, 1};
+PROGMEM const float EAWeight[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -14.9463, -15.718, 15.0646, 0, 1.82315, 0, -15.2182, 0, 0, 0, 0, 0};
+PROGMEM const float EAParams[] = {2.91971, 1, -7.52562e+12, -11.8037, 1, 0};
+unsigned int EATypes[] = {1, 1};
 
 
 /*

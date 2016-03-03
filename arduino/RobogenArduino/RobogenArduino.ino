@@ -26,7 +26,7 @@
  *
  * @(#) $Id$
  */
- 
+
 // I2C device class (I2Cdev) demonstration Arduino sketch for MPU6050 class
 // 10/7/2011 by Jeff Rowberg <jeff@rowberg.net>
 // Updates should (hopefully) always be available at https://github.com/jrowberg/i2cdevlib
@@ -57,12 +57,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ===============================================
-*/
+ */
 
 
 // comment out to prevent serial communication
 #define USE_SERIAL
-//#define USE_SERIAL1
+#define USE_SERIAL1
 
 //#define SENSOR_NOISE_LEVEL 0.1
 //#define MOTOR_NOISE_LEVEL 0.0
@@ -77,10 +77,10 @@ THE SOFTWARE.
 //#define CALIBRATE_SENSOR_OFFSET
 
 // put in values for your Arduino after doing calibration
-#define ACCEL_OFFSET_X (1353) 			
+#define ACCEL_OFFSET_X (1353)
 #define ACCEL_OFFSET_Y (895)
 #define ACCEL_OFFSET_Z (1596)
-#define GYRO_OFFSET_X (138) 					
+#define GYRO_OFFSET_X (138)
 #define GYRO_OFFSET_Y (-110)
 #define GYRO_OFFSET_Z (133)
 
@@ -164,429 +164,448 @@ bool started=false;
 int startTime;
 
 void setup() {
-  
-  started = false;
-  t = 0;
 
-  #ifdef USE_SERIAL
-  Serial.begin(9600);
-  #endif
-  #ifdef USE_SERIAL1
-  Serial1.begin(115200);
-  #endif
-  // join I2C bus (I2Cdev library doesn't do this automatically)
-  Wire.begin();
-  
+	started = false;
+	t = 0;
 
-  /* neural network initialization : */  
-  initNetwork(&network, NB_INPUTS, NB_OUTPUTS, NB_HIDDEN);
-  
-  /* Define light and touch sensor pins as input*/
-  for(int i=0;i<NB_INPUTS;i++)
-  {  
-    // Initialize pin for all sensors except IMU (which has no pin)
-    if(inputTab[i][1] != 2 && inputTab[i][1] != 3)
-      pinMode(inputTab[i][0], INPUT);
-  }
-  
-    /* Define the IR sensor pins as output*/
-
-   for(int i=0;i<NB_INPUTS;i++)
-  {  
-    // The pins are used to enable/disable the IR sensor for initialization. They are set to OUTPUT. 
-    if(inputTab[i][1] == 3)
-    {
-      pinMode(inputTab[i][0], OUTPUT);
-      digitalWrite(inputTab[i][0], LOW);//i++;
-            Serial.print("LOW ");
-            Serial.println(irIndices[i]);
-    }
-  }
-  
-  delay(10);  
-  
-  /* Initialize IR sensors : */
-  // Set each one to HIGH in turn and change the address.
-  // WARNING!!!!
-  // Do not put a sensor pin back to LOW, this will reinitialize 
-  // it and return the address to default 0x29
-for(int i=0;i<NB_INPUTS;i++)
-  {
-    if(inputTab[i][1] == 3) 
-    {
-      Serial.print("Init IR sensor ");
-      Serial.println(irIndices[i]);
-        for(int j=0;j<NB_INPUTS;j++){
-          if(i==j){
-            digitalWrite(inputTab[j][0],HIGH);
-            Serial.print("HIGH ");
-            Serial.println(irIndices[j]);
-          } 
-        }
-        delay(10); // This is required to let the chip realise that it is enabled !!
-  
-        if(irSensors[irIndices[i]].VL6180xInit() != 0)
-        {
-          Serial.print("FAILED TO INITIALIZE SENSOR "); //Initialize device and check for errors
-          Serial.println(irIndices[i]);
-        }
-        else
-        {
-          Serial.print("INITIALIZED SENSOR ");
-          Serial.println(irIndices[i]);
-        }
-     
-    Serial.println(irSensors[irIndices[i]]._i2caddress);
-    irSensors[irIndices[i]].changeAddress(0x29,sensorAdresses[irIndices[i]]);
-    Serial.println(irSensors[irIndices[i]]._i2caddress);
-    irSensors[irIndices[i]].VL6180xDefautSettings(); //Load default settings to get started.
-    //i++;
-    }
-  }
-
-  //All sensors are on HIGH. Readjust a few parameters.
-  for(int i=0;i<NB_INPUTS;i++)
-  {
-    if(inputTab[i][1] == 3)
-    {
-      irSensors[irIndices[i]].VL6180xReadjustParameters();//i++; // Readjust the parameters of the sensors
-    }
-  }
-  
-  /* Assigns servos motors port and set initial command to activate full rotation motors */
-  for(int i=0;i<NB_OUTPUTS;i++)
-  {
-    myservo[i].attach(outputTab[i][0]);
-    if(outputTab[i][1] == 1)
-      myservo[i].write(0);
-    else
-      myservo[i].write(90 + servoOffsets[i]);    
-  } 
-  
-
-  /* initialize acceleromoter and gyroscope */
-  #ifdef USE_SERIAL
-  Serial.println(F("Initializing I2C devices..."));
-  #endif
-  accelGyro.initialize();
-  
-  /* verify connection */
-  bool connectionSuccess = accelGyro.testConnection();
-  #ifdef USE_SERIAL
-  Serial.println(F("Testing device connections..."));
-  Serial.println(connectionSuccess ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
-  #endif
-
-  //set full Scale sensor range to its lowest resolution
-  accelGyro.setFullScaleGyroRange(0); // 3 = +/- 250 degrees/sec
-  accelGyro.setFullScaleAccelRange(3); // 3 = +/- 16g
-  #ifdef USE_SERIAL
-  Serial.print(F("Full Scale :  gyro_scale = "));
-  Serial.print(accelGyro.getFullScaleGyroRange());
-  Serial.print(F("\t  acc_scale = "));
-  Serial.print(accelGyro.getFullScaleAccelRange());
-  Serial.print(F("\n"));
-  #endif
-  
-  //set to Low pass filter mode 3 for a max freq of 44Hz (refer uint8_t MPU6050::getDLPFMode() )
-  #ifdef USE_SERIAL
-  Serial.print(F("DLPG : "));
-  Serial.print(accelGyro.getDLPFMode());
-  Serial.print(F("\n"));
-  #endif
-  
-  accelGyro.setDLPFMode(6);
-  
-  #ifdef USE_SERIAL
-  Serial.print(F("DLPG : "));
-  Serial.print(accelGyro.getDLPFMode());
-  Serial.print(F("\n"));  
-  #endif
-  
-   
-  // use the code below to change accel/gyro offset values
-  #ifdef USE_SERIAL
-  Serial.println(F("Updating internal sensor offsets..."));
-  #endif
-  // If you want to calibrate the accelero offset, ensure the Arduino board in perfectly leveled (=FLAT)
-  #ifdef CALIBRATE_SENSOR_OFFSET   
-    // read raw accel/gyro measurements from device
-    
-    
-    for(int i= 0; i <100 ; i++)
-    {
-      delay(50);
-      imu.update(&accelGyro);
-      accelGyro.setXAccelOffset((int16_t)(accelGyro.getXAccelOffset() - imu.rawAccel[0]));
-      accelGyro.setYAccelOffset((int16_t)(accelGyro.getYAccelOffset() - imu.rawAccel[1]));
-      accelGyro.setZAccelOffset((int16_t)(accelGyro.getZAccelOffset() - (imu.rawAccel[2] - 2100)));
-    
-      imu.gyroOffset[0] = -imu.rawGyro[0];
-      imu.gyroOffset[1] = -imu.rawGyro[1];
-      imu.gyroOffset[2] = -imu.rawGyro[2];    
+#ifdef USE_SERIAL
+	Serial.begin(9600);
+#endif
+#ifdef USE_SERIAL1
+	Serial1.begin(115200);
+#endif
+	// join I2C bus (I2Cdev library doesn't do this automatically)
+	Wire.begin();
 
 
+	/* neural network initialization : */
+	initNetwork(&network, NB_INPUTS, NB_OUTPUTS, NB_HIDDEN);
 
-      #ifdef USE_SERIAL
-      delay(50);
-      imu.update(&accelGyro);
-      Serial.print(F("Accelero offsets\n"));
-      Serial.print(accelGyro.getXAccelOffset()); Serial.print(F("\t"));
-      Serial.print(accelGyro.getYAccelOffset()); Serial.print(F("\t"));
-      Serial.print(accelGyro.getZAccelOffset()); Serial.print(F("\n"));
-      Serial.println(F("Accelero values, should be close to (0, 0, 0)"));
-      Serial.print(imu.rawAccel[0]); Serial.print(F("\t")); //should be close to 0
-      Serial.print(imu.rawAccel[1]); Serial.print(F("\t")); //should be close to 0
-      Serial.print(imu.rawAccel[2] - 2100); Serial.print(F("\n")); //should be close to 0
+	/* Define light and touch sensor pins as input*/
+	for(int i=0;i<NB_INPUTS;i++)
+	{
+		// Initialize pin for all sensors except IMU and IR (which has no pin)
+		if(inputTab[i][1] != 2 && inputTab[i][1] != 3)
+			pinMode(inputTab[i][0], INPUT);
+	}
+
+	/* Define the IR sensor pins as output*/
+
+	for(int i=0;i<NB_INPUTS;i++)
+	{
+		// The pins are used to enable/disable the IR sensor for initialization. They are set to OUTPUT.
+		if(inputTab[i][1] == 3)
+		{
+			pinMode(inputTab[i][0], OUTPUT);
+			digitalWrite(inputTab[i][0], LOW);//i++;
+#ifdef USE_SERIAL
+			Serial.print("LOW ");
+			Serial.println(irIndices[i]);
+#endif
+		}
+	}
+
+	delay(10);
+
+	/* Initialize IR sensors : */
+	// Set each one to HIGH in turn and change the address.
+	// WARNING!!!!
+	// Do not put a sensor pin back to LOW, this will reinitialize
+	// it and return the address to default 0x29
+	for(int i=0;i<NB_INPUTS;i++)
+	{
+		if(inputTab[i][1] == 3)
+		{
+#ifdef USE_SERIAL
+			Serial.print("Init IR sensor ");
+			Serial.println(irIndices[i]);
+#endif
+			for(int j=0;j<NB_INPUTS;j++){
+				if(i==j){
+					digitalWrite(inputTab[j][0],HIGH);
+#ifdef USE_SERIAL
+					Serial.print("HIGH ");
+					Serial.println(irIndices[j]);
+#endif
+				}
+			}
+			delay(10); // This is required to let the chip realise that it is enabled !!
+#ifdef USE_SERIAL
+			if(irSensors[irIndices[i]].VL6180xInit() != 0)
+			{
+				Serial.print("FAILED TO INITIALIZE SENSOR "); //Initialize device and check for errors
+				Serial.println(irIndices[i]);
+			}
+			else
+			{
+				Serial.print("INITIALIZED SENSOR ");
+				Serial.println(irIndices[i]);
+			}
+#endif
+#ifdef USE_SERIAL
+			Serial.println(irSensors[irIndices[i]]._i2caddress);
+#endif
+			irSensors[irIndices[i]].changeAddress(0x29,sensorAdresses[irIndices[i]]);
+#ifdef USE_SERIAL
+			Serial.println(irSensors[irIndices[i]]._i2caddress);
+#endif
+			irSensors[irIndices[i]].VL6180xDefautSettings(); //Load default settings to get started.
+
+		}
+	}
+
+	//All sensors are on HIGH. Readjust a few parameters.
+	for(int i=0;i<NB_INPUTS;i++)
+	{
+		if(inputTab[i][1] == 3)
+		{
+			irSensors[irIndices[i]].VL6180xReadjustParameters();//i++; // Readjust the parameters of the sensors
+		}
+	}
+
+	/* Assigns servos motors port and set initial command to activate full rotation motors */
+	for(int i=0;i<NB_OUTPUTS;i++)
+	{
+		if (outputTab[i][1] == 0) {
+			myservo[i].attach(outputTab[i][0]);
+			myservo[i].write(90 + servoOffsets[i]);
+		}
+	}
+
+	delay(4000);
+
+	/* initialize acceleromoter and gyroscope */
+#ifdef USE_SERIAL
+	Serial.println(F("Initializing I2C devices..."));
+#endif
+	accelGyro.initialize();
+
+	/* verify connection */
+	bool connectionSuccess = accelGyro.testConnection();
+#ifdef USE_SERIAL
+	Serial.println(F("Testing device connections..."));
+	Serial.println(connectionSuccess ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+#endif
+
+	//set full Scale sensor range to its lowest resolution
+	accelGyro.setFullScaleGyroRange(0); // 3 = +/- 250 degrees/sec
+	accelGyro.setFullScaleAccelRange(3); // 3 = +/- 16g
+#ifdef USE_SERIAL
+	Serial.print(F("Full Scale :  gyro_scale = "));
+	Serial.print(accelGyro.getFullScaleGyroRange());
+	Serial.print(F("\t  acc_scale = "));
+	Serial.print(accelGyro.getFullScaleAccelRange());
+	Serial.print(F("\n"));
+#endif
+
+	//set to Low pass filter mode 3 for a max freq of 44Hz (refer uint8_t MPU6050::getDLPFMode() )
+#ifdef USE_SERIAL
+	Serial.print(F("DLPG : "));
+	Serial.print(accelGyro.getDLPFMode());
+	Serial.print(F("\n"));
+#endif
+
+	accelGyro.setDLPFMode(6);
+
+#ifdef USE_SERIAL
+	Serial.print(F("DLPG : "));
+	Serial.print(accelGyro.getDLPFMode());
+	Serial.print(F("\n"));
+#endif
 
 
-      Serial.print(F("Gyro offsets\n"));
-      Serial.print(imu.gyroOffset[0]); Serial.print(F("\t"));
-      Serial.print(imu.gyroOffset[1]); Serial.print(F("\t"));
-      Serial.print(imu.gyroOffset[2]); Serial.print(F("\n"));
+	// use the code below to change accel/gyro offset values
+#ifdef USE_SERIAL
+	Serial.println(F("Updating internal sensor offsets..."));
+#endif
+	// If you want to calibrate the accelero offset, ensure the Arduino board in perfectly leveled (=FLAT)
+#ifdef CALIBRATE_SENSOR_OFFSET
+	// read raw accel/gyro measurements from device
 
-      Serial.println(F("Gyro values, should be close to (0, 0, 0)"));
-      Serial.print(imu.rawGyro[0] + imu.gyroOffset[0]); Serial.print(F("\t")); //should be close to 0
-      Serial.print(imu.rawGyro[1] + imu.gyroOffset[1]); Serial.print(F("\t")); //should be close to 0
-      Serial.print(imu.rawGyro[2] + imu.gyroOffset[2]); Serial.print(F("\n")); //should be close to 0
-      
-      #endif
-    }
-  #else
-    // set these macros above to proper values
-    accelGyro.setXAccelOffset((int16_t)(ACCEL_OFFSET_X));
-    accelGyro.setYAccelOffset((int16_t)(ACCEL_OFFSET_Y));
-    accelGyro.setZAccelOffset((int16_t)(ACCEL_OFFSET_Z));
-    
-    imu.gyroOffset[0] = (int16_t)(GYRO_OFFSET_X);
-    imu.gyroOffset[1] = (int16_t)(GYRO_OFFSET_Y);
-    imu.gyroOffset[2] = (int16_t)(GYRO_OFFSET_Z);    
-  #endif
-  
-  //update imu in order to get rotation of gravity vector
-  for(int i=0; i< 20; i++)
-  {
-    delay(50);
-    
-    //update imu
-    imu.update(&accelGyro);
-  }
-  float up[3] = {0.0, 0.0, 1.0};
-  float out[3];
-  vectors_cross_product(imu.scaledAccel,up,out);
-  //initial rotation, to relevel imu
-  q_rot.s = sqrt((vectors_norm_sqr(imu.scaledAccel)) * (vectors_norm_sqr(up))) + vectors_scalar_product(imu.scaledAccel, up);
-  q_rot.v[0] = out[0];
-  q_rot.v[1] = out[1];
-  q_rot.v[2] = out[2];
-  q_rot = quaternions_normalise(q_rot);
-  
 
-  #ifdef USE_SERIAL
-  #ifdef CALIBRATE_SERVOS
+	for(int i= 0; i <100 ; i++)
+	{
+		delay(50);
+		imu.update(&accelGyro);
+		accelGyro.setXAccelOffset((int16_t)(accelGyro.getXAccelOffset() - imu.rawAccel[0]));
+		accelGyro.setYAccelOffset((int16_t)(accelGyro.getYAccelOffset() - imu.rawAccel[1]));
+		accelGyro.setZAccelOffset((int16_t)(accelGyro.getZAccelOffset() - (imu.rawAccel[2] - 2100)));
 
-  Serial.print(F("\n"));
-  Serial.print(F("\n"));
-  Serial.print(F("\n"));
-  servoOffsets[0] = -10;
-  while(servoOffsets[0] < 10) {
-    delay(500);
-    myservo[0].write(90 + servoOffsets[0]);
-    
-    Serial.print(servoOffsets[0]);
-    Serial.print(F("\n"));
-    servoOffsets[0] += 0.2;   
-    
-  }
-  #endif
-  #endif
+		imu.gyroOffset[0] = -imu.rawGyro[0];
+		imu.gyroOffset[1] = -imu.rawGyro[1];
+		imu.gyroOffset[2] = -imu.rawGyro[2];
 
-  
+
+
+#ifdef USE_SERIAL
+delay(50);
+imu.update(&accelGyro);
+Serial.print(F("Accelero offsets\n"));
+Serial.print(accelGyro.getXAccelOffset()); Serial.print(F("\t"));
+Serial.print(accelGyro.getYAccelOffset()); Serial.print(F("\t"));
+Serial.print(accelGyro.getZAccelOffset()); Serial.print(F("\n"));
+Serial.println(F("Accelero values, should be close to (0, 0, 0)"));
+Serial.print(imu.rawAccel[0]); Serial.print(F("\t")); //should be close to 0
+Serial.print(imu.rawAccel[1]); Serial.print(F("\t")); //should be close to 0
+Serial.print(imu.rawAccel[2] - 2100); Serial.print(F("\n")); //should be close to 0
+
+
+Serial.print(F("Gyro offsets\n"));
+Serial.print(imu.gyroOffset[0]); Serial.print(F("\t"));
+Serial.print(imu.gyroOffset[1]); Serial.print(F("\t"));
+Serial.print(imu.gyroOffset[2]); Serial.print(F("\n"));
+
+Serial.println(F("Gyro values, should be close to (0, 0, 0)"));
+Serial.print(imu.rawGyro[0] + imu.gyroOffset[0]); Serial.print(F("\t")); //should be close to 0
+Serial.print(imu.rawGyro[1] + imu.gyroOffset[1]); Serial.print(F("\t")); //should be close to 0
+Serial.print(imu.rawGyro[2] + imu.gyroOffset[2]); Serial.print(F("\n")); //should be close to 0
+
+#endif
+	}
+#else
+	// set these macros above to proper values
+	accelGyro.setXAccelOffset((int16_t)(ACCEL_OFFSET_X));
+	accelGyro.setYAccelOffset((int16_t)(ACCEL_OFFSET_Y));
+	accelGyro.setZAccelOffset((int16_t)(ACCEL_OFFSET_Z));
+
+	imu.gyroOffset[0] = (int16_t)(GYRO_OFFSET_X);
+	imu.gyroOffset[1] = (int16_t)(GYRO_OFFSET_Y);
+	imu.gyroOffset[2] = (int16_t)(GYRO_OFFSET_Z);
+#endif
+
+//update imu in order to get rotation of gravity vector
+	for(int i=0; i< 20; i++)
+	{
+		delay(50);
+
+		//update imu
+		imu.update(&accelGyro);
+	}
+	float up[3] = {0.0, 0.0, 1.0};
+	float out[3];
+	vectors_cross_product(imu.scaledAccel,up,out);
+	//initial rotation, to relevel imu
+	q_rot.s = sqrt((vectors_norm_sqr(imu.scaledAccel)) * (vectors_norm_sqr(up))) + vectors_scalar_product(imu.scaledAccel, up);
+	q_rot.v[0] = out[0];
+	q_rot.v[1] = out[1];
+	q_rot.v[2] = out[2];
+	q_rot = quaternions_normalise(q_rot);
+
+
+#ifdef USE_SERIAL
+#ifdef CALIBRATE_SERVOS
+
+	Serial.print(F("\n"));
+	Serial.print(F("\n"));
+	Serial.print(F("\n"));
+	servoOffsets[0] = -10;
+	while(servoOffsets[0] < 10) {
+		delay(500);
+		myservo[0].write(90 + servoOffsets[0]);
+
+		Serial.print(servoOffsets[0]);
+		Serial.print(F("\n"));
+		servoOffsets[0] += 0.2;
+
+	}
+#endif
+#endif
+
+
 }
 
 double rand01()
 {
-  return random(0,2147483647L)/double(2147483647L);
+	return random(0,2147483647L)/double(2147483647L);
 }
 
 double randn (double mu, double sigma)
 {
-  double U1, U2, W, mult;
+	double U1, U2, W, mult;
 
-  do
-    {
-      U1 = -1 + rand01() * 2;
-      U2 = -1 + rand01() * 2;
-      W = U1 * U1 + U2 * U2;
-    }
-  while (W >= 1 || W == 0);
+	do
+	{
+		U1 = -1 + rand01() * 2;
+		U2 = -1 + rand01() * 2;
+		W = U1 * U1 + U2 * U2;
+	}
+	while (W >= 1 || W == 0);
 
-  mult = sqrt ((-2 * log (W)) / W);
-  double X1 = U1 * mult;
+	mult = sqrt ((-2 * log (W)) / W);
+	double X1 = U1 * mult;
 
-  return (mu + sigma * (double) X1);
+	return (mu + sigma * (double) X1);
 }
 
 void loop() {
-  
-  
-  unsigned long elapsedTime = millis() - t;
-  if ( (!started) || (elapsedTime >= ACTUATION_PERIOD)) {
-    if(!started) {
-      started = true;
-      startTime = millis();
-    }
-    t = millis();
 
-    /* launch IR sensor measure */
-  for(int i=0;i<NB_INPUTS;i++)
-    {
-      if(inputTab[i][1] == 3) 
-      {
-        //irSensors[irIndices[i]].VL6180xReadjustParameters2(); // Readjust the parameters of the sensor
-        irSensors[irIndices[i]].setSingleRange();//i++;
-        //Serial.print("indices ");
-        //Serial.println(irIndices[i]);
-      }
-    }
-    
-    /* read sensors */
-  for(int i=0;i<NB_INPUTS;i++)
-    {  
-      if(inputTab[i][1]==0) // Type lightSensor
-      {
-        //To comply with the simulator we cast this sensor output into a float between 0.0 and 1. with 1 = maxLight
-        analogRead(inputTab[i][0]);
-        //In order to properly read value need to delay 1 ms and read again
-        delay(1);
-        lightInput = analogRead(inputTab[i][0]);
-        
-        //you can set a certain threshold 
-        if(lightInput > (LIGHT_SENSOR_THRESHOLD))
-          networkInput[i] = float(lightInput)/1000.0;
-        else
-          networkInput[i] = 0.0;
-      }
-      else if(inputTab[i][1]==1) { // Type touchSensor
-        networkInput[i] = !digitalRead(inputTab[i][0]);
-      }
-      else if(inputTab[i][1]==2) // Type is accelerometer and gyroscope
-      {
-        //update imu, scaling and low pass filtering
-        imu.update(&accelGyro);
-        quat_t temp = quaternions_create_from_vector(imu.scaledAccel);
-        float norm = vectors_norm(imu.scaledAccel);
-        temp = quaternions_multiply(quaternions_multiply(q_rot, temp),quaternions_inverse(q_rot));
-        temp = quaternions_normalise(temp);
-        temp.v[0] *= norm;
-        temp.v[1] *= norm;
-        temp.v[2] *= norm;
 
-        //fill in neuralNetwork
-        networkInput[i] = temp.v[0]; i++;
-        networkInput[i] = temp.v[1]; i++;
-        networkInput[i] = temp.v[2]; i++;
+	unsigned long elapsedTime = millis() - t;
+	if ( (!started) || (elapsedTime >= ACTUATION_PERIOD)) {
+		if(!started) {
+			started = true;
+			startTime = millis();
+		}
+		t = millis();
 
-        networkInput[i] = imu.scaledGyro[0]; i++;  
-        networkInput[i] = imu.scaledGyro[1]; i++; 
-        networkInput[i] = imu.scaledGyro[2]; 
-      }
-      else if(inputTab[i][1]==3) // Type is IR sensor 
-      // 
-      {
-        //irSensors[irIndices[i]].setSingleShot();
-        int distance = irSensors[irIndices[i]].getDistance2();
-        Serial.print("\t R ");
-        Serial.print(distance);
-        networkInput[i] = 1.0 - (distance/255.0); //i++;
-        networkInput[i] = 0.0; // give light value in [0,1]
-      }
-    }
-  Serial.println();
-    
-    // add noise
-    #ifdef SENSOR_NOISE_LEVEL
-    // Add sensor noise: Gaussian with std dev of
-    // SENSOR_NOISE_LEVEL * actualValue
-    for(int i=0;i<NB_INPUTS;i++) {
-        networkInput[i] += (randn(0,1) * SENSOR_NOISE_LEVEL * networkInput[i]);
-    }  
-    #endif
+		/* launch IR sensor measure */
+		for(int i=0;i<NB_INPUTS;i++)
+		{
+			if(inputTab[i][1] == 3)
+			{
+				irSensors[irIndices[i]].setSingleRange();
+			}
+		}
 
-    #ifdef USE_SERIAL
-    for(int j=0; j<NB_INPUTS; j++) {
-      Serial.print(networkInput[j]); Serial.print(F("\t"));
-    }
-    Serial.print(elapsedTime);
-    Serial.print(F("\n"));
-    #ifdef CHECK_MEMORY
-      Serial.print(F("freeMemory()="));
-      Serial.print(freeMemory()); Serial.print(F("\n"));    
-    #endif
-    #endif
-    
+		/* read sensors */
+		for(int i=0;i<NB_INPUTS;i++)
+		{
+			if(inputTab[i][1]==0)//Type lightSensor
+			{
+				//To comply with the simulator we cast this sensor output into a float between 0.0 and 1. with 1 = maxLight
+				analogRead(inputTab[i][0]);
+				//In order to properly read value need to delay 1 ms and read again
+				delay(1);
+				lightInput = analogRead(inputTab[i][0]);
 
-    
-    #ifdef USE_SERIAL1
-    Serial1.print((millis() - startTime)); Serial1.print(F("\t"));
-    for(int i=0;i<NB_INPUTS;i++)
-    {
-      Serial1.print(networkInput[i]); 
-      Serial1.print(F("\t"));
-    } 
-    #endif
-    
+				//you can set a certain threshold
+				if(lightInput > (LIGHT_SENSOR_THRESHOLD))
+					networkInput[i] = float(lightInput)/1000.0;
+				else
+					networkInput[i] = 0.0;
+			}
+			else if(inputTab[i][1]==1) { // Type touchSensor
+				networkInput[i] = !digitalRead(inputTab[i][0]);
+			}
+			else if(inputTab[i][1]==2) // Type is accelerometer and gyroscope
+			{
+				//update imu, scaling and low pass filtering
+				imu.update(&accelGyro);
+				quat_t temp = quaternions_create_from_vector(imu.scaledAccel);
+				float norm = vectors_norm(imu.scaledAccel);
+				temp = quaternions_multiply(quaternions_multiply(q_rot, temp),quaternions_inverse(q_rot));
+				temp = quaternions_normalise(temp);
+				temp.v[0] *= norm;
+				temp.v[1] *= norm;
+				temp.v[2] *= norm;
 
-    
-    
-    /* Feed neural network with sensors values as input of the neural network*/
-    feed(&network, &networkInput[0]);
-    
-    /* Step the neural network*/
-    step(&network, (millis() - startTime)/1000.0);
-    
-    /* Fetch the neural network ouputs */
-    fetch(&network, &networkOutputs[0]);
-    
-    /* set Servos Motors according to the Fetch of the neural network outputs above*/
-    for(int i=0;i<NB_OUTPUTS;i++)
-    {
-      if(outputTab[i][1] == 0) //servoMotors => set poisition 
-      {
-        servoPosition = networkOutputs[i]; //goes from 0 degrees to 180 degrees 
-        myservo[i].write(servoPosition + servoOffsets[i]);
-        #ifdef USE_SERIAL
-        Serial.print(servoPosition); Serial.print(F("\t"));
-        #endif
-      }
-      else if(outputTab[i][1] == 1)  // full rotation motors => set speed
-      {
-        if( networkOutputs[i] >= 90)//one rotation direction only => discard other rotation direction
-          servoSpeed = networkOutputs[i] - 30; //we  
-        else
-          servoSpeed = 0;
-          
-        myservo[i].write(servoSpeed);
-        #ifdef USE_SERIAL
-        Serial.print(servoSpeed); Serial.print(F("\t"));
-        #endif
-      }
-      
-    }
-    #ifdef USE_SERIAL
-    Serial.print(F("\n"));
-    #endif
-    
-    #ifdef USE_SERIAL1
-    for(int i=0;i<NB_OUTPUTS; i++) {
-      Serial1.print(networkOutputs[i]); 
-      Serial1.print((i==NB_OUTPUTS-1)?F("\n"):F("\t"));
-    }
-    #endif
-    
-    //slow the main loop frequency, not to burn servoMotors too quickly
-    //delay(200);  
-  }
+				//fill in neuralNetwork
+				networkInput[i] = temp.v[0]; i++;
+				networkInput[i] = temp.v[1]; i++;
+				networkInput[i] = temp.v[2]; i++;
+
+				networkInput[i] = imu.scaledGyro[0]; i++;
+				networkInput[i] = imu.scaledGyro[1]; i++;
+				networkInput[i] = imu.scaledGyro[2];
+			}
+			else if(inputTab[i][1]==3) // Type is IR sensor
+				//
+			{
+				//irSensors[irIndices[i]].setSingleShot();
+				int distance = irSensors[irIndices[i]].getDistance2();
+#ifdef USE_SERIAL
+				Serial.print("\t R ");
+				Serial.print(distance);
+#endif
+				networkInput[i] = 1.0 - (distance/255.0); //i++;
+				//networkInput[i] = 0.0; // give light value in [0,1]
+			}
+		}
+#ifdef USE_SERIAL
+		Serial.println();
+#endif
+
+		// add noise
+#ifdef SENSOR_NOISE_LEVEL
+		// Add sensor noise: Gaussian with std dev of
+		// SENSOR_NOISE_LEVEL * actualValue
+		for(int i=0;i<NB_INPUTS;i++) {
+			networkInput[i] += (randn(0,1) * SENSOR_NOISE_LEVEL * networkInput[i]);
+		}
+#endif
+
+#ifdef USE_SERIAL
+		for(int j=0; j<NB_INPUTS; j++) {
+			Serial.print(networkInput[j]); Serial.print(F("\t"));
+		}
+		Serial.print(elapsedTime);
+		Serial.print(F("\n"));
+#ifdef CHECK_MEMORY
+		Serial.print(F("freeMemory()="));
+		Serial.print(freeMemory()); Serial.print(F("\n"));
+#endif
+#endif
+
+
+
+#ifdef USE_SERIAL1
+		Serial1.print((millis() - startTime)); Serial1.print(F("\t"));
+		for(int i=0;i<NB_INPUTS;i++)
+		{
+			Serial1.print(networkInput[i]);
+			Serial1.print(F("\t"));
+		}
+#endif
+
+
+
+
+		/* Feed neural network with sensors values as input of the neural network*/
+		feed(&network, &networkInput[0]);
+
+		/* Step the neural network*/
+		step(&network, (millis() - startTime)/1000.0);
+
+		/* Fetch the neural network ouputs */
+		fetch(&network, &networkOutputs[0]);
+
+		/* set Servos Motors according to the Fetch of the neural network outputs above*/
+		for(int i=0;i<NB_OUTPUTS;i++)
+		{
+			if(outputTab[i][1] == 0) //servoMotors => set poisition
+			{
+				servoPosition = networkOutputs[i]  * 100 + 40;; //goes from 40 degrees to 140 degrees
+				myservo[i].write(servoPosition + servoOffsets[i]);
+#ifdef USE_SERIAL
+				Serial.print(servoPosition); Serial.print(F("\t"));
+#endif
+			}
+			else if(outputTab[i][1] == 1)  // full rotation motors => set speed
+			{
+				//if( networkOutputs[i] >= 90)//one rotation direction only => discard other rotation direction
+				//  servoSpeed = networkOutputs[i] - 30; //we
+				//else
+				//  servoSpeed = 0;
+				servoSpeed = networkOutputs[i] * 255;
+				//myservo[i].write(servoSpeed);
+#ifdef USE_SERIAL
+				Serial.print(servoSpeed); Serial.print(F("\t"));
+#endif
+
+
+				analogWrite(outputTab[i][0], servoSpeed);
+
+			}
+
+		}
+#ifdef NEUTRAL_PIN
+		analogWrite(NEUTRAL_PIN, 127.5); // neutre
+#endif
+
+#ifdef USE_SERIAL
+		Serial.print(F("\n"));
+#endif
+
+#ifdef USE_SERIAL1
+		for(int i=0;i<NB_OUTPUTS; i++) {
+			Serial1.print(networkOutputs[i]);
+			Serial1.print((i==NB_OUTPUTS-1)?F("\n"):F("\t"));
+		}
+#endif
+
+		//slow the main loop frequency, not to burn servoMotors too quickly
+		//delay(200);
+	}
 }
 
 //hack for Arduino to be able to play with function that have struct as parameters.
@@ -613,7 +632,7 @@ void initNetwork(NeuralNetwork* network, unsigned int nInputs,
 	network->nInputs = nInputs;
 	network->nOutputs = nOutputs;
 	network->nHidden = nHidden;
-        
+
 
 }
 
@@ -627,16 +646,17 @@ void feed(NeuralNetwork* network, const float *input) {
 }
 
 float getWeight(int index) {
-        return pgm_read_float_near(EAWeight + index);
-        //return EAWeight[index];
+	return pgm_read_float_near(EAWeight + index);
+	//return EAWeight[index];
 }
 
 float getParam(int index) {
-        return pgm_read_float_near(EAParams + index);
-        //return EAParams[index];
+	return pgm_read_float_near(EAParams + index);
+	//return EAParams[index];
 }
 
 void step(NeuralNetwork* network, float time) {
+
 	unsigned int i = 0;
 	unsigned int j = 0;
 	unsigned int baseIndexOutputWeigths =
@@ -648,13 +668,13 @@ void step(NeuralNetwork* network, float time) {
 
 	/* For each hidden and output neuron, sum the state of all the incoming connection */
 
-	for (i = 0; i < network->nNonInputs; ++i) { 
+	for (i = 0; i < network->nNonInputs; ++i) {
 
 		network->activations[i] = 0;
 
 		for (j = 0; j < network->nInputs; ++j) {
 			network->activations[i] += getWeight(network->nNonInputs * j + i)
-					* network->input[j];
+							* network->input[j];
 		}
 
 		for (j = 0; j < network->nNonInputs; ++j) {
@@ -665,15 +685,15 @@ void step(NeuralNetwork* network, float time) {
 	}
 
 	/* Now add in biases and calculate new network state (or do appropriate operation for neuron type*/
-	for (i = 0; i < network->nNonInputs; ++i) { 
+	for (i = 0; i < network->nNonInputs; ++i) {
 
 		/* Save next state */
 		if (EATypes[i] == SIGMOID) {
 			/* params are bias, gain */
 			network->activations[i] -= getParam(MAX_PARAMS*i);
 			network->state[i] = 1.0
-				/ (1.0 + exp(-getParam(MAX_PARAMS*i+1) *
-						network->activations[i]));
+					/ (1.0 + exp(-getParam(MAX_PARAMS*i+1) *
+							network->activations[i]));
 		} else if (EATypes[i] == SIMPLE) {
 			/* linear, params are bias, gain */
 
@@ -690,7 +710,7 @@ void step(NeuralNetwork* network, float time) {
 			float phaseOffset = getParam(MAX_PARAMS*i + 1);
 			float gain = getParam(MAX_PARAMS*i + 2);
 			network->state[i] = ((sin( (2.0*PI/period) *
-				 (time - period * phaseOffset))) + 1.0) / 2.0;
+					(time - period * phaseOffset))) + 1.0) / 2.0;
 
 			/* set output to be in [0.5 - gain/2, 0.5 + gain/2] */
 			network->state[i] = (0.5 - (gain/2.0) +
@@ -698,6 +718,7 @@ void step(NeuralNetwork* network, float time) {
 
 		}
 	}
+
 }
 
 /**
@@ -710,13 +731,14 @@ void fetch(const NeuralNetwork* network, float *output) {
 
 	unsigned int i = 0;
 	for (i = 0; i < network->nOutputs; ++i) {
-            float rawOutput = network->state[i];
-            #ifdef MOTOR_NOISE_LEVEL
-            // Add motor noise:
-            // uniform in range +/- MOTOR_NOISE_LEVEL * actualValue
-            rawOutput += ( ((rand01() * 2.0 * MOTOR_NOISE_LEVEL) - MOTOR_NOISE_LEVEL) * rawOutput);
-            #endif
-            output[i] = rawOutput * 100 + 40;
+		float rawOutput = network->state[i];
+#ifdef MOTOR_NOISE_LEVEL
+		// Add motor noise:
+		// uniform in range +/- MOTOR_NOISE_LEVEL * actualValue
+		rawOutput += ( ((rand01() * 2.0 * MOTOR_NOISE_LEVEL) - MOTOR_NOISE_LEVEL) * rawOutput);
+#endif
+		output[i] = rawOutput;
 	}
 
 }
+
