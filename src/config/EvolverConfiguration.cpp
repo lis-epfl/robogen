@@ -500,7 +500,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			}
 
 			// don't want to be able to add more core components
-			if(type != INVERSE_PART_TYPE_MAP.at(PART_TYPE_CORE_COMPONENT)) {
+			if(!isCore(type)) {
 				allowedBodyPartTypes.push_back(type);
 			}
 		}

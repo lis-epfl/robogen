@@ -64,10 +64,14 @@ public:
 	 * @param odeWorld
 	 * @param odeSpace
 	 * @param id
-	 * @param hasSensors if true the core component will contain gyro and accelerometer sensors, if false it won't provide any sensor
+	 * @param isCore should be true for the core/root node and will therefore
+	 * 			include mass of electronics.  If isCore is true but hasSensors
+	 * 			is false then will not consider IMU
+	 * @param hasSensors if true the core component will contain gyro and
+	 * 			accelerometer sensors, if false it won't provide any sensor
 	 */
 	CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace, std::string id,
-			bool hasSensors);
+			bool isCore, bool hasSensors);
 
 	virtual ~CoreComponentModel();
 
@@ -91,11 +95,17 @@ public:
 		return hasSensors_;
 	}
 
+	inline bool isCore() {
+		return isCore_;
+	}
+
 private:
 
 	boost::shared_ptr<ImuSensor> sensor_;
 
 	boost::shared_ptr<SimpleBody> coreComponent_;
+
+	bool isCore_;
 
 	bool hasSensors_;
 

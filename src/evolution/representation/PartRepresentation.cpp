@@ -183,7 +183,7 @@ void PartRepresentation::addSubtreeToBodyMessage(
 					bodyMessage->add_connection();
 			connection->set_src(id_);
 
-			if (this->getType().compare(PART_TYPE_CORE_COMPONENT) == 0) {
+			if (isCore(this->getType())) {
 				connection->set_srcslot(i);
 			} else {
 				connection->set_srcslot(i+1);

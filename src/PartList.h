@@ -54,6 +54,7 @@ namespace robogen {
 	#define PART_TYPE_ACTIVE_WHEG 		"ActiveWheg"
 #endif
 #define PART_TYPE_CORE_COMPONENT 	"CoreComponent"
+#define PART_TYPE_CORE_COMPONENT_NO_IMU 	"CoreComponentNoIMU"
 #define PART_TYPE_FIXED_BRICK 		"FixedBrick"
 #define PART_TYPE_LIGHT_SENSOR 		"LightSensor"
 #define PART_TYPE_PARAM_JOINT 		"ParametricJoint"
@@ -82,6 +83,9 @@ extern const std::map<std::string, std::vector<std::string> >
 	PART_TYPE_MOTORS_MAP;
 extern const std::map<std::string, std::vector<std::string> >
 	PART_TYPE_SENSORS_MAP;
+
+bool isCore(char partType);
+bool isCore(std::string partType);
 
 } /* namespace robogen */
 

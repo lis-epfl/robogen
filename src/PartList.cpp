@@ -43,6 +43,7 @@ std::map<char, std::string> initPartTypeMap() {
 	partTypeMap['G'] = PART_TYPE_ACTIVE_WHEG;
 #endif
 	partTypeMap['E'] = PART_TYPE_CORE_COMPONENT;
+	partTypeMap['N'] = PART_TYPE_CORE_COMPONENT_NO_IMU;
 	partTypeMap['F'] = PART_TYPE_FIXED_BRICK;
 	partTypeMap['L'] = PART_TYPE_LIGHT_SENSOR;
 	partTypeMap['B'] = PART_TYPE_PARAM_JOINT;
@@ -75,9 +76,11 @@ std::map<std::string, unsigned int> initPartTypeArityMap() {
 #endif
 #ifdef ENFORCE_PLANAR
 	partTypeArityMap[PART_TYPE_CORE_COMPONENT] = 4;
+	partTypeArityMap[PART_TYPE_CORE_COMPONENT_NO_IMU] = 4;
 	partTypeArityMap[PART_TYPE_FIXED_BRICK] = 3;
 #else
 	partTypeArityMap[PART_TYPE_CORE_COMPONENT] = 6;
+	partTypeArityMap[PART_TYPE_CORE_COMPONENT_NO_IMU] = 6;
 	partTypeArityMap[PART_TYPE_FIXED_BRICK] = 5;
 #endif
 	partTypeArityMap[PART_TYPE_LIGHT_SENSOR] = 0;
@@ -110,6 +113,7 @@ std::map<std::string, unsigned int> initPartTypeParamCountMap() {
 	partTypeParamCountMap[PART_TYPE_ACTIVE_WHEG] = 1;
 #endif
 	partTypeParamCountMap[PART_TYPE_CORE_COMPONENT] = 0;
+	partTypeParamCountMap[PART_TYPE_CORE_COMPONENT_NO_IMU] = 0;
 	partTypeParamCountMap[PART_TYPE_FIXED_BRICK] = 0;
 	partTypeParamCountMap[PART_TYPE_LIGHT_SENSOR] = 0;
 	partTypeParamCountMap[PART_TYPE_PARAM_JOINT] = 3;
@@ -248,6 +252,17 @@ std::map<_OrigValue, _OrigKey> inverseMap(
 	}
 
 	return inverseMap;
+}
+
+bool isCore(char partType) {
+	return isCore(PART_TYPE_MAP.at(partType));
+
+}
+
+bool isCore(std::string partType) {
+	return ((partType.compare(PART_TYPE_CORE_COMPONENT) == 0)
+			||
+			(partType.compare(PART_TYPE_CORE_COMPONENT_NO_IMU) == 0));
 }
 
 //initialize the maps

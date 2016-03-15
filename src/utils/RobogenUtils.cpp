@@ -241,11 +241,18 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 	boost::shared_ptr<Model> model;
 	if (bodyPart.type().compare(PART_TYPE_CORE_COMPONENT) == 0) {
 
-		model.reset(new CoreComponentModel(odeWorld, odeSpace, id, true));
+		model.reset(new CoreComponentModel(odeWorld, odeSpace, id, true,
+				true));
+
+	} else if (bodyPart.type().compare(PART_TYPE_CORE_COMPONENT_NO_IMU) == 0) {
+
+		model.reset(new CoreComponentModel(odeWorld, odeSpace, id, true,
+				false));
 
 	} else if (bodyPart.type().compare(PART_TYPE_FIXED_BRICK) == 0) {
 
-		model.reset(new CoreComponentModel(odeWorld, odeSpace, id, false));
+		model.reset(new CoreComponentModel(odeWorld, odeSpace, id, false,
+											false));
 
 	} else if (bodyPart.type().compare(PART_TYPE_PARAM_JOINT) == 0) {
 
@@ -441,11 +448,16 @@ boost::shared_ptr<RenderModel> RobogenUtils::createRenderModel(
 std::string RobogenUtils::getPartType(boost::shared_ptr<Model> model) {
 
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(model)) {
-		if (boost::dynamic_pointer_cast<CoreComponentModel>(model)->hasSensors())
-			return PART_TYPE_CORE_COMPONENT;
-		else
+		if (boost::dynamic_pointer_cast<CoreComponentModel>(model)->isCore()) {
+			if (boost::dynamic_pointer_cast<CoreComponentModel>(model
+					)->hasSensors()) {
+				return PART_TYPE_CORE_COMPONENT;
+			} else {
+				return PART_TYPE_CORE_COMPONENT_NO_IMU;
+			}
+		} else {
 			return PART_TYPE_FIXED_BRICK;
-
+		}
 #ifdef ALLOW_CARDANS
 	} else if (boost::dynamic_pointer_cast<ActiveCardanModel>(model)) {
 

@@ -39,8 +39,9 @@ const float CoreComponentModel::WIDTH = inMm(41);//inMm(46.5);
 const float CoreComponentModel::SLOT_THICKNESS = inMm(1.5);
 
 CoreComponentModel::CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace,
-		std::string id, bool hasSensors) :
-		PerceptiveComponent(odeWorld, odeSpace, id), hasSensors_(hasSensors) {
+		std::string id, bool isCore, bool hasSensors) :
+		PerceptiveComponent(odeWorld, odeSpace, id), isCore_(isCore),
+		hasSensors_(hasSensors) {
 
 	if (hasSensors) {
 		sensor_.reset(new ImuSensor(id + "-IMU"));
@@ -54,7 +55,7 @@ CoreComponentModel::~CoreComponentModel() {
 
 bool CoreComponentModel::initModel() {
 
-	coreComponent_ = this->addBox(hasSensors_ ? CORE_MASS : BRICK_MASS,
+	coreComponent_ = this->addBox(isCore_ ? CORE_MASS : BRICK_MASS,
 			osg::Vec3(0, 0, 0), WIDTH, WIDTH,
 			HEIGHT, B_CORE_COMPONENT_ID);
 
