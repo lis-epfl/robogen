@@ -2902,7 +2902,7 @@ void Genome::Build_ES_Phenotype(NeuralNetwork& net, Substrate& subst, Parameters
     unsigned int source_index = 0;
     unsigned int target_index = 0;
     unsigned int hidden_counter = 0;
-    unsigned int maxNodes = std::pow(4, params.MaxDepth);
+    unsigned int maxNodes = (unsigned int) std::pow((double)4.0,(int) params.MaxDepth);
 
     std::vector<TempConnection> TempConnections;
     TempConnections.reserve(maxNodes + 1);
