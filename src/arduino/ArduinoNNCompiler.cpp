@@ -67,6 +67,12 @@ std::string getPin(std::vector<std::string> &availableDigitalPins,
 		pin = availableAnalogPins.back();
 		availableAnalogPins.pop_back();
 	} else if(isPwm) {
+		if (availablePwmPins.size() == 0) {
+			std::cerr << std::endl << "ATTENTION:"
+					<< "No more PWM Pins Available!  NeuralNetwork.h file "
+					<< " will not be valid!!" << std::endl << std::endl;
+			return "ERROR";
+		}
 		pin = availablePwmPins.back();
 		availablePwmPins.pop_back();
 		std::vector<std::string>::iterator position =
@@ -271,8 +277,8 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 	}
 	file << " };" << std::endl << std::endl;
 
-	// if used any PWM pins then need the neutral one as well
-	if (availablePwmPins.size() != MAX_PWM_PINS) {
+	// if have any rotation motors then need the neutral pin for the h-bridge
+	if (nRotation > 0) {
 		std::string neutralPin = getPin(availableDigitalPins,
 				availableAnalogPins, availablePwmPins, false, true);
 		file << "#define NEUTRAL_PIN " << neutralPin << std::endl << std::endl;
