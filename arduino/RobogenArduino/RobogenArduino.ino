@@ -179,7 +179,7 @@ void setup() {
 
 
 	/* neural network initialization : */
-	initNetwork(&network, NB_INPUTS, NB_OUTPUTS, NB_HIDDEN);
+	initNetwork(&network, NB_INPUTS, NB_OUTPUTS, NB_HIDDEN, NULL, NULL, NULL);
 
 	/* Define light and touch sensor pins as input*/
 	for(int i=0;i<NB_INPUTS;i++)
@@ -503,10 +503,6 @@ void loop() {
 			{
 				//irSensors[irIndices[i]].setSingleShot();
 				int distance = irSensors[irIndices[i]].getDistance2();
-#ifdef USE_SERIAL
-				Serial.print("\t R ");
-				Serial.print(distance);
-#endif
 				networkInput[i] = 1.0 - (distance/255.0); //i++;
 				//networkInput[i] = 0.0; // give light value in [0,1]
 			}
@@ -612,8 +608,9 @@ void loop() {
 
 
 
-void initNetwork(NeuralNetwork* network, unsigned int nInputs,
-		unsigned int nOutputs, unsigned int nHidden) {
+void initNetwork(NeuralNetwork* network, unsigned int nInputs, unsigned int nOutputs, 
+                  unsigned int nHidden, const float *weights, const float* params,
+                  const unsigned int *types) {
 
 	unsigned int i = 0;
 

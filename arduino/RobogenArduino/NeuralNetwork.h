@@ -84,14 +84,14 @@ const int irIndices[] = { NONE, NONE, NONE, NONE, NONE, NONE, 0, 1, 2, 3 };
 	1 for velocity control
 */
 const int outputTab[][2] = { {D11, 1}, {D5, 1} };
-#define NEUTRAL_PIN D6
 
+#define NEUTRAL_PIN D6
 
 #define NB_INPUTS 10
 #define NB_OUTPUTS 2
 #define NB_HIDDEN 0
-PROGMEM const float EAWeight[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -14.9463, -15.718, 15.0646, 0, 1.82315, 0, -15.2182, 0, 0, 0, 0, 0};
-PROGMEM const float EAParams[] = {2.91971, 1, -7.52562e+12, -11.8037, 1, 0};
+PROGMEM const float EAWeight[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -3, -3, 3, -0.806727, -2.87428, -3, -2.53897, -1.84666, 3, 3, -1.24157, 3};
+PROGMEM const float EAParams[] = {1.79026, 1, -5.17356e+20, 0.111878, 1, 0};
 unsigned int EATypes[] = {1, 1};
 
 
