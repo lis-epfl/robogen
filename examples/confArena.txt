@@ -1,0 +1,14 @@
+scenario=racing
+timeStep=0.005
+actuationFrequency=25
+obstaclesConfigFile=simpleArena.txt
+lightSourcesConfigFile=singleLightSource.txt
+nTimeSteps=1600
+terrainType=flat
+terrainLength=1
+terrainWidth=1
+terrainFriction=1.0
+sensorNoiseLevel=0.0
+motorNoiseLevel=0.0
+capAcceleration=false
+maxDirectionShiftsPerSecond=16

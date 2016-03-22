@@ -1,0 +1,15 @@
+simulatorConfFile=confObstacleAvoidance.txt
+referenceRobotFile=cart.txt
+mu=40
+lambda=40
+selection=deterministic-tournament
+replacement=plus
+tournamentSize=2
+numGenerations=50
+evolutionMode=brain
+pBrainMutate=.3
+brainSigma=.7
+brainBounds=-3:3
+pBrainCrossover=.6
+evolutionaryAlgorithm=Basic
+socket=127.0.0.1:8001
