@@ -45,6 +45,7 @@
 #include "model/sensors/IrSensor.h"
 #include "model/sensors/ImuSensor.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
+#include "utils/RobogenUtils.h"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -333,7 +334,7 @@ std::pair<std::string, std::string> ArduinoNNCompiler::getHeaderAndFooter() {
 	std::stringstream headerStream;
 	std::stringstream footerStream;
 	bool onFooter = false;
-	while (std::getline(headerFile, line)) {
+	while (!RobogenUtils::safeGetline(headerFile, line).eof()) {
 		if(line.find("HEADER_FOOTER_BREAK") != std::string::npos) {
 			onFooter = true;
 		} else if(onFooter) {

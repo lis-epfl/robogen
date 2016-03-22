@@ -44,6 +44,8 @@
 #include "config/TerrainConfig.h"
 #include "config/LightSourcesConfig.h"
 
+#include "utils/RobogenUtils.h"
+
 #define DEFAULT_LIGHT_SOURCE_HEIGHT (0.1)
 #define DEFAULT_OBSTACLE_DENSITY (0.)
 #define DEFAULT_MAX_LINEAR_ACCELERATION (15.0)
@@ -490,7 +492,7 @@ boost::shared_ptr<ObstaclesConfig> ConfigurationReader::parseObstaclesFile(
 
 	std::string line;
 	int lineNum = 0;
-	while (std::getline(obstaclesFile, line)) {
+	while (!RobogenUtils::safeGetline(obstaclesFile, line).eof()) {
 		lineNum++;
 		boost::cmatch match;
 		float x, y, z, xSize, ySize, zSize, density, xRotation, yRotation,
@@ -529,9 +531,10 @@ boost::shared_ptr<ObstaclesConfig> ConfigurationReader::parseObstaclesFile(
 				zSize = std::atof(match[6].str().c_str());
 				density = std::atof(match[7].str().c_str());
 			} else {
-				std::cout << "Error parsing line " << lineNum <<
+				std::cerr << "Error parsing line " << lineNum <<
 						" of obstacles file: '" << fileName << "'"
 						<< std::endl;
+				std::cerr << line.c_str() << std::endl;
 				return boost::shared_ptr<ObstaclesConfig>();
 			}
 		}
@@ -566,7 +569,7 @@ boost::shared_ptr<LightSourcesConfig> ConfigurationReader::parseLightSourcesFile
 
 	std::string line;
 	int lineNum = 0;
-	while (std::getline(lightSourcesFile, line)) {
+	while (!RobogenUtils::safeGetline(lightSourcesFile, line).eof()) {
 		lineNum++;
 		boost::cmatch match;
 		float x, y, z, intensity;
@@ -579,6 +582,7 @@ boost::shared_ptr<LightSourcesConfig> ConfigurationReader::parseLightSourcesFile
 				std::cerr << "Error parsing line " << lineNum <<
 						" of light sources file: '" << fileName << "'"
 						<< std::endl;
+				std::cerr << line.c_str() << std::endl;
 				return boost::shared_ptr<LightSourcesConfig>();
 			}
 		}

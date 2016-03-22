@@ -32,6 +32,7 @@
 #include <boost/shared_ptr.hpp>
 #include <osg/Quat>
 #include <osg/Vec3>
+#include <iostream>
 
 #include "Models.h"
 #include "RenderModels.h"
@@ -55,6 +56,8 @@ public:
 	static bool areAxisParallel(const osg::Vec3& a, const osg::Vec3& b);
 
 	static double getAngle(const osg::Vec3& a, const osg::Vec3& b);
+
+	static std::istream& safeGetline(std::istream& is, std::string& t);
 
 	/**
 	 * It is b that remains fixed!!

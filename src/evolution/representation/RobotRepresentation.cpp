@@ -45,6 +45,7 @@
 #include "utils/network/ProtobufPacket.h"
 #include "PartList.h"
 #include "utils/json2pb/json2pb.h"
+#include "utils/RobogenUtils.h"
 
 namespace robogen {
 
@@ -106,7 +107,7 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 			);
 	boost::cmatch match;
 	std::string line;
-	std::getline(file, line);
+	RobogenUtils::safeGetline(file, line);
 	if (boost::regex_match(line.c_str(), match, rx)) {
 		// match[0]:whole string, match[1]:tabs, match[2]:slot, match[3]:type,
 		// match[4]:id, match[5]:orientation, match[6]:parameters
@@ -196,7 +197,7 @@ bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
 			"^([^\\s]+) (\\d+) ([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)\\s*$");
 	boost::cmatch match;
 	std::string line;
-	std::getline(file, line);
+	RobogenUtils::safeGetline(file, line);
 	if (boost::regex_match(line.c_str(), match, rx)) {
 		// match[0]:whole string, match[1]:from, match[2]:from IO id,
 		// match[3]:to, match[4]:to IO id, match[5]:value
@@ -249,7 +250,7 @@ bool robotTextFileReadAddNeuronLine(std::ifstream &file, std::string &partId,
 	static const boost::regex rx("^([^\\s]+) ([^\\s]+)\\s*$");
 	boost::cmatch match;
 	std::string line;
-	std::getline(file, line);
+	RobogenUtils::safeGetline(file, line);
 	if (boost::regex_match(line.c_str(), match, rx)) {
 		// match[0]:whole string, match[1]:partId match[2]:type string
 		partId.assign(match[1]);
@@ -282,7 +283,7 @@ bool robotTextFileReadParamsLine(std::ifstream &file, std::string &node,
 	static const boost::regex biasRx("^([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)\\s*$");
 	boost::cmatch match;
 	std::string line;
-	std::getline(file, line);
+	RobogenUtils::safeGetline(file, line);
 	if (boost::regex_match(line.c_str(), match, generalRx)) {
 		node.assign(match[1]);
 		ioId = std::atoi(match[2].first);
@@ -520,7 +521,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 
 
 	while(!file.eof()) {
-		std::getline(file, line);
+		RobogenUtils::safeGetline(file, line);
 		if(!isLineEmpty(line)) {
 			std::cerr << std::endl << std::endl
 					<< "The robot text file has non-empty lines after all "
