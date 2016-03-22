@@ -79,7 +79,7 @@ bool CoreComponentRenderModel::initRenderModel() {
 					CoreComponentModel::B_CORE_COMPONENT_ID));
 
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
-					hasSensors() ) {
+					isCore() ) {
 		this->setColor(osg::Vec4(1,0,0,0.7));
 	} else {
 		this->setColor(osg::Vec4(1,1,1,0.7));
