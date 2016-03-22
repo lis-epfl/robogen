@@ -337,6 +337,8 @@ std::string WebGLLogger::getLastLogJSON() {
 	json_t* lastRobotLog = json_object_get(this->jsonLog, obKey.c_str());
 	json_t* lastObstaclesLog = json_object_get(this->jsonObstaclesLog,
 			obKey.c_str());
+	json_t* lastLightsLog = json_object_get(this->jsonLights,
+			obKey.c_str());
 	json_t* res = json_object();
 	json_object_set_new(res, "time", json_real(this->lastFrame));
 	if (lastRobotLog != NULL) {
@@ -344,6 +346,9 @@ std::string WebGLLogger::getLastLogJSON() {
 	}
 	if (lastObstaclesLog) {
 		json_object_set(res, "obstacles", lastObstaclesLog);
+	}
+	if (lastLightsLog) {
+		json_object_set(res, "lights", lastLightsLog);
 	}
 
 	char * resChar = json_dumps(res, JSON_TAGS);
