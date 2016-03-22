@@ -136,7 +136,15 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					boost::program_options::value<bool>(),
 					"Flag to enforce no obstacle collisions."\
 					"  Any obstacle collision will be considered a constraint"\
-					" violation.")
+					" violation. (default false).")
+			("disallowObstacleRemoval",
+					boost::program_options::value<bool>(),
+					"Flag to enforce no obstacle removal."\
+					" If false any obstacle enclosed in the robot's initial"\
+					" axis aligned bounding box, will be removed, and the"\
+					" simulation will proceed.  If true, this will result in "\
+					" a constraint violation and the simulation will be "\
+					" terminated. (default to disallowObstacleCollisions)")
 			;
 
 	if (fileName == "help") {
@@ -437,6 +445,11 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		disallowObstacleCollisions = vm["disallowObstacleCollisions"
 		                                ].as<bool>();
 	}
+	bool disallowObstacleRemoval = disallowObstacleCollisions;
+	if(vm.count("disallowObstacleRemoval")) {
+		disallowObstacleRemoval = vm["disallowObstacleRemoval"
+										].as<bool>();
+	}
 
 	return boost::shared_ptr<RobogenConfig>(
 			new RobogenConfig(scenario, scenarioFile, nTimesteps,
@@ -446,7 +459,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					sensorNoiseLevel,
 					motorNoiseLevel, capAcceleration, maxLinearAcceleration,
 					maxAngularAcceleration, maxDirectionShiftsPerSecond,
-					gravity, disallowObstacleCollisions));
+					gravity, disallowObstacleCollisions,
+					disallowObstacleRemoval));
 
 }
 
@@ -727,7 +741,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 					osg::Vec3(simulatorConf.gravityx(),
 							  simulatorConf.gravityy(),
 							  simulatorConf.gravityz()),
-					simulatorConf.disallowobstaclecollisions()
+					simulatorConf.disallowobstaclecollisions(),
+					simulatorConf.disallowobstacleremoval()
 					));
 
 }

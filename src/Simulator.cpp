@@ -174,8 +174,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			return SIMULATION_FAILURE;
 		}
 
-		//TODO make this behavior configurable
-		if(scenario->wereObstaclesRemoved()) {
+		if(configuration->isDisallowObstacleRemoval() &&
+				scenario->wereObstaclesRemoved()) {
 			std::cout << "Obstacles were removed, will return min fitness" <<
 					std::endl;
 			constraintViolated = true;

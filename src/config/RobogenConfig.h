@@ -62,7 +62,8 @@ public:
 			float sensorNoiseLevel, float motorNoiseLevel,
 			bool capAcceleration, float maxLinearAcceleration,
 			float maxAngularAcceleration, int maxDirectionShiftsPerSecond,
-			osg::Vec3 gravity, bool disallowObstacleCollisions) :
+			osg::Vec3 gravity, bool disallowObstacleCollisions,
+			bool disallowObstacleRemoval) :
 				scenario_(scenario), scenarioFile_(scenarioFile),
 				timeSteps_(timeSteps),
 				timeStepLength_(timeStepLength),
@@ -80,7 +81,8 @@ public:
 				maxAngularAcceleration_(maxAngularAcceleration),
 				maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond),
 				gravity_(gravity),
-				disallowObstacleCollisions_(disallowObstacleCollisions) {
+				disallowObstacleCollisions_(disallowObstacleCollisions),
+				disallowObstacleRemoval_(disallowObstacleRemoval) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -251,6 +253,13 @@ public:
 	}
 
 	/**
+	 * return if should disallow obstacle remove
+	 */
+	bool isDisallowObstacleRemoval() {
+		return disallowObstacleRemoval_;
+	}
+
+	/**
 	 * Convert configuration into configuration message.
 	 */
 	robogenMessage::SimulatorConf serialize() const{
@@ -270,6 +279,7 @@ public:
 		ret.set_gravityy(gravity_.y());
 		ret.set_gravityz(gravity_.z());
 		ret.set_disallowobstaclecollisions(disallowObstacleCollisions_);
+		ret.set_disallowobstacleremoval(disallowObstacleRemoval_);
 
 		terrain_->serialize(ret);
 
@@ -388,6 +398,11 @@ private:
 	 * flag to disallow obstacle collisions
 	 */
 	bool disallowObstacleCollisions_;
+
+	/**
+	 * flag to disallow obstacle removal
+	 */
+	bool disallowObstacleRemoval_;
 };
 
 }
