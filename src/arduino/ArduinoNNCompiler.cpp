@@ -50,6 +50,10 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
+const std::string NEURAL_NETWORK_STRING =
+#include "brain/NeuralNetwork.template"
+;
+
 namespace robogen {
 
 ArduinoNNCompiler::ArduinoNNCompiler() {
@@ -323,13 +327,8 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 }
 
 std::pair<std::string, std::string> ArduinoNNCompiler::getHeaderAndFooter() {
-	#ifndef SOURCE_DIR
-	    std::cerr << "SOURCE_DIR not properly specified from CMake."
-	    		<< " Generating NeuralNetwork.h will not work."<< std::endl;
-	#endif
-	std::stringstream headerFileName;
-	headerFileName << TOSTRING(SOURCE_DIR) << "/brain/NeuralNetwork.h";
-	std::ifstream headerFile(headerFileName.str().c_str());
+	std::istringstream headerFile(NEURAL_NETWORK_STRING);
+
 	std::string line;
 	std::stringstream headerStream;
 	std::stringstream footerStream;

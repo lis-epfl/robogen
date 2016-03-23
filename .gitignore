@@ -4,6 +4,8 @@
 # Ignore pyc files
 *.pyc
 
+# Ignore NeuralNetwork template
+NeuralNetwork.template
 
 # Don't ignore this file
 !.gitignore
