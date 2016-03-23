@@ -55,9 +55,9 @@ JSScenario::JSScenario() : Scenario(boost::shared_ptr<RobogenConfig>()),
 }
 
 JSScenario::~JSScenario() {
-	js::log("destroying jsScenario!");
+	//js::log("destroying jsScenario!");
 	scenarios.erase(id_);
-	js::log("removed from map");
+	//js::log("removed from map");
 
 }
 
@@ -76,8 +76,8 @@ boost::shared_ptr<Scenario> JSScenario::createScenario(
 		std::replace( id.begin(), id.end(), '-', '_');
 	}
 
-	js::log("using id: ");
-	js::log(id);
+	//js::log("using id: ");
+	//js::log(id);
 
 	// now call the provided js with creating a new object at the end
 	// and registering it with the given uuid
@@ -94,11 +94,11 @@ boost::shared_ptr<Scenario> JSScenario::createScenario(
 
 	//finally use the uuid to get the pointer to the create object
 	JSScenario *scenario = JSScenario::getScenario(id);
-	if (scenario == NULL) {
-		js::log("Scenario is NULL!");
-	} else {
-		js::log("Scenario is not NULL!");
-	}
+	//if (scenario == NULL) {
+	//	js::log("Scenario is NULL!");
+	//} else {
+	//	js::log("Scenario is not NULL!");
+	//}
 	scenario->setRobogenConfig(config);
 
 	return boost::shared_ptr<Scenario>(scenario);
