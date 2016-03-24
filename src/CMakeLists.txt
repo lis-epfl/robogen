@@ -17,9 +17,18 @@ endif()
 # Add customized CMAKE modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
+if (WIN32)
+
 execute_process(
-    COMMAND ${CMAKE_SOURCE_DIR}/../utils/wrap_file.sh ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.template
+    COMMAND "C:/Program Files/Git/git-bash.exe" -c "${CMAKE_SOURCE_DIR}/../build_utils/wrap_file.sh ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.template"
+)
+
+else()
+
+execute_process(
+    COMMAND ${CMAKE_SOURCE_DIR}/../build_utils/wrap_file.sh ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.template
 ) 
+endif()
 
 # Pass source dir to preprocessor
 add_definitions(-DSOURCE_DIR=${CMAKE_SOURCE_DIR})
