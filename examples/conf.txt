@@ -1,7 +1,6 @@
-scenario=chasing_scenario.js
+scenario=racing
 timeStep=0.005
 actuationFrequency=25
-lightSourcesConfigFile=light-sources.txt
 nTimeSteps=1600
 terrainType=flat
 terrainLength=2
