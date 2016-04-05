@@ -6,6 +6,7 @@ project (RoboGen)
 
 option(TARGET_JS "Build the project in javascript" OFF)
 option(ENABLE_QT "Enable QT for scriptable scenarios" ON)
+option(MAKE_JS_TEST "Make JavaScript test" OFF)
 
 message(STATUS "${EM_ODE_INCLUDE_DIR}")
 
@@ -309,9 +310,12 @@ else()
 	target_link_libraries(robogen-file-viewer robogen ${ROBOGEN_DEPENDENCIES})
 
 	if (Qt5Core_FOUND)
-		add_executable(js-test JsTest.cpp Exposable.h)
-		target_link_libraries(js-test robogen ${ROBOGEN_DEPENDENCIES})
-		qt5_use_modules(js-test Core Script)
+		if(MAKE_JS_TEST)
+			message(STATUS "MAKING js-test")
+			add_executable(js-test JsTest.cpp Exposable.h)
+			target_link_libraries(js-test robogen ${ROBOGEN_DEPENDENCIES})
+			qt5_use_modules(js-test Core Script)
+		endif()
 		
 		qt5_use_modules(robogen Core Script)
 	endif()
