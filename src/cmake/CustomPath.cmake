@@ -4,6 +4,7 @@
 # Set the path to your utils folder
 if (WIN32)
 	set(UTILS_PATH "D:/robogen/utils")
+	#set(QT_PATH "D:/qt5-5.5.0-vs2010/qt5-x86-shared-release")
 endif()
 
 ####################################################################

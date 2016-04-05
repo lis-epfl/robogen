@@ -20,9 +20,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 if (WIN32)
 
-execute_process(
-    COMMAND "C:/Program Files/Git/git-bash.exe" -c "${CMAKE_SOURCE_DIR}/../build_utils/wrap_file.sh ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.template"
-)
+file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/../resources")
+file(COPY "${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h" DESTINATION "${CMAKE_SOURCE_DIR}/../resources")
 
 else()
 
@@ -267,6 +266,9 @@ else()
 	find_package(OpenSceneGraph REQUIRED osg osgViewer osgDB osgGA osgUtil osgTerrain)
 	find_package(Jansson REQUIRED)
 	if (ENABLE_QT)
+		if (QT_PATH)
+			set (CMAKE_PREFIX_PATH "${QT_PATH}")
+		endif()
 		find_package(Qt5Core)
 		if (Qt5Core_FOUND)
 			set(CMAKE_AUTOMOC ON)

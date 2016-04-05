@@ -35,6 +35,7 @@
 #include <sstream>
 #include <boost/shared_ptr.hpp>
 #include <boost/math/special_functions/round.hpp>
+#include <boost/filesystem.hpp>
 #include "model/ActuatedComponent.h"
 #include "model/PerceptiveComponent.h"
 #include "model/motors/ServoMotor.h"
@@ -50,9 +51,15 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
+#ifdef WIN32
+#define RESOURCE_DIR "../resources"
+#else
 const std::string NEURAL_NETWORK_STRING =
 #include "brain/NeuralNetwork.template"
 ;
+#endif
+
+
 
 namespace robogen {
 
@@ -327,8 +334,18 @@ void ArduinoNNCompiler::compile(Robot &robot, RobogenConfig &config,
 }
 
 std::pair<std::string, std::string> ArduinoNNCompiler::getHeaderAndFooter() {
+#ifdef WIN32
+	std::stringstream headerFileName;
+	headerFileName << RESOURCE_DIR << "/NeuralNetwork.h";
+	if ( !boost::filesystem::exists( headerFileName.str() ) ) {
+		std::cerr << "Cannot find NeuralNetwork.h, make sure " << headerFileName.str()
+			<< " exists" << std::endl;
+		exitRobogen(EXIT_FAILURE);
+	}
+	std::ifstream headerFile(headerFileName.str().c_str());
+#else
 	std::istringstream headerFile(NEURAL_NETWORK_STRING);
-
+#endif
 	std::string line;
 	std::stringstream headerStream;
 	std::stringstream footerStream;
@@ -345,6 +362,7 @@ std::pair<std::string, std::string> ArduinoNNCompiler::getHeaderAndFooter() {
 	}
 	return std::make_pair(headerStream.str(), footerStream.str());
 }
+
 
 
 } /* namespace robogen */
