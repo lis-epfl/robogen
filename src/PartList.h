@@ -36,7 +36,9 @@
 
 #define ALLOW_ROTATIONAL_COMPONENTS
 //#define ALLOW_CARDANS
+
 #define ENFORCE_PLANAR
+
 #define IR_SENSORS_ENABLED
 #ifndef IR_SENSORS_ENABLED
 	#define TOUCH_SENSORS_ENABLED
@@ -46,33 +48,41 @@
 namespace robogen {
 
 #ifdef ALLOW_CARDANS
-#define PART_TYPE_ACTIVE_CARDAN 	"ActiveCardan"
+	#define PART_TYPE_ACTIVE_CARDAN 	"ActiveCardan"
 #endif
-	#define PART_TYPE_ACTIVE_HINGE 		"ActiveHinge"
+
+#define PART_TYPE_ACTIVE_HINGE 		"ActiveHinge"
+
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	#define PART_TYPE_ACTIVE_WHEEL 		"ActiveWheel"
 	#define PART_TYPE_ACTIVE_WHEG 		"ActiveWheg"
 #endif
+
 #define PART_TYPE_CORE_COMPONENT 	"CoreComponent"
 #define PART_TYPE_CORE_COMPONENT_NO_IMU 	"CoreComponentNoIMU"
 #define PART_TYPE_FIXED_BRICK 		"FixedBrick"
 #define PART_TYPE_LIGHT_SENSOR 		"LightSensor"
 #define PART_TYPE_PARAM_JOINT 		"ParametricJoint"
+
 #ifdef ALLOW_CARDANS
 	#define PART_TYPE_PASSIVE_CARDAN 	"PassiveCardan"
 #endif
+
 #define PART_TYPE_PASSIVE_HINGE 	"PassiveHinge"
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	#define PART_TYPE_PASSIVE_WHEEL 	"PassiveWheel"
 	#define PART_TYPE_ROTATOR 			"Rotator"
 #endif
+
 #ifdef IR_SENSORS_ENABLED
 	#define PART_TYPE_IR_SENSOR			"IrSensor"
 #endif
+
 #ifdef TOUCH_SENSORS_ENABLED
 	#define PART_TYPE_TOUCH_SENSOR 		"TouchSensor"
 #endif
 
+extern const std::map<char, std::string> LEGACY_PART_TYPE_MAP;
 extern const std::map<char, std::string> PART_TYPE_MAP;
 extern const std::map<std::string, char> INVERSE_PART_TYPE_MAP;
 extern const std::map<std::string, unsigned int> PART_TYPE_ARITY_MAP;

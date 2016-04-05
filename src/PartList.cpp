@@ -32,29 +32,35 @@ namespace robogen {
 
 //first define init functions that will populate these maps
 
-std::map<char, std::string> initPartTypeMap() {
+std::map<char, std::string> initLegacyPartTypeMap() {
 	std::map<char, std::string> partTypeMap;
 #ifdef ALLOW_CARDANS
 	partTypeMap['K'] = PART_TYPE_ACTIVE_CARDAN;
+	partTypeMap['C'] = PART_TYPE_PASSIVE_CARDAN;
 #endif
-	partTypeMap['I'] = PART_TYPE_ACTIVE_HINGE;
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeMap['J'] = PART_TYPE_ACTIVE_WHEEL;
 	partTypeMap['G'] = PART_TYPE_ACTIVE_WHEG;
+	partTypeMap['W'] = PART_TYPE_PASSIVE_WHEEL;
+	partTypeMap['R'] = PART_TYPE_ROTATOR;
 #endif
+	return partTypeMap;
+}
+
+std::map<char, std::string> initPartTypeMap(const std::map<char, std::string>
+											&legacyPartTypeMap) {
+	std::map<char, std::string> partTypeMap;
+	partTypeMap.insert(legacyPartTypeMap.begin(), legacyPartTypeMap.end());
+
+	partTypeMap['I'] = PART_TYPE_ACTIVE_HINGE;
+
 	partTypeMap['E'] = PART_TYPE_CORE_COMPONENT;
 	partTypeMap['N'] = PART_TYPE_CORE_COMPONENT_NO_IMU;
 	partTypeMap['F'] = PART_TYPE_FIXED_BRICK;
 	partTypeMap['L'] = PART_TYPE_LIGHT_SENSOR;
 	partTypeMap['B'] = PART_TYPE_PARAM_JOINT;
-#ifdef ALLOW_CARDANS
-	partTypeMap['C'] = PART_TYPE_PASSIVE_CARDAN;
-#endif
+
 	partTypeMap['H'] = PART_TYPE_PASSIVE_HINGE;
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
-	partTypeMap['W'] = PART_TYPE_PASSIVE_WHEEL;
-	partTypeMap['R'] = PART_TYPE_ROTATOR;
-#endif
 #ifdef IR_SENSORS_ENABLED
 	partTypeMap['D'] = PART_TYPE_IR_SENSOR;
 #endif
@@ -134,8 +140,10 @@ std::map<std::string, unsigned int> initPartTypeParamCountMap() {
 	return partTypeParamCountMap;
 }
 
-std::map<std::pair<std::string, unsigned int>, std::pair<double, double> > initPartTypeParamRangeMap() {
-	std::map<std::pair<std::string, unsigned int>, std::pair<double, double> > partTypeParamRangeMap;
+std::map<std::pair<std::string, unsigned int>, std::pair<double, double> >
+												initPartTypeParamRangeMap() {
+	std::map<std::pair<std::string, unsigned int>,
+		std::pair<double, double> > partTypeParamRangeMap;
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_ACTIVE_WHEEL, 0)] =
 			std::make_pair(0.03, 0.08); // radius in m   --- TODO update wiki
@@ -266,9 +274,12 @@ bool isCore(std::string partType) {
 }
 
 //initialize the maps
-const std::map<char, std::string> PART_TYPE_MAP = initPartTypeMap();
-const std::map<std::string, char> INVERSE_PART_TYPE_MAP = inverseMap(
-		PART_TYPE_MAP);
+const std::map<char, std::string> LEGACY_PART_TYPE_MAP =
+		initLegacyPartTypeMap();
+const std::map<char, std::string> PART_TYPE_MAP =
+		initPartTypeMap(LEGACY_PART_TYPE_MAP);
+const std::map<std::string, char> INVERSE_PART_TYPE_MAP =
+		inverseMap(PART_TYPE_MAP);
 const std::map<std::string, unsigned int> PART_TYPE_ARITY_MAP =
 		initPartTypeArityMap();
 const std::map<std::string, unsigned int> PART_TYPE_PARAM_COUNT_MAP =

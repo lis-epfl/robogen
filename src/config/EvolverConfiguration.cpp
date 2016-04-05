@@ -466,7 +466,11 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			std::transform(lowerCaseBodyPart.begin(), lowerCaseBodyPart.end(),
 					lowerCaseBodyPart.begin(), ::tolower);
 
-			if (lowerCaseBodyPart.compare("all") == 0) {
+			if (lowerCaseBodyPart.compare("all") == 0 ||
+					lowerCaseBodyPart.compare("allwithlegacy") == 0) {
+
+				bool includeLegacy = (lowerCaseBodyPart.compare(
+						"allwithlegacy") == 0);
 
 				// Add all body parts
 				allowedBodyPartTypeStrings.clear();
@@ -474,7 +478,11 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				for(std::map<char, std::string>::const_iterator
 						it = PART_TYPE_MAP.begin();
 						it != PART_TYPE_MAP.end(); ++it) {
-					allowedBodyPartTypeStrings.push_back(it->second);
+					if (includeLegacy ||
+							LEGACY_PART_TYPE_MAP.count(it->first) == 0) {
+						allowedBodyPartTypeStrings.push_back(it->second);
+						std::cout << it->first << " " << it->second << std::endl;
+					}
 				}
 
 			}
