@@ -104,6 +104,8 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 
 	obstaclesRemoved_ = false;
 
+	double overlapMaxZ=minZ;
+
 	for (unsigned int i = 0; i < c.size(); ++i) {
 		boost::shared_ptr<BoxObstacle> obstacle(
 									new BoxObstacle(odeWorld, odeSpace, c[i],
@@ -144,10 +146,27 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 		if (!(inRangeX && inRangeY && inRangeZ)) {
 			environment_->addObstacle(obstacle);
 		} else {
-			obstacle->remove();
-			obstaclesRemoved_ = true;
+			if (robogenConfig_->getObstacleOverlapPolicy() ==
+					RobogenConfig::ELEVATE_ROBOT) {
+
+				if (oMaxZ > overlapMaxZ)
+					overlapMaxZ = oMaxZ;
+				environment_->addObstacle(obstacle);
+
+			} else {
+				obstacle->remove();
+				obstaclesRemoved_ = true;
+			}
 		}
 
+	}
+
+	if (robogenConfig_->getObstacleOverlapPolicy() ==
+			RobogenConfig::ELEVATE_ROBOT) {
+
+		robot->translateRobot(
+				osg::Vec3(startingPosition.x(), startingPosition.y(),
+						overlapMaxZ + inMm(2) - minZ));
 	}
 
 	// Setup light sources

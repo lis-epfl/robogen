@@ -227,12 +227,12 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	try{
 		boost::program_options::store(
 					boost::program_options::parse_config_file<char>(
-							confFileName.c_str(), desc, true), vm);
+							confFileName.c_str(), desc, false), vm);
 		boost::program_options::notify(vm);
 	}
 	catch (boost::program_options::error& e) {
-		std::cerr << "Error while processing options: " << e.what() <<
-				std::endl;
+		std::cerr << "Error while processing evolver configuration: "
+				<< e.what() << std::endl;
 		return false;
 	}
 

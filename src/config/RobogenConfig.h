@@ -46,6 +46,10 @@ class RobogenConfig {
 
 public:
 
+	enum ObstacleOverlapPolicies {
+		REMOVE_OBSTACLES, CONSTRAINT_VIOLATION, ELEVATE_ROBOT
+	};
+
 	/**
 	 * Initializes a robogen config object from configuration parameters
 	 */
@@ -63,7 +67,7 @@ public:
 			bool capAcceleration, float maxLinearAcceleration,
 			float maxAngularAcceleration, int maxDirectionShiftsPerSecond,
 			osg::Vec3 gravity, bool disallowObstacleCollisions,
-			bool disallowObstacleRemoval) :
+			unsigned int obstacleOverlapPolicy) :
 				scenario_(scenario), scenarioFile_(scenarioFile),
 				timeSteps_(timeSteps),
 				timeStepLength_(timeStepLength),
@@ -82,7 +86,7 @@ public:
 				maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond),
 				gravity_(gravity),
 				disallowObstacleCollisions_(disallowObstacleCollisions),
-				disallowObstacleRemoval_(disallowObstacleRemoval) {
+				obstacleOverlapPolicy_(obstacleOverlapPolicy) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -255,8 +259,8 @@ public:
 	/**
 	 * return if should disallow obstacle remove
 	 */
-	bool isDisallowObstacleRemoval() {
-		return disallowObstacleRemoval_;
+	unsigned int getObstacleOverlapPolicy() {
+		return obstacleOverlapPolicy_;
 	}
 
 	/**
@@ -279,7 +283,7 @@ public:
 		ret.set_gravityy(gravity_.y());
 		ret.set_gravityz(gravity_.z());
 		ret.set_disallowobstaclecollisions(disallowObstacleCollisions_);
-		ret.set_disallowobstacleremoval(disallowObstacleRemoval_);
+		ret.set_obstacleoverlappolicy(obstacleOverlapPolicy_);
 
 		terrain_->serialize(ret);
 
@@ -400,9 +404,10 @@ private:
 	bool disallowObstacleCollisions_;
 
 	/**
-	 * flag to disallow obstacle removal
+	 * policy for handling the situation when an obstacle is in the robot's
+	 * initial AABB
 	 */
-	bool disallowObstacleRemoval_;
+	unsigned int obstacleOverlapPolicy_;
 };
 
 }

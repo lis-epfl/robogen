@@ -58,7 +58,7 @@ BoxObstacle::BoxObstacle(dWorldID odeWorld, dSpaceID odeSpace,
 
 	if (rotationAngle >= RobogenUtils::OSG_EPSILON_2){
 		osg::Quat rotation;
-		rotation.makeRotate(rotationAngle,rotationAxis);
+		rotation.makeRotate(osg::DegreesToRadians(rotationAngle),rotationAxis);
 		dQuaternion quatOde;
 		quatOde[0] = rotation.w();
 		quatOde[1] = rotation.x();

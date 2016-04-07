@@ -174,10 +174,12 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			return SIMULATION_FAILURE;
 		}
 
-		if(configuration->isDisallowObstacleRemoval() &&
+		if((configuration->getObstacleOverlapPolicy() ==
+				RobogenConfig::CONSTRAINT_VIOLATION) &&
 				scenario->wereObstaclesRemoved()) {
-			std::cout << "Obstacles were removed, will return min fitness" <<
-					std::endl;
+			std::cout << "Using 'contraintViolation' obstacle overlap policy,"
+					<< " and ostacles were removed, so will return min fitness."
+					<< std::endl;
 			constraintViolated = true;
 			break;
 		}

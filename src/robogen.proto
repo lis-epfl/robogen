@@ -105,7 +105,7 @@ message SimulatorConf {
   required float terrainHeight = 21;
   required string terrainHeightFieldFileName = 22;
   required bool disallowObstacleCollisions = 23;
-  required bool disallowObstacleRemoval = 24;
+  required uint32 obstacleOverlapPolicy = 24;
   
 }
 

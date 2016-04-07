@@ -239,6 +239,10 @@ void printUsage(char *argv[]) {
 			<< " than requested speed." << std::endl << std::endl << std::endl;
 }
 
+void printHelp() {
+	ConfigurationReader::parseConfigurationFile("help");
+}
+
 /**
  * Decodes a robot saved on file and visualize it
  */
@@ -252,6 +256,7 @@ int main(int argc, char *argv[]) {
 
 	if (argc > 1 && std::string(argv[1]) == "--help") {
 		printUsage(argv);
+		printHelp();
 		exitRobogen(EXIT_SUCCESS);
 	}
 
@@ -308,6 +313,7 @@ int main(int argc, char *argv[]) {
 	for (; currentArg < argc; currentArg++) {
 		if (std::string("--help").compare(argv[currentArg]) == 0) {
 			printUsage(argv);
+			printHelp();
 			exitRobogen(EXIT_FAILURE);
 		} else if (std::string("--record").compare(argv[currentArg]) == 0) {
 			if (argc < (currentArg + 3)) {

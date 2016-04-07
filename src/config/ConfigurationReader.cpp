@@ -71,6 +71,17 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	boost::program_options::options_description desc(
 			"Allowed options for Simulation Config File");
 	desc.add_options()
+			("scenario",
+					boost::program_options::value<std::string>(),
+					"Experiment scenario: (racing, chasing, "
+					"or a provided js file)")
+			("timeStep", boost::program_options::value<float>(),
+					"Time step duration (s)")
+			("nTimeSteps", boost::program_options::value<unsigned int>(),
+					"Number of timesteps (Either this or simulationTime are required)")
+			("simulationTime", boost::program_options::value<float>(),
+					"Length of simulation (s)  (Either this or nTimeSteps "\
+					"are required)")
 			("terrainType",
 					boost::program_options::value<std::string>(),
 					"Terrain type: flat or rugged")
@@ -87,15 +98,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					"Terrain Friction Coefficient")
 			("obstaclesConfigFile", boost::program_options::value<std::string>(),
 					"Obstacles configuration file")
-			("scenario", boost::program_options::value<std::string>(),
-					"Experiment scenario: (racing, chasing, "
-											"or a provided js file)")
 			("lightSourcesConfigFile", boost::program_options::value<std::string>(),
 					"Light sources configuration file")
-			("timeStep", boost::program_options::value<float>(),
-					"Time step duration (s)")
-			("nTimeSteps", boost::program_options::value<unsigned int>(),
-					"Number of timesteps")
 			("actuationFrequency",boost::program_options::value<int>(),
 					"Actuation Frequency (Hz)")
 			("sensorNoiseLevel",boost::program_options::value<float>(),
@@ -137,14 +141,17 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					"Flag to enforce no obstacle collisions."\
 					"  Any obstacle collision will be considered a constraint"\
 					" violation. (default false).")
-			("disallowObstacleRemoval",
-					boost::program_options::value<bool>(),
-					"Flag to enforce no obstacle removal."\
-					" If false any obstacle enclosed in the robot's initial"\
-					" axis aligned bounding box, will be removed, and the"\
-					" simulation will proceed.  If true, this will result in "\
-					" a constraint violation and the simulation will be "\
-					" terminated. (default to disallowObstacleCollisions)")
+			("obstacleOverlapPolicy",
+					boost::program_options::value<std::string>(),
+					"Defines the policy for handling obstacles "
+					" enclosed in the robot's initial"\
+					" axis aligned bounding box.  Options are\n"\
+					"\t'removeObstacles' -- obstacles will be removed,"\
+					" and the simulation will proceed (default).\n"\
+					"\t'constraintViolation' -- the simulation will be"\
+					" terminated with a constrain violation.\n"\
+					"\t'elevateRobot' -- the robot will be elevated to be"\
+					" above all obstacles.\n")
 			;
 
 	if (fileName == "help") {
@@ -157,11 +164,11 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	try {
 		boost::program_options::store(
 			boost::program_options::parse_config_file<char>(fileName.c_str(),
-					desc, true), vm);
+					desc, false), vm);
 		boost::program_options::notify(vm);
 	} catch (std::exception &e) {
-		std::cerr << e.what()
-				<< std::endl;
+		std::cerr << "Error while processing simulator configuration: "
+					<< e.what() << std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
 
@@ -357,13 +364,31 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		return boost::shared_ptr<RobogenConfig>();
 	}
 	float timeStep = vm["timeStep"].as<float>();
+	int timeStepTmp = boost::math::iround (timeStep * 100000);
 
-	if (!vm.count("nTimeSteps")) {
-		std::cerr << "Undefined 'nTimesteps' parameter in '" << fileName << "'"
-				<< std::endl;
+	if (!vm.count("nTimeSteps") && !vm.count("simulationTime")) {
+		std::cerr << "Either 'nTimesteps' or 'simulationTime' is required "
+				<< "in '" << fileName << "'" << std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
-	unsigned int nTimesteps = vm["nTimeSteps"].as<unsigned int>();
+	if (vm.count("nTimeSteps") && vm.count("simulationTime")) {
+		std::cerr << "Only one of 'nTimesteps' or 'simulationTime' should "
+				<< "be specified in '" << fileName << "'" << std::endl;
+		return boost::shared_ptr<RobogenConfig>();
+	}
+	unsigned int nTimeSteps;
+	if (vm.count("nTimeSteps")){
+		nTimeSteps = vm["nTimeSteps"].as<unsigned int>();
+	} else {
+		int simulationTimeTmp = boost::math::iround (
+						vm["simulationTime"].as<float>() * 100000);
+		if ((simulationTimeTmp % timeStepTmp) != 0) {
+			std::cerr << "'simulationTime' must be a multiple "
+					<< "of 'timeStep'" << std::endl;
+			return boost::shared_ptr<RobogenConfig>();
+		}
+		nTimeSteps = simulationTimeTmp / timeStepTmp;
+	}
 
 	int actuationPeriod;
 	if (!vm.count("actuationFrequency")) {
@@ -374,7 +399,6 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	} else {
 		int actuationFrequencyTmp = boost::math::iround (
 				(1.0/((float)vm["actuationFrequency"].as<int>())) * 100000);
-		int timeStepTmp = boost::math::iround (timeStep * 100000);
 		if ((actuationFrequencyTmp % timeStepTmp) != 0) {
 			std::cerr << "Inverse of 'actuationFrequency' must be a multiple "
 					<< "of 'timeStep'" << std::endl;
@@ -445,14 +469,28 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		disallowObstacleCollisions = vm["disallowObstacleCollisions"
 		                                ].as<bool>();
 	}
-	bool disallowObstacleRemoval = disallowObstacleCollisions;
-	if(vm.count("disallowObstacleRemoval")) {
-		disallowObstacleRemoval = vm["disallowObstacleRemoval"
-										].as<bool>();
+
+	unsigned int obstacleOverlapPolicy;
+
+	if((!vm.count("obstacleOverlapPolicy")) ||
+			(vm["obstacleOverlapPolicy"].as<std::string>() ==
+					"removeObstacles")) {
+		obstacleOverlapPolicy = RobogenConfig::REMOVE_OBSTACLES;
+	} else if(vm["obstacleOverlapPolicy"].as<std::string>() ==
+					"constraintViolation") {
+		obstacleOverlapPolicy = RobogenConfig::CONSTRAINT_VIOLATION;
+	} else if(vm["obstacleOverlapPolicy"].as<std::string>() ==
+			"elevateRobot") {
+		obstacleOverlapPolicy = RobogenConfig::ELEVATE_ROBOT;
+	} else {
+		std::cerr << "Invalid value: '" <<
+				vm["obstacleOverlapPolicy"].as<std::string>() <<
+				"' given for 'obstacleOverlapPolicy'" << std::endl;
+		return boost::shared_ptr<RobogenConfig>();
 	}
 
 	return boost::shared_ptr<RobogenConfig>(
-			new RobogenConfig(scenario, scenarioFile, nTimesteps,
+			new RobogenConfig(scenario, scenarioFile, nTimeSteps,
 					timeStep, actuationPeriod, terrain,
 					obstacles, obstaclesConfigFile, startPositions,
 					startPositionFile, lightSources, lightSourcesFile,
@@ -460,7 +498,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					motorNoiseLevel, capAcceleration, maxLinearAcceleration,
 					maxAngularAcceleration, maxDirectionShiftsPerSecond,
 					gravity, disallowObstacleCollisions,
-					disallowObstacleRemoval));
+					obstacleOverlapPolicy));
 
 }
 
@@ -742,7 +780,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 							  simulatorConf.gravityy(),
 							  simulatorConf.gravityz()),
 					simulatorConf.disallowobstaclecollisions(),
-					simulatorConf.disallowobstacleremoval()
+					simulatorConf.obstacleoverlappolicy()
 					));
 
 }
