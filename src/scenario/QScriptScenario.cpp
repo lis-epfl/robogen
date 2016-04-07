@@ -143,7 +143,13 @@ bool QScriptScenario::setupSimulation() {
 
 	if(implementedMethods_["setupSimulation"]) {
 		QScriptValue function = userScenario_.property("setupSimulation");
-		return function.call(userScenario_).toBool();
+		QScriptValue resultValue = function.call(userScenario_);
+		if(engine_->hasUncaughtException()) {
+			std::cerr << resultValue.toString().toStdString() << std::endl;
+			return false;
+		} else {
+			return resultValue.toBool();
+		}
 	}
 
 
@@ -153,7 +159,13 @@ bool QScriptScenario::setupSimulation() {
 bool QScriptScenario::afterSimulationStep() {
 	if(implementedMethods_["afterSimulationStep"]) {
 		QScriptValue function = userScenario_.property("afterSimulationStep");
-		return function.call(userScenario_).toBool();
+		QScriptValue resultValue = function.call(userScenario_);
+		if(engine_->hasUncaughtException()) {
+			std::cerr << resultValue.toString().toStdString() << std::endl;
+			return false;
+		} else {
+			return resultValue.toBool();
+		}
 	}
 	return true;
 }
@@ -162,7 +174,13 @@ bool QScriptScenario::endSimulation() {
 	bool result = true;
 	if(implementedMethods_["endSimulation"]) {
 		QScriptValue function = userScenario_.property("endSimulation");
-		result = function.call(userScenario_).toBool();
+		QScriptValue resultValue = function.call(userScenario_);
+		if(engine_->hasUncaughtException()) {
+			std::cerr << resultValue.toString().toStdString() << std::endl;
+			result = false;
+		} else {
+			result = resultValue.toBool();
+		}
 	}
 
 	curTrial_++;
@@ -184,7 +202,13 @@ int QScriptScenario::getCurTrial() const {
 
 double QScriptScenario::getFitness() {
 	QScriptValue function = userScenario_.property("getFitness");
-	return function.call(userScenario_).toNumber();
+	QScriptValue resultValue = function.call(userScenario_);
+	if(engine_->hasUncaughtException()) {
+		std::cerr << resultValue.toString().toStdString() << std::endl;
+		return NAN;
+	} else {
+		return resultValue.toNumber();
+	}
 }
 
 bool QScriptScenario::isValidFunction(std::string name) {
