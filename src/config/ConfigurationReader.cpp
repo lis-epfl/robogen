@@ -96,6 +96,9 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					"Terrain length")
 			("terrainFriction",boost::program_options::value<float>(),
 					"Terrain Friction Coefficient")
+			("startPositionConfigFile",
+					boost::program_options::value<std::string>(),
+					"Start Positions Configuration File")
 			("obstaclesConfigFile", boost::program_options::value<std::string>(),
 					"Obstacles configuration file")
 			("lightSourcesConfigFile", boost::program_options::value<std::string>(),
@@ -127,9 +130,6 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					"Maximum number of direction shifts per second"\
 					" for testing motor burnout.  If not set, then there is no"\
 					" cap")
-			("startPositionConfigFile",
-					boost::program_options::value<std::string>(),
-					"Start Positions Configuration File")
 			("gravity",
 					boost::program_options::value<std::string>(),
 					"Gravity: either a single z-value for g=(0,0,z)"\
@@ -138,20 +138,20 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					" Defaults to (0,0,-9.81)")
 			("disallowObstacleCollisions",
 					boost::program_options::value<bool>(),
-					"Flag to enforce no obstacle collisions."\
-					"  Any obstacle collision will be considered a constraint"\
+					"Flag to enforce no obstacle collisions.  If true then "\
+					"any obstacle collision will be considered a constraint"\
 					" violation. (default false).")
 			("obstacleOverlapPolicy",
 					boost::program_options::value<std::string>(),
 					"Defines the policy for handling obstacles "
 					" enclosed in the robot's initial"\
-					" axis aligned bounding box.  Options are\n"\
+					" axis aligned bounding box (AABB).  Options are\n"\
 					"\t'removeObstacles' -- obstacles will be removed,"\
 					" and the simulation will proceed (default).\n"\
 					"\t'constraintViolation' -- the simulation will be"\
 					" terminated with a constrain violation.\n"\
 					"\t'elevateRobot' -- the robot will be elevated to be"\
-					" above all obstacles.\n")
+					" above all obstacles before the simulation begins.\n")
 			;
 
 	if (fileName == "help") {
