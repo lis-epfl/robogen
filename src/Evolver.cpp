@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
+ * Copyright © 2013-2016 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -323,9 +323,10 @@ void mainEvolutionLoop() {
 	}
 
 	generation++;
-	std::cout << "Generation " << generation << std::endl;
+
 
 	if (generation <= conf->numGenerations) {
+		std::cout << "Generation " << generation << std::endl;
 		children.clear();
 
 		// create children

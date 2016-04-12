@@ -6,7 +6,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
+ * Copyright © 2013-2016 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -46,6 +46,7 @@
 #include "PartList.h"
 #include "utils/json2pb/json2pb.h"
 #include "utils/RobogenUtils.h"
+#include "brain/NeuralNetwork.h"
 
 namespace robogen {
 
@@ -492,18 +493,25 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	// add new neurons
 
 	while (robotTextFileReadAddNeuronLine(file, id, neuronType)) {
-		std::string neuronId = neuralNetwork_->insertNeuron(ioPair(id,
-				neuralNetwork_->getBodyPartNeurons(id).size()),
-				NeuronRepresentation::HIDDEN, neuronType);
-		std::cout << "added hidden neuron "  << neuronId << " with type "
-				<< neuronType << std::endl;
+		if (neuralNetwork_->getNumHidden() < MAX_HIDDEN_NEURONS) {
+			std::string neuronId = neuralNetwork_->insertNeuron(ioPair(id,
+					neuralNetwork_->getBodyPartNeurons(id).size()),
+					NeuronRepresentation::HIDDEN, neuronType);
+			std::cout << "added hidden neuron "  << neuronId << " with type "
+					<< neuronType << std::endl;
+		} else {
+			std::cerr << "The number of specified hidden neurons is more than "
+					<< MAX_HIDDEN_NEURONS << ", which is the maximuma allowed."
+					<< std::endl;
+			return false;
+		}
 	}
 
 	// weights
 	while (robotTextFileReadWeightLine(file, from, fromIoId, to, toIoId,
 			value)) {
 		if (!neuralNetwork_->setWeight(from, fromIoId, to, toIoId, value)) {
-			std::cout << "Failed to set weight" << std::endl;
+			std::cerr << "Failed to set weight" << std::endl;
 			return false;
 		}
 	}
@@ -513,7 +521,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 
 	while (robotTextFileReadParamsLine(file, to, toIoId, neuronType, params)) {
 		if (!neuralNetwork_->setParams(to, toIoId, neuronType, params)) {
-			std::cout << "Failed to set neuron params" << std::endl;
+			std::cerr << "Failed to set neuron params" << std::endl;
 			return false;
 		}
 		params.clear();

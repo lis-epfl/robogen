@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
+ * Copyright © 2013-2016 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -116,6 +116,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 
 	pOscillatorNeuron = 0.0;
+	pAddHiddenNeuron = 0.0;
 
 	pBrainCrossover = 0.0;
 
@@ -204,11 +205,17 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				boost::program_options::value<double>(
 				&pBrainCrossover),
 				"Probability of crossover among brains")
-		("pOscillatorNeuron",
+		("pAddHiddenNeuron",
 				boost::program_options::value<double>(
-				&pOscillatorNeuron),
-				"Probability of new neuron being oscillator"
+				&pAddHiddenNeuron),
+				"Probability of adding a hidden neuron (currently only works "\
+				"if pBrainCrossover==0.0"
 		)
+		("pOscillatorNeuron",
+					boost::program_options::value<double>(
+					&pOscillatorNeuron),
+					"Probability of new neuron being oscillator"
+			)
 		("numInitialParts", boost::program_options::value<std::string>(),
 				"Number of initial body parts (not "\
 				"including core component). Format: min:max")
@@ -447,6 +454,18 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		return false;
 	}
 
+	if (pAddHiddenNeuron > 1. || pAddHiddenNeuron < 0. ) {
+		std::cerr << "Add hidden neuron probability parameter " <<
+				pAddHiddenNeuron << " not between 0 and 1!" << std::endl;
+		return false;
+	}
+
+	if (pAddHiddenNeuron > 0. && pBrainCrossover > 0. ) {
+		std::cerr << "Currently cannot have both pAddHiddenNeuron and "
+				<< "pBrainCrossover both greater than 0." << std::endl;
+		return false;
+	}
+
 	for(unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		if (bodyOperatorProbability[i] > 1. || bodyOperatorProbability[i] < 0.){
 			std::cerr << BodyMutationOperatorsProbabilityCodes[i] <<
@@ -532,6 +551,12 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		if ( allowedBodyPartTypes.size() == 0) {
 			std::cerr << "If evolving bodies then need to define at least " <<
 					"one allowed body part to add." << std::endl;
+			return false;
+		}
+
+		if ( pBrainCrossover > 0.) {
+			std::cerr << "Currently brain crossover is not allowed when " <<
+					"evolving bodies." << std::endl;
 			return false;
 		}
 	}

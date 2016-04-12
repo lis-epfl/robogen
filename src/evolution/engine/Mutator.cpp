@@ -6,7 +6,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2015 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
+ * Copyright © 2013-2016 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -67,6 +67,10 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 				boost::random::bernoulli_distribution<double>(
 						conf->bodyOperatorProbability
 						[EvolverConfiguration::PARAMETER_MODIFICATION]);
+
+		addHiddenNeuronDist_ = boost::random::bernoulli_distribution<double>(
+				conf->pAddHiddenNeuron);
+
 		oscillatorNeuronDist_ = boost::random::bernoulli_distribution<double>(
 				conf->pOscillatorNeuron);
 	}
@@ -206,6 +210,25 @@ double clip(double value, double min, double max) {
 
 bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 	bool mutated = false;
+
+	// first potentially add hidden neurons
+	if ((robot->getBrain()->getNumHidden() < MAX_HIDDEN_NEURONS) &&
+			addHiddenNeuronDist_(rng_)) {
+		unsigned int neuronType = NeuronRepresentation::SIGMOID;
+		if (oscillatorNeuronDist_(rng_)) {
+			neuronType = NeuronRepresentation::OSCILLATOR;
+		}
+		std::string neuronId = robot->getBrain()->insertNeuron(
+				ioPair(robot->getBodyRootId(),
+										robot->getBrain()->getBodyPartNeurons(
+												robot->getBodyRootId()).size()),
+							NeuronRepresentation::HIDDEN, neuronType);
+		mutated = true;
+	}
+
+	// TODO allow removing hidden neurons???
+
+
 	std::vector<double*> weights;
 	std::vector<double*> params;
 	std::vector<unsigned int> types;
