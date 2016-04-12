@@ -12,8 +12,8 @@ def get_part(id_, body) :
         if part["id"] == id_ :
             return part
 
-def fix_param(val) :
-    return round(val * 10000)/10000.0
+#def fix_param(val) :
+#    return round(val * 10000)/10000.0
 
 
 def write_part(output, part, body, indentation_level=0) :
@@ -40,7 +40,7 @@ def write_part(output, part, body, indentation_level=0) :
     if "evolvableParam" in part :
         for param in part["evolvableParam"] :
             output.write(" ")
-            output.write(str(fix_param(param["paramValue"])))
+            output.write(str(param["paramValue"]))
     output.write("\n")
     if "connection" in body :
         for connection in body["connection"] :
@@ -52,7 +52,19 @@ def write_body(output, body):
     write_part(output, get_root(body), body)
         
 def write_brain(output, brain):
-    if "connection" in brain: #i no motors then no connections
+
+    # first need to write add-hidden-neuron lines
+    if "neuron" in brain :
+        for neuron in brain["neuron"] :
+            if neuron["layer"] == "hidden" :
+                output.write(neuron["bodyPartId"])
+                output.write(" ")
+                output.write(neuron["type"])
+                output.write("\n")
+    output.write("\n")
+
+    # then connection weights
+    if "connection" in brain:
         for connection in brain["connection"] :
             #print connection["weight"]
             output.write(connection["src"].split("-")[0])
@@ -67,6 +79,7 @@ def write_brain(output, brain):
             output.write("\n")
     output.write("\n")
     
+    # then params/biases
     if "neuron" in brain :
         for neuron in brain["neuron"] :
             if neuron["layer"] != "input" :
@@ -95,7 +108,7 @@ if __name__ == "__main__":
     
     output = open(sys.argv[2], "w")
     write_body(output, robot["body"])    
-    output.write("\n\n") 
+    output.write("\n") 
     if "brain" in robot :
         write_brain(output, robot["brain"])
     
