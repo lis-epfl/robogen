@@ -184,10 +184,22 @@ Then, from Visual Studio open the solution "RoboGen.sln" that can be found in RO
 ### Generating projects for your IDE (Eclipse, Visual Studio, etc.)
 
 Using CMAKE you can also generate projects for different IDEs. 
-For example, to generate a project that can be imported in eclipse
+For example, you can generate a project that can be imported in eclipse.
 
+On ubuntu:
+    sudo apt-get install eclipse eclipse-cdt
+
+For other OSes, download the “Eclipse IDE for C/C++ Developers” from http://www.eclipse.org/downloads/ .
+
+Then run:
     cd ROBOGEN_HOME/build
     cmake -DCMAKE_BUILD_TYPE=Debug -G"Eclipse CDT4 - Unix Makefiles" ../src
+
+If successful, you can now import the robogen project into any Eclipse workspace by selecting “File”->”Import”->”General”->”Existing projects into workspace”. Select robogen/build as the root directory and click “finish”.
+
+You will now be able to compile the code from Eclipse or by simply typing in robogen/build:
+
+    make -j3
 
 Please check the CMAKE manual for the correct command to generate projects for other IDEs.
 
