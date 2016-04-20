@@ -38,7 +38,8 @@
 namespace robogen {
 
 Scenario::Scenario(boost::shared_ptr<RobogenConfig> robogenConfig) :
-		robogenConfig_(robogenConfig), startPositionId_(0) {
+		robogenConfig_(robogenConfig), startPositionId_(0),
+		stopSimulationNow_(false) {
 
 }
 
@@ -55,6 +56,8 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 	if(!environment_->init()) {
 		return false;
 	}
+
+	stopSimulationNow_ = false;
 
 
 	robot_ = robot;

@@ -73,6 +73,10 @@ QScriptValue QSensor::read() {
 	return basePtr_.lock()->read();
 }
 
+QScriptValue QSensor::getType() {
+	return QString::fromStdString(RobogenUtils::getSensorType(basePtr_.lock()));
+}
+
 // QModel
 
 QModel::QModel(boost::weak_ptr<Model> basePtr) : basePtr_(basePtr) {
@@ -91,6 +95,24 @@ QScriptValue QModel::getRootAttitude() {
 
 QScriptValue QModel::getType() {
 	return QString::fromStdString(RobogenUtils::getPartType(basePtr_.lock()));
+}
+
+QScriptValue QModel::getSensors() {
+	boost::shared_ptr<Model> model = basePtr_.lock();
+	if (!sensors_.isValid()) {
+		std::vector<boost::shared_ptr<Sensor> > sensors;
+		if( boost::dynamic_pointer_cast<PerceptiveComponent>(model) ) {
+			boost::dynamic_pointer_cast<PerceptiveComponent>(model
+													)->getSensors(sensors);
+		}
+		sensors_ = engine()->newArray(sensors.size());
+		for(size_t i = 0; i<sensors.size(); ++i) {
+			sensors_.setProperty(i,  engine()->newQObject(
+					new QSensor(sensors[i]),
+					QScriptEngine::ScriptOwnership));
+		}
+	}
+	return sensors_;
 }
 
 

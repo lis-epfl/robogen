@@ -191,11 +191,21 @@ emscripten::val toArray(std::vector<VectorType> v) {
 	return result;
 }
 
+
+emscripten::val getModelSensors(boost::shared_ptr<Model> model) {
+	std::vector<boost::shared_ptr<Sensor> > sensors;
+	if( boost::dynamic_pointer_cast<PerceptiveComponent>(model) ) {
+		boost::dynamic_pointer_cast<PerceptiveComponent>(model
+												)->getSensors(sensors);
+	}
+	return toArray< boost::shared_ptr<Sensor> >(sensors);
+}
+
 emscripten::val getBodyParts(boost::shared_ptr<Robot> robot) {
 	return toArray< boost::shared_ptr<Model> >(robot->getBodyParts());
 }
 
-emscripten::val getSensors(boost::shared_ptr<Robot> robot) {
+emscripten::val getRobotSensors(boost::shared_ptr<Robot> robot) {
 	return toArray< boost::shared_ptr<Sensor> >(robot->getSensors());
 }
 
@@ -204,7 +214,8 @@ emscripten::val getMotors(boost::shared_ptr<Robot> robot) {
 }
 
 emscripten::val getLightSources(boost::shared_ptr<Environment> environment) {
-	return toArray< boost::shared_ptr<LightSource> >(environment->getLightSources());
+	return toArray< boost::shared_ptr<LightSource> >(
+										environment->getLightSources());
 }
 
 emscripten::val getObstacles(boost::shared_ptr<Environment> environment) {
@@ -240,6 +251,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.smart_ptr<boost::shared_ptr<Model> >("shared_ptr<Model>")
 		.function("getRootPosition", &Model::getRootPosition)
 		.function("getRootAttitude", &Model::getRootAttitude)
+		.function("getSensors", &getModelSensors)
 		.function("getType", &RobogenUtils::getPartType)
 		;
 
@@ -247,6 +259,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.smart_ptr<boost::shared_ptr<Sensor> >("shared_ptr<Sensor>")
 		.function("getLabel", &Sensor::getLabel)
 		.function("read", &Sensor::read)
+		.function("getType", &RobogenUtils::getSensorType)
 		;
 
 	emscripten::class_<Motor>("Motor")
@@ -260,7 +273,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.smart_ptr<boost::shared_ptr<Robot> >("shared_ptr<Robot>")
 		.function("getBodyParts", &getBodyParts)
 		.function("getCoreComponent", &Robot::getCoreComponent)
-		.function("getSensors", &getSensors)
+		.function("getSensors", &getRobotSensors)
 		.function("getMotors", &getMotors)
 		;
 
@@ -268,6 +281,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::class_<Scenario>("Scenario")
 		.function("getRobot", &Scenario::getRobot)
 		.function("getEnvironment", &Scenario::getEnvironment)
+		.function("stopSimulationNow", &Scenario::stopSimulationNow)
 		;
 
 	emscripten::class_<JSScenario, emscripten::base<Scenario>>("JSScenario")

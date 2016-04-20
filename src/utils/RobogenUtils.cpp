@@ -444,6 +444,23 @@ boost::shared_ptr<RenderModel> RobogenUtils::createRenderModel(
 	return boost::shared_ptr<RenderModel>();
 }
 
+std::string RobogenUtils::getSensorType(boost::shared_ptr<Sensor> sensor) {
+	if (boost::dynamic_pointer_cast<ImuSensorElement>(sensor)) {
+		return SENSOR_TYPE_IMU_SENSOR_ELEMENT;
+	} else if (boost::dynamic_pointer_cast<LightSensor>(sensor)) {
+		return SENSOR_TYPE_LIGHT_SENSOR;
+#ifdef IR_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<IrSensorElement>(sensor)) {
+		return SENSOR_TYPE_IR_SENSOR_ELEMENT;
+#endif
+
+#ifdef TOUCH_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<TouchSensor>(sensor)) {
+		return SENSOR_TYPE_TOUCH_SENSOR;
+#endif
+	}
+	return "";
+}
 
 std::string RobogenUtils::getPartType(boost::shared_ptr<Model> model) {
 

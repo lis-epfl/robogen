@@ -401,6 +401,12 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 				return SIMULATION_FAILURE;
 			}
 
+			if (scenario->shouldStopSimulationNow()) {
+				std::cout << "Scenario has stopped the simulation!"
+						<< std::endl;
+				break;
+			}
+
 			if(log) {
 				log->logPosition(
 					scenario->getRobot(

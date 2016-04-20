@@ -73,6 +73,7 @@ public slots:
 	QScriptValue getEnvironment() { return qEnvironment_; }
 	virtual int getCurTrial() const;
 	float vectorDistance(QScriptValue vector1, QScriptValue vector2);
+	void stopSimulationNow() { Scenario::stopSimulationNow(); }
 
 
 private:

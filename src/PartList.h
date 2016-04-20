@@ -64,6 +64,9 @@ namespace robogen {
 #define PART_TYPE_LIGHT_SENSOR 		"LightSensor"
 #define PART_TYPE_PARAM_JOINT 		"ParametricJoint"
 
+#define SENSOR_TYPE_IMU_SENSOR_ELEMENT	"ImuSensorElement"
+#define SENSOR_TYPE_LIGHT_SENSOR		"LightSensor"
+
 #ifdef ALLOW_CARDANS
 	#define PART_TYPE_PASSIVE_CARDAN 	"PassiveCardan"
 #endif
@@ -76,10 +79,12 @@ namespace robogen {
 
 #ifdef IR_SENSORS_ENABLED
 	#define PART_TYPE_IR_SENSOR			"IrSensor"
+	#define SENSOR_TYPE_IR_SENSOR_ELEMENT	"IrSensor"
 #endif
 
 #ifdef TOUCH_SENSORS_ENABLED
 	#define PART_TYPE_TOUCH_SENSOR 		"TouchSensor"
+	#define SENSOR_TYPE_TOUCH_SENSOR 		"TouchSensor"
 #endif
 
 extern const std::map<char, std::string> LEGACY_PART_TYPE_MAP;

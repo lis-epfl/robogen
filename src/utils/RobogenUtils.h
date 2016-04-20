@@ -73,6 +73,8 @@ public:
 	static boost::shared_ptr<RenderModel> createRenderModel(
 			boost::shared_ptr<Model> model);
 
+	static std::string getSensorType(boost::shared_ptr<Sensor> sensor);
+
 	static std::string getPartType(boost::shared_ptr<Model> model);
 
 	static std::string getMeshFile(boost::shared_ptr<Model> model,
