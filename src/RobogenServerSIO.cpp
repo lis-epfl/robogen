@@ -203,7 +203,7 @@ void bind_events(socket::ptr &socket)
 				}));
 }
 
-int main(int argc ,const char* args[])
+int main(int argc ,const char* argv[])
 {
 
 	rng.seed(3000);
