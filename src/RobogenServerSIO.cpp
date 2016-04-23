@@ -217,7 +217,7 @@ int main(int argc ,const char* argv[])
 		std::cerr << "you must provide a server url" << std::endl;
 		exit(1);
 	}
-	h.connect(args[1]);
+	h.connect(argv[1]);
 	current_socket = h.socket();
 	bind_events(current_socket);
 	_lock.lock();
@@ -230,6 +230,10 @@ int main(int argc ,const char* argv[])
 	// declare capabilities (1 thread)
 	capabilities->get_map()["totalNodes"] = int_message::create(1);
 	current_socket->emit("computationDeclaration", capabilities);
+	message::ptr group = object_message::create();
+	group->get_map()["id"] = string_message::create("amazon");
+  current_socket->emit("joinGroup", group);
+  std::cout << "Join amazon group" << std::endl;
 	_lock.lock();
 	_cond.wait(_lock);
 	_lock.unlock();
