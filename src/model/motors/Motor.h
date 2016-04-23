@@ -31,6 +31,7 @@
 #define ROBOGEN_MOTOR_H_
 
 #include "evolution/representation/NeuralNetworkRepresentation.h"
+#include "model/Joint.h"
 
 namespace robogen {
 
@@ -38,14 +39,103 @@ class Motor {
 	
 public:
 	
-	Motor(ioPair id);
+	/**
+	 * constructor
+	 *
+	 * @param id id of the motor
+	 * @param joint pointer to the joint container
+	 * @param maxForce the maximum force the motor can produce
+	 * @param maxDirectionShiftsPerSecond, used for testing motor burn out
+	 *			default is -1, which means no motor burnout is tested
+	*/
+	Motor(ioPair id, boost::shared_ptr<Joint> joint, float maxForce,
+			int maxDirectionShiftsPerSecond=-1);
 
+	/**
+	 * destructor
+	 *
+	*/
 	virtual ~Motor() {}
 
+	/**
+	 * get the id of this motor
+	 *
+	 * @param stepSize the physics stepSize
+	*/
 	ioPair getId();
 
-private:
+	/**
+	 * Set the maxDirectionShifts per second for testing motor burn out
+	 * without an argument, will be set to -1 = disabled
+	 *
+	 * @param maxDirectionShiftsPerSecond max number of direction shifts to
+	 * 			tolerate per second of simulated time
+	 */
+	void setMaxDirectionShiftsPerSecond(int maxDirectionShiftsPerSecond=-1);
+
+
+	/**
+	 * step the motor using the latest control signal
+	 *
+	 * @param stepSize the physics stepSize
+	*/
+	virtual void step(float stepSize) = 0;
+
+
+
+	/**
+	 * @return whether the motor is burnt out or not
+	 */
+	bool isBurntOut();
+
+	dReal getTorque();
+	dReal getVelocity();
+	dReal getPosition();
+
+
+protected:
+
 	ioPair id_;
+
+	/**
+	 * Keep track of previous motor signals,
+	 * to be used for preventing burnout
+	 */
+	std::vector<float> previousSignals_;
+
+
+	template <typename T> int sgn(T val) {
+	    return (T(0) < val) - (val < T(0));
+	}
+
+	/**
+	 * Pointer to container of ODE joint that models the motor
+	 */
+	boost::shared_ptr<Joint> joint_;
+
+	bool isBurntOut_;
+
+	bool shouldStep_;
+
+	void testBurnout(float stepSize);
+
+	int maxDirectionShiftsPerSecond_;
+
+	/**
+	 * Max force that the motor can produce
+	 */
+	float maxForce_;
+
+	/**
+	 * Count number of time actuated
+	 */
+	unsigned int internalCounter_;
+
+	dJointFeedback  fback_;
+
+	virtual float getSignal() = 0;
+	virtual int getNumDirectionFlips() = 0;
+
 };
 
 }

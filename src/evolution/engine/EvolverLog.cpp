@@ -45,11 +45,26 @@ namespace robogen {
 EvolverLog::EvolverLog(){
 }
 
+bool fixed_is_directory(std::string path) {
+	boost::system::error_code errorCode;
+	bool result = boost::filesystem::is_directory(path, errorCode);
+	if (errorCode.value() == 2 ){
+		return false;
+	} else if (errorCode.value() != 0) {
+		//this second call will fire the correct exception
+		std::cout << errorCode.value() << std::endl << errorCode.message() << std::endl;
+		return boost::filesystem::is_directory(path);
+	} else {
+		return result;
+	}
+}
 
 
 bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::shared_ptr<RobogenConfig> robotConf,
 		const std::string& logDirectory, bool overwrite, bool saveAll) {
+
+
 
 	saveAll_ = saveAll;
 
@@ -58,12 +73,13 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 	if (overwrite) {
 			boost::filesystem::remove_all(tempPath);
 	} else {
-		while (boost::filesystem::is_directory(tempPath)) {
+		while (fixed_is_directory(tempPath)) {
 			std::stringstream newPath;
 			newPath << logDirectory << "_" << ++curIndex;
 			tempPath = newPath.str();
 		}
 	}
+
 
 	logPath_ = tempPath;
 	boost::filesystem::path logPath(logPath_);
@@ -90,12 +106,18 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 	copyConfFile(conf->simulatorConfFile);
 	// copy obstacle configuration file
 	copyConfFile(robotConf->getObstacleFile());
+	// copy light source configuration file
+	copyConfFile(robotConf->getLightSourceFile());
 	// copy start pos configuration file
 	copyConfFile(robotConf->getStartPosFile());
 	// copy robot file if doing just brain evolution
 	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER) {
 		copyConfFile(conf->referenceRobotFile);
 	}
+	// copy scenario file if using scripted scenario
+	copyConfFile(robotConf->getScenarioFile());
+
+
 
 
 	return true;
@@ -166,6 +188,9 @@ bool EvolverLog::logGeneration(int generation, Population &population) {
 }
 
 void EvolverLog::copyConfFile(std::string fileName) {
+	if (fileName.length() == 0)
+		return;
+
 	boost::filesystem::path confFrom(fileName);
 	std::stringstream ss;
 	ss << logPath_ << "/" << confFrom.filename().string();

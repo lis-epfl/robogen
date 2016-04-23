@@ -152,7 +152,7 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 	float spacing = 200;
 	rootNode_ = -1;
 
-	int numDigitalPins = 0, numAnalogPins = 0;
+	int numDigitalPins = 0, numAnalogPins = 0, numPwmPins = 0;
 
 	for (int i = 0; i < robotBody.part_size(); ++i) {
 
@@ -190,6 +190,9 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 						sensors[s])) {
 					// touch sensors need digital pins
 					numDigitalPins++;
+				} else if(boost::dynamic_pointer_cast<IrSensorElement>(
+						sensors[s])) {
+					numAnalogPins++;
 				}
 			}
 
@@ -203,8 +206,16 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 
 			motors_.insert(motors_.end(), motors.begin(), motors.end());
 
-			// servos need digital pins
-			numDigitalPins += motors.size();
+			for(int m = 0; m < motors.size(); ++m) {
+				if(boost::dynamic_pointer_cast<ServoMotor>(motors[m]))
+					numDigitalPins++;
+				else {
+					numDigitalPins++;
+					numPwmPins++;
+				}
+
+			}
+
 		}
 
 		if (bodyPart.root()) {
@@ -241,6 +252,16 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 				<< MAX_DIGITAL_PINS + (MAX_ANALOG_PINS - numAnalogPins)
 				<< ")" << std::endl;
 		return false;
+	}
+
+	if ((numPwmPins + 1) > MAX_PWM_PINS) { // need 1 for the neutral signal
+		std::cout << "The number of PWM pins required ("
+					<< (numPwmPins + 1)
+					<< ") is greater than the number available ("
+					<< MAX_PWM_PINS
+					<< ")" << std::endl;
+			return false;
+
 	}
 
 

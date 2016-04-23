@@ -42,6 +42,9 @@
 #include "config/StartPosition.h"
 #include "config/StartPositionConfig.h"
 #include "config/TerrainConfig.h"
+#include "config/LightSourcesConfig.h"
+
+#include "utils/RobogenUtils.h"
 
 #define DEFAULT_LIGHT_SOURCE_HEIGHT (0.1)
 #define DEFAULT_OBSTACLE_DENSITY (0.)
@@ -50,12 +53,35 @@
 
 namespace robogen {
 
+void makeAbsolute(std::string &fileName,
+		const boost::filesystem::path &filePath) {
+	const boost::filesystem::path thisFilePath(fileName);
+	if (!thisFilePath.is_absolute()) {
+		const boost::filesystem::path absolutePath =
+				boost::filesystem::absolute(thisFilePath,
+						filePath.parent_path());
+		fileName = absolutePath.string();
+	}
+}
+
+
 boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		const std::string& fileName) {
 
 	boost::program_options::options_description desc(
 			"Allowed options for Simulation Config File");
 	desc.add_options()
+			("scenario",
+					boost::program_options::value<std::string>(),
+					"Experiment scenario: (racing, chasing, "
+					"or a provided js file)")
+			("timeStep", boost::program_options::value<float>(),
+					"Time step duration (s)")
+			("nTimeSteps", boost::program_options::value<unsigned int>(),
+					"Number of timesteps (Either this or simulationTime are required)")
+			("simulationTime", boost::program_options::value<float>(),
+					"Length of simulation (s)  (Either this or nTimeSteps "\
+					"are required)")
 			("terrainType",
 					boost::program_options::value<std::string>(),
 					"Terrain type: flat or rugged")
@@ -70,16 +96,13 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					"Terrain length")
 			("terrainFriction",boost::program_options::value<float>(),
 					"Terrain Friction Coefficient")
+			("startPositionConfigFile",
+					boost::program_options::value<std::string>(),
+					"Start Positions Configuration File")
 			("obstaclesConfigFile", boost::program_options::value<std::string>(),
 					"Obstacles configuration file")
-			("scenario", boost::program_options::value<std::string>(),
-					"Experiment scenario")
-			("lightSourceHeight", boost::program_options::value<float>(),
-					"Height of light source")
-			("timeStep", boost::program_options::value<float>(),
-					"Time step duration (s)")
-			("nTimeSteps", boost::program_options::value<unsigned int>(),
-					"Number of timesteps")
+			("lightSourcesConfigFile", boost::program_options::value<std::string>(),
+					"Light sources configuration file")
 			("actuationFrequency",boost::program_options::value<int>(),
 					"Actuation Frequency (Hz)")
 			("sensorNoiseLevel",boost::program_options::value<float>(),
@@ -107,15 +130,29 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 					"Maximum number of direction shifts per second"\
 					" for testing motor burnout.  If not set, then there is no"\
 					" cap")
-			("startPositionConfigFile",
-					boost::program_options::value<std::string>(),
-					"Start Positions Configuration File")
 			("gravity",
 					boost::program_options::value<std::string>(),
 					"Gravity: either a single z-value for g=(0,0,z)"\
 					" or x,y,z (comma separated) for full g vector."\
 					" Specified in m/(s^2)"\
-					" Defaults to (0,0,-9.81)");
+					" Defaults to (0,0,-9.81)")
+			("disallowObstacleCollisions",
+					boost::program_options::value<bool>(),
+					"Flag to enforce no obstacle collisions.  If true then "\
+					"any obstacle collision will be considered a constraint"\
+					" violation. (default false).")
+			("obstacleOverlapPolicy",
+					boost::program_options::value<std::string>(),
+					"Defines the policy for handling obstacles "
+					" enclosed in the robot's initial"\
+					" axis aligned bounding box (AABB).  Options are\n"\
+					"\t'removeObstacles' -- obstacles will be removed,"\
+					" and the simulation will proceed (default).\n"\
+					"\t'constraintViolation' -- the simulation will be"\
+					" terminated with a constrain violation.\n"\
+					"\t'elevateRobot' -- the robot will be elevated to be"\
+					" above all obstacles before the simulation begins.\n")
+			;
 
 	if (fileName == "help") {
 		desc.print(std::cout);
@@ -123,10 +160,17 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	}
 
 	boost::program_options::variables_map vm;
-	boost::program_options::store(
+
+	try {
+		boost::program_options::store(
 			boost::program_options::parse_config_file<char>(fileName.c_str(),
-					desc, true), vm);
-	boost::program_options::notify(vm);
+					desc, false), vm);
+		boost::program_options::notify(vm);
+	} catch (std::exception &e) {
+		std::cerr << "Error while processing simulator configuration: "
+					<< e.what() << std::endl;
+		return boost::shared_ptr<RobogenConfig>();
+	}
 
 	const boost::filesystem::path filePath(fileName);
 
@@ -192,14 +236,7 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 			}
 
 			terrainHeightField = vm["terrainHeightField"].as<std::string>();
-			const boost::filesystem::path terrainHeightFieldFilePath(
-					terrainHeightField);
-			if (!terrainHeightFieldFilePath.is_absolute()) {
-				const boost::filesystem::path absolutePath =
-						boost::filesystem::absolute(terrainHeightFieldFilePath,
-								filePath.parent_path());
-				terrainHeightField = absolutePath.string();
-			}
+			makeAbsolute(terrainHeightField, filePath);
 
 
 
@@ -217,82 +254,108 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	}
 
 	// Read obstacles configuration
+	boost::shared_ptr<ObstaclesConfig> obstacles;
+	std::string obstaclesConfigFile = "";
 	if (!vm.count("obstaclesConfigFile")) {
-		std::cerr << "Undefined 'obstaclesConfigFile' parameter in '"
-				<< fileName << "'" << std::endl;
-		return boost::shared_ptr<RobogenConfig>();
+		obstacles.reset(new ObstaclesConfig());
+	} else {
+		obstaclesConfigFile = vm["obstaclesConfigFile"].as<std::string>();
+
+		makeAbsolute(obstaclesConfigFile, filePath);
+
+		obstacles = parseObstaclesFile(
+				obstaclesConfigFile);
+		if (obstacles == NULL) {
+			return boost::shared_ptr<RobogenConfig>();
+		}
 	}
 
-
-
-
-	std::string obstaclesConfigFile =
-			vm["obstaclesConfigFile"].as<std::string>();
-
-	const boost::filesystem::path obstaclesConfigFilePath(obstaclesConfigFile);
-	if (!obstaclesConfigFilePath.is_absolute()) {
-		const boost::filesystem::path absolutePath =
-				boost::filesystem::absolute(obstaclesConfigFilePath,
-						filePath.parent_path());
-		obstaclesConfigFile = absolutePath.string();
-	}
-
-
-
-
-	boost::shared_ptr<ObstaclesConfig> obstacles = parseObstaclesFile(
-			obstaclesConfigFile);
-	if (obstacles == NULL) {
-		return boost::shared_ptr<RobogenConfig>();
-	}
-
-	// Read obstacles configuration
+	boost::shared_ptr<StartPositionConfig> startPositions;
+	std::string startPositionFile = "";
+	// Read start pos configuration
 	if (!vm.count("startPositionConfigFile")) {
-		std::cerr << "Undefined 'startPositionConfigFile' parameter in '"
-				<< fileName << "'" << std::endl;
-		return boost::shared_ptr<RobogenConfig>();
+		std::cout << "No startPositionConfigFile provided so will use a single"
+				<< " evaluation with the robot starting at the origin, and "
+				<< "having 0 azimuth" << std::endl;
+		std::vector<boost::shared_ptr<StartPosition> > startPositionVector;
+
+		boost::shared_ptr<StartPosition> startPosition(new StartPosition());
+		if (!startPosition->init(osg::Vec2(0,0), 0)) {
+			std::cerr << "Problem initializing start position!" << std::endl;
+			return boost::shared_ptr<RobogenConfig>();
+		}
+
+		startPositionVector.push_back(startPosition);
+		startPositions.reset(new StartPositionConfig(startPositionVector));
+
+	} else {
+
+		startPositionFile = vm["startPositionConfigFile"].as<std::string>();
+
+		makeAbsolute(startPositionFile, filePath);
+
+		startPositions = parseStartPositionFile(startPositionFile);
+		if (startPositions == NULL) {
+			return boost::shared_ptr<RobogenConfig>();
+		}
 	}
 
-	std::string startPositionFile =
-			vm["startPositionConfigFile"].as<std::string>();
+	boost::shared_ptr<LightSourcesConfig> lightSources;
+	std::string lightSourcesFile = "";
+	// Read light sources configuration
+	if (!vm.count("lightSourcesConfigFile")) {
+		lightSources.reset(new LightSourcesConfig());
+	} else {
+		lightSourcesFile =
+			vm["lightSourcesConfigFile"].as<std::string>();
 
-	const boost::filesystem::path startPositionFilePath(startPositionFile);
-	if (!startPositionFilePath.is_absolute()) {
-		const boost::filesystem::path absolutePath =
-				boost::filesystem::absolute(startPositionFilePath,
-						filePath.parent_path());
-		startPositionFile = absolutePath.string();
+		makeAbsolute(lightSourcesFile, filePath);
+
+		lightSources = parseLightSourcesFile(lightSourcesFile);
+		if (lightSources == NULL) {
+			return boost::shared_ptr<RobogenConfig>();
+		}
 	}
 
 
-	boost::shared_ptr<StartPositionConfig> startPositions =
-			parseStartPositionFile(startPositionFile);
-	if (startPositions == NULL) {
-		return boost::shared_ptr<RobogenConfig>();
-	}
 
-	// Read generic parameters
+
+	// Read scenario
 	if (!vm.count("scenario")) {
 		std::cerr << "Undefined 'scenario' parameter in '" << fileName << "'"
 				<< std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
 	std::string scenario = vm["scenario"].as<std::string>();
-	RobogenConfig::SimulationScenario simulationScenario;
+	std::string scenarioFile = "";
+	if (scenario.compare("racing") != 0 && scenario.compare("chasing") != 0) {
+		const boost::filesystem::path scenarioFilePath(scenario);
+		if (!scenarioFilePath.is_absolute()) {
+			const boost::filesystem::path absolutePath =
+					boost::filesystem::absolute(scenarioFilePath,
+							filePath.parent_path());
+			scenarioFile = absolutePath.string();
+		}
+		if(boost::filesystem::path(scenarioFile).extension().string().compare(".js")
+				== 0) {
 
-	if (scenario.compare("racing") == 0) {
-		simulationScenario = RobogenConfig::RACING;
-	} else if (scenario.compare("chasing") == 0) {
-		simulationScenario = RobogenConfig::CHASING;
-	} else {
-		std::cerr << "Undefined 'scenario' parameter in '" << fileName << "'"
-				<< std::endl;
-		return boost::shared_ptr<RobogenConfig>();
-	}
+			//read entire js file into string buffer
 
-	float lightSourceHeight = DEFAULT_LIGHT_SOURCE_HEIGHT;
-	if (vm.count("lightSourceHeight")) {
-		lightSourceHeight = vm["lightSourceHeight"].as<float>();
+			std::ifstream file(scenarioFile.c_str());
+			if (!file.is_open()) {
+				std::cout << "Cannot find scenario js: '" << scenarioFile << "'"
+						<< std::endl;
+				return boost::shared_ptr<RobogenConfig>();
+			}
+
+
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			scenario = buffer.str();
+		} else {
+			std::cerr << "Invalid 'scenario' parameter" << std::endl;
+			return boost::shared_ptr<RobogenConfig>();
+		}
 	}
 
 	if (!vm.count("timeStep")) {
@@ -301,13 +364,31 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		return boost::shared_ptr<RobogenConfig>();
 	}
 	float timeStep = vm["timeStep"].as<float>();
+	int timeStepTmp = boost::math::iround (timeStep * 100000);
 
-	if (!vm.count("nTimeSteps")) {
-		std::cerr << "Undefined 'nTimesteps' parameter in '" << fileName << "'"
-				<< std::endl;
+	if (!vm.count("nTimeSteps") && !vm.count("simulationTime")) {
+		std::cerr << "Either 'nTimesteps' or 'simulationTime' is required "
+				<< "in '" << fileName << "'" << std::endl;
 		return boost::shared_ptr<RobogenConfig>();
 	}
-	unsigned int nTimesteps = vm["nTimeSteps"].as<unsigned int>();
+	if (vm.count("nTimeSteps") && vm.count("simulationTime")) {
+		std::cerr << "Only one of 'nTimesteps' or 'simulationTime' should "
+				<< "be specified in '" << fileName << "'" << std::endl;
+		return boost::shared_ptr<RobogenConfig>();
+	}
+	unsigned int nTimeSteps;
+	if (vm.count("nTimeSteps")){
+		nTimeSteps = vm["nTimeSteps"].as<unsigned int>();
+	} else {
+		int simulationTimeTmp = boost::math::iround (
+						vm["simulationTime"].as<float>() * 100000);
+		if ((simulationTimeTmp % timeStepTmp) != 0) {
+			std::cerr << "'simulationTime' must be a multiple "
+					<< "of 'timeStep'" << std::endl;
+			return boost::shared_ptr<RobogenConfig>();
+		}
+		nTimeSteps = simulationTimeTmp / timeStepTmp;
+	}
 
 	int actuationPeriod;
 	if (!vm.count("actuationFrequency")) {
@@ -318,7 +399,6 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 	} else {
 		int actuationFrequencyTmp = boost::math::iround (
 				(1.0/((float)vm["actuationFrequency"].as<int>())) * 100000);
-		int timeStepTmp = boost::math::iround (timeStep * 100000);
 		if ((actuationFrequencyTmp % timeStepTmp) != 0) {
 			std::cerr << "Inverse of 'actuationFrequency' must be a multiple "
 					<< "of 'timeStep'" << std::endl;
@@ -384,14 +464,41 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		}
 	}
 
+	bool disallowObstacleCollisions = false;
+	if(vm.count("disallowObstacleCollisions")) {
+		disallowObstacleCollisions = vm["disallowObstacleCollisions"
+		                                ].as<bool>();
+	}
+
+	unsigned int obstacleOverlapPolicy;
+
+	if((!vm.count("obstacleOverlapPolicy")) ||
+			(vm["obstacleOverlapPolicy"].as<std::string>() ==
+					"removeObstacles")) {
+		obstacleOverlapPolicy = RobogenConfig::REMOVE_OBSTACLES;
+	} else if(vm["obstacleOverlapPolicy"].as<std::string>() ==
+					"constraintViolation") {
+		obstacleOverlapPolicy = RobogenConfig::CONSTRAINT_VIOLATION;
+	} else if(vm["obstacleOverlapPolicy"].as<std::string>() ==
+			"elevateRobot") {
+		obstacleOverlapPolicy = RobogenConfig::ELEVATE_ROBOT;
+	} else {
+		std::cerr << "Invalid value: '" <<
+				vm["obstacleOverlapPolicy"].as<std::string>() <<
+				"' given for 'obstacleOverlapPolicy'" << std::endl;
+		return boost::shared_ptr<RobogenConfig>();
+	}
+
 	return boost::shared_ptr<RobogenConfig>(
-			new RobogenConfig(simulationScenario, nTimesteps,
+			new RobogenConfig(scenario, scenarioFile, nTimeSteps,
 					timeStep, actuationPeriod, terrain,
 					obstacles, obstaclesConfigFile, startPositions,
-					startPositionFile, lightSourceHeight, sensorNoiseLevel,
+					startPositionFile, lightSources, lightSourcesFile,
+					sensorNoiseLevel,
 					motorNoiseLevel, capAcceleration, maxLinearAcceleration,
 					maxAngularAcceleration, maxDirectionShiftsPerSecond,
-					gravity));
+					gravity, disallowObstacleCollisions,
+					obstacleOverlapPolicy));
 
 }
 
@@ -437,7 +544,7 @@ boost::shared_ptr<ObstaclesConfig> ConfigurationReader::parseObstaclesFile(
 
 	std::string line;
 	int lineNum = 0;
-	while (std::getline(obstaclesFile, line)) {
+	while (!RobogenUtils::safeGetline(obstaclesFile, line).eof()) {
 		lineNum++;
 		boost::cmatch match;
 		float x, y, z, xSize, ySize, zSize, density, xRotation, yRotation,
@@ -476,9 +583,10 @@ boost::shared_ptr<ObstaclesConfig> ConfigurationReader::parseObstaclesFile(
 				zSize = std::atof(match[6].str().c_str());
 				density = std::atof(match[7].str().c_str());
 			} else {
-				std::cout << "Error parsing line " << lineNum <<
+				std::cerr << "Error parsing line " << lineNum <<
 						" of obstacles file: '" << fileName << "'"
 						<< std::endl;
+				std::cerr << line.c_str() << std::endl;
 				return boost::shared_ptr<ObstaclesConfig>();
 			}
 		}
@@ -493,6 +601,55 @@ boost::shared_ptr<ObstaclesConfig> ConfigurationReader::parseObstaclesFile(
 			new ObstaclesConfig(coordinates, sizes, densities,
 					rotationAxes, rotationAngles));
 }
+
+boost::shared_ptr<LightSourcesConfig> ConfigurationReader::parseLightSourcesFile(
+		const std::string& fileName) {
+
+	std::ifstream lightSourcesFile(fileName.c_str());
+	if (!lightSourcesFile.is_open()) {
+		std::cout << "Cannot find light sources file: '" << fileName << "'"
+				<< std::endl;
+		return boost::shared_ptr<LightSourcesConfig>();
+	}
+
+	// either 3 or 4 numbers (x,y,z) or (x,y,z,intensity)
+	static const boost::regex noIntensityRegex(getMatchNFloatPattern(3));
+	static const boost::regex fullRegex(getMatchNFloatPattern(4));
+
+	std::vector<osg::Vec3> coordinates;
+	std::vector<float> intensities;
+
+	std::string line;
+	int lineNum = 0;
+	while (!RobogenUtils::safeGetline(lightSourcesFile, line).eof()) {
+		lineNum++;
+		boost::cmatch match;
+		float x, y, z, intensity;
+		if(boost::regex_match(line.c_str(), match, fullRegex)){
+			intensity = std::atof(match[4].str().c_str());
+		} else {
+			intensity = 1.0;
+			if(!boost::regex_match(line.c_str(), match, noIntensityRegex)){
+
+				std::cerr << "Error parsing line " << lineNum <<
+						" of light sources file: '" << fileName << "'"
+						<< std::endl;
+				std::cerr << line.c_str() << std::endl;
+				return boost::shared_ptr<LightSourcesConfig>();
+			}
+		}
+		x = std::atof(match[1].str().c_str());
+		y = std::atof(match[2].str().c_str());
+		z = std::atof(match[3].str().c_str());
+		coordinates.push_back(osg::Vec3(x, y, z));
+		intensities.push_back(intensity);
+
+	}
+
+	return boost::shared_ptr<LightSourcesConfig>(
+			new LightSourcesConfig(coordinates, intensities));
+}
+
 
 boost::shared_ptr<StartPositionConfig> ConfigurationReader::parseStartPositionFile(
 		const std::string& fileName) {
@@ -554,6 +711,19 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 					obstaclesDensity, obstaclesRotationAxis,
 					obstaclesRotationAngle));
 
+	// Decode light sources
+	std::vector<osg::Vec3> lightSourcesCoords;
+	std::vector<float> lightSourcesIntensities;
+	for (int i = 0; i < simulatorConf.lightsources_size(); ++i) {
+		const robogenMessage::LightSource& ls = simulatorConf.lightsources(i);
+		lightSourcesCoords.push_back(osg::Vec3(ls.x(), ls.y(), ls.z()));
+		lightSourcesIntensities.push_back(ls.intensity());
+	}
+	boost::shared_ptr<LightSourcesConfig> lightSources(
+				new LightSourcesConfig(lightSourcesCoords,
+						lightSourcesIntensities));
+
+
 	// Decode start positions
 	std::vector<boost::shared_ptr<StartPosition> > startPositions;
 	for (int i = 0; i < simulatorConf.startpositions_size(); ++i) {
@@ -582,29 +752,25 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 	}
 
 	// Decode simulator configuration
-	RobogenConfig::SimulationScenario simulationScenario;
 	std::string scenario = simulatorConf.scenario();
 
-	if (scenario.compare("racing") == 0) {
-		simulationScenario = RobogenConfig::RACING;
-	} else if (scenario.compare("chasing") == 0) {
-		simulationScenario = RobogenConfig::CHASING;
-	} else {
-		std::cout << "Undefined 'scenario' parameter" << std::endl;
-		return boost::shared_ptr<RobogenConfig>();
-	}
+	//todo with js check!!
+
+	//if (scenario.compare("racing") != 0 && scenario.compare("chasing") != 0) {
+	//	std::cerr << "Undefined 'scenario' parameter" << std::endl;
+	//	return boost::shared_ptr<RobogenConfig>();
+	//}
 
 	unsigned int timeSteps = simulatorConf.ntimesteps();
 	float timeStepLength = simulatorConf.timestep();
-	float lightSourceHeight = simulatorConf.lightsourceheight();
 	int actuationPeriod = simulatorConf.actuationperiod();
 
 	return boost::shared_ptr<RobogenConfig>(
-			new RobogenConfig(simulationScenario, timeSteps, timeStepLength,
+			new RobogenConfig(scenario, "", timeSteps, timeStepLength,
 					actuationPeriod, terrain, obstacles, "",
 					boost::shared_ptr<StartPositionConfig>(
 							new StartPositionConfig(startPositions)), "",
-					lightSourceHeight, simulatorConf.sensornoiselevel(),
+					lightSources, "", simulatorConf.sensornoiselevel(),
 					simulatorConf.motornoiselevel(),
 					simulatorConf.capacceleration(),
 					simulatorConf.maxlinearacceleration(),
@@ -612,7 +778,9 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 					simulatorConf.maxdirectionshiftspersecond(),
 					osg::Vec3(simulatorConf.gravityx(),
 							  simulatorConf.gravityy(),
-							  simulatorConf.gravityz())
+							  simulatorConf.gravityz()),
+					simulatorConf.disallowobstaclecollisions(),
+					simulatorConf.obstacleoverlappolicy()
 					));
 
 }

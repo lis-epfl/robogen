@@ -2,9 +2,10 @@
  * @(#) RobogenUtils.cpp   1.0   Feb 17, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -240,11 +241,18 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 	boost::shared_ptr<Model> model;
 	if (bodyPart.type().compare(PART_TYPE_CORE_COMPONENT) == 0) {
 
-		model.reset(new CoreComponentModel(odeWorld, odeSpace, id, true));
+		model.reset(new CoreComponentModel(odeWorld, odeSpace, id, true,
+				true));
+
+	} else if (bodyPart.type().compare(PART_TYPE_CORE_COMPONENT_NO_IMU) == 0) {
+
+		model.reset(new CoreComponentModel(odeWorld, odeSpace, id, true,
+				false));
 
 	} else if (bodyPart.type().compare(PART_TYPE_FIXED_BRICK) == 0) {
 
-		model.reset(new CoreComponentModel(odeWorld, odeSpace, id, false));
+		model.reset(new CoreComponentModel(odeWorld, odeSpace, id, false,
+											false));
 
 	} else if (bodyPart.type().compare(PART_TYPE_PARAM_JOINT) == 0) {
 
@@ -321,10 +329,16 @@ boost::shared_ptr<Model> RobogenUtils::createModel(
 				new ActiveWhegModel(odeWorld, odeSpace, id,
 						bodyPart.evolvableparam(0).paramvalue()));
 #endif
+#ifdef IR_SENSORS_ENABLED
+	} else if (bodyPart.type().compare(PART_TYPE_IR_SENSOR) == 0) {
+
+		model.reset(new IrSensorModel(odeWorld, odeSpace, id));
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	} else if (bodyPart.type().compare(PART_TYPE_TOUCH_SENSOR) == 0) {
 
 		model.reset(new TouchSensorModel(odeWorld, odeSpace, id));
-
+#endif
 	} else if (bodyPart.type().compare(PART_TYPE_LIGHT_SENSOR) == 0) {
 
 		model.reset(new LightSensorModel(odeWorld, odeSpace, id, false));
@@ -405,12 +419,20 @@ boost::shared_ptr<RenderModel> RobogenUtils::createRenderModel(
 				new ActiveWhegRenderModel(
 						boost::dynamic_pointer_cast<ActiveWhegModel>(model)));
 #endif
+#ifdef IR_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<IrSensorModel>(model)) {
+
+		return boost::shared_ptr<IrSensorRenderModel>(
+				new IrSensorRenderModel(
+						boost::dynamic_pointer_cast<IrSensorModel>(model)));
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	} else if (boost::dynamic_pointer_cast<TouchSensorModel>(model)) {
 
 		return boost::shared_ptr<TouchSensorRenderModel>(
 				new TouchSensorRenderModel(
 						boost::dynamic_pointer_cast<TouchSensorModel>(model)));
-
+#endif
 	} else if (boost::dynamic_pointer_cast<LightSensorModel>(model)) {
 
 		return boost::shared_ptr<LightSensorRenderModel>(
@@ -420,6 +442,96 @@ boost::shared_ptr<RenderModel> RobogenUtils::createRenderModel(
 
 	}
 	return boost::shared_ptr<RenderModel>();
+}
+
+std::string RobogenUtils::getSensorType(boost::shared_ptr<Sensor> sensor) {
+	if (boost::dynamic_pointer_cast<ImuSensorElement>(sensor)) {
+		return SENSOR_TYPE_IMU_SENSOR_ELEMENT;
+	} else if (boost::dynamic_pointer_cast<LightSensor>(sensor)) {
+		return SENSOR_TYPE_LIGHT_SENSOR;
+#ifdef IR_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<IrSensorElement>(sensor)) {
+		return SENSOR_TYPE_IR_SENSOR_ELEMENT;
+#endif
+
+#ifdef TOUCH_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<TouchSensor>(sensor)) {
+		return SENSOR_TYPE_TOUCH_SENSOR;
+#endif
+	}
+	return "";
+}
+
+std::string RobogenUtils::getPartType(boost::shared_ptr<Model> model) {
+
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(model)) {
+		if (boost::dynamic_pointer_cast<CoreComponentModel>(model)->isCore()) {
+			if (boost::dynamic_pointer_cast<CoreComponentModel>(model
+					)->hasSensors()) {
+				return PART_TYPE_CORE_COMPONENT;
+			} else {
+				return PART_TYPE_CORE_COMPONENT_NO_IMU;
+			}
+		} else {
+			return PART_TYPE_FIXED_BRICK;
+		}
+#ifdef ALLOW_CARDANS
+	} else if (boost::dynamic_pointer_cast<ActiveCardanModel>(model)) {
+
+		return PART_TYPE_ACTIVE_CARDAN;
+#endif
+	} else if (boost::dynamic_pointer_cast<ActiveHingeModel>(model)) {
+
+		return PART_TYPE_ACTIVE_HINGE;
+
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
+	} else if (boost::dynamic_pointer_cast<ActiveWheelModel>(model)) {
+
+		return PART_TYPE_ACTIVE_WHEEL;
+#endif
+
+#ifdef ALLOW_CARDANS
+	} else if (boost::dynamic_pointer_cast<CardanModel>(model)) {
+
+		return PART_TYPE_PASSIVE_CARDAN;
+#endif
+	} else if (boost::dynamic_pointer_cast<HingeModel>(model)) {
+
+		return PART_TYPE_PASSIVE_HINGE;
+
+	} else if (boost::dynamic_pointer_cast<ParametricBrickModel>(model)) {
+
+		return PART_TYPE_PARAM_JOINT;
+
+#ifdef ALLOW_ROTATIONAL_COMPONENTS
+	} else if (boost::dynamic_pointer_cast<PassiveWheelModel>(model)) {
+
+		return PART_TYPE_PASSIVE_WHEEL;
+
+	} else if (boost::dynamic_pointer_cast<RotateJointModel>(model)) {
+
+		return PART_TYPE_ROTATOR;
+
+	} else if (boost::dynamic_pointer_cast<ActiveWhegModel>(model)) {
+
+		return PART_TYPE_ACTIVE_WHEG;
+#endif
+#ifdef IR_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<IrSensorModel>(model)) {
+
+		return PART_TYPE_IR_SENSOR;
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<TouchSensorModel>(model)) {
+
+		return PART_TYPE_TOUCH_SENSOR;
+#endif
+	} else if (boost::dynamic_pointer_cast<LightSensorModel>(model)) {
+
+		return PART_TYPE_LIGHT_SENSOR;
+
+	}
+	return "";
 }
 
 osg::Quat RobogenUtils::makeRotate(const osg::Vec3& from, const osg::Vec3& to) {
@@ -457,6 +569,43 @@ osg::Quat RobogenUtils::makeRotate(const osg::Vec3& from, const osg::Vec3& to) {
 	return rotation;
 }
 
+// this is adapted from
+// https://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf
+// mostly needed for JS version, since editor adds CRs
+
+std::istream& RobogenUtils::safeGetline(std::istream& is, std::string& t) {
+    t.clear();
+
+    // The characters in the stream are read one-by-one using a std::streambuf.
+    // That is faster than reading them one-by-one using the std::istream.
+    // Code that uses streambuf this way must be guarded by a sentry object.
+    // The sentry object performs various tasks,
+    // such as thread synchronization and updating the stream state.
+
+    std::istream::sentry se(is, true);
+    std::streambuf* sb = is.rdbuf();
+
+    for(;;) {
+        int c = sb->sbumpc();
+        switch (c) {
+        case '\n':
+            return is;
+        case '\r':
+            if(sb->sgetc() == '\n')
+                sb->sbumpc();
+            return is;
+        case EOF:
+            // Also handle the case when the last line has no line ending
+            if(t.empty())
+                is.setstate(std::ios::eofbit);
+            return is;
+        default:
+            t += (char)c;
+        }
+    }
+    return is;
+}
+
 bool RobogenUtils::areAxisParallel(const osg::Vec3& a, const osg::Vec3& b) {
 
 	if (fabs(a * b - a.length() * b.length()) < OSG_EPSILON_2) {
@@ -485,17 +634,28 @@ typedef std::map<TypeAndId, osg::Quat> RelativeAttitudeMap;
 
 ModelMeshMap initModelMeshMap() {
 	ModelMeshMap modelMeshMap;
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
+#ifdef ALLOW_CARDANS
 	// ActiveCardan
 	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
 			static_cast<unsigned int>(ActiveCardanModel::B_SLOT_A_ID))]
-	= "ActiveCardanHinge_Servo_Holder.stl";
+	             = "ActiveCardanHinge_Servo_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
 			static_cast<unsigned int>(ActiveCardanModel::B_SLOT_A_ID))]
-	= "ActiveCardanHinge_Servo_Holder.stl";
+	             = "ActiveCardanHinge_Servo_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveCardanModel),
 			static_cast<unsigned int>(ActiveCardanModel::B_CROSS_PART_A_ID))]
-	= "ActiveCardan_CrossShaft.stl";
+	             = "ActiveCardan_CrossShaft.stl";
+	// Cardan
+	modelMeshMap[std::make_pair(&typeid(CardanModel),
+			static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
+	             = "PassiveCardan_Frame.stl";
+	modelMeshMap[std::make_pair(&typeid(CardanModel),
+			static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
+	             = "PassiveCardan_Frame.stl";
+	// the callback for this works a little differently though!
+	modelMeshMap[std::make_pair(&typeid(CardanModel),
+			static_cast<unsigned int>(CardanModel::B_CONNECTION_A_ID))]
+	             = "PassiveCardan_Cross.stl";
 #endif
 	// ActiveHinge
 	modelMeshMap[std::make_pair(&typeid(ActiveHingeModel),
@@ -508,30 +668,34 @@ ModelMeshMap initModelMeshMap() {
 	// Active Wheel
 	modelMeshMap[std::make_pair(&typeid(ActiveWheelModel),
 			static_cast<unsigned int>(ActiveWheelModel::B_SLOT_ID))]
-	= "ActiveRotation_Motor_Holder.stl";
+	             = "ActiveRotation_Motor_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveWheelModel),
 			static_cast<unsigned int>(ActiveWheelModel::B_WHEEL_ID))]
-	= "ActiveRotation_Wheel.stl";
+	             = "ActiveRotation_Wheel.stl";
 
 	// Active Wheg
 	modelMeshMap[std::make_pair(&typeid(ActiveWhegModel),
 			static_cast<unsigned int>(ActiveWhegModel::B_SLOT_ID))]
-	= "ActiveRotation_Motor_Holder.stl";
+	             = "ActiveRotation_Motor_Holder.stl";
 	modelMeshMap[std::make_pair(&typeid(ActiveWhegModel),
 			static_cast<unsigned int>(ActiveWhegModel::B_WHEG_BASE))]
-	= "ActiveRotation_Wheg.stl";
+	             = "ActiveRotation_Wheg.stl";
 
-	// Cardan
-	modelMeshMap[std::make_pair(&typeid(CardanModel),
-			static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
-	= "PassiveCardan_Frame.stl";
-	modelMeshMap[std::make_pair(&typeid(CardanModel),
-			static_cast<unsigned int>(CardanModel::B_SLOT_A_ID))]
-	= "PassiveCardan_Frame.stl";
-	// the callback for this works a little differently though!
-	modelMeshMap[std::make_pair(&typeid(CardanModel),
-			static_cast<unsigned int>(CardanModel::B_CONNECTION_A_ID))]
-	= "PassiveCardan_Cross.stl";
+	// Passive Wheel
+	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
+			static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))]
+	             = "PassiveRotation_Frame.stl";
+	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
+			static_cast<unsigned int>(PassiveWheelModel::B_WHEEL_ID))]
+	             = "PassiveRotation_Wheel.stl";
+
+	// Rotate Joint
+	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
+			static_cast<unsigned int>(RotateJointModel::B_SLOT_ID))]
+	             = "ActiveRotation_Motor_Holder.stl";
+	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
+			static_cast<unsigned int>(RotateJointModel::B_JOINT_CONNECTION_ID))]
+	             = "ActiveRotation_Connection.stl";
 #endif
 	// Core
 	modelMeshMap[std::make_pair(&typeid(CoreComponentModel),
@@ -547,28 +711,19 @@ ModelMeshMap initModelMeshMap() {
 			"PassiveHinge.stl";
 
 	// Parametric has no stl files for now
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
-	// Passive Wheel
-	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
-			static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))]
-	= "PassiveRotation_Frame.stl";
-	modelMeshMap[std::make_pair(&typeid(PassiveWheelModel),
-			static_cast<unsigned int>(PassiveWheelModel::B_WHEEL_ID))]
-	= "PassiveRotation_Wheel.stl";
 
-	// Rotate Joint
-	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
-			static_cast<unsigned int>(RotateJointModel::B_SLOT_ID))]
-	= "ActiveRotation_Motor_Holder.stl";
-	modelMeshMap[std::make_pair(&typeid(RotateJointModel),
-			static_cast<unsigned int>(RotateJointModel::B_JOINT_CONNECTION_ID))]
-	= "ActiveRotation_Connection.stl";
+#ifdef IR_SENSORS_ENABLED
+	// Touch Sensor
+	modelMeshMap[std::make_pair(&typeid(IrSensorModel),
+			static_cast<unsigned int>(IrSensorModel::B_SENSOR_BASE_ID))] =
+			"IrSensor.stl";
 #endif
+#ifdef TOUCH_SENSORS_ENABLED
 	// Touch Sensor
 	modelMeshMap[std::make_pair(&typeid(TouchSensorModel),
 			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))] =
 			"TouchSensor.stl";
-
+#endif
 	// Light Sensor
 	modelMeshMap[std::make_pair(&typeid(LightSensorModel),
 			static_cast<unsigned int>(LightSensorModel::B_SENSOR_BASE_ID))] =
@@ -579,8 +734,10 @@ ModelMeshMap initModelMeshMap() {
 
 RelativePositionMap initRelativePositionMap() {
 	RelativePositionMap relativePositionMap;
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
+#ifdef ALLOW_CARDANS
 	// TODO ActiveCardan
+
+	// TODO Cardan
 #endif
 	// ActiveHinge
 
@@ -603,11 +760,49 @@ RelativePositionMap initRelativePositionMap() {
 			fromOde(osg::Vec3(-(ActiveHingeModel::SERVO_LENGTH) / 2,
 					-2 * ActiveHingeModel::SERVO_POSITION_OFFSET, 0));
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
-	// TODO Active Wheel
+	// Active Wheel
 
-	// TODO Active Wheg
+	// x = 0 is midpoint of slot, so  -SLOT_THICKNESS/2 is edge of motor
+	// and motor is (SERVO_LENGTH + SLOT_THICKNESS) long
+	// so (SERVO_LENGTH + SLOT_THICKNESS)/2 -SLOT_THICKNESS/2 =
+	// SERVOR_LENGTH/2
+	relativePositionMap[std::make_pair(&typeid(ActiveWheelModel),
+				static_cast<unsigned int>(ActiveWheelModel::B_SLOT_ID))] =
+	         fromOde(osg::Vec3(ActiveWheelModel::SERVO_LENGTH/2,
+	            		   0,0));
 
-	// TODO Cardan
+	// x=0 is midpoint of wheel, but need to account for attachment part
+	// (WHEEL_ATTACHMENT_THICKNESS + WHEEL_THICKNESS) - WHEEL_THICKNESS/2
+	relativePositionMap[std::make_pair(&typeid(ActiveWheelModel),
+				static_cast<unsigned int>(ActiveWheelModel::B_WHEEL_ID))] =
+			fromOde(osg::Vec3(0,
+					0, ActiveWheelModel::WHEEL_ATTACHMENT_THICKNESS/2));
+
+	// Active Wheg
+
+	// see above
+	relativePositionMap[std::make_pair(&typeid(ActiveWhegModel),
+				static_cast<unsigned int>(ActiveWhegModel::B_SLOT_ID))] =
+			fromOde(osg::Vec3(ActiveWhegModel::SERVO_LENGTH/2,
+									   0,0));
+
+	// same as above, but 11.5mm offset needed
+	relativePositionMap[std::make_pair(&typeid(ActiveWhegModel),
+					static_cast<unsigned int>(ActiveWhegModel::B_WHEG_BASE))] =
+				fromOde(osg::Vec3(inMm(11.5),
+						0, ActiveWhegModel::WHEG_ATTACHMENT_THICKNESS/2));
+
+	// Passive Wheel
+	relativePositionMap[std::make_pair(&typeid(PassiveWheelModel),
+				static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))] =
+			fromOde(osg::Vec3(PassiveWheelModel::AXEL_LENGTH/2, 0,0));
+
+	// Rotate Joint
+	relativePositionMap[std::make_pair(&typeid(RotateJointModel),
+				static_cast<unsigned int>(RotateJointModel::B_SLOT_ID))] =
+			fromOde(osg::Vec3(RotateJointModel::SERVO_LENGTH/2,
+									   0,0));
+
 #endif
 	// Core needs no position offset
 
@@ -620,11 +815,26 @@ RelativePositionMap initRelativePositionMap() {
 			osg::Vec3(-(HingeModel::CONNNECTION_PART_LENGTH / 2), 0, 0));
 
 	// Parametric has no stl files for now
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
-	// TODO Passive Wheel
 
-	// TODO Rotate Joint
+
+
+
+#ifdef IR_SENSORS_ENABLED
+	//IR Sensor
+
+	// x = 0 is midpoint of base, so  -SENSOR_BASE_THICKNESS/2 is edge of base
+	// and frame is (SENSOR_BASE_THICKNESS + SENSOR_PLATFORM_THICKNESS) long
+	// so (SENSOR_BASE_THICKNESS + SENSOR_PLATFORM_THICKNESS)/2
+	//    - SENSOR_BASE_THICKNESS/2 =
+	//    (SENSOR_PLATFORM_THICKNESS)/2
+	relativePositionMap[std::make_pair(&typeid(IrSensorModel),
+			static_cast<unsigned int>(IrSensorModel::B_SENSOR_BASE_ID))] =
+			fromOde(
+					osg::Vec3(
+							(IrSensorModel::SENSOR_PLATFORM_THICKNESS) / 2,
+							0, 0));
 #endif
+#ifdef TOUCH_SENSORS_ENABLED
 	// Touch Sensor
 
 	// x = 0 is midpoint of base, so  -SENSOR_BASE_THICKNESS/2 is edge of base
@@ -635,7 +845,7 @@ RelativePositionMap initRelativePositionMap() {
 	relativePositionMap[std::make_pair(&typeid(TouchSensorModel),
 			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))] =
 			fromOde(osg::Vec3(TouchSensorModel::SENSOR_THICKNESS / 2, 0, 0));
-
+#endif
 	// Light Sensor
 
 	// x = 0 is midpoint of base, so  -SENSOR_BASE_THICKNESS/2 is edge of base
@@ -657,8 +867,10 @@ RelativePositionMap initRelativePositionMap() {
 
 RelativeAttitudeMap initRelativeAttitudeMap() {
 	RelativeAttitudeMap relativeAttitudeMap;
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
+#ifdef ALLOW_CARDANS
 	// TODO ActiveCardan
+
+	// TODO Cardan
 #endif
 	// ActiveHinge
 
@@ -671,11 +883,44 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 			osg::Quat(osg::inDegrees(270.0), osg::Vec3(1, 0, 0));
 
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
-	// TODO Active Wheel
+	// Active Wheel
+	relativeAttitudeMap[std::make_pair(&typeid(ActiveWheelModel),
+			static_cast<unsigned int>(ActiveWheelModel::B_SLOT_ID))] =
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
 
-	// TODO Active Wheg
+	relativeAttitudeMap[std::make_pair(&typeid(ActiveWheelModel),
+			static_cast<unsigned int>(ActiveWheelModel::B_WHEEL_ID))] =
+			osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 0, 1)) *
+			osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0));
 
-	// TODO Cardan
+	// Active Wheg
+	relativeAttitudeMap[std::make_pair(&typeid(ActiveWhegModel),
+				static_cast<unsigned int>(ActiveWhegModel::B_SLOT_ID))] =
+				osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
+
+	relativeAttitudeMap[std::make_pair(&typeid(ActiveWhegModel),
+				static_cast<unsigned int>(ActiveWhegModel::B_WHEG_BASE))] =
+				osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 0, 1));/* *
+				osg::Quat(osg::inDegrees(180.0), osg::Vec3(1, 0, 0));*/
+
+	// Passive Wheel
+	relativeAttitudeMap[std::make_pair(&typeid(PassiveWheelModel),
+			static_cast<unsigned int>(PassiveWheelModel::B_SLOT_ID))] =
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
+
+
+	// Rotate Joint
+	relativeAttitudeMap[std::make_pair(&typeid(RotateJointModel),
+			static_cast<unsigned int>(RotateJointModel::B_SLOT_ID))] =
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
+
+	relativeAttitudeMap[std::make_pair(&typeid(RotateJointModel),
+				static_cast<unsigned int>(
+						RotateJointModel::B_JOINT_CONNECTION_ID))] =
+				osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 1, 0)) *
+				osg::Quat(osg::inDegrees(-90.0), osg::Vec3(1, 0, 0));
+
+
 #endif
 	// Core
 
@@ -698,21 +943,23 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 			static_cast<unsigned int>(ParametricBrickModel::B_CYLINDER_ID))] =
 			osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
 
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
-	// TODO Passive Wheel
-
-	// TODO Rotate Joint
+#ifdef IR_SENSORS_ENABLED
+	// IR Sensor
+	relativeAttitudeMap[std::make_pair(&typeid(IrSensorModel),
+			static_cast<unsigned int>(IrSensorModel::B_SENSOR_BASE_ID))] =
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
 #endif
+#ifdef TOUCH_SENSORS_ENABLED
 	// Touch Sensor
 	relativeAttitudeMap[std::make_pair(&typeid(TouchSensorModel),
 			static_cast<unsigned int>(TouchSensorModel::B_SENSOR_BASE_ID))] =
 			osg::Quat(osg::inDegrees(-90.0), osg::Vec3(0, 0, 1));
+#endif
 
 	// Light Sensor
 	relativeAttitudeMap[std::make_pair(&typeid(LightSensorModel),
 			static_cast<unsigned int>(LightSensorModel::B_SENSOR_BASE_ID))] =
-			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0))
-					* osg::Quat(osg::inDegrees(180.0), osg::Vec3(0, 0, 1));
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
 
 	return relativeAttitudeMap;
 }

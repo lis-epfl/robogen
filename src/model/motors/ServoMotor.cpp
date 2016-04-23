@@ -30,7 +30,7 @@
 #include <iostream>
 #include "model/motors/ServoMotor.h"
 
-#define OLD_SERVO_MODEL
+//#define OLD_SERVO_MODEL
 
 
 namespace robogen {
@@ -43,7 +43,6 @@ const float ServoMotor::DEFAULT_GAIN = 0.5;
 //#endif
 
 // Expressed in Newton*m from kg-cm = ((kg-cm)*g)/100
-const float ServoMotor::DEFAULT_MAX_FORCE_ROTATIONAL = 4 * 9.81 / 100;
 const float ServoMotor::DEFAULT_MAX_FORCE_SERVO = 1.8 * 9.81 / 100;
 
 const float ServoMotor::MIN_POS_RAD = -(45 * M_PI / 180);
@@ -55,35 +54,15 @@ const float ServoMotor::MAX_POS_RAD = (45 * M_PI / 180);
 const float ServoMotor::MIN_VELOCITY = -(50.0/60.0) * 2 * M_PI;
 const float ServoMotor::MAX_VELOCITY = (50.0/60.0) * 2 * M_PI;
 
-void ServoMotor::init() {
-	// need to set these on our joint object so that they get
-	// reset if the joint is reconnected
-	joint_->setParam(dParamFMax, maxForce_);
-	joint_->setFeedback( &fback_ );
-	shouldStep_ = false;
-#ifndef OLD_SERVO_MODEL
-	shouldStep_ = true;
-#endif
+
+
+ServoMotor::ServoMotor(ioPair id, boost::shared_ptr<Joint> joint, float maxForce,
+		float gain, int maxDirectionShiftsPerSecond) :
+				Motor(id, joint, maxForce, maxDirectionShiftsPerSecond),
+				gain_(gain), desiredPosition_(0) {
 }
 
-ServoMotor::ServoMotor(boost::shared_ptr<Joint> joint,
-		float maxForce, float gain,
-		ioPair id, int maxDirectionShiftsPerSecond) : Motor(id),
-		joint_(joint), maxForce_(maxForce), gain_(gain),
-		isVelocityDriven_(false),
-		internalCounter_(0), isBurntOut_(false),
-		maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond) {
-	init();
-}
 
-ServoMotor::ServoMotor(boost::shared_ptr<Joint> joint, float maxForce,
-		ioPair id, int maxDirectionShiftsPerSecond) : Motor(id),
-		joint_(joint), maxForce_(maxForce), gain_(0),
-		isVelocityDriven_(true),
-		internalCounter_(0), isBurntOut_(false),
-		maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond) {
-	init();
-}
 
 ServoMotor::~ServoMotor() {
 
@@ -107,24 +86,6 @@ void ServoMotor::setDesiredPosition(float position, float stepSize) {
 #endif
 }
 
-void ServoMotor::setDesiredVelocity(float velocity, float stepSize) {
-	if (velocity > 1) {
-		velocity = 1;
-	} else if (velocity < 0) {
-		velocity = 0;
-	}
-
-	desiredVelocity_ = MIN_VELOCITY + velocity * (MAX_VELOCITY - MIN_VELOCITY);
-	if(maxDirectionShiftsPerSecond_ != -1)
-		testBurnout(stepSize);
-
-#ifdef OLD_SERVO_MODEL
-	shouldStep_ = true;
-	step(stepSize);
-	shouldStep_ = false;
-#endif
-}
-
 void ServoMotor::step(float stepSize) {
 
 	if(!shouldStep_)
@@ -135,142 +96,40 @@ void ServoMotor::step(float stepSize) {
 		return;
 	}
 
-	if (isVelocityDriven_) {
-		if (fabs(desiredVelocity_) < 1e-5) {
-			dJointSetHingeParam(joint_->getJoint(), dParamVel, 0);
-		} else {
-			dJointSetHingeParam(joint_->getJoint(), dParamVel, desiredVelocity_);
-		}
+
+	dReal curPosition = dJointGetHingeAngle(joint_->getJoint());
+	dReal error = curPosition - desiredPosition_;
+
+	dReal velocity = -gain_ * error / stepSize;
+
+	if (velocity > MAX_VELOCITY) {
+		velocity = MAX_VELOCITY;
+	} else if (velocity < MIN_VELOCITY) {
+		velocity = MIN_VELOCITY;
+	}
+
+	if (fabs(velocity) > 1e-5) {
+		dJointSetHingeParam(joint_->getJoint(), dParamVel, velocity);
 	} else {
-		dReal curPosition = dJointGetHingeAngle(joint_->getJoint());
-		dReal error = curPosition - desiredPosition_;
-
-		dReal velocity = -gain_ * error / stepSize;
-
-		if (velocity > MAX_VELOCITY) {
-			velocity = MAX_VELOCITY;
-		} else if (velocity < MIN_VELOCITY) {
-			velocity = MIN_VELOCITY;
-		}
-
-		if (fabs(velocity) > 1e-5) {
-			dJointSetHingeParam(joint_->getJoint(), dParamVel, velocity);
-		} else {
-			dJointSetHingeParam(joint_->getJoint(), dParamVel, 0);
-		}
+		dJointSetHingeParam(joint_->getJoint(), dParamVel, 0);
 	}
 
-}
-
-bool ServoMotor::isVelocityDriven() {
-	return isVelocityDriven_;
-}
-
-bool ServoMotor::isBurntOut() {
-	return isBurntOut_;
-}
-
-void ServoMotor::setMaxDirectionShiftsPerSecond(int
-		maxDirectionShiftsPerSecond) {
-	maxDirectionShiftsPerSecond_ = maxDirectionShiftsPerSecond;
-}
-
-dReal ServoMotor::getTorque() {
-	// code from Jeff Shim
-
-	osg::Vec3 torque1(fback_.t1[0], fback_.t1[1], fback_.t1[2] );
-	osg::Vec3 torque2(fback_.t2[0], fback_.t2[1], fback_.t2[2] );
-	osg::Vec3 force1(fback_.f1[0], fback_.f1[1], fback_.f1[2] );
-	osg::Vec3 force2(fback_.f2[0], fback_.f2[1], fback_.f2[2] );
-
-	const double* p1 = dBodyGetPosition( dJointGetBody(joint_->getJoint(),0) );
-	const double* p2 = dBodyGetPosition( dJointGetBody(joint_->getJoint(),1) );
-
-	osg::Vec3 pos1(p1[0], p1[1], p1[2]);
-	osg::Vec3 pos2(p2[0], p2[1], p2[2]);
-
-
-	dVector3 odeAnchor;
-	dJointGetHingeAnchor ( joint_->getJoint(), odeAnchor );
-	osg::Vec3 anchor(odeAnchor[0], odeAnchor[1], odeAnchor[2]);
-
-
-	osg::Vec3 ftorque1 = torque1 - (force1^(pos1-anchor));// torq by motor = total torq - constraint torq
-	osg::Vec3 ftorque2 = torque2 - (force2^(pos2-anchor));// opposite direction - use if this is necessary
-
-	dVector3 odeAxis;
-	dJointGetHingeAxis ( joint_->getJoint(), odeAxis);
-	osg::Vec3 axis(odeAxis[0], odeAxis[1], odeAxis[2] );
-	axis.normalize();
-
-	double torque =  ftorque1 * axis;
-
-	//printf ("torque: % 1.10f\n", torque);
-	return torque;
-}
-
-dReal ServoMotor::getVelocity() {
-	return dJointGetHingeAngleRate(joint_->getJoint());
 
 }
 
-dReal ServoMotor::getPosition() {
-	return dJointGetHingeAngle(joint_->getJoint());
-}
-
-
-template <typename T> int sgn(T val) {
-    return (T(0) < val) - (val < T(0));
-}
-
-void ServoMotor::testBurnout(float stepSize) {
-	unsigned int historySize = ((unsigned int) (0.5/stepSize));
-	double signal;
-	if (isVelocityDriven()) {
-		signal = desiredVelocity_;
-	} else {
-		signal = desiredPosition_;
-	}
-
-	if(previousSignals_.size() < historySize) {
-		previousSignals_.push_back(signal);
-	} else {
-		previousSignals_[internalCounter_ % historySize] = signal;
-	}
-	internalCounter_++;
-
-	unsigned int numDirectionFlips = 0;
-
-	if(isVelocityDriven()) {
-		int previousSign = sgn(previousSignals_[0]);
-		for(unsigned int i=1; i<previousSignals_.size(); i++) {
-			int currentSign = sgn(previousSignals_[i]);
-			if (currentSign != 0) {
-				if (previousSign * currentSign < 0)
-					numDirectionFlips++;
-				previousSign = currentSign;
-			}
-		}
-	} else {
-		int previousSign = sgn(previousSignals_[1] - previousSignals_[0]);
-		for(unsigned int i=2; i<previousSignals_.size(); i++) {
-			int currentSign = sgn(previousSignals_[i] - previousSignals_[i-1]);
-			if (currentSign != 0) {
-				if (previousSign * currentSign < 0)
-					numDirectionFlips++;
-				previousSign = currentSign;
-			}
+int ServoMotor::getNumDirectionFlips() {
+	int numDirectionFlips = 0;
+	int previousSign = sgn(previousSignals_[1] - previousSignals_[0]);
+	for(unsigned int i=2; i<previousSignals_.size(); i++) {
+		int currentSign = sgn(previousSignals_[i] - previousSignals_[i-1]);
+		if (currentSign != 0) {
+			if (previousSign * currentSign < 0)
+				numDirectionFlips++;
+			previousSign = currentSign;
 		}
 	}
-
-	// considering previous half-second of simulated time
-	if ((numDirectionFlips * 2) > maxDirectionShiftsPerSecond_) {
-		std::cout << "motor burnt out!" << std::endl;
-		for(unsigned int i=0; i<previousSignals_.size(); i++) {
-			std::cout << previousSignals_[i] << std::endl;
-		}
-		isBurntOut_ = true;
-	}
+	return numDirectionFlips;
 }
+
 
 }

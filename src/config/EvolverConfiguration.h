@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
+ * Copyright © 2013-2016 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -80,7 +80,7 @@ typedef struct EvolverConfiguration {
 	enum BodyMutationOperators{
 		SUBTREE_REMOVAL, SUBTREE_DUPLICATION, SUBTREE_SWAPPING,
 		NODE_INSERTION, NODE_REMOVAL, PARAMETER_MODIFICATION,
-		ORIENTATION_CHANGE, SENSOR_SWAP, LINK_CHANGE, ACTIVE_PASSIVE,
+		/*ORIENTATION_CHANGE, SENSOR_SWAP, LINK_CHANGE, ACTIVE_PASSIVE,*/
 		NUM_BODY_OPERATORS
 	};
 
@@ -279,6 +279,8 @@ typedef struct EvolverConfiguration {
 	std::string neatParamsFile;
 
 	double pOscillatorNeuron;
+
+	double pAddHiddenNeuron;
 
 
 } EvolverConfiguration;

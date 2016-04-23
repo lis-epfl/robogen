@@ -2,9 +2,10 @@
  * @(#) Models.h   1.0   March 4, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -29,11 +30,12 @@
 #define ROBOGEN_MODELS_H_
 
 #include "model/motors/ServoMotor.h"
+#include "model/motors/RotationMotor.h"
 #include "model/objects/LightSource.h"
 #include "model/sensors/ImuSensor.h"
 #include "model/sensors/LightSensor.h"
-#include "model/sensors/SimpleSensor.h"
 #include "model/sensors/TouchSensor.h"
+#include "model/sensors/IrSensor.h"
 
 #include "model/components/actuated/ActiveCardanModel.h"
 #include "model/components/actuated/ActiveHingeModel.h"
@@ -48,5 +50,6 @@
 #include "model/components/perceptive/CoreComponentModel.h"
 #include "model/components/perceptive/LightSensorModel.h"
 #include "model/components/perceptive/TouchSensorModel.h"
+#include "model/components/perceptive/IrSensorModel.h"
 
 #endif /* ROBOGEN_MODELS_H_ */

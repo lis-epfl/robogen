@@ -2,9 +2,10 @@
  * @(#) RobogenUtils.h   1.0   Feb 17, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -31,6 +32,7 @@
 #include <boost/shared_ptr.hpp>
 #include <osg/Quat>
 #include <osg/Vec3>
+#include <iostream>
 
 #include "Models.h"
 #include "RenderModels.h"
@@ -55,6 +57,8 @@ public:
 
 	static double getAngle(const osg::Vec3& a, const osg::Vec3& b);
 
+	static std::istream& safeGetline(std::istream& is, std::string& t);
+
 	/**
 	 * It is b that remains fixed!!
 	 */
@@ -68,6 +72,10 @@ public:
 
 	static boost::shared_ptr<RenderModel> createRenderModel(
 			boost::shared_ptr<Model> model);
+
+	static std::string getSensorType(boost::shared_ptr<Sensor> sensor);
+
+	static std::string getPartType(boost::shared_ptr<Model> model);
 
 	static std::string getMeshFile(boost::shared_ptr<Model> model,
 								const unsigned int id);

@@ -2,10 +2,11 @@
  * @(#) ImuSensor.h   1.0   Mar 6, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Titus Cieslewski (dev@titus-c.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
- *
+ * Copyright © 2012-2015 Andrea Maesani, Titus Cieslewski, Joshua Auerbach
  * Laboratory of Intelligent Systems, EPFL
  *
  * This file is part of the ROBOGEN Framework.
@@ -36,13 +37,24 @@
 
 namespace robogen {
 
-class SimpleSensor;
+class ImuSensorElement : public Sensor {
+public:
+	inline ImuSensorElement(std::string label) : Sensor(label) {}
+};
 
 class ImuSensor: public SensorGroup {
 
 public:
 
-	ImuSensor();
+	/**
+	 * Collection of sensors for accel + gyro
+	 * When call getSensors will get a sensors for each acceleration outputs
+	 * (acceleration along the three axis)
+	 * and gyro outputs (+/- 360°) (rotational velocity)
+	 * (x-acc, y-acc, z-acc, x-gryo, y-gyro, z-gryo)
+	 */
+
+	ImuSensor(std::string partId);
 
 	virtual ~ImuSensor();
 
@@ -55,12 +67,8 @@ public:
 	void update(const osg::Vec3& position, const osg::Quat& attitude,
 			float timeElapsed, const osg::Vec3& gravity);
 
-	/**
-	 * Return a sensors for each acceleration outputs (acceleration along the three axis)
-	 * and gyro outputs (+/- 360°) (rotational velocity) (x-acc, y-acc, z-acc, x-gryo, y-gyro, z-gryo)
-	 * @param sensors
-	 */
-	virtual void getSensors(std::vector<boost::shared_ptr<Sensor> >& sensors);
+
+
 
 private:
 
@@ -93,8 +101,6 @@ private:
 	 * True after first call of update()
 	 */
 	bool initialized_;
-
-	std::vector<boost::shared_ptr<SimpleSensor> > sensors_;
 
 };
 

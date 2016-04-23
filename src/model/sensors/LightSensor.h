@@ -38,6 +38,8 @@
 #include "model/objects/LightSource.h"
 #include "model/SimpleBody.h"
 
+#include "scenario/Environment.h"
+
 namespace robogen {
 
 class LightSensor: public Sensor {
@@ -71,11 +73,6 @@ public:
 			std::string label);
 
 	/**
-	 * @return Sensor label for data analysis
-	 */
-	virtual std::string &getLabel();
-
-	/**
 	 * Destructor
 	 */
 	virtual ~LightSensor();
@@ -83,20 +80,14 @@ public:
 	/**
 	 * Update the light sensor
 	 */
-	void update(const osg::Vec3& position, const osg::Quat& attitude);
+	void update(const osg::Vec3& position, const osg::Quat& attitude,
+			boost::shared_ptr<Environment> env);
 
 	/**
 	 * Callback for collision handling between rays and the ODE space
 	 */
 	static void collisionCallback(void *data, dGeomID o1, dGeomID o2);
 
-	/**
-	 * Read sensor output, providing the light sources in the environment
-	 * @lightSources
-	 * @ambientLight
-	 */
-	float read(const std::vector<boost::shared_ptr<LightSource> >&
-			lightSources, double ambientLight);
 
 private:
 	/**
@@ -115,11 +106,6 @@ private:
 	 * Ode collision space
 	 */
 	dSpaceID odeSpace_;
-
-	/**
-	 * Label for sensor analysis
-	 */
-	std::string label_;
 
 	/**
 	 * Position of the light sensor

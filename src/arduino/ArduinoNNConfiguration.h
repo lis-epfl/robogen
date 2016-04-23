@@ -36,6 +36,7 @@
 
 #define MAX_DIGITAL_PINS 12
 #define MAX_ANALOG_PINS 4
+#define MAX_PWM_PINS 4
 
 
 namespace robogen {
@@ -54,7 +55,10 @@ const std::string digitalOrder[] = {"D9", "D10", "D5", "D6", "D11", "D13",
 
 const std::string analogOrder[] = {"A0", "A1", "A2", "A3"};
 
-
+/**
+ * Slots for PWM signals: rotation motors (some are duplicate of digital)
+ */
+const std::string pwmOrder[] = {"D11", "D5", "D6", "D13"};
 
 /**
  * Integer codes for input type tab
@@ -62,7 +66,8 @@ const std::string analogOrder[] = {"A0", "A1", "A2", "A3"};
 enum inputType{
 	LIGHT_SENSOR,
 	TOUCH_SENSOR,
-	IMU
+	IMU,
+	IR_SENSOR
 };
 
 /**

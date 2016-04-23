@@ -26,10 +26,33 @@
  * @(#) $Id$
  */
 #include <iostream>
+#include <sstream>
 #include "config/RobogenConfig.h"
 #include "scenario/ChasingScenario.h"
 #include "scenario/ScenarioFactory.h"
 #include "scenario/RacingScenario.h"
+
+#ifdef EMSCRIPTEN
+#include <emscripten/bind.h>
+#include <emscripten.h>
+#include "scenario/JSScenario.h"
+#include "utils/JSUtils.h"
+
+#include <algorithm>
+
+
+
+
+
+
+#elif defined(QT5_ENABLED)
+#include <QScriptEngine>
+#include "QScriptScenario.h"
+#endif
+
+
+
+
 
 namespace robogen {
 
@@ -43,13 +66,26 @@ ScenarioFactory::~ScenarioFactory() {
 
 boost::shared_ptr<Scenario> ScenarioFactory::createScenario(boost::shared_ptr<RobogenConfig> config) {
 
-	if (config->getScenario() == RobogenConfig::RACING) {
+	if (config->getScenario() == "racing") {
 		return boost::shared_ptr<Scenario>(new RacingScenario(config));
-	} else if (config->getScenario() == RobogenConfig::CHASING) {
+	} else if (config->getScenario() == "chasing") {
 		return boost::shared_ptr<Scenario>(new ChasingScenario(config));
 	} else {
-		std::cout << "Cannot allocate the specified scenario. Quit."
-				<< std::endl;
+		// we are getting scenario in js
+#ifdef EMSCRIPTEN
+
+		return JSScenario::createScenario(config);
+
+#elif defined(QT5_ENABLED)
+    	std::cout << "Qt5 enabled, using scripted scenario!" << std::endl;
+    	return boost::shared_ptr<Scenario>(new QScriptScenario(config));
+
+
+#else
+		std::cout << "JS scenarios are not available in C++ version w/out Qt5!" << std::endl;
+		std::cout << config->getScenario() << std::endl;
+
+#endif
 	}
 
 	return boost::shared_ptr<Scenario>();

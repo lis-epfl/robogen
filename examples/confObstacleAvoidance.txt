@@ -1,0 +1,13 @@
+scenario=obstacleAvoidance.js
+obstaclesConfigFile=simpleArena.txt
+timeStep=0.01
+actuationFrequency=25
+nTimeSteps=800
+terrainType=flat
+terrainLength=1
+terrainWidth=1
+terrainFriction=1.0
+sensorNoiseLevel=0.02
+motorNoiseLevel=0.02
+capAcceleration=false
+disallowObstacleCollisions=false

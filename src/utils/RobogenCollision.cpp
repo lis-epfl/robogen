@@ -46,7 +46,7 @@ const int MAX_CONTACTS = 32; // maximum number of contact points per body
 
 
 CollisionData::CollisionData(boost::shared_ptr<Scenario> scenario) :
-		scenario_(scenario) {
+		scenario_(scenario), hasObstacleCollisions_(false) {
 
 	//numCulled = 0;
 
@@ -68,6 +68,18 @@ bool CollisionData::ignoreCollision(dGeomID o1, dGeomID o2) {
 
 }
 
+bool CollisionData::isPartOfBody(dGeomID o1) {
+	return geomModelMap_.count(o1);
+}
+
+void CollisionData::testObstacleCollisons(dGeomID o1, dGeomID o2) {
+	if (	(isPartOfBody(o1) && dGeomGetClass(o2) == dBoxClass)
+			||
+			(isPartOfBody(o2) && dGeomGetClass(o1) == dBoxClass)) {
+		//std::cout << "colliding with obstacle!!!" << std::endl;
+		hasObstacleCollisions_ = true;
+	}
+}
 
 
 void odeCollisionCallback(void *data, dGeomID o1, dGeomID o2) {
@@ -111,6 +123,10 @@ void odeCollisionCallback(void *data, dGeomID o1, dGeomID o2) {
 
 	int collisionCounts = dCollide(o1, o2, MAX_CONTACTS, &contact[0].geom,
 		sizeof(dContact));
+
+	if (collisionCounts > 0) {
+		collisionData->testObstacleCollisons(o1, o2);
+	}
 
 
 	for (int i = 0; i < collisionCounts; i++) {

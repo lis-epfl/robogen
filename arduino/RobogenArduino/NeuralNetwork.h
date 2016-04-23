@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -45,26 +45,18 @@
 
 
 
-// Branch Hip1 0 to D9
-// Branch Hip2 0 to D10
-// Branch Hip3 0 to D5
-// Branch Hip4 0 to D6
-// Branch Knee1 0 to D11
-// Branch Knee2 0 to D13
-// Branch Knee3 0 to ROLL
-// Branch Knee4 0 to PITCH
-// Branch TS1-left to YAW
-// Branch TS1-right to AUX1
-// Branch TS2-left to D7
-// Branch TS2-right to D4
-// Branch TS3-left to A0
-// Branch TS3-right to A1
-// Branch TS4-left to A2
-// Branch TS4-right to A3
+// Branch Wheel1 0 to D11
+// Branch Wheel2 0 to D5
+// Branch S1 to A0
+// Branch S2 to A1
+// Branch S3 to A2
+// Branch S4 to A3
 
 #define NB_LIGHTSENSORS 0
-#define NB_TOUCH_SENSORS 8
-#define NB_SERVOS_MOTORS 8
+#define NB_TOUCH_SENSORS 0
+#define NB_IR_SENSORS 4
+#define NB_SERVO_MOTORS 0
+#define NB_ROTATION_MOTORS 2
 #define NB_ACC_GYRO_SENSORS 6
 
 #define ACTUATION_PERIOD 40
@@ -75,8 +67,15 @@
 	0 for lightSensor,
 	1 for Touch sensor, and
 	2 for Accelerometer and Gyroscope
+	3 for IR sensor
 */
-const int inputTab[][2] = { {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {YAW, 1}, {AUX1, 1}, {D7, 1}, {D4, 1}, {A0, 1}, {A1, 1}, {A2, 1}, {A3, 1} };
+const int inputTab[][2] = { {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {A0, 3}, {A1, 3}, {A2, 3}, {A3, 3} };
+
+/* irIndices 
+* NONE if not irSensor
+* otherwise index of irSensor
+*/
+const int irIndices[] = { NONE, NONE, NONE, NONE, NONE, NONE, 0, 1, 2, 3 };
 
 /* double dimension Tab
 * outputTab[i][0] is the value of the output port
@@ -84,14 +83,16 @@ const int inputTab[][2] = { {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {YAW
 	0 for position control, and
 	1 for velocity control
 */
-const int outputTab[][2] = { {D9, 0}, {D10, 0}, {D5, 0}, {D6, 0}, {D11, 0}, {D13, 0}, {ROLL, 0}, {PITCH, 0} };
+const int outputTab[][2] = { {D11, 1}, {D5, 1} };
 
-#define NB_INPUTS 14
-#define NB_OUTPUTS 8
+#define NEUTRAL_PIN D6
+
+#define NB_INPUTS 10
+#define NB_OUTPUTS 2
 #define NB_HIDDEN 0
-PROGMEM const float EAWeight[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-PROGMEM const float EAParams[] = {3.2, -0.8, 0.5, 0.8, -0.95, 1, 3.2, -0.8, 0.5, 0.8, -0.95, 1, 3.2, 0.2, 0.5, 0.8, -1, 1, 3.2, 0.2, 0.5, 0.8, -1, 1};
-unsigned int EATypes[] = {3, 3, 3, 3, 3, 3, 3, 3};
+PROGMEM const float EAWeight[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -3, -3, 3, -0.806727, -2.87428, -3, -2.53897, -1.84666, 3, 3, -1.24157, 3};
+PROGMEM const float EAParams[] = {1.79026, 1, -5.17356e+20, 0.111878, 1, 0};
+unsigned int EATypes[] = {1, 1};
 
 
 /*
@@ -142,18 +143,13 @@ typedef struct {
 	#ifndef ARDUINO
 	float params[MAX_PARAMS * (MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 	#endif
+
 	/*
 	 * One state for each output and hidden neuron
-	 * The state has double the space to store also the next
-	 * value.
+	 * activations will be used to temporarily store summed inputs before updating states
 	 */
-	float state[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)*2];
-
-	/**
-	 * Indicates at which index of the state array the current state starts
-	 * (alternatively curStateStart = 0 or curStateStart = n/2)
-	 */
-	int curStateStart;
+	float state[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
+	float activations[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 
 	/**
 	 * One input state for each input neuron

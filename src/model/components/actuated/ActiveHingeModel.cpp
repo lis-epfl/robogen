@@ -64,12 +64,10 @@ bool ActiveHingeModel::initModel() {
 	// Create the 4 components of the hinge
 	// now created directly with calls to this->add___
 
-	float separation = 0;//inMm(0.1);
-
 	hingeRoot_ = this->addBox(MASS_SLOT, osg::Vec3(0, 0, 0),
 			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_A_ID);
 
-	dReal xFrame = separation + FRAME_LENGTH / 2 + SLOT_THICKNESS / 2;
+	dReal xFrame = FRAME_LENGTH / 2 + SLOT_THICKNESS / 2;
 	boost::shared_ptr<SimpleBody> frame = this->addBox(MASS_FRAME,
 			osg::Vec3(xFrame,SERVO_POSITION_OFFSET, 0),
 			FRAME_LENGTH, FRAME_WIDTH, FRAME_HEIGHT, B_FRAME_ID);
@@ -80,7 +78,7 @@ bool ActiveHingeModel::initModel() {
 			osg::Vec3(xServo,SERVO_POSITION_OFFSET, 0),
 			SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT, B_SERVO_ID);
 
-	dReal xTail = xServo + SERVO_LENGTH / 2 + separation + SLOT_THICKNESS / 2;
+	dReal xTail = xServo + SERVO_LENGTH / 2 + SLOT_THICKNESS / 2;
 	hingeTail_ = this->addBox(MASS_SLOT, osg::Vec3(xTail, 0, 0),
 			SLOT_THICKNESS, SLOT_WIDTH, SLOT_WIDTH, B_SLOT_B_ID);
 
@@ -92,7 +90,7 @@ bool ActiveHingeModel::initModel() {
 	// connectionPartA <(hinge)> connectionPArtB
 	boost::shared_ptr<Joint> joint = this->attachWithHinge(frame, servo,
 			osg::Vec3(0, 1, 0),
-			osg::Vec3(SLOT_THICKNESS / 2 + separation + FRAME_ROTATION_OFFSET,
+			osg::Vec3(SLOT_THICKNESS / 2 + FRAME_ROTATION_OFFSET,
 						0, 0));
 
 	// connectionPartB <-> tail
@@ -102,9 +100,9 @@ bool ActiveHingeModel::initModel() {
 
 	// Create servo
 	this->motor_.reset(
-			new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE_SERVO,
-					ServoMotor::DEFAULT_GAIN,
-					ioPair(this->getId(),0)));
+			new ServoMotor(ioPair(this->getId(),0), joint,
+							ServoMotor::DEFAULT_MAX_FORCE_SERVO,
+							ServoMotor::DEFAULT_GAIN));
 
 
 	return true;
@@ -132,17 +130,13 @@ osg::Vec3 ActiveHingeModel::getSlotPosition(unsigned int i) {
 
 	osg::Vec3 slotPos;
 	if (i == SLOT_A) {
-
 		osg::Vec3 curPos = hingeRoot_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		slotPos = curPos + slotAxis * (SLOT_THICKNESS / 2);
-
 	} else {
-
 		osg::Vec3 curPos = hingeTail_->getPosition();
 		osg::Vec3 slotAxis = this->getSlotAxis(i);
 		slotPos = curPos + slotAxis * (SLOT_THICKNESS / 2);
-
 	}
 	return slotPos;
 

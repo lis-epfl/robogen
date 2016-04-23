@@ -1,10 +1,10 @@
 /*
- * @(#) SimpleSensor.h   1.0   Mar 6, 2013
+ * @(#) QScriptUtils.h   1.0   Dec 23, 2015
  *
- * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -25,46 +25,31 @@
  *
  * @(#) $Id$
  */
-#ifndef ROBOGEN_SIMPLE_SENSOR_H_
-#define ROBOGEN_SIMPLE_SENSOR_H_
+#ifndef ROBOGEN_QSCRIPTUTILS_H_
+#define ROBOGEN_QSCRIPTUTILS_H_
 
-#include <string>
-#include "model/sensors/Sensor.h"
+#ifdef QT5_ENABLED
+
+#include <QScriptEngine>
+#include <osg/Vec3>
+#include <osg/Quat>
 
 namespace robogen {
+namespace qscript {
 
-class SimpleSensor : public Sensor {
+QScriptValue valFromVec3(QScriptEngine* engine,
+							osg::Vec3 vec);
 
-public:
+QScriptValue valFromQuat(QScriptEngine* engine,
+							osg::Quat quat);
 
-	SimpleSensor(std::string label) : label_(label) {
 
-	}
-
-	virtual std::string &getLabel(){
-		return label_;
-	}
-
-	virtual ~SimpleSensor () {
-
-	}
-
-	void update(float value) {
-		value_ = value;
-	}
-
-	float read() {
-		return value_;
-	}
-
-private:
-
-	float value_;
-
-	std::string label_;
-};
-
+}
 }
 
 
-#endif /* ROBOGEN_SIMPLE_SENSOR_H_ */
+#endif
+
+
+
+#endif /* ROBOGEN_QSCRIPTUTILS_H_ */

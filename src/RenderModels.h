@@ -2,9 +2,10 @@
  * @(#) RenderModels.h   1.0   March 4, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -40,6 +41,7 @@
 #include "render/components/ActiveWhegRenderModel.h"
 #include "render/components/TouchSensorRenderModel.h"
 #include "render/components/LightSensorRenderModel.h"
+#include "render/components/IrSensorRenderModel.h"
 #include "render/objects/BoxObstacleRender.h"
 #include "render/objects/LightSourceRender.h"
 #include "render/objects/TerrainRender.h"

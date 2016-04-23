@@ -34,6 +34,7 @@
 #include "config/ObstaclesConfig.h"
 #include "config/StartPositionConfig.h"
 #include "config/TerrainConfig.h"
+#include "config/LightSourcesConfig.h"
 #include "robogen.pb.h"
 
 namespace robogen {
@@ -45,39 +46,47 @@ class RobogenConfig {
 
 public:
 
-	enum SimulationScenario {
-		CHASING, RACING
+	enum ObstacleOverlapPolicies {
+		REMOVE_OBSTACLES, CONSTRAINT_VIOLATION, ELEVATE_ROBOT
 	};
 
 	/**
 	 * Initializes a robogen config object from configuration parameters
 	 */
-	RobogenConfig(SimulationScenario scenario, unsigned int timeSteps,
+	RobogenConfig(std::string scenario, std::string scenarioFile,
+			unsigned int timeSteps,
 			float timeStepLength, int actuationPeriod,
 			boost::shared_ptr<TerrainConfig> terrain,
 			boost::shared_ptr<ObstaclesConfig> obstacles,
 			std::string obstacleFile,
 			boost::shared_ptr<StartPositionConfig> startPositions,
-			std::string startPosFile, float lightSourceHeight,
+			std::string startPosFile,
+			boost::shared_ptr<LightSourcesConfig> lightSources,
+			std::string lightSourceFile,
 			float sensorNoiseLevel, float motorNoiseLevel,
 			bool capAcceleration, float maxLinearAcceleration,
 			float maxAngularAcceleration, int maxDirectionShiftsPerSecond,
-			osg::Vec3 gravity) :
-				scenario_(scenario), timeSteps_(timeSteps),
+			osg::Vec3 gravity, bool disallowObstacleCollisions,
+			unsigned int obstacleOverlapPolicy) :
+				scenario_(scenario), scenarioFile_(scenarioFile),
+				timeSteps_(timeSteps),
 				timeStepLength_(timeStepLength),
 				actuationPeriod_(actuationPeriod),
 				terrain_(terrain), obstacles_(obstacles),
 				obstacleFile_(obstacleFile),
 				startPositions_(startPositions),
 				startPosFile_(startPosFile),
-				lightSourceHeight_(lightSourceHeight),
+				lightSources_(lightSources),
+				lightSourceFile_(lightSourceFile),
 				sensorNoiseLevel_(sensorNoiseLevel),
 				motorNoiseLevel_(motorNoiseLevel),
 				capAcceleration_(capAcceleration),
 				maxLinearAcceleration_(maxLinearAcceleration),
 				maxAngularAcceleration_(maxAngularAcceleration),
 				maxDirectionShiftsPerSecond_(maxDirectionShiftsPerSecond),
-				gravity_(gravity) {
+				gravity_(gravity),
+				disallowObstacleCollisions_(disallowObstacleCollisions),
+				obstacleOverlapPolicy_(obstacleOverlapPolicy) {
 
 		simulationTime_ = timeSteps * timeStepLength;
 
@@ -98,8 +107,15 @@ public:
 	/**
 	 * @return the simulation scenario
 	 */
-	SimulationScenario getScenario() const {
+	std::string getScenario() const {
 		return scenario_;
+	}
+
+	/**
+	 * @return the simulation scenario file (for scripted scenario)
+	 */
+	std::string getScenarioFile() const {
+		return scenarioFile_;
 	}
 
 	/**
@@ -114,6 +130,13 @@ public:
 	 */
 	boost::shared_ptr<ObstaclesConfig> getObstaclesConfig() {
 		return obstacles_;
+	}
+
+	/**
+	 * @return the light sources configuration
+	 */
+	boost::shared_ptr<LightSourcesConfig> getLightSourcesConfig() {
+		return lightSources_;
 	}
 
 	/**
@@ -166,10 +189,10 @@ public:
 	}
 
 	/**
-	 * @return the desired height of the light source
+	 * @return the light source configuration file
 	 */
-	float getLightSourceHeight(){
-		return lightSourceHeight_;
+	std::string getLightSourceFile(){
+		return lightSourceFile_;
 	}
 
 	/**
@@ -227,18 +250,27 @@ public:
 	}
 
 	/**
+	 * return if should disallow obstacle collisions
+	 */
+	bool isDisallowObstacleCollisions() {
+		return disallowObstacleCollisions_;
+	}
+
+	/**
+	 * return if should disallow obstacle remove
+	 */
+	unsigned int getObstacleOverlapPolicy() {
+		return obstacleOverlapPolicy_;
+	}
+
+	/**
 	 * Convert configuration into configuration message.
 	 */
 	robogenMessage::SimulatorConf serialize() const{
 		robogenMessage::SimulatorConf ret;
-		ret.set_lightsourceheight(lightSourceHeight_);
-		ret.set_ntimesteps(timeSteps_);
-		if (scenario_ == CHASING) {
-			ret.set_scenario("chasing");
-		} else if (scenario_ == RACING) {
-			ret.set_scenario("racing");
-		}
 
+		ret.set_ntimesteps(timeSteps_);
+		ret.set_scenario(scenario_);
 		ret.set_timestep(timeStepLength_);
 		ret.set_actuationperiod(actuationPeriod_);
 		ret.set_sensornoiselevel(sensorNoiseLevel_);
@@ -250,11 +282,15 @@ public:
 		ret.set_gravityx(gravity_.x());
 		ret.set_gravityy(gravity_.y());
 		ret.set_gravityz(gravity_.z());
+		ret.set_disallowobstaclecollisions(disallowObstacleCollisions_);
+		ret.set_obstacleoverlappolicy(obstacleOverlapPolicy_);
 
 		terrain_->serialize(ret);
 
 		obstacles_->serialize(ret);
 		startPositions_->serialize(ret);
+		lightSources_->serialize(ret);
+
 		return ret;
 	}
 
@@ -263,7 +299,12 @@ private:
 	/**
 	 * The simulation scenario
 	 */
-	SimulationScenario scenario_;
+	std::string scenario_;
+
+	/**
+	 * The simulation scenario file (if using scripted scenario)
+	 */
+	std::string scenarioFile_;
 
 	/**
 	 * Total number of simulation timesteps
@@ -306,9 +347,14 @@ private:
 	std::string startPosFile_;
 
 	/**
-	 * Height of light source in chasing scenario
+	 * Light sources configuration
 	 */
-	float lightSourceHeight_;
+	boost::shared_ptr<LightSourcesConfig> lightSources_;
+
+	/**
+	 * Light sources configuration file location
+	 */
+	std::string lightSourceFile_;
 
 	/**
 	 * Simulation time
@@ -351,6 +397,17 @@ private:
 	 * Gravity
 	 */
 	osg::Vec3 gravity_;
+
+	/**
+	 * flag to disallow obstacle collisions
+	 */
+	bool disallowObstacleCollisions_;
+
+	/**
+	 * policy for handling the situation when an obstacle is in the robot's
+	 * initial AABB
+	 */
+	unsigned int obstacleOverlapPolicy_;
 };
 
 }

@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -32,29 +32,41 @@ namespace robogen {
 
 //first define init functions that will populate these maps
 
-std::map<char, std::string> initPartTypeMap() {
+std::map<char, std::string> initLegacyPartTypeMap() {
 	std::map<char, std::string> partTypeMap;
 #ifdef ALLOW_CARDANS
 	partTypeMap['K'] = PART_TYPE_ACTIVE_CARDAN;
+	partTypeMap['C'] = PART_TYPE_PASSIVE_CARDAN;
 #endif
-	partTypeMap['I'] = PART_TYPE_ACTIVE_HINGE;
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeMap['J'] = PART_TYPE_ACTIVE_WHEEL;
 	partTypeMap['G'] = PART_TYPE_ACTIVE_WHEG;
-#endif
-	partTypeMap['E'] = PART_TYPE_CORE_COMPONENT;
-	partTypeMap['F'] = PART_TYPE_FIXED_BRICK;
-	partTypeMap['L'] = PART_TYPE_LIGHT_SENSOR;
-	partTypeMap['B'] = PART_TYPE_PARAM_JOINT;
-#ifdef ALLOW_CARDANS
-	partTypeMap['C'] = PART_TYPE_PASSIVE_CARDAN;
-#endif
-	partTypeMap['H'] = PART_TYPE_PASSIVE_HINGE;
-#ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeMap['W'] = PART_TYPE_PASSIVE_WHEEL;
 	partTypeMap['R'] = PART_TYPE_ROTATOR;
 #endif
+	return partTypeMap;
+}
+
+std::map<char, std::string> initPartTypeMap(const std::map<char, std::string>
+											&legacyPartTypeMap) {
+	std::map<char, std::string> partTypeMap;
+	partTypeMap.insert(legacyPartTypeMap.begin(), legacyPartTypeMap.end());
+
+	partTypeMap['I'] = PART_TYPE_ACTIVE_HINGE;
+
+	partTypeMap['E'] = PART_TYPE_CORE_COMPONENT;
+	partTypeMap['N'] = PART_TYPE_CORE_COMPONENT_NO_IMU;
+	partTypeMap['F'] = PART_TYPE_FIXED_BRICK;
+	partTypeMap['L'] = PART_TYPE_LIGHT_SENSOR;
+	partTypeMap['B'] = PART_TYPE_PARAM_JOINT;
+
+	partTypeMap['H'] = PART_TYPE_PASSIVE_HINGE;
+#ifdef IR_SENSORS_ENABLED
+	partTypeMap['D'] = PART_TYPE_IR_SENSOR;
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	partTypeMap['T'] = PART_TYPE_TOUCH_SENSOR;
+#endif
 	return partTypeMap;
 }
 
@@ -70,9 +82,11 @@ std::map<std::string, unsigned int> initPartTypeArityMap() {
 #endif
 #ifdef ENFORCE_PLANAR
 	partTypeArityMap[PART_TYPE_CORE_COMPONENT] = 4;
+	partTypeArityMap[PART_TYPE_CORE_COMPONENT_NO_IMU] = 4;
 	partTypeArityMap[PART_TYPE_FIXED_BRICK] = 3;
 #else
 	partTypeArityMap[PART_TYPE_CORE_COMPONENT] = 6;
+	partTypeArityMap[PART_TYPE_CORE_COMPONENT_NO_IMU] = 6;
 	partTypeArityMap[PART_TYPE_FIXED_BRICK] = 5;
 #endif
 	partTypeArityMap[PART_TYPE_LIGHT_SENSOR] = 0;
@@ -85,7 +99,12 @@ std::map<std::string, unsigned int> initPartTypeArityMap() {
 	partTypeArityMap[PART_TYPE_PASSIVE_WHEEL] = 1;
 	partTypeArityMap[PART_TYPE_ROTATOR] = 1;
 #endif
+#ifdef IR_SENSORS_ENABLED
+	partTypeArityMap[PART_TYPE_IR_SENSOR] = 0;
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	partTypeArityMap[PART_TYPE_TOUCH_SENSOR] = 0;
+#endif
 	return partTypeArityMap;
 }
 
@@ -100,6 +119,7 @@ std::map<std::string, unsigned int> initPartTypeParamCountMap() {
 	partTypeParamCountMap[PART_TYPE_ACTIVE_WHEG] = 1;
 #endif
 	partTypeParamCountMap[PART_TYPE_CORE_COMPONENT] = 0;
+	partTypeParamCountMap[PART_TYPE_CORE_COMPONENT_NO_IMU] = 0;
 	partTypeParamCountMap[PART_TYPE_FIXED_BRICK] = 0;
 	partTypeParamCountMap[PART_TYPE_LIGHT_SENSOR] = 0;
 	partTypeParamCountMap[PART_TYPE_PARAM_JOINT] = 3;
@@ -111,12 +131,19 @@ std::map<std::string, unsigned int> initPartTypeParamCountMap() {
 	partTypeParamCountMap[PART_TYPE_PASSIVE_WHEEL] = 1;
 	partTypeParamCountMap[PART_TYPE_ROTATOR] = 0;
 #endif
+#ifdef IR_SENSORS_ENABLED
+	partTypeParamCountMap[PART_TYPE_IR_SENSOR] = 0;
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	partTypeParamCountMap[PART_TYPE_TOUCH_SENSOR] = 0;
+#endif
 	return partTypeParamCountMap;
 }
 
-std::map<std::pair<std::string, unsigned int>, std::pair<double, double> > initPartTypeParamRangeMap() {
-	std::map<std::pair<std::string, unsigned int>, std::pair<double, double> > partTypeParamRangeMap;
+std::map<std::pair<std::string, unsigned int>, std::pair<double, double> >
+												initPartTypeParamRangeMap() {
+	std::map<std::pair<std::string, unsigned int>,
+		std::pair<double, double> > partTypeParamRangeMap;
 #ifdef ALLOW_ROTATIONAL_COMPONENTS
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_ACTIVE_WHEEL, 0)] =
 			std::make_pair(0.03, 0.08); // radius in m   --- TODO update wiki
@@ -196,12 +223,21 @@ std::map<std::string, std::vector<std::string> > initPartTypeSensorsMap() {
 		partTypeSensorsMap[PART_TYPE_LIGHT_SENSOR] = sensors;
 	}
 
+#ifdef IR_SENSORS_ENABLED
+	{
+		std::vector<std::string> sensors;
+		sensors.push_back(PART_TYPE_IR_SENSOR);
+		partTypeSensorsMap[PART_TYPE_IR_SENSOR] = sensors;
+	}
+#endif
+#ifdef TOUCH_SENSORS_ENABLED
 	{
 		std::vector<std::string> sensors;
 		sensors.push_back(PART_TYPE_TOUCH_SENSOR + std::string("-left"));
 		sensors.push_back(PART_TYPE_TOUCH_SENSOR + std::string("-right"));
 		partTypeSensorsMap[PART_TYPE_TOUCH_SENSOR] = sensors;
 	}
+#endif
 	// need to insert empty vectors for all others
 	for (std::map<char, std::string>::const_iterator  it =
 			PART_TYPE_MAP.begin(); it != PART_TYPE_MAP.end(); ++it) {
@@ -226,10 +262,24 @@ std::map<_OrigValue, _OrigKey> inverseMap(
 	return inverseMap;
 }
 
+bool isCore(char partType) {
+	return isCore(PART_TYPE_MAP.at(partType));
+
+}
+
+bool isCore(std::string partType) {
+	return ((partType.compare(PART_TYPE_CORE_COMPONENT) == 0)
+			||
+			(partType.compare(PART_TYPE_CORE_COMPONENT_NO_IMU) == 0));
+}
+
 //initialize the maps
-const std::map<char, std::string> PART_TYPE_MAP = initPartTypeMap();
-const std::map<std::string, char> INVERSE_PART_TYPE_MAP = inverseMap(
-		PART_TYPE_MAP);
+const std::map<char, std::string> LEGACY_PART_TYPE_MAP =
+		initLegacyPartTypeMap();
+const std::map<char, std::string> PART_TYPE_MAP =
+		initPartTypeMap(LEGACY_PART_TYPE_MAP);
+const std::map<std::string, char> INVERSE_PART_TYPE_MAP =
+		inverseMap(PART_TYPE_MAP);
 const std::map<std::string, unsigned int> PART_TYPE_ARITY_MAP =
 		initPartTypeArityMap();
 const std::map<std::string, unsigned int> PART_TYPE_PARAM_COUNT_MAP =

@@ -32,13 +32,14 @@
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <string>
+#include <utils/network/Socket.h>
 
 namespace robogen {
 
 /**
  * Wrapper for a tcp socket
  */
-class TcpSocket {
+class TcpSocket : public Socket{
 
 public:
 
@@ -57,13 +58,13 @@ public:
     * @param port the port number
     * @return true if the operation completed succesfull, false otherwise
     */
-   bool create(int port);
+   virtual bool create(int port);
 
    /**
     * Wait until a client connected to the socket.
     * Blocking call.
     */
-   bool accept();
+   virtual bool accept();
 
    /**
     * Connects to the specified socket
@@ -71,31 +72,31 @@ public:
     * @param port the port number
     * @return true if the operation completed succesfull, false otherwise
     */
-   bool open(const std::string& ip, int port);
+   virtual bool open(const std::string& ip, int port);
 
    /**
     * Read exactly the specified amount of data from the socket.
     * @param buffer
     * @param bytesToRead
     */
-   bool read(std::vector<unsigned char>& buffer, size_t bytesToRead);
+   virtual bool read(std::vector<unsigned char>& buffer, size_t bytesToRead);
 
    /**
     * Write the buffer on the unix socket
     * @param buffer
     */
-   bool write(std::vector<unsigned char>& buffer);
+   virtual bool write(std::vector<unsigned char>& buffer);
 
    /**
     * Closes the socket
     * @return true if the operation completed succesfull, false otherwise
     */
-   bool close();
+   virtual bool close();
 
    /**
     * Interrupt the socket, terminating any blocking call
     */
-   void interrupt();
+   virtual void interrupt();
 
 private:
 

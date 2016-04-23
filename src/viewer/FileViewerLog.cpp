@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Titus Cieslweski, Joshua Auerbach
+ * Copyright © 2012-2016 Titus Cieslweski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -61,6 +61,8 @@ FileViewerLog::FileViewerLog(std::string robotFile,
 		std::string confFile,
 		std::string obstacleFile,
 		std::string startPosFile,
+		std::string lightSourceFile,
+		std::string scenarioFile,
 		std::string logFolder,
 		bool overwrite,
 		bool writeWebGL) :
@@ -68,6 +70,8 @@ FileViewerLog::FileViewerLog(std::string robotFile,
 			confFile_(confFile),
 			obstacleFile_(obstacleFile),
 			startPosFile_(startPosFile),
+			lightSourceFile_(lightSourceFile),
+			scenarioFile_(scenarioFile),
 			logFolder_(logFolder),
 			overwrite_(overwrite),
 			writeWebGL_(writeWebGL) {
@@ -134,15 +138,15 @@ bool FileViewerLog::init(boost::shared_ptr<Robot> robot,
 	ArduinoNNCompiler::compile(*robot.get(),*config.get(),arduinoNN);
 
 	// compile neural network representation for Body
-	// open motor log
-	std::string bodyPath = logPath_ + "/" + BODY_FILE;
+
+	/*std::string bodyPath = logPath_ + "/" + BODY_FILE;
 	std::ofstream body;
 	body.open(bodyPath.c_str());
 	if (!motorLog_.is_open()){
 		std::cout << "Can't open body log file" << std::endl;
 		return false;
 	}
-	BodyCompiler::compile(*robot.get(),body);
+	BodyCompiler::compile(*robot.get(),body);*/
 
 	//TODO get rid of so much code duplication below
 
@@ -170,30 +174,67 @@ bool FileViewerLog::init(boost::shared_ptr<Robot> robot,
 				<< std::endl;
 		return false;
 	}
+
 	// copy obstacle file
-	boost::filesystem::path obsFrom(this->obstacleFile_);
-	ss.str(""); ss.clear();
-	ss << logPath_ << "/" << obsFrom.filename().string();
-	boost::filesystem::path obsTo(ss.str());
-	try{
-		boost::filesystem::copy_file(obsFrom, obsTo);
-	} catch (boost::filesystem::filesystem_error &err){
-		std::cout << "Can't copy obstacle file\n"<< std::endl << err.what() <<
-				std::endl;
-		return false;
+	if (this->obstacleFile_.length() > 0) {
+		boost::filesystem::path obsFrom(this->obstacleFile_);
+		ss.str(""); ss.clear();
+		ss << logPath_ << "/" << obsFrom.filename().string();
+		boost::filesystem::path obsTo(ss.str());
+		try{
+			boost::filesystem::copy_file(obsFrom, obsTo);
+		} catch (boost::filesystem::filesystem_error &err){
+			std::cout << "Can't copy obstacle file\n"<< std::endl << err.what() <<
+					std::endl;
+			return false;
+		}
 	}
+
 	// copy starting position file
-	boost::filesystem::path staPoFrom(this->startPosFile_);
-	ss.str(""); ss.clear();
-	ss << logPath_ << "/" << staPoFrom.filename().string();
-	boost::filesystem::path staPoTo(ss.str());
-	try{
-		boost::filesystem::copy_file(staPoFrom, staPoTo);
-	} catch (boost::filesystem::filesystem_error &err){
-		std::cout << "Can't copy starting position file" << std::endl <<
-				err.what() << std::endl;
-		return false;
+	if (this->startPosFile_.length() > 0) {
+		boost::filesystem::path staPoFrom(this->startPosFile_);
+		ss.str(""); ss.clear();
+		ss << logPath_ << "/" << staPoFrom.filename().string();
+		boost::filesystem::path staPoTo(ss.str());
+		try{
+			boost::filesystem::copy_file(staPoFrom, staPoTo);
+		} catch (boost::filesystem::filesystem_error &err){
+			std::cout << "Can't copy starting position file" << std::endl <<
+					err.what() << std::endl;
+			return false;
+		}
 	}
+
+	// copy light source file
+	if (this->lightSourceFile_.length() > 0) {
+		boost::filesystem::path lightSourcesFrom(this->lightSourceFile_);
+		ss.str(""); ss.clear();
+		ss << logPath_ << "/" << lightSourcesFrom.filename().string();
+		boost::filesystem::path lightSourcesTo(ss.str());
+		try{
+			boost::filesystem::copy_file(lightSourcesFrom, lightSourcesTo);
+		} catch (boost::filesystem::filesystem_error &err){
+			std::cout << "Can't copy light sources file" << std::endl <<
+					err.what() << std::endl;
+			return false;
+		}
+	}
+
+	// copy scenario file for scripted scenarios
+	if (this->scenarioFile_.length() > 0) {
+		boost::filesystem::path scenarioFrom(this->scenarioFile_);
+		ss.str(""); ss.clear();
+		ss << logPath_ << "/" << scenarioFrom.filename().string();
+		boost::filesystem::path scenarioTo(ss.str());
+		try{
+			boost::filesystem::copy_file(scenarioFrom, scenarioTo);
+		} catch (boost::filesystem::filesystem_error &err){
+			std::cout << "Can't copy scenario script file" << std::endl <<
+					err.what() << std::endl;
+			return false;
+		}
+	}
+
 
 	// copy any m files
 	for (boost::filesystem::directory_iterator

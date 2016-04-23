@@ -3,7 +3,7 @@ import Part, FreeCAD, math, FreeCADGui
 from FreeCAD import Base
 from PartDesign.Scripts import RadialCopy as rcopy
 
-def makeJoin(	heightJoin = 40, angle = -60 ):
+def makeJoin(	heightJoin = 40, angle = -60):
 	
 	lengthSlide = 34
 	widthSlide = 34
@@ -27,10 +27,10 @@ def makeJoin(	heightJoin = 40, angle = -60 ):
 	Line = Part.Line(Base.Vector(0,widthSlide/2,heightSlide),Base.Vector(0,-widthSlide/2,heightSlide))
 	
 	#holes of the slide
-	V9 = Base.Vector(lengthSlide/2-3.5,widthSlide/2-3.5,0)
-	V10 = Base.Vector(lengthSlide/2-3.5,-widthSlide/2+3.5,0)
-	V11 = Base.Vector(-lengthSlide/2+3.5,-widthSlide/2+3.5,0)
-	V12 = Base.Vector(-lengthSlide/2+3.5,widthSlide/2-3.5,0)
+	V9 = Base.Vector(lengthSlide/2-4.5,widthSlide/2-4.5,0)
+	V10 = Base.Vector(lengthSlide/2-4.5,-widthSlide/2+4.5,0)
+	V11 = Base.Vector(-lengthSlide/2+4.5,-widthSlide/2+4.5,0)
+	V12 = Base.Vector(-lengthSlide/2+4.5,widthSlide/2-4.5,0)
 	
 	heightSlide += 2
 	holeFrontRight = Part.makeCylinder(radiusHole,heightSlide,V9,Base.Vector(0,0,1))
@@ -75,7 +75,7 @@ def makeJoin(	heightJoin = 40, angle = -60 ):
 	edge27=slide.Edges[27]
 	edge28=slide.Edges[28]
 	edge29=slide.Edges[29]
-	slide=slide.makeChamfer(1.49,[edge1,edge6,edge19,edge20]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
-	slide=slide.makeChamfer(1,[edge7,edge8,edge9,edge10]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
+	slide=slide.makeChamfer(1.49,[edge1, edge6, edge7,edge8]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
+	slide=slide.makeChamfer(1,[edge11, edge12, edge13, edge14]) #makeChamfer list of Edges : myBody.Edges or [Edge1,...]
 	
 	return slide

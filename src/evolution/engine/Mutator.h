@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
+ * Copyright © 2013-2016 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -129,6 +129,8 @@ private:
 	boost::random::bernoulli_distribution<double> paramMutateDist_;
 
 	boost::random::bernoulli_distribution<double> oscillatorNeuronDist_;
+
+	boost::random::bernoulli_distribution<double> addHiddenNeuronDist_;
 
 };
 

@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2016 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -28,12 +28,12 @@
  */
 #include <cmath>
 #include "model/components/actuated/ActiveWhegModel.h"
-#include "model/motors/ServoMotor.h"
+#include "model/motors/RotationMotor.h"
 
 namespace robogen {
 
-const float ActiveWhegModel::MASS_SLOT = inGrams(4);
-const float ActiveWhegModel::MASS_SERVO = inGrams(9);
+const float ActiveWhegModel::MASS_SLOT = inGrams(2);
+const float ActiveWhegModel::MASS_SERVO = inGrams(11);
 const float ActiveWhegModel::MASS_WHEG = inGrams(3);
 
 const float ActiveWhegModel::SLOT_WIDTH = inMm(34);
@@ -42,23 +42,15 @@ const float ActiveWhegModel::WHEG_BASE_RADIUS = inMm(9);
 const float ActiveWhegModel::WHEG_THICKNESS = inMm(4);
 const float ActiveWhegModel::WHEG_WIDTH = inMm(4);
 
-const float ActiveWhegModel::SERVO_Z_OFFSET = inMm(9); // zCenter shift respect to slot z-center
+
 const float ActiveWhegModel::SERVO_WIDTH = inMm(14);
-
-//take off wheg thickness, because in reality overlap
-const float ActiveWhegModel::SERVO_LENGTH = inMm(36.8) -
-		ActiveWhegModel::WHEG_THICKNESS;
-
+const float ActiveWhegModel::SERVO_LENGTH = inMm(36.8);
 const float ActiveWhegModel::SERVO_HEIGHT = inMm(14);
 
+// attachment part now goes on exterior since students found easier to
+// attach that way
+const float ActiveWhegModel::WHEG_ATTACHMENT_THICKNESS = inMm(6);
 
-const float ActiveWhegModel::SEPARATION = inMm(1.0);
-const float ActiveWhegModel::X_SERVO = -ActiveWhegModel::SLOT_THICKNESS +
-		ActiveWhegModel::SEPARATION + ActiveWhegModel::SERVO_LENGTH / 2;
-
-const float ActiveWhegModel::X_WHEG_BASE = ActiveWhegModel::X_SERVO +
-		ActiveWhegModel::SERVO_LENGTH / 2 +
-        ActiveWhegModel::WHEG_THICKNESS / 2;
 
 ActiveWhegModel::ActiveWhegModel(dWorldID odeWorld, dSpaceID odeSpace,
       std::string id, float radius) :
@@ -83,30 +75,37 @@ bool ActiveWhegModel::initModel() {
          SLOT_WIDTH, SLOT_WIDTH, B_SLOT_ID);
 
 
-   dReal zServo = 0;
-   boost::shared_ptr<SimpleBody> servo = this->addBox(MASS_SERVO,
-		   osg::Vec3(X_SERVO, 0, zServo),
-		   SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT, B_SERVO_ID);
+   dReal xServo = SERVO_LENGTH / 2 + SLOT_THICKNESS / 2;
 
+   boost::shared_ptr<SimpleBody> servo = this->addBox(MASS_SERVO,
+		   osg::Vec3(xServo, 0, 0),
+		   SERVO_LENGTH, SERVO_WIDTH, SERVO_HEIGHT, B_SERVO_ID);
 
    //need to scale the base to account for the larger whegs as right
    //now the whole model scales
    dReal whegBaseRadius = WHEG_BASE_RADIUS * getRadius()/0.03;
 
+   // wheg should be placed so outside of attachment aligns with end of
+   // motor
+
+   dReal xWheg = xServo + SERVO_LENGTH/2 - WHEG_ATTACHMENT_THICKNESS -
+   			WHEG_THICKNESS/2;
+
+
    boost::shared_ptr<SimpleBody> whegBase = this->addCylinder(MASS_WHEG / 4,
-		   osg::Vec3(X_WHEG_BASE, 0, zServo), 1, whegBaseRadius,
+		   osg::Vec3(xWheg, 0, 0), 1, whegBaseRadius,
 		   WHEG_THICKNESS, B_WHEG_BASE);
 
    boost::shared_ptr<SimpleBody> spoke1 = this->addBox(MASS_WHEG / 4,
-         osg::Vec3(X_WHEG_BASE, 0, zServo + whegBaseRadius + getRadius() / 2),
+         osg::Vec3(xWheg, 0, 0 + whegBaseRadius + getRadius() / 2),
          WHEG_THICKNESS, WHEG_WIDTH, getRadius(), B_WHEG_SPOKE_1);
 
    boost::shared_ptr<SimpleBody> spoke2 = this->addBox(MASS_WHEG / 4,
-		   osg::Vec3(X_WHEG_BASE, 0, zServo),
+		   osg::Vec3(xWheg, 0, 0),
 		   WHEG_THICKNESS, WHEG_WIDTH, getRadius(), B_WHEG_SPOKE_2);
 
    boost::shared_ptr<SimpleBody> spoke3 = this->addBox(MASS_WHEG / 4,
-		   osg::Vec3(X_WHEG_BASE, 0, zServo),
+		   osg::Vec3(xWheg, 0, 0),
 		   WHEG_THICKNESS, WHEG_WIDTH, getRadius(), B_WHEG_SPOKE_3);
 
    // Position spokes
@@ -126,7 +125,7 @@ bool ActiveWhegModel::initModel() {
    spoke3->setAttitude(rotation3);
 
    // Move center of spokes
-   osg::Vec3 newPosSpoke1(X_WHEG_BASE, 0, zServo);
+   osg::Vec3 newPosSpoke1(xWheg, 0, 0);
    newPosSpoke1 += osg::Vec3(0,
          (whegBaseRadius + getRadius() / 2)
                * std::cos(osg::inDegrees(90.0 + rotationSpoke1)),
@@ -134,7 +133,7 @@ bool ActiveWhegModel::initModel() {
                * std::sin(osg::inDegrees(90.0 + rotationSpoke1)));
    spoke1->setPosition(newPosSpoke1);
 
-   osg::Vec3 newPosSpoke2(X_WHEG_BASE, 0, zServo);
+   osg::Vec3 newPosSpoke2(xWheg, 0, 0);
    newPosSpoke2 += osg::Vec3(0,
          (whegBaseRadius + getRadius() / 2)
                * std::cos(osg::inDegrees(90.0 + rotationSpoke2)),
@@ -142,7 +141,7 @@ bool ActiveWhegModel::initModel() {
                * std::sin(osg::inDegrees(90.0 + rotationSpoke2)));
    spoke2->setPosition(newPosSpoke2);
 
-   osg::Vec3 newPosSpoke3(X_WHEG_BASE, 0, zServo);
+   osg::Vec3 newPosSpoke3(xWheg, 0, 0);
    newPosSpoke3 += osg::Vec3(0,
          (whegBaseRadius + getRadius() / 2)
                * std::cos(osg::inDegrees(90.0 + rotationSpoke3)),
@@ -160,12 +159,12 @@ bool ActiveWhegModel::initModel() {
 
    // servo <(hinge)> wheg base
    boost::shared_ptr<Joint> joint = this->attachWithHinge(servo, whegBase,
-		   osg::Vec3(1,0,0), osg::Vec3(X_WHEG_BASE, 0, 0));
+		   osg::Vec3(1,0,0), osg::Vec3(xWheg, 0, 0));
 
    // Create servo
    this->motor_.reset(
-         new ServoMotor(joint, ServoMotor::DEFAULT_MAX_FORCE_ROTATIONAL,
-        		 ioPair(this->getId(),0)));
+   		 new RotationMotor(ioPair(this->getId(),0), joint,
+   				 RotationMotor::DEFAULT_MAX_FORCE_ROTATIONAL));
    return true;
 
 }

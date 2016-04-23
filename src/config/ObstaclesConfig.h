@@ -44,6 +44,8 @@ public:
 	/**
 	 * Initializes obstacles configuration
 	 */
+	ObstaclesConfig() {}
+
 	ObstaclesConfig(const std::vector<osg::Vec3>& coordinates,
 			const std::vector<osg::Vec3>& sizes,
 			const std::vector<float> &densities,

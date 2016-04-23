@@ -2,9 +2,10 @@
  * @(#) Scenario.cpp   1.0   Mar 13, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2013 Andrea Maesani
+ * Copyright © 2012-2015 Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -32,12 +33,13 @@
 #include "scenario/Scenario.h"
 #include "scenario/Terrain.h"
 #include "Robot.h"
+#include "Environment.h"
 
 namespace robogen {
 
 Scenario::Scenario(boost::shared_ptr<RobogenConfig> robogenConfig) :
-		odeWorld_(NULL), odeSpace_(NULL),
-		robogenConfig_(robogenConfig), startPositionId_(0) {
+		robogenConfig_(robogenConfig), startPositionId_(0),
+		stopSimulationNow_(false) {
 
 }
 
@@ -48,29 +50,17 @@ Scenario::~Scenario() {
 bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 		boost::shared_ptr<Robot> robot) {
 
-	odeWorld_ = odeWorld;
-	odeSpace_ = odeSpace;
+	environment_ = boost::shared_ptr<Environment>(new
+			Environment(odeWorld, odeSpace, robogenConfig_));
 
-	robot_ = robot;
-
-	// Setup terrain
-	boost::shared_ptr<TerrainConfig> terrainConfig =
-			robogenConfig_->getTerrainConfig();
-
-	terrain_.reset(new Terrain(odeWorld_, odeSpace_));
-	if (terrainConfig->getType() == TerrainConfig::FLAT) {
-		if(!terrain_->initFlat(terrainConfig->getLength(),
-				terrainConfig->getWidth())) {
-			return false;
-		}
-	} else if (terrainConfig->getType() == TerrainConfig::ROUGH) {
-		if(!terrain_->initRough(terrainConfig->getHeightFieldFileName(),
-				terrainConfig->getLength(), terrainConfig->getWidth(),
-				terrainConfig->getHeight())) {
-			return false;
-		}
+	if(!environment_->init()) {
+		return false;
 	}
 
+	stopSimulationNow_ = false;
+
+
+	robot_ = robot;
 
 	// Setup robot position
 	double minX = 0;
@@ -94,7 +84,8 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 	robot->translateRobot(
 			osg::Vec3(startingPosition.x(),
 					startingPosition.y(),
-					terrainConfig->getHeight() + inMm(2) - minZ));
+					robogenConfig_->getTerrainConfig()->getHeight()
+						+ inMm(2) - minZ));
 	robot->getBB(minX, maxX, minY, maxY, minZ, maxZ);
 
 	std::cout
@@ -114,9 +105,13 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 	const std::vector<osg::Vec3>& rotationAxis = obstacles->getRotationAxes();
 	const std::vector<float>& rotationAngles = obstacles->getRotationAngles();
 
+	obstaclesRemoved_ = false;
+
+	double overlapMaxZ=minZ;
+
 	for (unsigned int i = 0; i < c.size(); ++i) {
 		boost::shared_ptr<BoxObstacle> obstacle(
-									new BoxObstacle(odeWorld_, odeSpace_, c[i],
+									new BoxObstacle(odeWorld, odeSpace, c[i],
 											s[i], d[i], rotationAxis[i],
 											rotationAngles[i]));
 		double oMinX, oMaxX, oMinY, oMaxY, oMinZ, oMaxZ;
@@ -152,12 +147,52 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 
 		// Do not insert obstacles in the robot range
 		if (!(inRangeX && inRangeY && inRangeZ)) {
-			obstacles_.push_back(obstacle);
+			environment_->addObstacle(obstacle);
 		} else {
-			obstacle->remove();
+			if (robogenConfig_->getObstacleOverlapPolicy() ==
+					RobogenConfig::ELEVATE_ROBOT) {
+
+				if (oMaxZ > overlapMaxZ)
+					overlapMaxZ = oMaxZ;
+				environment_->addObstacle(obstacle);
+
+			} else {
+				obstacle->remove();
+				obstaclesRemoved_ = true;
+			}
 		}
 
 	}
+
+	if (robogenConfig_->getObstacleOverlapPolicy() ==
+			RobogenConfig::ELEVATE_ROBOT) {
+
+		robot->translateRobot(
+				osg::Vec3(startingPosition.x(), startingPosition.y(),
+						overlapMaxZ + inMm(2) - minZ));
+	}
+
+	// Setup light sources
+	boost::shared_ptr<LightSourcesConfig> lightSourcesConfig =
+			robogenConfig_->getLightSourcesConfig();
+
+	// todo do we need to do overlap check with light sources??
+
+	std::vector<boost::shared_ptr<LightSource> > lightSources;
+	this->getEnvironment()->setLightSources(lightSources);
+
+	std::vector<osg::Vec3> lightSourcesCoordinates =
+			lightSourcesConfig->getCoordinates();
+	std::vector<float> lightSourcesIntensities =
+				lightSourcesConfig->getIntensities();
+	for (unsigned int i = 0; i < lightSourcesCoordinates.size(); ++i) {
+		lightSources.push_back(boost::shared_ptr<LightSource>(
+					new LightSource(odeSpace, lightSourcesCoordinates[i],
+							lightSourcesIntensities[i])));
+
+	}
+	environment_->setLightSources(lightSources);
+
 
 	// optimize the physics!  replace all fixed joints with composite bodies
 	robot->optimizePhysics();
@@ -171,19 +206,8 @@ boost::shared_ptr<StartPosition> Scenario::getCurrentStartPosition() {
 }
 
 void Scenario::prune(){
-	odeWorld_ = 0;
-	odeSpace_ = 0;
+	environment_.reset();
 	robot_.reset();
-	terrain_.reset();
-	obstacles_.clear();
-}
-
-std::vector<boost::shared_ptr<BoxObstacle> > Scenario::getObstacles() {
-	return obstacles_;
-}
-
-boost::shared_ptr<Terrain> Scenario::getTerrain() {
-	return terrain_;
 }
 
 boost::shared_ptr<Robot> Scenario::getRobot() {
@@ -202,8 +226,5 @@ boost::shared_ptr<Environment> Scenario::getEnvironment() {
 	return environment_;
 }
 
-void Scenario::setEnvironment(boost::shared_ptr<Environment> env) {
-	environment_ = env;
-}
 
 }

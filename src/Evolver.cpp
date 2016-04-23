@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
+ * Copyright © 2013-2016 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -28,6 +28,7 @@
  */
 
 #include <boost/shared_ptr.hpp>
+#include <boost/lexical_cast.hpp>
 #include "config/EvolverConfiguration.h"
 #include "evolution/representation/RobotRepresentation.h"
 #include "evolution/engine/EvolverLog.h"
@@ -38,52 +39,66 @@
 
 #include "evolution/engine/neat/NeatContainer.h"
 
-using namespace robogen;
+#ifdef EMSCRIPTEN
+#include <emscripten/bind.h>
+#include "emscripten.h"
+#include <utils/network/FakeJSSocket.h>
+#include <sstream>
+#endif
+
+namespace robogen {
+void init(unsigned int seed, std::string outputDirectory,
+		std::string confFileName, bool overwrite, bool saveAll);
 
 void printUsage(char *argv[]) {
-	std::cout << std::endl << "USAGE: " << std::endl
-			<< "      " << std::string(argv[0])
+	std::cout << std::endl << "USAGE: " << std::endl << "      "
+			<< std::string(argv[0])
 			<< " <SEED, INTEGER> <OUTPUT_DIRECTORY, STRING> "
-			<< "<CONFIGURATION_FILE, STRING> [<OPTIONS>]"
-			<< std::endl << std::endl
-			<< "WHERE: " << std::endl
+			<< "<CONFIGURATION_FILE, STRING> [<OPTIONS>]" << std::endl
+			<< std::endl << "WHERE: " << std::endl
 			<< "      <SEED> is a number to seed "
-			<< "the pseudorandom number generator."
-			<< std::endl << std::endl
+			<< "the pseudorandom number generator." << std::endl << std::endl
 			<< "      <OUTPUT_DIRECTORY> is the directory to write output "
-			<< "files to."
-			<< std::endl << std::endl
+			<< "files to." << std::endl << std::endl
 			<< "      <CONFIGURATION_FILE> is the evolution"
-			<< " configuration file to use."
-			<< std::endl << std::endl
-			<< "OPTIONS: " << std::endl
-			<< "      --help" << std::endl
+			<< " configuration file to use." << std::endl << std::endl
+			<< "OPTIONS: " << std::endl << "      --help" << std::endl
 			<< "          Print all configuration options and exit."
-			<< std::endl << std::endl
-			<< "      --overwrite" << std::endl
+			<< std::endl << std::endl << "      --overwrite" << std::endl
 			<< "          Overwrite existing output file directory if it "
 			<< "exists." << std::endl
 			<< "          (Default is to keep creating new output "
-			<< "directories with incrementing suffixes)."
-			<< std::endl << std::endl
-			<< "      --save-all" << std::endl
+			<< "directories with incrementing suffixes)." << std::endl
+			<< std::endl << "      --save-all" << std::endl
 			<< "          Save all individuals instead of just the generation"
-			<< "best."
-			<< std::endl << std::endl;
+			<< "best." << std::endl << std::endl;
 
 }
 
 void printHelp() {
-	boost::shared_ptr<EvolverConfiguration> conf =
-				boost::shared_ptr<EvolverConfiguration>(
-						new EvolverConfiguration());
+	boost::shared_ptr<EvolverConfiguration> conf = boost::shared_ptr<
+			EvolverConfiguration>(new EvolverConfiguration());
 	conf->init("help");
 	std::cout << std::endl;
 	boost::shared_ptr<RobogenConfig> robotConf =
-				ConfigurationReader::parseConfigurationFile("help");
+			ConfigurationReader::parseConfigurationFile("help");
 }
 
-int main(int argc, char *argv[]) {
+boost::shared_ptr<Population> population;
+IndividualContainer children;
+boost::shared_ptr<NeatContainer> neatContainer;
+boost::shared_ptr<RobogenConfig> robotConf;
+boost::shared_ptr<EvolverConfiguration> conf;
+boost::shared_ptr<EvolverLog> log;
+bool neat;
+boost::shared_ptr<Selector> selector;
+boost::shared_ptr<Mutator> mutator;
+unsigned int generation;
+boost::random::mt19937 rng;
+
+std::vector<Socket*> sockets;
+
+void parseArgsThenInit(int argc, char* argv[]) {
 
 	startRobogen();
 
@@ -105,19 +120,19 @@ int main(int argc, char *argv[]) {
 		exitRobogen(EXIT_FAILURE);
 	}
 
-
 	unsigned int seed = atoi(argv[1]);
+
 	std::string outputDirectory = std::string(argv[2]);
 	std::string confFileName = std::string(argv[3]);
 
 	bool overwrite = false;
 	bool saveAll = false;
 	int currentArg = 4;
-	for (; currentArg<argc; currentArg++) {
+	for (; currentArg < argc; currentArg++) {
 		if (std::string("--help").compare(argv[currentArg]) == 0) {
 			printUsage(argv);
 			printHelp();
-			return EXIT_SUCCESS;
+			exitRobogen(EXIT_SUCCESS);
 		} else if (std::string("--overwrite").compare(argv[currentArg]) == 0) {
 			overwrite = true;
 		} else if (std::string("--save-all").compare(argv[currentArg]) == 0) {
@@ -129,25 +144,28 @@ int main(int argc, char *argv[]) {
 			exitRobogen(EXIT_FAILURE);
 		}
 
-
 	}
 
+	init(seed, outputDirectory, confFileName, overwrite, saveAll);
 
-	// Create random number generator
-	boost::random::mt19937 rng;
+}
+
+void init(unsigned int seed, std::string outputDirectory,
+		std::string confFileName, bool overwrite, bool saveAll) {
+
+	// Seed random number generator
+
 	rng.seed(seed);
 
-	boost::shared_ptr<EvolverConfiguration> conf =
-			boost::shared_ptr<EvolverConfiguration>(new EvolverConfiguration());
+	conf.reset(new EvolverConfiguration());
 	if (!conf->init(confFileName)) {
 		std::cerr << "Problems parsing the evolution configuration file. Quit."
 				<< std::endl;
 		exitRobogen(EXIT_FAILURE);
 	}
 
-	boost::shared_ptr<RobogenConfig> robotConf =
-			ConfigurationReader::parseConfigurationFile(
-					conf->simulatorConfFile);
+	robotConf = ConfigurationReader::parseConfigurationFile(
+			conf->simulatorConfFile);
 	if (robotConf == NULL) {
 		std::cerr << "Problems parsing the robot configuration file. Quit."
 				<< std::endl;
@@ -158,7 +176,6 @@ int main(int argc, char *argv[]) {
 	// Set up evolution
 	// ---------------------------------------
 
-	boost::shared_ptr<Selector> selector;
 	if (conf->selection == conf->DETERMINISTIC_TOURNAMENT) {
 		selector.reset(new DeterministicTournament(conf->tournamentSize, rng));
 	} else {
@@ -166,12 +183,20 @@ int main(int argc, char *argv[]) {
 				<< std::endl;
 		exitRobogen(EXIT_FAILURE);
 	}
-	boost::shared_ptr<Mutator> mutator = boost::shared_ptr<Mutator>(
-			new Mutator(conf, rng));
-	boost::shared_ptr<EvolverLog> log(new EvolverLog());
-	if (!log->init(conf, robotConf, outputDirectory, overwrite, saveAll)) {
-		std::cout << "Error creating evolver log. Aborting." << std::endl;
-		return EXIT_FAILURE;
+
+	mutator.reset(new Mutator(conf, rng));
+	log.reset(new EvolverLog());
+	try {
+		if (!log->init(conf, robotConf, outputDirectory, overwrite, saveAll)) {
+			std::cerr << "Error creating evolver log. Aborting." << std::endl;
+			exitRobogen(EXIT_FAILURE);
+		}
+	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		exitRobogen(EXIT_FAILURE);
+	} catch (...) {
+		std::cerr << "non standard exception " << std::endl;
+		exitRobogen(EXIT_FAILURE);
 	}
 
 	// ---------------------------------------
@@ -201,14 +226,9 @@ int main(int argc, char *argv[]) {
 			exitRobogen(EXIT_FAILURE);
 		}
 	}
-	
 
-	boost::shared_ptr<Population> population(new Population());
-	boost::shared_ptr<NeatContainer> neatContainer;
-
-	bool neat = (conf->evolutionaryAlgorithm ==
-			EvolverConfiguration::HYPER_NEAT);
-
+	neat = (conf->evolutionaryAlgorithm == EvolverConfiguration::HYPER_NEAT);
+	population.reset(new Population());
 	if (!population->init(referenceBot, conf->mu, mutator, growBodies,
 			(!(conf->useBrainSeed || neat)) ) ) {
 		std::cerr << "Error when initializing population!" << std::endl;
@@ -217,17 +237,13 @@ int main(int argc, char *argv[]) {
 
 	if (neat) {
 		neatContainer.reset(new NeatContainer(conf, population, seed, rng));
-
 	}
-
-
-
 
 	// ---------------------------------------
 	// open sockets for communication with simulator processes
 	// ---------------------------------------
-
-	std::vector<TcpSocket*> sockets(conf->sockets.size());
+#ifndef EMSCRIPTEN
+	sockets.resize(conf->sockets.size());
 	for (unsigned int i = 0; i < conf->sockets.size(); i++) {
 		sockets[i] = new TcpSocket;
 #ifndef FAKEROBOTREPRESENTATION_H // do not bother with sockets when using
@@ -239,6 +255,7 @@ int main(int argc, char *argv[]) {
 		}
 #endif
 	}
+#endif
 
 	// ---------------------------------------
 	// run evolution TODO stopping criterion
@@ -251,15 +268,68 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	generation = 1;
 	population->evaluate(robotConf, sockets);
-	if (!log->logGeneration(1, *population.get())) {
+}
+
+void mainEvolutionLoop();
+
+void postEvaluateNEAT() {
+	population->sort(true);
+	mainEvolutionLoop();
+}
+
+void postEvaluateStd() {
+
+	// comma or plus?
+	if (conf->replacement == conf->PLUS_REPLACEMENT) {
+		children += *population.get();
+	}
+
+	// replace
+	population.reset(new Population());
+	if (!population->init(children, conf->mu)) {
+		std::cout << "Error when initializing population!" << std::endl;
+		exitRobogen(EXIT_FAILURE);
+	}
+	mainEvolutionLoop();
+}
+
+void triggerPostEvaluate() {
+	if (generation == 1) {
+		mainEvolutionLoop();
+	} else {
+		if (neat) {
+			postEvaluateNEAT();
+		} else {
+			postEvaluateStd();
+		}
+	}
+}
+
+void mainEvolutionLoop() {
+#ifdef EMSCRIPTEN
+	std::stringstream ss;
+	double best, average, stddev;
+	population->getStat(best, average, stddev);
+	ss << "{best : " << best << ", average : " << average << ", stddev : "
+			<< stddev << ", generation : " << generation << "}";
+	sendJSEvent("stats", ss.str());
+#endif
+
+	std::cout << "mainEvolutionLoop" << std::endl;
+	if (!log->logGeneration(generation, *population.get())) {
 		exitRobogen(EXIT_FAILURE);
 	}
 
-	for (unsigned int generation = 2; generation <= conf->numGenerations;
-			++generation) {
+	generation++;
+
+
+	if (generation <= conf->numGenerations) {
+		std::cout << "Generation " << generation << std::endl;
+		children.clear();
+
 		// create children
-		IndividualContainer children;
 		if (neat) {
 			//neatPopulation->Epoch();
 			if(!neatContainer->produceNextGeneration(population)) {
@@ -268,7 +338,7 @@ int main(int argc, char *argv[]) {
 				exitRobogen(EXIT_FAILURE);
 			}
 			population->evaluate(robotConf, sockets);
-			population->sort(true);
+
 		} else {
 			selector->initPopulation(population);
 			unsigned int numOffspring = 0;
@@ -308,33 +378,54 @@ int main(int argc, char *argv[]) {
 					numOffspring++;
 				}
 			}
-
-			// evaluate children
 			children.evaluate(robotConf, sockets);
-
-			// comma or plus?
-			if (conf->replacement == conf->PLUS_REPLACEMENT) {
-				children += *population.get();
-			}
-
-			// replace
-			population.reset(new Population());
-			if (!population->init(children, conf->mu)) {
-				std::cerr << "Error when initializing population!" << std::endl;
-				exitRobogen(EXIT_FAILURE);
-			}
 		}
+#ifndef EMSCRIPTEN
+		triggerPostEvaluate();
+#endif
+	} else {
+#ifdef EMSCRIPTEN
+		sendJSEvent("evolutionTerminated", "{}");
+#endif
 
-
-		if (!log->logGeneration(generation, *population.get())) {
-			exitRobogen(EXIT_FAILURE);
-		}
 	}
-
-	// Clean up sockets
-	for (unsigned int i = 0; i < conf->sockets.size(); i++) {
-		delete sockets[i];
-	}
-
-	exitRobogen(EXIT_SUCCESS);
 }
+
+#ifdef EMSCRIPTEN
+void EMSCRIPTEN_KEEPALIVE evaluationResultAvailable(int ptr, double fitness) {
+	RobotRepresentation* robot = (RobotRepresentation*) ptr;
+	robot->asyncEvaluateResult(fitness);
+}
+
+void EMSCRIPTEN_KEEPALIVE evaluationIsDone() {
+	triggerPostEvaluate();
+}
+#endif
+
+}
+
+using namespace robogen;
+
+#ifndef EMSCRIPTEN
+int main(int argc, char *argv[]) {
+parseArgsThenInit(argc, argv);
+triggerPostEvaluate();
+// Clean up sockets
+for (unsigned int i = 0; i < conf->sockets.size(); i++) {
+	delete sockets[i];
+}
+exitRobogen(EXIT_SUCCESS);
+}
+#else
+std::string EMSCRIPTEN_KEEPALIVE runEvolution(unsigned int seed, std::string outputDirectory, std::string confFileName,
+	bool overwrite, bool saveAll) {
+try {
+	init(seed, outputDirectory, confFileName, overwrite, saveAll);
+} catch (std::exception &e) {
+	std::cerr << "Evolution failed" << std::endl;
+	return "{\"error\" : \"Error\"}";
+}
+return "{}";
+}
+#endif
+

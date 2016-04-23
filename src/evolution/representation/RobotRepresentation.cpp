@@ -6,7 +6,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
+ * Copyright © 2013-2016 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -45,6 +45,8 @@
 #include "utils/network/ProtobufPacket.h"
 #include "PartList.h"
 #include "utils/json2pb/json2pb.h"
+#include "utils/RobogenUtils.h"
+#include "brain/NeuralNetwork.h"
 
 namespace robogen {
 
@@ -106,7 +108,7 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 			);
 	boost::cmatch match;
 	std::string line;
-	std::getline(file, line);
+	RobogenUtils::safeGetline(file, line);
 	if (boost::regex_match(line.c_str(), match, rx)) {
 		// match[0]:whole string, match[1]:tabs, match[2]:slot, match[3]:type,
 		// match[4]:id, match[5]:orientation, match[6]:parameters
@@ -196,7 +198,7 @@ bool robotTextFileReadWeightLine(std::ifstream &file, std::string &from,
 			"^([^\\s]+) (\\d+) ([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)\\s*$");
 	boost::cmatch match;
 	std::string line;
-	std::getline(file, line);
+	RobogenUtils::safeGetline(file, line);
 	if (boost::regex_match(line.c_str(), match, rx)) {
 		// match[0]:whole string, match[1]:from, match[2]:from IO id,
 		// match[3]:to, match[4]:to IO id, match[5]:value
@@ -249,7 +251,7 @@ bool robotTextFileReadAddNeuronLine(std::ifstream &file, std::string &partId,
 	static const boost::regex rx("^([^\\s]+) ([^\\s]+)\\s*$");
 	boost::cmatch match;
 	std::string line;
-	std::getline(file, line);
+	RobogenUtils::safeGetline(file, line);
 	if (boost::regex_match(line.c_str(), match, rx)) {
 		// match[0]:whole string, match[1]:partId match[2]:type string
 		partId.assign(match[1]);
@@ -282,7 +284,7 @@ bool robotTextFileReadParamsLine(std::ifstream &file, std::string &node,
 	static const boost::regex biasRx("^([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)\\s*$");
 	boost::cmatch match;
 	std::string line;
-	std::getline(file, line);
+	RobogenUtils::safeGetline(file, line);
 	if (boost::regex_match(line.c_str(), match, generalRx)) {
 		node.assign(match[1]);
 		ioId = std::atoi(match[2].first);
@@ -346,6 +348,11 @@ RobotRepresentation &RobotRepresentation::operator=(
 	evaluated_ = r.evaluated_;
 	maxid_ = r.maxid_;
 	return *this;
+}
+
+void RobotRepresentation::asyncEvaluateResult(double fitness) {
+	fitness_ = fitness;
+	evaluated_ = true;
 }
 
 bool RobotRepresentation::init() {
@@ -486,18 +493,25 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	// add new neurons
 
 	while (robotTextFileReadAddNeuronLine(file, id, neuronType)) {
-		std::string neuronId = neuralNetwork_->insertNeuron(ioPair(id,
-				neuralNetwork_->getBodyPartNeurons(id).size()),
-				NeuronRepresentation::HIDDEN, neuronType);
-		std::cout << "added hidden neuron "  << neuronId << " with type "
-				<< neuronType << std::endl;
+		if (neuralNetwork_->getNumHidden() < MAX_HIDDEN_NEURONS) {
+			std::string neuronId = neuralNetwork_->insertNeuron(ioPair(id,
+					neuralNetwork_->getBodyPartNeurons(id).size()),
+					NeuronRepresentation::HIDDEN, neuronType);
+			std::cout << "added hidden neuron "  << neuronId << " with type "
+					<< neuronType << std::endl;
+		} else {
+			std::cerr << "The number of specified hidden neurons is more than "
+					<< MAX_HIDDEN_NEURONS << ", which is the maximuma allowed."
+					<< std::endl;
+			return false;
+		}
 	}
 
 	// weights
 	while (robotTextFileReadWeightLine(file, from, fromIoId, to, toIoId,
 			value)) {
 		if (!neuralNetwork_->setWeight(from, fromIoId, to, toIoId, value)) {
-			std::cout << "Failed to set weight" << std::endl;
+			std::cerr << "Failed to set weight" << std::endl;
 			return false;
 		}
 	}
@@ -507,7 +521,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 
 	while (robotTextFileReadParamsLine(file, to, toIoId, neuronType, params)) {
 		if (!neuralNetwork_->setParams(to, toIoId, neuronType, params)) {
-			std::cout << "Failed to set neuron params" << std::endl;
+			std::cerr << "Failed to set neuron params" << std::endl;
 			return false;
 		}
 		params.clear();
@@ -515,7 +529,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 
 
 	while(!file.eof()) {
-		std::getline(file, line);
+		RobogenUtils::safeGetline(file, line);
 		if(!isLineEmpty(line)) {
 			std::cerr << std::endl << std::endl
 					<< "The robot text file has non-empty lines after all "
@@ -579,7 +593,7 @@ const std::string& RobotRepresentation::getBodyRootId() {
 	return bodyTree_->getId();
 }
 
-void RobotRepresentation::evaluate(TcpSocket *socket,
+void RobotRepresentation::evaluate(Socket *socket,
 		boost::shared_ptr<RobogenConfig> robotConf) {
 
 	// 1. Prepare message to simulator
@@ -597,6 +611,7 @@ void RobotRepresentation::evaluate(TcpSocket *socket,
 	// 2. send message to simulator
 	socket->write(forgedMessagePacket);
 
+#ifndef EMSCRIPTEN // we will do it later with javascript
 	// 3. receive message from simulator
 	ProtobufPacket<robogenMessage::EvaluationResult> resultPacket(
 			boost::shared_ptr<robogenMessage::EvaluationResult>(
@@ -623,6 +638,7 @@ void RobotRepresentation::evaluate(TcpSocket *socket,
 		fitness_ = resultPacket.getMessage()->fitness();
 		evaluated_ = true;
 	}
+#endif
 
 }
 

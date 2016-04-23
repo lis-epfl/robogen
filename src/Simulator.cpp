@@ -28,7 +28,6 @@
 
 #include "Simulator.h"
 #include "utils/RobogenCollision.h"
-#include "viewer/Viewer.h"
 #include "Models.h"
 #include "Robot.h"
 #include "viewer/WebGLLogger.h"
@@ -46,7 +45,7 @@ namespace robogen{
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
 		const robogenMessage::Robot &robotMessage,
-		Viewer *viewer, boost::random::mt19937 &rng) {
+		IViewer *viewer, boost::random::mt19937 &rng) {
 	boost::shared_ptr<FileViewerLog> log;
 	return runSimulations(scenario, configuration,
 			robotMessage, viewer, rng, false, log);
@@ -54,7 +53,7 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		boost::shared_ptr<RobogenConfig> configuration,
-		const robogenMessage::Robot &robotMessage, Viewer *viewer,
+		const robogenMessage::Robot &robotMessage, IViewer *viewer,
 		boost::random::mt19937 &rng,
 		bool onlyOnce, boost::shared_ptr<FileViewerLog> log) {
 
@@ -157,12 +156,9 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 		// set cap for checking motor burnout
 		for(unsigned int i=0; i< motors.size(); i++) {
-			if (boost::dynamic_pointer_cast<ServoMotor>(motors[i])) {
-				boost::shared_ptr<ServoMotor> motor =
-						boost::dynamic_pointer_cast<ServoMotor>(motors[i]);
-				motor->setMaxDirectionShiftsPerSecond(
+			motors[i]->setMaxDirectionShiftsPerSecond(
 						configuration->getMaxDirectionShiftsPerSecond());
-			}
+
 		}
 
 		// Register brain and body parts
@@ -177,6 +173,17 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 					<< std::endl;
 			return SIMULATION_FAILURE;
 		}
+
+		if((configuration->getObstacleOverlapPolicy() ==
+				RobogenConfig::CONSTRAINT_VIOLATION) &&
+				scenario->wereObstaclesRemoved()) {
+			std::cout << "Using 'contraintViolation' obstacle overlap policy,"
+					<< " and ostacles were removed, so will return min fitness."
+					<< std::endl;
+			constraintViolated = true;
+			break;
+		}
+
 
 		// Setup environment
 		boost::shared_ptr<Environment> env =
@@ -245,6 +252,12 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			// Empty contact groups used for collisions handling
 			dJointGroupEmpty(odeContactGroup);
 
+			if (configuration->isDisallowObstacleCollisions() &&
+					collisionData->hasObstacleCollisions()) {
+				constraintViolated = true;
+				break;
+			}
+
 			if (configuration->isCapAlleration()) {
 				dBodyID rootBody =
 						robot->getCoreComponent()->getRoot()->getBody();
@@ -303,25 +316,8 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			if(((count - 1) % configuration->getActuationPeriod()) == 0) {
 				// Feed neural network
 				for (unsigned int i = 0; i < sensors.size(); ++i) {
+					networkInput[i] = sensors[i]->read();
 
-					if (boost::dynamic_pointer_cast<TouchSensor>(
-							sensors[i])) {
-						networkInput[i] =
-								boost::dynamic_pointer_cast<
-										TouchSensor>(sensors[i])->read();
-					} else if (boost::dynamic_pointer_cast<
-							LightSensor>(sensors[i])) {
-						networkInput[i] =
-								boost::dynamic_pointer_cast<
-										LightSensor>(sensors[i])->read(
-										env->getLightSources(),
-										env->getAmbientLight());
-					} else if (boost::dynamic_pointer_cast<
-							SimpleSensor>(sensors[i])) {
-						networkInput[i] =
-								boost::dynamic_pointer_cast<
-										SimpleSensor>(sensors[i])->read();
-					}
 					// Add sensor noise: Gaussian with std dev of
 					// sensorNoiseLevel * actualValue
 					if (configuration->getSensorNoiseLevel() > 0.0) {
@@ -345,37 +341,33 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 				// Send control to motors
 				for (unsigned int i = 0; i < motors.size(); ++i) {
-					if (boost::dynamic_pointer_cast<ServoMotor>(
-							motors[i])) {
 
-						// Add motor noise:
-						// uniform in range +/- motorNoiseLevel * actualValue
-						if(configuration->getMotorNoiseLevel() > 0.0) {
-							networkOutputs[i] += (
-										((uniformDistribution(rng) *
-										2.0 *
-										configuration->getMotorNoiseLevel())
-										- configuration->getMotorNoiseLevel())
-										* networkOutputs[i]);
-						}
-
-
-						boost::shared_ptr<ServoMotor> motor =
-								boost::dynamic_pointer_cast<
-										ServoMotor>(motors[i]);
-
-						if (motor->isVelocityDriven()) {
-							motor->setDesiredVelocity(networkOutputs[i], step *
-									configuration->getActuationPeriod());
-							//motor->setVelocity(networkOutputs[i], step *
-							//		configuration->getActuationPeriod());
-						} else {
-							motor->setDesiredPosition(networkOutputs[i], step *
-									configuration->getActuationPeriod());
-							//motor->setPosition(networkOutputs[i], step *
-							//		configuration->getActuationPeriod());
-						}
+					// Add motor noise:
+					// uniform in range +/- motorNoiseLevel * actualValue
+					if(configuration->getMotorNoiseLevel() > 0.0) {
+						networkOutputs[i] += (
+									((uniformDistribution(rng) *
+									2.0 *
+									configuration->getMotorNoiseLevel())
+									- configuration->getMotorNoiseLevel())
+									* networkOutputs[i]);
 					}
+
+
+					if (boost::dynamic_pointer_cast<
+							RotationMotor>(motors[i])) {
+						boost::dynamic_pointer_cast<RotationMotor>(motors[i]
+						   )->setDesiredVelocity(networkOutputs[i], step *
+								   	   	  configuration->getActuationPeriod());
+					} else if (boost::dynamic_pointer_cast<
+							ServoMotor>(motors[i])) {
+						boost::dynamic_pointer_cast<ServoMotor>(motors[i]
+						   )->setDesiredPosition(networkOutputs[i], step *
+								configuration->getActuationPeriod());
+						//motor->setPosition(networkOutputs[i], step *
+						//		configuration->getActuationPeriod());
+					}
+
 				}
 
 				if(log) {
@@ -385,24 +377,17 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 
 			bool motorBurntOut = false;
 			for (unsigned int i = 0; i < motors.size(); ++i) {
-				if (boost::dynamic_pointer_cast<ServoMotor>(
-						motors[i])) {
+				motors[i]->step( step ) ; //* configuration->getActuationPeriod() );
 
-					boost::shared_ptr<ServoMotor> motor =
-							boost::dynamic_pointer_cast<
-									ServoMotor>(motors[i]);
-
-					motor->step( step ) ; //* configuration->getActuationPeriod() );
-
-					// TODO find a cleaner way to do this
-					// for now will reuse accel cap infrastructure
-					if (motor->isBurntOut()) {
-						std::cout << "Motor burnt out, will terminate now "
-								<< std::endl;
-						motorBurntOut = true;
-						//constraintViolated = true;
-					}
+				// TODO find a cleaner way to do this
+				// for now will reuse accel cap infrastructure
+				if (motors[i]->isBurntOut()) {
+					std::cout << "Motor burnt out, will terminate now "
+							<< std::endl;
+					motorBurntOut = true;
+					//constraintViolated = true;
 				}
+
 			}
 
 			if(constraintViolated || motorBurntOut) {
@@ -414,6 +399,12 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 						<< "Cannot execute scenario after simulation step. Quit."
 						<< std::endl;
 				return SIMULATION_FAILURE;
+			}
+
+			if (scenario->shouldStopSimulationNow()) {
+				std::cout << "Scenario has stopped the simulation!"
+						<< std::endl;
+				break;
 			}
 
 			if(log) {
