@@ -1,12 +1,11 @@
 /*
- * @(#) RobogenServer.cpp   1.0   Mar 5, 2013
+ * @(#) RobogenServerSIO.cpp   1.0   April 24, 2016
  *
- * Andrea Maesani (andrea.maesani@epfl.ch)
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  * Guillaume Leclerc (guillaume.leclerc@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
+ * Copyright © 2012-2016 Joshua Auerbach, Guillaume Leclerc
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -27,11 +26,8 @@
  *
  * @(#) $Id$
  */
+
 #include <iostream>
-#include <chrono>
-#include "sio_client.h"
-#include "sio_message.h"
-#include "sio_socket.h"
 
 #include "config/ConfigurationReader.h"
 #include "config/RobogenConfig.h"
@@ -50,7 +46,31 @@
 #include "viewer/Viewer.h"
 #include "Simulator.h"
 
+
+#include <chrono>
+#include <ctime>
+
+#include <functional>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
+
+#include "sio_client.h"
+#include "sio_message.h"
+#include "sio_socket.h"
+
+
+#ifdef QT5_ENABLED
+#include <QCoreApplication>
+#define EMIT_TMP emit
+#undef emit
+#endif
+
+
+
 using namespace robogen;
+
 
 // ODE World
 dWorldID odeWorld;
@@ -60,68 +80,59 @@ dJointGroupID odeContactGroup;
 
 bool interrupted;
 
-#include <functional>
-#include <iostream>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <string>
 
-
-using namespace sio;
-using namespace std;
 std::mutex _lock;
 
 std::condition_variable_any _cond;
-bool connect_finish = false;
+bool connectFinish = false;
 
-class connection_listener
-{
-	sio::client &handler;
+class ConnectionListener {
 
-	public:
+public:
 
-	connection_listener(sio::client& h):
-		handler(h)
-	{
+	ConnectionListener(sio::client& handler) : handler_(handler) {
 	}
 
 
-	void on_connected()
-	{
+	void on_connected() {
 		_lock.lock();
 		_cond.notify_all();
-		connect_finish = true;
+		connectFinish = true;
 		_lock.unlock();
 	}
-	void on_close(client::close_reason const& reason)
-	{
+	void on_close(sio::client::close_reason const& reason) {
 		std::cout<<"sio closed "<<std::endl;
 		exit(0);
 	}
 
-	void on_fail()
-	{
+	void on_fail() {
 		std::cout<<"sio failed "<<std::endl;
 		exit(0);
 	}
+
+private:
+	sio::client &handler_;
 };
 
 int participants = -1;
 
 boost::random::mt19937 rng;
-socket::ptr current_socket;
+sio::socket::ptr currentSocket;
 
-void bind_events(socket::ptr &socket)
-{
-	current_socket->on("requestTask", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
-				{
+
+void bind_events(sio::socket::ptr &socket) {
+	currentSocket->on("requestTask", sio::socket::event_listener_aux([&](
+			std::string const& name, sio::message::ptr const& data,
+			bool isAck,sio::message::list &ack_resp) {
 				_lock.lock();
 				const std::string id = data->get_map()["id"]->get_string();
 				std::cout << "I have a new task (id:" << id << ")" << std::endl;
-				std::vector<message::ptr> content = data->get_map()["content"]->get_map()["packet"]->get_vector();
+				std::vector<sio::message::ptr> content =
+						data->get_map()["content"]->get_map(
+								)["packet"]->get_vector();
 				std::cout << content.size() << " bytes received" <<  std::endl;;
-				size_t headerSize = ProtobufPacket<robogenMessage::EvaluationRequest>::HEADER_SIZE;
+				size_t headerSize = ProtobufPacket<
+						robogenMessage::EvaluationRequest>::HEADER_SIZE;
 				std::vector<unsigned char> headerBuffer;
 				for (unsigned int i = 0; i < headerSize; ++i) {
 					headerBuffer.push_back(content.at(i)->get_int());
@@ -189,12 +200,15 @@ void bind_events(socket::ptr &socket)
 						fitness = scenario->getFitness();
 					}
 
-					message::ptr output = object_message::create();
-					output->get_map()["id"] = string_message::create(id);
-					output->get_map()["content"] = object_message::create();
-					output->get_map()["content"]->get_map()["fitness"] = double_message::create(fitness);
-					output->get_map()["content"]->get_map()["ptr"] = data->get_map()["content"]->get_map()["ptr"];
-					current_socket->emit("responseTask", output);
+					sio::message::ptr output = sio::object_message::create();
+					output->get_map()["id"] = sio::string_message::create(id);
+					output->get_map()["content"] =
+							sio::object_message::create();
+					output->get_map()["content"]->get_map()["fitness"] =
+							sio::double_message::create(fitness);
+					output->get_map()["content"]->get_map()["ptr"] =
+							data->get_map()["content"]->get_map()["ptr"];
+					currentSocket->emit("responseTask", output);
 					std::cout << "Fitness for the current solution: " << fitness
 							<< std::endl << std::endl;
 
@@ -203,41 +217,55 @@ void bind_events(socket::ptr &socket)
 				}));
 }
 
-int main(int argc ,const char* argv[])
-{
+int main(int argc, char* argv[]) {
 
-	rng.seed(3000);
-	sio::client h;
-	connection_listener l(h);
+#ifdef QT5_ENABLED
+	QCoreApplication a(argc, argv);
+#endif
 
-	h.set_open_listener(std::bind(&connection_listener::on_connected, &l));
-	h.set_close_listener(std::bind(&connection_listener::on_close, &l,std::placeholders::_1));
-	h.set_fail_listener(std::bind(&connection_listener::on_fail, &l));
-	if (argc < 2) {
-		std::cerr << "you must provide a server url" << std::endl;
+	//rng.seed(3000);
+	rng.seed(std::time(0));
+	sio::client handler;
+	ConnectionListener listener(handler);
+
+	handler.set_open_listener(std::bind(&ConnectionListener::on_connected,
+										&listener));
+	handler.set_close_listener(std::bind(&ConnectionListener::on_close,
+										&listener, std::placeholders::_1));
+	handler.set_fail_listener(std::bind(&ConnectionListener::on_fail,
+										&listener));
+	if (argc < 3) {
+		std::cerr << "you must provide a server url and group(s)" << std::endl;
 		exit(1);
 	}
-	h.connect(argv[1]);
-	current_socket = h.socket();
-	bind_events(current_socket);
+	handler.connect(argv[1]);
+	currentSocket = handler.socket();
+	bind_events(currentSocket);
 	_lock.lock();
-	if(!connect_finish)
+	if(!connectFinish)
 	{
 		_cond.wait(_lock);
 	}
 	_lock.unlock();
-	message::ptr capabilities = object_message::create();
+	sio::message::ptr capabilities = sio::object_message::create();
 	// declare capabilities (1 thread)
-	capabilities->get_map()["totalNodes"] = int_message::create(1);
-	current_socket->emit("computationDeclaration", capabilities);
-	message::ptr group = object_message::create();
-	group->get_map()["id"] = string_message::create("amazon");
-  current_socket->emit("joinGroup", group);
-  std::cout << "Join amazon group" << std::endl;
+	capabilities->get_map()["totalNodes"] = sio::int_message::create(1);
+	currentSocket->emit("computationDeclaration", capabilities);
+	for (int i=2; i<argc; ++i) {
+		sio::message::ptr group = sio::object_message::create();
+		group->get_map()["id"] = sio::string_message::create(argv[i]);
+		currentSocket->emit("joinGroup", group);
+		std::cout << "Join group " << argv[i] << std::endl;
+	}
 	_lock.lock();
 	_cond.wait(_lock);
 	_lock.unlock();
-	h.sync_close();
-	h.clear_con_listeners();
+	handler.sync_close();
+	handler.clear_con_listeners();
 	return 0;
 }
+
+#ifdef QT5_ENABLED
+#define emit EMIT_TMP
+#endif
+
