@@ -4,28 +4,10 @@ cmake_minimum_required (VERSION 2.8)
 # Project Name
 project (RoboGen)
 
-# Initialize CXXFLAGS.
-set(CMAKE_CXX_FLAGS                "-Wall -std=c++11")
-set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g")
-set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
-
-# Compiler-specific C++11 activation.
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    execute_process(
-        COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-    if (NOT (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7))
-        message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.7 or greater.")
-    endif ()
-elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-else ()
-    message(FATAL_ERROR "Your C++ compiler does not support C++11.")
-endif ()
 option(TARGET_JS "Build the project in javascript" OFF)
 option(ENABLE_QT "Enable QT for scriptable scenarios" ON)
 option(MAKE_JS_TEST "Make JavaScript test" OFF)
+option(ENABLE_SOCKET_IO "Enable socket io to run server connected to scheduler" ON)
 
 message(STATUS "${EM_ODE_INCLUDE_DIR}")
 
@@ -67,6 +49,9 @@ if(TARGET_JS)
 		ENDFOREACH()
 		SET(${result} ${dirlist})
 	ENDMACRO()
+
+	# don't need c++ socket io support for js
+	set (ENABLE_SOCKET_IO OFF)
 
 	#list containing all the llvm-archives required to link the project
 	set (ROBOGEN_JS_REQUIRED_ARCHIVES "jansson" "ode" "osg" "boost_timer" "boost_system" "boost_chrono" "boost_regex" "boost_serialization" "boost_date_time" "boost_graph" "boost_program_options" "boost_wserialization" "boost_filesystem" "protobuf")
@@ -130,8 +115,6 @@ if(TARGET_JS)
 		endif()
 	endforeach()
 	message (STATUS "All include path found")
-
-  include_directories("${CMAKE_SOURCE_DIR}/socket.io-client-cpp/src/")
 	set(RELEASE_OPT_FLAG "-Oz")
 
 	include_directories (${CMAKE_SOURCE_DIR} ${ROBOGEN_JS_INCLUDES})
@@ -225,9 +208,38 @@ else()
 		endif()
 
 	endif()
+	
+	if (ENABLE_SOCKET_IO)
+		if(EXISTS "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient.a")
+			message(STATUS "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient.a Found")
+			if(EXISTS "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient_tls.a")
+				message(STATUS "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient_tls.a Found")
+				set(SOCKET_IO_FOUND ON)
+				include_directories("${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/src/")
+			else()
+				message(STATUS "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient_tls.a Not Found")	
+			endif()
+		else()
+			message(STATUS "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient.a Not Found")
+		endif()
+	endif()
 
 
 	if(UNIX)
+
+	# Initialize CXXFLAGS.
+	# Compiler-specific C++11 activation.
+	if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+		execute_process(
+		    COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+		if (NOT (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7))
+		    message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.7 or greater.")
+		endif ()
+	elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+	else ()
+		message(FATAL_ERROR "Your C++ compiler does not support C++11.")
+	endif ()
 		# Compiler options
 		if (CMAKE_BUILD_TYPE STREQUAL "Release")
 			add_definitions(-std=c++11 -pedantic -fPIC )
@@ -242,7 +254,11 @@ else()
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb3 -DDEBUG")
 
 		# Release flags
-		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -funroll-loops -finline-functions -fomit-frame-pointer -DNDEBUG")
+		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O4 -funroll-loops -finline-functions -fomit-frame-pointer -DNDEBUG")
+
+		set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+
 
 
 	elseif(WIN32)
@@ -325,9 +341,15 @@ else()
 	add_library(robogen ${ROBOGEN_SRC} ${PROTO_SRCS} )
 	target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
 
-  # Robogen simulator server with socket.io
-  add_executable(robogen-server-sio RobogenServerSIO.cpp)
-  target_link_libraries(robogen-server-sio robogen ${ROBOGEN_DEPENDENCIES} "${CMAKE_SOURCE_DIR}/socket.io-client-cpp/libsioclient.a" "${CMAKE_SOURCE_DIR}/socket.io-client-cpp/libsioclient_tls.a")
+
+	if (SOCKET_IO_FOUND)
+		if( ENABLE_SOCKET_IO )
+			
+  		# Robogen simulator server with socket.io
+  		add_executable(robogen-server-sio RobogenServerSIO.cpp)
+  		target_link_libraries(robogen-server-sio robogen ${ROBOGEN_DEPENDENCIES} "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient.a" "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient_tls.a")
+  		endif()
+  	endif()
 	# Evolver executable
 	add_executable(robogen-evolver Evolver.cpp)
 	target_link_libraries(robogen-evolver robogen ${ROBOGEN_DEPENDENCIES})

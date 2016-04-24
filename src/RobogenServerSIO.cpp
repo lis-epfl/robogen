@@ -29,9 +29,9 @@
  */
 #include <iostream>
 #include <chrono>
-#include "socket.io-client-cpp/src/sio_client.h"
-#include "socket.io-client-cpp/src/sio_message.h"
-#include "socket.io-client-cpp/src/sio_socket.h"
+#include "sio_client.h"
+#include "sio_message.h"
+#include "sio_socket.h"
 
 #include "config/ConfigurationReader.h"
 #include "config/RobogenConfig.h"
