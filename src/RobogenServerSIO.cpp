@@ -63,6 +63,8 @@
 
 #ifdef QT5_ENABLED
 #include <QCoreApplication>
+// Qt makes emit a restricted word, which breaks compilation here
+// so we back it up and restore later
 #define EMIT_TMP emit
 #undef emit
 #endif
