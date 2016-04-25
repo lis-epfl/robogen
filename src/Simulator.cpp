@@ -231,6 +231,12 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		while ((t < configuration->getSimulationTime())
 			   && (!(visualize && viewer->done()))) {
 
+			if (scenario->shouldStopSimulationNow()) {
+				std::cout << "Scenario has stopped the simulation!"
+						<< std::endl;
+				break;
+			}
+
 			if(visualize) {
 				if(!viewer->frame(t, count)) {
 					continue;
@@ -399,12 +405,6 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 						<< "Cannot execute scenario after simulation step. Quit."
 						<< std::endl;
 				return SIMULATION_FAILURE;
-			}
-
-			if (scenario->shouldStopSimulationNow()) {
-				std::cout << "Scenario has stopped the simulation!"
-						<< std::endl;
-				break;
 			}
 
 			if(log) {
