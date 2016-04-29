@@ -89,6 +89,8 @@ private:
 
 	QScriptValue qRobot_, qEnvironment_;
 
+	bool initSuccess_;
+
 };
 
 }
