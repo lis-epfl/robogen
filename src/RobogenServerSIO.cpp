@@ -188,15 +188,16 @@ void bind_events(sio::socket::ptr &socket) {
 							nullptr, rng);
 
 
-					if (simulationResult == SIMULATION_FAILURE) {
-						exitRobogen(EXIT_FAILURE);
-					}
+					//if (simulationResult == SIMULATION_FAILURE) {
+					//	exitRobogen(EXIT_FAILURE);
+					//}
 
 					// ---------------------------------------
 					// Compute fitness
 					// ---------------------------------------
 					double fitness;
-					if (simulationResult == CONSTRAINT_VIOLATED) {
+					if (simulationResult == CONSTRAINT_VIOLATED ||
+							simulationResult == SIMULATION_FAILURE) {
 						fitness = MIN_FITNESS;
 					} else {
 						fitness = scenario->getFitness();
