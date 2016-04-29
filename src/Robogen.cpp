@@ -28,6 +28,11 @@
  */
 #include "Robogen.h"
 #include "robogen.pb.h"
+#ifdef EMSCRIPTEN
+#include  "utils/JSUtils.h"
+#endif
+
+namespace robogen {
 
 float fromOde(float x) {
 	return x*1000.0;
@@ -83,9 +88,12 @@ void startRobogen() {
 void exitRobogen(int exitCode) {
 	google::protobuf::ShutdownProtobufLibrary();
 #ifdef EMSCRIPTEN
-	if (exitCode == EXIT_FAILURE)
+	if (exitCode == EXIT_FAILURE) {
+		emscripten_run_script("throw \"Fatal Error\";");
 		throw std::runtime_error("Fatal Error.");
+	}
 #endif
 	exit(exitCode);
 }
 
+}

@@ -40,6 +40,8 @@
 #define inMm(x) ((x)/1000.0)
 #define inGrams(x) ((x)/1000.0)
 
+namespace robogen {
+
 float fromOde(float x);
 double fromOde(double x);
 osg::Vec3 fromOde(osg::Vec3 x);
@@ -53,5 +55,7 @@ int modulo(int x, int y);
 
 void startRobogen();
 void exitRobogen(int exitCode);
+
+}
 
 #endif /* ROBOGEN_H_ */
