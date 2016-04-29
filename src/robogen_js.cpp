@@ -67,6 +67,7 @@ double EMSCRIPTEN_KEEPALIVE evaluate(int ptr, int length) {
 		std::cerr
 		<< "Problems parsing the configuration file. Quit."
 		<< std::endl;
+		exitRobogen(EXIT_FAILURE);
 		return -1;
 	}
 
@@ -77,6 +78,7 @@ double EMSCRIPTEN_KEEPALIVE evaluate(int ptr, int length) {
 	boost::shared_ptr<Scenario> scenario =
 	ScenarioFactory::createScenario(configuration);
 	if (!scenario) {
+		exitRobogen(EXIT_FAILURE);
 		return -1;
 	}
 
@@ -97,6 +99,7 @@ double EMSCRIPTEN_KEEPALIVE evaluate(int ptr, int length) {
 	delete viewer;
 
 	if (simulationResult == SIMULATION_FAILURE) {
+		exitRobogen(EXIT_FAILURE);
 		return -1;
 	}
 

@@ -41,7 +41,7 @@ namespace js {
 
 void log(std::string s) {
 	std::stringstream ss;
-	ss << "console.log(\"" << s << "\")";
+	ss << "console.log(\"" << s << "\");";
 	emscripten_run_script(ss.str().c_str());
 }
 
