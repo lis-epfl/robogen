@@ -42,6 +42,15 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 		conf_(conf), rng_(rng), brainMutate_(conf->pBrainMutate),
 		weightCrossover_(conf->pBrainCrossover) {
 
+
+
+	addHiddenNeuronDist_ = boost::random::bernoulli_distribution<double>(
+			conf->pAddHiddenNeuron);
+
+	oscillatorNeuronDist_ = boost::random::bernoulli_distribution<double>(
+			conf->pOscillatorNeuron);
+
+
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
 		subtreeRemovalDist_ =
 				boost::random::bernoulli_distribution<double>(
@@ -67,14 +76,7 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 				boost::random::bernoulli_distribution<double>(
 						conf->bodyOperatorProbability
 						[EvolverConfiguration::PARAMETER_MODIFICATION]);
-
-		addHiddenNeuronDist_ = boost::random::bernoulli_distribution<double>(
-				conf->pAddHiddenNeuron);
-
-		oscillatorNeuronDist_ = boost::random::bernoulli_distribution<double>(
-				conf->pOscillatorNeuron);
 	}
-
 }
 
 Mutator::~Mutator() {
@@ -214,6 +216,9 @@ bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 	// first potentially add hidden neurons
 	if ((robot->getBrain()->getNumHidden() < MAX_HIDDEN_NEURONS) &&
 			addHiddenNeuronDist_(rng_)) {
+
+		std::cout << "****ADDING HIDDEN NEURON****************************" << std::endl;
+
 		unsigned int neuronType = NeuronRepresentation::SIGMOID;
 		if (oscillatorNeuronDist_(rng_)) {
 			neuronType = NeuronRepresentation::OSCILLATOR;
