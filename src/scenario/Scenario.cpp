@@ -99,8 +99,8 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 			robogenConfig_->getObstaclesConfig();
 
 	// Instance the boxes above the maximum terrain height
-	const std::vector<osg::Vec3>& c = obstacles->getCoordinates();
-	const std::vector<osg::Vec3>& s = obstacles->getSizes();
+	const std::vector<osg::Vec3>& obstacleCoordinates = obstacles->getCoordinates();
+	const std::vector<osg::Vec3>& obstacleSizes = obstacles->getSizes();
 	const std::vector<float>& d = obstacles->getDensities();
 	const std::vector<osg::Vec3>& rotationAxis = obstacles->getRotationAxes();
 	const std::vector<float>& rotationAngles = obstacles->getRotationAngles();
@@ -109,22 +109,14 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 
 	double overlapMaxZ=minZ;
 
-	for (unsigned int i = 0; i < c.size(); ++i) {
+	for (unsigned int i = 0; i < obstacleCoordinates.size(); ++i) {
 		boost::shared_ptr<BoxObstacle> obstacle(
-									new BoxObstacle(odeWorld, odeSpace, c[i],
-											s[i], d[i], rotationAxis[i],
+									new BoxObstacle(odeWorld, odeSpace,
+											obstacleCoordinates[i],
+											obstacleSizes[i], d[i], rotationAxis[i],
 											rotationAngles[i]));
 		double oMinX, oMaxX, oMinY, oMaxY, oMinZ, oMaxZ;
 		obstacle->getAABB(oMinX, oMaxX, oMinY, oMaxY, oMinZ, oMaxZ);
-
-		/*
-		float oMinX = c[i].x() - s[i].x() / 2;
-		float oMaxX = c[i].x() + s[i].x() / 2;
-		float oMinY = c[i].y() - s[i].y() / 2;
-		float oMaxY = c[i].y() + s[i].y() / 2;
-		float oMinZ = c[i].z() - s[i].z() / 2;
-		float oMaxZ = c[i].z() + s[i].z() / 2;
-		 */
 
 		// Do not insert the obstacle if it is in the robot range
 		bool inRangeX = false;
@@ -164,6 +156,70 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 
 	}
 
+	// Setup light sources
+	boost::shared_ptr<LightSourcesConfig> lightSourcesConfig =
+			robogenConfig_->getLightSourcesConfig();
+
+	std::vector<boost::shared_ptr<LightSource> > lightSources;
+
+	std::vector<osg::Vec3> lightSourcesCoordinates =
+			lightSourcesConfig->getCoordinates();
+	std::vector<float> lightSourcesIntensities =
+				lightSourcesConfig->getIntensities();
+
+	for (unsigned int i = 0; i < lightSourcesCoordinates.size(); ++i) {
+		double lMinX = lightSourcesCoordinates[i].x() - LightSource::RADIUS;
+		double lMaxX = lightSourcesCoordinates[i].x() + LightSource::RADIUS;
+		double lMinY = lightSourcesCoordinates[i].y() - LightSource::RADIUS;
+		double lMaxY = lightSourcesCoordinates[i].y() + LightSource::RADIUS;
+		double lMinZ = lightSourcesCoordinates[i].z() - LightSource::RADIUS;
+		double lMaxZ = lightSourcesCoordinates[i].z() + LightSource::RADIUS;
+
+		// Do not insert the ligh source if it is in the robot range
+		bool inRangeX = false;
+		if ((lMinX <= minX && lMaxX >= maxX) || (lMinX >= minX && lMinX <= maxX)
+				|| (lMaxX >= minX && lMaxX <= maxX)) {
+			inRangeX = true;
+		}
+
+		bool inRangeY = false;
+		if ((lMinY <= minY && lMaxY >= maxY) || (lMinY >= minY && lMinY <= maxY)
+				|| (lMaxY >= minY && lMaxY <= maxY)) {
+			inRangeY = true;
+		}
+
+		bool inRangeZ = false;
+		if ((lMinZ <= minZ && lMaxZ >= maxZ) || (lMinZ >= minZ && lMinZ <= maxZ)
+				|| (lMaxZ >= minZ && lMaxZ <= maxZ)) {
+			inRangeZ = true;
+		}
+
+
+		if (!(inRangeX && inRangeY && inRangeZ)) {
+			lightSources.push_back(boost::shared_ptr<LightSource>(
+						new LightSource(odeSpace, lightSourcesCoordinates[i],
+								lightSourcesIntensities[i])));
+		} else {
+			if (robogenConfig_->getObstacleOverlapPolicy() ==
+					RobogenConfig::ELEVATE_ROBOT) {
+
+				if (lMaxZ > overlapMaxZ)
+					overlapMaxZ = lMaxZ;
+				lightSources.push_back(boost::shared_ptr<LightSource>(
+						new LightSource(odeSpace, lightSourcesCoordinates[i],
+								lightSourcesIntensities[i])));
+			} else {
+				obstaclesRemoved_ = true;
+			}
+		}
+
+
+
+	}
+	environment_->setLightSources(lightSources);
+
+
+
 	if (robogenConfig_->getObstacleOverlapPolicy() ==
 			RobogenConfig::ELEVATE_ROBOT) {
 
@@ -172,26 +228,7 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 						overlapMaxZ + inMm(2) - minZ));
 	}
 
-	// Setup light sources
-	boost::shared_ptr<LightSourcesConfig> lightSourcesConfig =
-			robogenConfig_->getLightSourcesConfig();
 
-	// todo do we need to do overlap check with light sources??
-
-	std::vector<boost::shared_ptr<LightSource> > lightSources;
-	this->getEnvironment()->setLightSources(lightSources);
-
-	std::vector<osg::Vec3> lightSourcesCoordinates =
-			lightSourcesConfig->getCoordinates();
-	std::vector<float> lightSourcesIntensities =
-				lightSourcesConfig->getIntensities();
-	for (unsigned int i = 0; i < lightSourcesCoordinates.size(); ++i) {
-		lightSources.push_back(boost::shared_ptr<LightSource>(
-					new LightSource(odeSpace, lightSourcesCoordinates[i],
-							lightSourcesIntensities[i])));
-
-	}
-	environment_->setLightSources(lightSources);
 
 
 	// optimize the physics!  replace all fixed joints with composite bodies

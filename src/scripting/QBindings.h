@@ -88,6 +88,7 @@ public slots:
 	QScriptValue getRootAttitude();
 	QScriptValue getType();
 	QScriptValue getSensors();
+	QScriptValue getId();
 
 private:
 	boost::weak_ptr<Model> basePtr_;

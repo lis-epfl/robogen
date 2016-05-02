@@ -252,6 +252,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 
 	emscripten::class_<Model>("Model")
 		.smart_ptr<boost::shared_ptr<Model> >("shared_ptr<Model>")
+		.function("getId", &Model::getId)
 		.function("getRootPosition", &Model::getRootPosition)
 		.function("getRootAttitude", &Model::getRootAttitude)
 		.function("getSensors", &getModelSensors)
