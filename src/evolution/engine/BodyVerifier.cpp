@@ -59,7 +59,8 @@ void BodyVerifier::collisionCallback(void *data, dGeomID o1, dGeomID o2) {
 }
 
 bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
-		std::vector<std::pair<std::string, std::string> > &affectedBodyParts) {
+		std::vector<std::pair<std::string, std::string> > &affectedBodyParts,
+		bool printErrors) {
 
 	bool success = true;
 	errorCode = INTERNAL_ERROR;
@@ -86,9 +87,11 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	robogenMessage::Robot robotMessage = robotRep.serialize();
 	// parse robot
 	boost::shared_ptr<Robot> robot(new Robot);
-	if (!robot->init(odeWorld, odeSpace, robotMessage)) {
-		std::cout << "Problem when initializing robot in body verifier!"
-				<< std::endl;
+	if (!robot->init(odeWorld, odeSpace, robotMessage, printErrors)) {
+		if (printErrors) {
+			std::cout << "Problem when initializing robot in body verifier!"
+					<< std::endl;
+		}
 		success = false;
 	}
 

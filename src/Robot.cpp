@@ -92,11 +92,12 @@ Robot::Robot() :
 
 bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
 		const robogenMessage::Robot& robotSpec,
-		bool printInfo) {
+		bool printInfo, bool printInitErrors) {
 	odeWorld_ = odeWorld;
 	odeSpace_ = odeSpace;
 	robotMessage_ = &robotSpec;
 	printInfo_ = printInfo;
+	printInitErrors_ = printInitErrors;
 
 	connectionJointGroup_ = dJointGroupCreate(0);
 	this->id_ = robotSpec.id();
@@ -104,14 +105,18 @@ bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
 	const robogenMessage::Body& body = robotSpec.body();
 	const robogenMessage::Brain& brain = robotSpec.brain();
 	if (!this->decodeBody(body)) {
-		std::cout << "Cannot decode the body of the robot."
+		if (printInitErrors_) {
+			std::cerr << "Cannot decode the body of the robot."
 				<< std::endl;
+		}
 		return false;
 	}
 	// decode brain needs to come after decode body, as IO reordering
 	if (!this->decodeBrain(brain)) {
-		std::cout << "Cannot decode the brain of the robot."
+		if (printInitErrors_) {
+			std::cerr << "Cannot decode the brain of the robot."
 				<< std::endl;
+		}
 		return false;
 	}
 
@@ -161,8 +166,10 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 				odeWorld_, odeSpace_);
 
 		if (model == NULL) {
-			std::cerr << "Unrecognized body part: " << bodyPart.id()
+			if (printInitErrors_) {
+				std::cerr << "Unrecognized body part: " << bodyPart.id()
 					<< "." << std::endl;
+			}
 			return false;
 		}
 
@@ -236,31 +243,36 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 	}
 
 	if (numAnalogPins > MAX_ANALOG_PINS) {
-		std::cout << "The number of analog pins required ("
+		if (printInitErrors_) {
+			std::cerr << "The number of analog pins required ("
 				<< numAnalogPins
 				<< ") is greater than the maximum allowed one ("
 				<< MAX_ANALOG_PINS << ")" << std::endl;
+		}
 		return false;
 	}
 
 
 	if (numDigitalPins > MAX_DIGITAL_PINS + (MAX_ANALOG_PINS - numAnalogPins)) {
-
-		std::cout << "The number of digital pins required ("
+		if (printInitErrors_) {
+			std::cerr << "The number of digital pins required ("
 				<< numDigitalPins
 				<< ") is greater than the number available ("
 				<< MAX_DIGITAL_PINS + (MAX_ANALOG_PINS - numAnalogPins)
 				<< ")" << std::endl;
+		}
 		return false;
 	}
 
 	if ((numPwmPins + 1) > MAX_PWM_PINS) { // need 1 for the neutral signal
-		std::cout << "The number of PWM pins required ("
+		if (printInitErrors_) {
+			std::cerr << "The number of PWM pins required ("
 					<< (numPwmPins + 1)
 					<< ") is greater than the number available ("
 					<< MAX_PWM_PINS
 					<< ")" << std::endl;
 			return false;
+		}
 
 	}
 
@@ -278,7 +290,9 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 				boost::shared_ptr<Connection>(new Connection()));
 		if (!bodyConnections_.back()->init(robotBody.connection(i),
 				bodyPartsMap_, bodyParts_)) {
-			std::cout << "Problem when connecting body parts!" << std::endl;
+			if (printInitErrors_) {
+				std::cerr << "Problem when connecting body parts!" << std::endl;
+			}
 			return false;
 		}
 		boost::add_edge(bodyPartsMap_[robotBody.connection(i).src()],
@@ -295,9 +309,11 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 	int numComponents = boost::connected_components(bodyTreeUndirected,
 			&component[0]);
 	if (numComponents != 1) {
-		std::cout
+		if (printInitErrors_) {
+			std::cerr
 				<< "The robot body has some disconnected component (ConnComponents: "
 				<< numComponents << ")" << std::endl;
+		}
 		return false;
 	}
 	// End of connectivity check
@@ -359,17 +375,21 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 					bodyPartsMap_.find(neuron.bodypartid());
 
 			if (bodyPartId == bodyPartsMap_.end()) {
-				std::cout << "Cannot find a body part with id '"
+				if (printInitErrors_) {
+					std::cerr << "Cannot find a body part with id '"
 						<< neuron.bodypartid()
 						<< "' to be associated with neuron " << i << std::endl;
+				}
 				return false;
 			}
 
 			// // +1 because we have not incremented the counter yet
 			if ((nInputs + 1) > MAX_INPUT_NEURONS) {
-				std::cout << "The number of input neurons (" << (nInputs + 1)
+				if (printInitErrors_) {
+					std::cerr << "The number of input neurons (" << (nInputs + 1)
 						<< ") is greater than the maximum allowed one ("
 						<< MAX_INPUT_NEURONS << ")" << std::endl;
+				}
 				return false;
 			}
 
@@ -389,17 +409,21 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 					bodyPartsMap_.find(neuron.bodypartid());
 
 			if (bodyPartId == bodyPartsMap_.end()) {
-				std::cout << "Cannot find a body part with id '"
+				if (printInitErrors_) {
+					std::cerr << "Cannot find a body part with id '"
 						<< neuron.bodypartid()
 						<< "' to be associated with neuron " << i << std::endl;
+				}
 				return false;
 			}
 
 			// +1 because we have not incremented the counter yet
 			if ((nOutputs + 1) > MAX_OUTPUT_NEURONS) {
-				std::cout << "The number of output neurons (" << (nOutputs + 1)
+				if (printInitErrors_) {
+					std::cerr << "The number of output neurons (" << (nOutputs + 1)
 						<< ") is greater than the maximum allowed one ("
 						<< MAX_OUTPUT_NEURONS << ")" << std::endl;
+				}
 				return false;
 			}
 
@@ -424,8 +448,10 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				types[nOutputs] = OSCILLATOR;
 			} else {
 				//TODO add in this stuff for other neurons
-				std::cout << "only sigmoid and oscillator neurons supported "
+				if (printInitErrors_) {
+					std::cerr << "only sigmoid and oscillator neurons supported "
 						<< "currently" << std::endl;
+				}
 				return false;
 			}
 			nOutputs++;
@@ -437,17 +463,21 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 					bodyPartsMap_.find(neuron.bodypartid());
 
 			if (bodyPartId == bodyPartsMap_.end()) {
-				std::cout << "Cannot find a body part with id '"
+				if (printInitErrors_) {
+					std::cerr << "Cannot find a body part with id '"
 						<< neuron.bodypartid()
 						<< "' to be associated with neuron " << i << std::endl;
+				}
 				return false;
 			}
 
 			// +1 because we have not incremented the counter yet
 			if ((nHidden + 1) > MAX_HIDDEN_NEURONS) {
-				std::cout << "The number of hidden neurons (" << (nHidden + 1)
+				if (printInitErrors_) {
+					std::cerr << "The number of hidden neurons (" << (nHidden + 1)
 						<< ") is greater than the maximum allowed one ("
 						<< MAX_HIDDEN_NEURONS << ")" << std::endl;
+				}
 				return false;
 			}
 
@@ -470,12 +500,17 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				hidden_types[nHidden] = OSCILLATOR;
 			} else {
 				//TODO add in this stuff for other neurons
-				std::cout << "only sigmoid and oscillator neurons supported currently" << std::endl;
+				if (printInitErrors_) {
+					std::cerr << "only sigmoid and oscillator "
+							<< "neurons supported currently" << std::endl;
+				}
 				return false;
 			}
 			nHidden++;
 		} else {
-			std::cout << "Unsupported layer for neuron " << i << std::endl;
+			if (printInitErrors_) {
+				std::cerr << "Unsupported layer for neuron " << i << std::endl;
+			}
 			return false;
 		}
 
@@ -510,8 +545,10 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 		// verify that io id is within the sensor size
 		unsigned int pos = brainInputToIoId[i];
 		if (pos >= curSensors.size()) {
-			std::cout << "Cannot locate sensor " << pos << " in body part "
+			if (printInitErrors_) {
+				std::cerr << "Cannot locate sensor " << pos << " in body part "
 					<< brainInputToBodyPart[i] << std::endl;
+			}
 			return false;
 		}
 		orderedSensors[i] = curSensors[pos];
@@ -526,8 +563,10 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 
 		unsigned int pos = brainOutputToIoId[i];
 		if (pos >= curMotors.size()) {
-			std::cout << "Cannot locate motor " << pos << " in body part "
+			if (printInitErrors_) {
+				std::cerr << "Cannot locate motor " << pos << " in body part "
 					<< brainOutputToBodyPart[i] << std::endl;
+			}
 			return false;
 		}
 		orderedMotors[i] = curMotors[pos];
@@ -537,16 +576,20 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	}
 
 	if (nInputs != sensors_.size()) {
-		std::cout << "The number of input neurons (" << nInputs
+		if (printInitErrors_) {
+			std::cerr << "The number of input neurons (" << nInputs
 				<< ") differs from the number of sensors (" << sensors_.size()
 				<< ")" << std::endl;
+		}
 		return false;
 	}
 
 	if (nOutputs != motors_.size()) {
-		std::cout << "The number of output neurons (" << nOutputs
+		if (printInitErrors_) {
+			std::cerr << "The number of output neurons (" << nOutputs
 				<< ") differs from the number of motors (" << motors_.size()
 				<< ")" << std::endl;
+		}
 		return false;
 	}
 
@@ -578,17 +621,21 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 		std::map<std::string, bool>::iterator isSourceInputIt =
 				isNeuronInput.find(connection.src());
 		if (isSourceInputIt == isNeuronInput.end()) {
-			std::cout << "Cannot find source neuron in the neural network: "
+			if (printInitErrors_) {
+				std::cerr << "Cannot find source neuron in the neural network: "
 					<< connection.src() << std::endl;
+			}
 			return false;
 		}
 
 		std::map<std::string, bool>::iterator isDestInputIt =
 				isNeuronInput.find(connection.dest());
 		if (isDestInputIt == isNeuronInput.end()) {
-			std::cout
+			if (printInitErrors_) {
+				std::cerr
 					<< "Cannot find destination neuron in the neural network: "
 					<< connection.dest() << std::endl;
+			}
 			return false;
 		}
 
@@ -602,8 +649,10 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 			else if( hiddenNeuronIds.count(connection.src())) {
 				sourceNeuronPos = hiddenNeuronIds[connection.src()] + nOutputs;
 			} else {
-				std::cout << "Problem with source neuron "
+				if (printInitErrors_) {
+					std::cerr << "Problem with source neuron "
 						<< connection.src() << std::endl;
+				}
 				return false;
 			}
 		}
@@ -615,8 +664,10 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 		else if( hiddenNeuronIds.count(connection.dest())) {
 			destNeuronPos = hiddenNeuronIds[connection.dest()] + nOutputs;
 		} else {
-			std::cout << "Problem with dest neuron "
+			if (printInitErrors_) {
+				std::cerr << "Problem with dest neuron "
 					<< connection.dest() << std::endl;
+			}
 			return false;
 		}
 
