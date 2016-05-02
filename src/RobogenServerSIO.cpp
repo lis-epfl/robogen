@@ -183,9 +183,16 @@ void bind_events(sio::socket::ptr &socket) {
 					// Run simulations
 					// ---------------------------------------
 
-					unsigned int simulationResult = runSimulations(scenario,
+					unsigned int simulationResult;
+					try {
+						simulationResult = runSimulations(scenario,
 							configuration, packet.getMessage()->robot(),
 							nullptr, rng);
+
+					} catch(std::exception &e) {
+						std::cerr << e.what();
+						simulationResult = SIMULATION_FAILURE;
+					}
 
 
 					//if (simulationResult == SIMULATION_FAILURE) {
