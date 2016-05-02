@@ -83,6 +83,10 @@ QModel::QModel(boost::weak_ptr<Model> basePtr) : basePtr_(basePtr) {
 
 }
 
+QScriptValue QModel::getId() {
+	return QString::fromStdString(basePtr_.lock()->getId());
+}
+
 QScriptValue QModel::getRootPosition() {
 	return valFromVec3(engine(),
 			basePtr_.lock()->getRootPosition());
