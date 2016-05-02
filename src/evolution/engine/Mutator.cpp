@@ -126,7 +126,7 @@ void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
 			std::vector<std::pair<std::string, std::string> > affectedBodyParts;
 			if (success
 					&& BodyVerifier::verify(*newBot.get(), errorCode,
-							affectedBodyParts)) {
+							affectedBodyParts, false)) {
 				robot = newBot;
 				robot->setDirty();
 				break;
@@ -414,7 +414,7 @@ bool Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 				std::vector<std::pair<std::string, std::string> > affectedBodyParts;
 				if (mutationSuccess
 						&& BodyVerifier::verify(*newBot.get(), errorCode,
-								affectedBodyParts)) {
+								affectedBodyParts, false)) {
 
 					if (!newBot->check()) {
 						std::cout << "Consistency check failed in mutation operator " << i << std::endl;

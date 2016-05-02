@@ -83,7 +83,7 @@ public:
 	 */
 	bool init(dWorldID odeWorld, dSpaceID odeSpace,
 			const robogenMessage::Robot& robotSpec,
-			bool printInfo=false);
+			bool printInfo=false, bool printInitErrors=true);
 
 	/**
 	 * Destructor
@@ -266,6 +266,8 @@ private:
 	const robogenMessage::Robot* robotMessage_;
 
 	bool printInfo_;
+
+	bool printInitErrors_;
 
 	// store joints created by connecting components
 	// not a set because we don't want iteration order to depend on address,
