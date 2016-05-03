@@ -204,6 +204,19 @@ emscripten::val getModelSensors(boost::shared_ptr<Model> model) {
 	return toArray< boost::shared_ptr<Sensor> >(sensors);
 }
 
+emscripten::val getAABB(boost::shared_ptr<Robot> robot) {
+	double minX, maxX, minY, maxY, minZ, maxZ;
+	robot->getAABB(minX, maxX, minY, maxY, minZ, maxZ);
+	emscripten::val aabb(emscripten::val::object());
+	aabb.set("minX", minX);
+	aabb.set("maxX", maxX);
+	aabb.set("minY", minY);
+	aabb.set("maxY", maxY);
+	aabb.set("minZ", minZ);
+	aabb.set("maxZ", maxZ);
+	return aabb;
+}
+
 emscripten::val getBodyParts(boost::shared_ptr<Robot> robot) {
 	return toArray< boost::shared_ptr<Model> >(robot->getBodyParts());
 }
@@ -279,6 +292,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.function("getCoreComponent", &Robot::getCoreComponent)
 		.function("getSensors", &getRobotSensors)
 		.function("getMotors", &getMotors)
+		.function("getAABB", &getAABB)
 		;
 
 

@@ -42,6 +42,15 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 		conf_(conf), rng_(rng), brainMutate_(conf->pBrainMutate),
 		weightCrossover_(conf->pBrainCrossover) {
 
+
+
+	addHiddenNeuronDist_ = boost::random::bernoulli_distribution<double>(
+			conf->pAddHiddenNeuron);
+
+	oscillatorNeuronDist_ = boost::random::bernoulli_distribution<double>(
+			conf->pOscillatorNeuron);
+
+
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
 		subtreeRemovalDist_ =
 				boost::random::bernoulli_distribution<double>(
@@ -67,14 +76,7 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 				boost::random::bernoulli_distribution<double>(
 						conf->bodyOperatorProbability
 						[EvolverConfiguration::PARAMETER_MODIFICATION]);
-
-		addHiddenNeuronDist_ = boost::random::bernoulli_distribution<double>(
-				conf->pAddHiddenNeuron);
-
-		oscillatorNeuronDist_ = boost::random::bernoulli_distribution<double>(
-				conf->pOscillatorNeuron);
 	}
-
 }
 
 Mutator::~Mutator() {
@@ -655,22 +657,25 @@ bool Mutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
 			idPartMap.begin();
 	std::advance(partToMutate, dist(rng_));
 
-	std::vector<double> params = partToMutate->second.lock()->getParams();
+	std::vector<double> &params = partToMutate->second.lock()->getParams();
 	// Select a random parameter/or orientation to mutate
 	boost::random::uniform_int_distribution<> distMutation(0, params.size());
 	unsigned int paramToMutate = distMutation(rng_);
 
 	if (paramToMutate == params.size()) { //mutate orientation
 		boost::random::uniform_int_distribution<> orientationDist(0, 3);
+		unsigned int oldOrientation = partToMutate->second.lock()->getOrientation();
 		unsigned int newOrientation = orientationDist(rng_);
 		partToMutate->second.lock()->setOrientation(newOrientation);
+		return (oldOrientation != newOrientation);
 	} else {
+		double oldParamValue = params[paramToMutate];
 		params[paramToMutate] += (normalDistribution_(rng_) *
 									conf_->bodyParamSigma);
 		params[paramToMutate] = clip(params[paramToMutate], 0., 1.);
+		return ( fabs(oldParamValue - params[paramToMutate]) >
+					RobogenUtils::EPSILON_2 );
 	}
-
-	return true;
 
 }
 

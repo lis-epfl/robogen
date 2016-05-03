@@ -80,13 +80,13 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 	roboRot.makeRotate(osg::inDegrees(startingAzimuth), osg::Vec3(0,0,1));
 
 	robot->rotateRobot(roboRot);
-	robot->getBB(minX, maxX, minY, maxY, minZ, maxZ);
+	robot->getAABB(minX, maxX, minY, maxY, minZ, maxZ);
 	robot->translateRobot(
 			osg::Vec3(startingPosition.x(),
 					startingPosition.y(),
 					robogenConfig_->getTerrainConfig()->getHeight()
 						+ inMm(2) - minZ));
-	robot->getBB(minX, maxX, minY, maxY, minZ, maxZ);
+	robot->getAABB(minX, maxX, minY, maxY, minZ, maxZ);
 
 	std::cout
 			<< "The robot is enclosed in the AABB(minX, maxX, minY, maxY, minZ, maxZ) ("

@@ -46,8 +46,8 @@ class RobogenUtils {
 
 public:
 
-	static const double OSG_EPSILON;
-	static const double OSG_EPSILON_2;
+	static const double EPSILON;
+	static const double EPSILON_2;
 
 	virtual ~RobogenUtils();
 

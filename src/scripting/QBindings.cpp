@@ -182,6 +182,19 @@ QScriptValue QRobot::getSensors() {
 			robot_.lock()->getCoreComponent()->getRootPosition());
 }*/
 
+QScriptValue QRobot::getAABB() {
+	double minX, maxX, minY, maxY, minZ, maxZ;
+	basePtr_.lock()->getAABB(minX, maxX, minY, maxY, minZ, maxZ);
+	QScriptValue aabb = engine()->newObject();
+	aabb.setProperty("minX", minX);
+	aabb.setProperty("maxX", maxX);
+	aabb.setProperty("minY", minY);
+	aabb.setProperty("maxY", maxY);
+	aabb.setProperty("minZ", minZ);
+	aabb.setProperty("maxZ", maxZ);
+	return aabb;
+}
+
 // QPositionObservable
 QPositionObservable::QPositionObservable(
 		boost::weak_ptr<PositionObservable> basePtr) : basePtr_(basePtr) {}

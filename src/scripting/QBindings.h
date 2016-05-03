@@ -106,6 +106,7 @@ public slots:
 	QScriptValue getCoreComponent();
 	QScriptValue getMotors();
 	QScriptValue getSensors();
+	QScriptValue getAABB();
 
 
 private :
