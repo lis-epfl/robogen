@@ -840,7 +840,7 @@ void Robot::rotateRobot(const osg::Quat &rot) {
 	this->reconnect();
 }
 
-void Robot::getBB(double& minX, double& maxX, double& minY, double& maxY,
+void Robot::getAABB(double& minX, double& maxX, double& minY, double& maxY,
 		double& minZ, double& maxZ) {
 
 	minX = 100000000;

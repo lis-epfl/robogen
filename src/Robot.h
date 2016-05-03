@@ -128,9 +128,9 @@ public:
 	void rotateRobot(const osg::Quat &rot);
 
 	/**
-	 * Returns the robot bounding box
+	 * Returns the robot axis-aligned bounding box
 	 */
-	void getBB(double& minX, double& maxX, double& minY, double& maxY,
+	void getAABB(double& minX, double& maxX, double& minY, double& maxY,
 			double& minZ, double& maxZ);
 
 	/**
