@@ -216,9 +216,6 @@ bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 	// first potentially add hidden neurons
 	if ((robot->getBrain()->getNumHidden() < MAX_HIDDEN_NEURONS) &&
 			addHiddenNeuronDist_(rng_)) {
-
-		std::cout << "****ADDING HIDDEN NEURON****************************" << std::endl;
-
 		unsigned int neuronType = NeuronRepresentation::SIGMOID;
 		if (oscillatorNeuronDist_(rng_)) {
 			neuronType = NeuronRepresentation::OSCILLATOR;
