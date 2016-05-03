@@ -89,17 +89,17 @@ public:
 	/**
 	 * @return identifier of part
 	 */
-	std::string &getId();
+	const std::string &getId();
 
 	/**
 	 * @return type of the part
 	 */
-	std::string &getType();
+	const std::string &getType();
 
 	/**
 	 * @return the parameters of the part
 	 */
-	std::vector<double> getParams();
+	std::vector<double> &getParams();
 
 	/**
 	 * @return arity = number of child slots of part

@@ -52,8 +52,8 @@ std::basic_ostream<CharT, Traits>& operator<<(
 	return out;
 }
 
-const double RobogenUtils::OSG_EPSILON = 1e-7;
-const double RobogenUtils::OSG_EPSILON_2 = 1e-5;
+const double RobogenUtils::EPSILON = 1e-7;
+const double RobogenUtils::EPSILON_2 = 1e-5;
 
 RobogenUtils::RobogenUtils() {
 
@@ -540,7 +540,7 @@ osg::Quat RobogenUtils::makeRotate(const osg::Vec3& from, const osg::Vec3& to) {
 
 	// Check for opposite vectors
 
-	if ((rotation.w() < OSG_EPSILON_2) && (rotation.w() > -OSG_EPSILON_2)) {
+	if ((rotation.w() < EPSILON_2) && (rotation.w() > -EPSILON_2)) {
 
 		osg::Vec3 fromInverse = -from;
 		if (areAxisParallel(fromInverse, to)) {
@@ -608,7 +608,7 @@ std::istream& RobogenUtils::safeGetline(std::istream& is, std::string& t) {
 
 bool RobogenUtils::areAxisParallel(const osg::Vec3& a, const osg::Vec3& b) {
 
-	if (fabs(a * b - a.length() * b.length()) < OSG_EPSILON_2) {
+	if (fabs(a * b - a.length() * b.length()) < EPSILON_2) {
 		return true;
 	} else {
 		return false;
