@@ -35,6 +35,12 @@
 
 //#define DEBUG_MUTATE
 
+#define PRINT_ERRORS (false)
+
+#ifdef DEBUG_MUTATE
+#define PRINT_ERRORS (true)
+#endif
+
 namespace robogen {
 
 Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
@@ -128,7 +134,7 @@ void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
 			std::vector<std::pair<std::string, std::string> > affectedBodyParts;
 			if (success
 					&& BodyVerifier::verify(*newBot.get(), errorCode,
-							affectedBodyParts, false)) {
+							affectedBodyParts, PRINT_ERRORS)) {
 				robot = newBot;
 				robot->setDirty();
 				break;
@@ -416,7 +422,7 @@ bool Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 				std::vector<std::pair<std::string, std::string> > affectedBodyParts;
 				if (mutationSuccess
 						&& BodyVerifier::verify(*newBot.get(), errorCode,
-								affectedBodyParts, false)) {
+								affectedBodyParts, PRINT_ERRORS)) {
 
 					if (!newBot->check()) {
 						std::cout << "Consistency check failed in mutation operator " << i << std::endl;
@@ -448,7 +454,7 @@ bool Mutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 	std::advance(subtreeRootPart, dist(rng_));
 
 	// Trim the body tree at the selected random body node
-	bool success = robot->trimBodyAt(subtreeRootPart->first);
+	bool success = robot->trimBodyAt(subtreeRootPart->first, PRINT_ERRORS);
 
 #ifdef DEBUG_MUTATE
 	std::cout << "Removing subtree at" << subtreeRootPart->first  << " " << success << std::endl;
@@ -499,7 +505,7 @@ bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 #endif
 
 		return robot->duplicateSubTree(subtreeRootPart->first,
-				subtreeDestPart->first, selectedSlotId);
+				subtreeDestPart->first, selectedSlotId, PRINT_ERRORS);
 
 	} else {
 
@@ -563,7 +569,8 @@ bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 	boost::shared_ptr<PartRepresentation> rootPart2 =
 			idPartMap.at(rootPartId2).lock();
 
-	return robot->swapSubTrees(rootPart1->getId(), rootPart2->getId());
+	return robot->swapSubTrees(rootPart1->getId(), rootPart2->getId(),
+			PRINT_ERRORS);
 
 }
 
@@ -627,7 +634,8 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	return robot->insertPart(parent->first, parentSlot, newPart, newPartSlot,
 			oscillatorNeuronDist_(rng_) ? NeuronRepresentation::OSCILLATOR :
-					NeuronRepresentation::SIGMOID); //todo other types?
+					NeuronRepresentation::SIGMOID, PRINT_ERRORS);
+			//todo other neuron types?
 
 }
 
@@ -640,7 +648,7 @@ bool Mutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
 			idPartMap.begin();
 	std::advance(partToRemove, dist(rng_));
 
-	bool success= robot->removePart(partToRemove->first);
+	bool success= robot->removePart(partToRemove->first, PRINT_ERRORS);
 #ifdef DEBUG_MUTATE
 	std::cout << "Removed " << partToRemove->first << " " << success << std::endl;
 #endif

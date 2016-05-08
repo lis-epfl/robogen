@@ -144,7 +144,7 @@ public:
 	 * Removes body part and all children at indicated position.
 	 * @return false upon failure
 	 */
-	bool trimBodyAt(const std::string& id);
+	bool trimBodyAt(const std::string& id, bool printErrors=true);
 
 	/**
 	 * @return a string unique id
@@ -160,7 +160,8 @@ public:
 	 * @return true if the operation completed successfully, false otherwise
 	 */
 	bool duplicateSubTree(const std::string& subtreeRootPartId,
-			const std::string& subtreeDestPartId, unsigned int slotId);
+			const std::string& subtreeDestPartId, unsigned int slotId,
+			bool printErrors=true);
 
 	/**
 	 * Swap subtrees in the body tree
@@ -170,7 +171,7 @@ public:
 	 * @return true if the operation completed successfully, false otherwise
 	 */
 	bool swapSubTrees(const std::string& subtreeRoot1,
-			const std::string& subtreeRoot2);
+			const std::string& subtreeRoot2, bool printErrors=true);
 
 	/**
 	 * Insert a part into the body tree
@@ -187,7 +188,8 @@ public:
 			unsigned int parentPartSlot,
 			boost::shared_ptr<PartRepresentation> newPart,
 			unsigned int newPartSlot,
-			unsigned int motorNeuronType);
+			unsigned int motorNeuronType,
+			bool printErrors=true);
 
 	/**
 	 * Remove a part from the body tree
@@ -195,7 +197,7 @@ public:
 	 * @param partId id of the part to remove
 	 * @return true if the operation completed successfully, false otherwise
 	 */
-	bool removePart(const std::string& partId);
+	bool removePart(const std::string& partId, bool printErrors=true);
 
 	/**
 	 * @return the id of the root body part
