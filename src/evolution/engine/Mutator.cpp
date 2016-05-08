@@ -583,21 +583,22 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
-	RobotRepresentation::IdPartMap::const_iterator parent = idPartMap.begin();
-	std::advance(parent, dist(rng_));
+	RobotRepresentation::IdPartMap::const_iterator parent;
+	boost::shared_ptr<PartRepresentation> parentPart;
 
-	boost::shared_ptr<PartRepresentation> parentPart = parent->second.lock();
+	// find a parent with arity > 0 (will exist, since at the very least will
+	// be the core)
 
-	std::vector<unsigned int> freeSlots = parentPart->getFreeSlots();
+	do {
+		parent = idPartMap.begin();
+		std::advance(parent, dist(rng_));
+		parentPart = parent->second.lock();
+	} while (parentPart->getArity() == 0);
 
 	// Sample a random slot
-	if (freeSlots.size() == 0) {
-		return false;
-	}
-
-	boost::random::uniform_int_distribution<> freeSlotsDist(0,
-					freeSlots.size() - 1);
-	unsigned int parentSlot = freeSlots[freeSlotsDist(rng_)];
+	boost::random::uniform_int_distribution<> slotDist(0,
+												parentPart->getArity() - 1);
+	unsigned int parentSlot = slotDist(rng_);
 
 
 	// Select node type
