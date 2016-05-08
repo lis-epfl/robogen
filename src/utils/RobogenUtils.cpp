@@ -152,6 +152,20 @@ boost::shared_ptr<Joint> RobogenUtils::connect(boost::shared_ptr<Model> a,
 	osg::Vec3 bSlotPos = b->getSlotPosition(slotB);
 	osg::Vec3 aSlotNewPos = bSlotPos;
 	osg::Vec3 aSlotPos = a->getSlotPosition(slotA);
+
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(a) &&
+			boost::dynamic_pointer_cast<CoreComponentModel>(b)) {
+
+		// handle situation between two fixed bricks, really there is a
+		// connecting element there, but for now we just add the extra
+		// separation to solve problem with self intersections
+		// TODO actually add in connecting element
+
+		aSlotPos += a->getSlotAxis(slotA) *
+				(2 * CoreComponentModel::SLOT_THICKNESS);
+
+	}
+
 	osg::Vec3 aTranslation = aSlotNewPos - aSlotPos;
 	osg::Vec3 aCenter = a->getRootPosition();
 	a->setRootPosition(aCenter + aTranslation);
