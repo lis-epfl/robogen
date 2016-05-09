@@ -97,7 +97,7 @@ bool CoreComponentRenderModel::initRenderModel() {
 void CoreComponentRenderModel::showDebugView() {
 	std::vector<osg::Vec4> colors;
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
-				hasSensors() ) {
+				isCore() ) {
 		colors.push_back(osg::Vec4(1,0,0,0.7));
 	} else {
 		colors.push_back(osg::Vec4(1,1,1,0.7));
@@ -107,7 +107,7 @@ void CoreComponentRenderModel::showDebugView() {
 	std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > pats = this->attachGeoms(colors);
 	// show the axis for the root node
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(this->getModel())->
-			hasSensors() ) {
+			isCore() ) {
 		attachAxis(pats[0]);
 	}
 
