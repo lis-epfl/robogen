@@ -6,6 +6,7 @@
  */
  
 #include <Servo.h>
+#include <Wire.h>
 #include "SparkFun_VL6180X.h"
 
 VL6180x sensor0(0x29),sensor1(0x29),sensor2(0x29),sensor3(0x29);
