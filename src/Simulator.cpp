@@ -231,12 +231,6 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		while ((t < configuration->getSimulationTime())
 			   && (!(visualize && viewer->done()))) {
 
-			if (scenario->shouldStopSimulationNow()) {
-				std::cout << "Scenario has stopped the simulation!"
-						<< std::endl;
-				break;
-			}
-
 			if(visualize) {
 				if(!viewer->frame(t, count)) {
 					continue;
@@ -244,6 +238,11 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 			}
 
 
+			if (scenario->shouldStopSimulationNow()) {
+				std::cout << "Scenario has stopped the simulation!"
+						<< std::endl;
+				break;
+			}
 
 			if ((count++) % 500 == 0) {
 				std::cout << "." << std::flush;

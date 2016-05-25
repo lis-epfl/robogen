@@ -82,7 +82,7 @@ boost::shared_ptr<Joint> RobogenUtils::connect(boost::shared_ptr<Model> a,
 #ifdef ENFORCE_PLANAR
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(b)) {
 		// enforce root being in orientation 0
-		if (boost::dynamic_pointer_cast<CoreComponentModel>(b)->hasSensors()) {
+		if (boost::dynamic_pointer_cast<CoreComponentModel>(b)->isCore()) {
 			b->setOrientationToParentSlot(0);
 		}
 		if (slotB == CoreComponentModel::LEFT_FACE_SLOT) {

@@ -27,7 +27,7 @@ def write_part(output, part, body, indentation_level=0) :
                 # need to fix slot numbering
                 # see lines 182-186 in PartRepresentation
                 if get_part(connection["src"], 
-                            body)["type"] == "CoreComponent": 
+                            body)["root"] : 
                     output.write(str(connection["srcSlot"]))
                 else :
                     output.write(str(connection["srcSlot"] - 1))

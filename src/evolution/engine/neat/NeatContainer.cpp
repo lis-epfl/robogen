@@ -114,6 +114,12 @@ bool NeatContainer::produceNextGeneration(boost::shared_ptr<Population>
 		}
 		// use e^f so fitness is always positive
 		genome->SetFitness(exp(robot->getFitness()));
+		if (isinf(genome->GetFitness())) {
+			std::cerr << std::endl << "ERROR in NeatContainer!!" << std::endl
+					<< "Overflow when setting fitness for NEAT, please scale"
+					<< " down your fitness values." << std::endl << std::endl;
+			exitRobogen(EXIT_FAILURE);
+		}
 	}
 
 	//std::cout << "before epoch size is " << neatIdToGenomeMap_.size()
