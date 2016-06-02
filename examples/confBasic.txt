@@ -2,7 +2,7 @@
 scenario=racing
 timeStep=0.005
 actuationFrequency=25
-nTimeSteps=1600
+simulationTime=8
 terrainType=flat
 terrainLength=5
 terrainWidth=5
