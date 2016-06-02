@@ -172,7 +172,7 @@ foreach(dir ${dirs})
 endforeach()
 	
 
-add_executable(app "robogen_js.cpp" ${ROBOGEN_JS_SOURCES})
+add_executable(app "js/RobogenJS.cpp" ${ROBOGEN_JS_SOURCES})
 	target_link_libraries(app ${ROBOGEN_JS_LIBRARIES})
 
 else()

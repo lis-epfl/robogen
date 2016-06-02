@@ -1,10 +1,10 @@
 /*
- * @(#) emscripten_test.cpp   1.0   Dec 10, 2015
+ * @(#) EmscriptenTest.cpp   1.0   Dec 10, 2015
  *
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2015 Joshua Auerbach
+ * Copyright © 2012-2016 Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -26,6 +26,7 @@
  * @(#) $Id$
  */
 
+#ifdef EMSCRIPTEN
 #include <boost/filesystem.hpp>
 
 class Base {
@@ -135,3 +136,4 @@ void runEmBindTest() {
 
 
 }
+#endif
