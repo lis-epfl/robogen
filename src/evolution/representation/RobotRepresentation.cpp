@@ -992,11 +992,11 @@ bool RobotRepresentation::check() {
 	if (!idsMatch) {
 		std::cerr << "bodyPartIdsFromMap:";
 		for (unsigned int i = 0; i < bodyPartIdsFromMap.size(); ++i) {
-			std::cout<< " " << bodyPartIdsFromMap[i] ;
+			std::cerr << " " << bodyPartIdsFromMap[i] ;
 		}
 		std::cerr << "\nbodyIds:";
 		for (unsigned int i = 0; i < bodyIds.size(); ++i) {
-			std::cout<< " " << bodyIds[i] ;
+			std::cerr << " " << bodyIds[i] ;
 		}
 		std::cerr << "\n";
 
@@ -1025,9 +1025,10 @@ bool RobotRepresentation::check() {
 			int totInputs = 0;
 			int totOutputs = 0;
 			for (unsigned int j = 0; j < neurons.size(); ++j) {
-				if (neurons[j].lock()->isInput()) {
+				unsigned int layer = neurons[j].lock()->getLayer();
+				if (layer == NeuronRepresentation::INPUT) {
 					totInputs++;
-				} else {
+				} else if (layer == NeuronRepresentation::OUTPUT) {
 					totOutputs++;
 				}
 			}
