@@ -92,7 +92,6 @@ void bind_events(sio::socket::ptr &socket) {
 	socket->on("requestTask", sio::socket::event_listener_aux([&](
 			std::string const& name, sio::message::ptr const& data,
 			bool isAck,sio::message::list &ack_resp) {
-				std::cout << "*************************************************" << std::endl;
 
 				std::lock_guard<std::mutex> lock(globalMutex);
 
@@ -190,8 +189,6 @@ void bind_events(sio::socket::ptr &socket) {
 				std::cout << "Fitness for the current solution: " << fitness
 						<< std::endl << std::endl;
 
-				std::cout << " * * * * * * * * * * * * * * * * * * *" << std::endl;
-
 				// globalMutex auto released when lock goes out of scope
 
 			}));
@@ -223,7 +220,7 @@ int main(int argc, char* argv[]) {
 
 		sio::message::ptr capabilities = sio::object_message::create();
 		// declare capabilities (1 thread)
-		capabilities->get_map()["totalNodes"] = sio::int_message::create(100);
+		capabilities->get_map()["totalNodes"] = sio::int_message::create(1);
 		currentSocket->emit("computationDeclaration", capabilities);
 
 		for (int i=2; i<argc; ++i) {
