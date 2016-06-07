@@ -53,13 +53,13 @@
 #include <functional>
 #include <thread>
 #include <mutex>
-#include <condition_variable>
 
 
 #include "sio_client.h"
 #include "sio_message.h"
 #include "sio_socket.h"
 
+#include "utils/network/SocketIOConnectionListener.h"
 
 #ifdef QT5_ENABLED
 #include <QCoreApplication>
@@ -80,53 +80,22 @@ dWorldID odeWorld;
 // Container for collisions
 dJointGroupID odeContactGroup;
 
-bool interrupted;
-
-
-std::mutex _lock;
-
-std::condition_variable_any _cond;
-bool connectFinish = false;
-
-class ConnectionListener {
-
-public:
-
-	ConnectionListener(sio::client& handler) : handler_(handler) {
-	}
-
-
-	void on_connected() {
-		_lock.lock();
-		_cond.notify_all();
-		connectFinish = true;
-		_lock.unlock();
-	}
-	void on_close(sio::client::close_reason const& reason) {
-		std::cout<<"sio closed "<<std::endl;
-		exit(0);
-	}
-
-	void on_fail() {
-		std::cout<<"sio failed "<<std::endl;
-		exit(0);
-	}
-
-private:
-	sio::client &handler_;
-};
-
 int participants = -1;
 
 boost::random::mt19937 rng;
-sio::socket::ptr currentSocket;
 
+
+std::mutex globalMutex;
 
 void bind_events(sio::socket::ptr &socket) {
-	currentSocket->on("requestTask", sio::socket::event_listener_aux([&](
+
+	socket->on("requestTask", sio::socket::event_listener_aux([&](
 			std::string const& name, sio::message::ptr const& data,
 			bool isAck,sio::message::list &ack_resp) {
-				_lock.lock();
+				std::cout << "*************************************************" << std::endl;
+
+				std::lock_guard<std::mutex> lock(globalMutex);
+
 				const std::string id = data->get_map()["id"]->get_string();
 				std::cout << "I have a new task (id:" << id << ")" << std::endl;
 				std::vector<sio::message::ptr> content =
@@ -154,80 +123,86 @@ void bind_events(sio::socket::ptr &socket) {
 				std::cout << "packet decoded" << std::endl;
 				
 
-
-					boost::shared_ptr<RobogenConfig> configuration =
-							ConfigurationReader::parseRobogenMessage(
-									packet.getMessage()->configuration());
-					if (configuration == NULL) {
-						std::cerr
-								<< "Problems parsing the configuration file. Quit."
-								<< std::endl;
-						exitRobogen(EXIT_FAILURE);
-					}
-
-					// ---------------------------------------
-					// Setup environment
-					// ---------------------------------------
-
-					boost::shared_ptr<Scenario> scenario =
-							ScenarioFactory::createScenario(configuration);
-					if (scenario == NULL) {
-						exitRobogen(EXIT_FAILURE);
-					}
-
-					std::cout
-							<< "-----------------------------------------------"
+				boost::shared_ptr<RobogenConfig> configuration =
+						ConfigurationReader::parseRobogenMessage(
+								packet.getMessage()->configuration());
+				if (configuration == NULL) {
+					std::cerr
+							<< "Problems parsing the configuration file. Quit."
 							<< std::endl;
+					exitRobogen(EXIT_FAILURE);
+				}
 
-					// ---------------------------------------
-					// Run simulations
-					// ---------------------------------------
+				// ---------------------------------------
+				// Setup environment
+				// ---------------------------------------
 
-					unsigned int simulationResult;
-					try {
-						simulationResult = runSimulations(scenario,
-							configuration, packet.getMessage()->robot(),
-							nullptr, rng);
+				boost::shared_ptr<Scenario> scenario =
+						ScenarioFactory::createScenario(configuration);
+				if (scenario == NULL) {
+					exitRobogen(EXIT_FAILURE);
+				}
 
-					} catch(std::exception &e) {
-						std::cerr << e.what();
-						simulationResult = SIMULATION_FAILURE;
-					}
+				std::cout
+						<< "-----------------------------------------------"
+						<< std::endl;
 
+				// ---------------------------------------
+				// Run simulations
+				// ---------------------------------------
 
-					//if (simulationResult == SIMULATION_FAILURE) {
-					//	exitRobogen(EXIT_FAILURE);
-					//}
+				unsigned int simulationResult;
+				try {
+					simulationResult = runSimulations(scenario,
+						configuration, packet.getMessage()->robot(),
+						nullptr, rng);
 
-					// ---------------------------------------
-					// Compute fitness
-					// ---------------------------------------
-					double fitness;
-					if (simulationResult == CONSTRAINT_VIOLATED ||
-							simulationResult == SIMULATION_FAILURE) {
-						fitness = MIN_FITNESS;
-					} else {
-						fitness = scenario->getFitness();
-					}
-
-					sio::message::ptr output = sio::object_message::create();
-					output->get_map()["id"] = sio::string_message::create(id);
-					output->get_map()["content"] =
-							sio::object_message::create();
-					output->get_map()["content"]->get_map()["fitness"] =
-							sio::double_message::create(fitness);
-					output->get_map()["content"]->get_map()["ptr"] =
-							data->get_map()["content"]->get_map()["ptr"];
-					currentSocket->emit("responseTask", output);
-					std::cout << "Fitness for the current solution: " << fitness
-							<< std::endl << std::endl;
+				} catch(std::exception &e) {
+					std::cerr << e.what();
+					simulationResult = SIMULATION_FAILURE;
+				}
 
 
-				_lock.unlock();
-				}));
+				//if (simulationResult == SIMULATION_FAILURE) {
+				//	exitRobogen(EXIT_FAILURE);
+				//}
+
+				// ---------------------------------------
+				// Compute fitness
+				// ---------------------------------------
+				double fitness;
+				if (simulationResult == CONSTRAINT_VIOLATED ||
+						simulationResult == SIMULATION_FAILURE) {
+					fitness = MIN_FITNESS;
+				} else {
+					fitness = scenario->getFitness();
+				}
+
+				sio::message::ptr output = sio::object_message::create();
+				output->get_map()["id"] = sio::string_message::create(id);
+				output->get_map()["content"] =
+						sio::object_message::create();
+				output->get_map()["content"]->get_map()["fitness"] =
+						sio::double_message::create(fitness);
+				output->get_map()["content"]->get_map()["ptr"] =
+						data->get_map()["content"]->get_map()["ptr"];
+				socket->emit("responseTask", output);
+				std::cout << "Fitness for the current solution: " << fitness
+						<< std::endl << std::endl;
+
+				std::cout << " * * * * * * * * * * * * * * * * * * *" << std::endl;
+
+				// globalMutex auto released when lock goes out of scope
+
+			}));
 }
 
 int main(int argc, char* argv[]) {
+
+	if (argc < 3) {
+		std::cerr << "you must provide a server url and group(s)" << std::endl;
+		exitRobogen(EXIT_FAILURE);
+	}
 
 #ifdef QT5_ENABLED
 	QCoreApplication a(argc, argv);
@@ -235,44 +210,35 @@ int main(int argc, char* argv[]) {
 
 	//rng.seed(3000);
 	rng.seed(std::time(0));
-	sio::client handler;
-	ConnectionListener listener(handler);
+	boost::shared_ptr<SocketIOConnectionListener> listener(new
+			SocketIOConnectionListener(&globalMutex));
 
-	handler.set_open_listener(std::bind(&ConnectionListener::on_connected,
-										&listener));
-	handler.set_close_listener(std::bind(&ConnectionListener::on_close,
-										&listener, std::placeholders::_1));
-	handler.set_fail_listener(std::bind(&ConnectionListener::on_fail,
-										&listener));
-	if (argc < 3) {
-		std::cerr << "you must provide a server url and group(s)" << std::endl;
-		exit(1);
-	}
-	handler.connect(argv[1]);
-	currentSocket = handler.socket();
+	listener->connect(argv[1]);
+	sio::socket::ptr currentSocket = listener->getSocket();
 	bind_events(currentSocket);
-	_lock.lock();
-	if(!connectFinish)
-	{
-		_cond.wait(_lock);
+
+	while (true) {
+
+		listener->waitForConnect();
+
+		sio::message::ptr capabilities = sio::object_message::create();
+		// declare capabilities (1 thread)
+		capabilities->get_map()["totalNodes"] = sio::int_message::create(100);
+		currentSocket->emit("computationDeclaration", capabilities);
+
+		for (int i=2; i<argc; ++i) {
+			sio::message::ptr group = sio::object_message::create();
+			group->get_map()["id"] = sio::string_message::create(argv[i]);
+			currentSocket->emit("joinGroup", group);
+			std::cout << "Join group " << argv[i] << std::endl;
+		}
+
+		listener->waitForDisconnect();
+
 	}
-	_lock.unlock();
-	sio::message::ptr capabilities = sio::object_message::create();
-	// declare capabilities (1 thread)
-	capabilities->get_map()["totalNodes"] = sio::int_message::create(1);
-	currentSocket->emit("computationDeclaration", capabilities);
-	for (int i=2; i<argc; ++i) {
-		sio::message::ptr group = sio::object_message::create();
-		group->get_map()["id"] = sio::string_message::create(argv[i]);
-		currentSocket->emit("joinGroup", group);
-		std::cout << "Join group " << argv[i] << std::endl;
-	}
-	_lock.lock();
-	_cond.wait(_lock);
-	_lock.unlock();
-	handler.sync_close();
-	handler.clear_con_listeners();
-	return 0;
+
+
+	exitRobogen(EXIT_SUCCESS);
 }
 
 #ifdef QT5_ENABLED
