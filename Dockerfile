@@ -36,7 +36,7 @@ RUN ./bootstrap && \
       ./configure --enable-double-precision --with-cylinder-cylinder=libccd && \
       make install -j$(nproc)
 RUN mkdir /robogen/build
-ADD ./src /robogen/src
+ADD . /robogen/
 WORKDIR /robogen/build
 RUN cmake -DCMAKE_BUILD_TYPE=Release ../src -DENABLE_SOCKET_IO=ON  && \
       make -j$(nproc)
