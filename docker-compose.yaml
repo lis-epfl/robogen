@@ -1,0 +1,25 @@
+version: "2"
+services:
+  robogen-scheduler:
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    build:
+      context: ../robogen-server
+    networks:
+      - worker
+    volumes:
+      - /home/guillaume/lis/robogen-server:/robogen-server
+
+  robogen-worker:
+    restart: unless-stopped
+    build:
+      context: .
+    command: http://robogen-scheduler:3000 public
+    depends_on:
+      - robogen-scheduler
+    networks:
+      - worker
+networks:
+  worker:
+    driver: bridge
