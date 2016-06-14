@@ -57,7 +57,7 @@ else ()
 
 
 	include(FindPackageHandleStandardArgs)
-	find_package_handle_standard_args(SOCKET_IO_CLIENT_CPP DEFAULT_MSG SOCKET_IO_CLIENT_LIBRARIES SOCKET_IO_CLIENT_INCLUDE_DIRS)
+	find_package_handle_standard_args(SOCKET_IO_CLIENT DEFAULT_MSG SOCKET_IO_CLIENT_LIBRARIES SOCKET_IO_CLIENT_INCLUDE_DIRS)
 
 	# show the vars only in advanced view
 	mark_as_advanced(SOCKET_IO_CLIENT_LIBRARIES SOCKET_IO_CLIENT_INCLUDE_DIRS)

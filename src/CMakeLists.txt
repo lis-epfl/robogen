@@ -344,7 +344,7 @@ else()
 			
   		# Robogen simulator server with socket.io
   		add_executable(robogen-server-sio RobogenServerSIO.cpp)
-  		target_link_libraries(robogen-server-sio robogen ${ROBOGEN_DEPENDENCIES} "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient.a" "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient_tls.a")
+  		target_link_libraries(robogen-server-sio robogen ${ROBOGEN_DEPENDENCIES} ${SOCKET_IO_CLIENT_LIBRARIES})
   		endif()
   	endif()
 	# Evolver executable
