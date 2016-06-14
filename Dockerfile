@@ -30,7 +30,7 @@ WORKDIR /robogen
 RUN git clone --recurse-submodules https://github.com/socketio/socket.io-client-cpp.git
 WORKDIR socket.io-client-cpp
 RUN cmake -DBOOST_VER:STRING=1.54 ./ && \
-      make -j$(nproc)
+      make install -j$(nproc)
 WORKDIR /deps/ode
 RUN ./bootstrap && \
       ./configure --enable-double-precision --with-cylinder-cylinder=libccd && \
@@ -40,10 +40,8 @@ ADD ./src /robogen/src
 ADD ./arduino /robogen/arduino
 ADD ./build_utils /robogen/build_utils
 ADD ./models /robogen/models
-ADD ./socket.io-client-cpp /robogen/socket.io-client-cpp
 WORKDIR /robogen/build
 RUN cmake -DCMAKE_BUILD_TYPE=Release ../src -DENABLE_SOCKET_IO=ON  && \
       make -j$(nproc)
-RUN rm -rf /robogen/src CMakeCache.txt CMakeFiles *.cmake *.cpp *.h *.h Makefile
 ENTRYPOINT ["/robogen/build/robogen-server-sio"]
 CMD ["http://robogen.org:3000/app", "public"]
