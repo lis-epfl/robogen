@@ -84,6 +84,16 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFile
 	robogenMessage::Robot robotMessage;
 
 
+	if (startPosition
+			> configuration->getStartingPos()->getStartPosition().size()) {
+		std::cerr << "Specified desired starting position " << startPosition
+				<< " does not index a starting position. Aborting..."
+				<< std::endl;
+		return "{\"error\" : \"ConfError\"}";
+	}
+	// like for desktop version, should come in 1...n
+	startPosition--;
+
 	bool createRobotSuccess = false;
 	try {
 		createRobotSuccess = RobotRepresentation::createRobotMessageFromFile(
