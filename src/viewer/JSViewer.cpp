@@ -1,12 +1,12 @@
 /*
- * @(#) FileViewerLog.h   1.0   Aug 20, 2013
+ * @(#) JSViewer.cpp   1.0   Aug 20, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
- * Guillaume Leclerc
+ * Guillaume Leclerc (guillaume.leclerc@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Titus Cieslweski, Joshua Auerbach
+ * Copyright © 2012-201g Titus Cieslweski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
