@@ -27,6 +27,8 @@
  * @(#) $Id$
  */
 
+#ifdef SOCKET_IO_ENABLED
+
 #include <iostream>
 
 #include "config/ConfigurationReader.h"
@@ -279,3 +281,5 @@ int main(int argc, char* argv[]) {
 #define emit EMIT_TMP
 #endif
 
+
+#endif //SOCKET_IO_ENABLED

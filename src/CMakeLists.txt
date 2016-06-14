@@ -211,18 +211,13 @@ else()
 	
 	if (ENABLE_SOCKET_IO)
 		message(STATUS "Looking for socket.io support")
-		if(EXISTS "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient.a")
-			message(STATUS "  ${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient.a Found")
-			if(EXISTS "${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient_tls.a")
-				message(STATUS "  ${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient_tls.a Found")
-				set(SOCKET_IO_FOUND ON)
-				include_directories("${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/src/")
-				message(STATUS "Socket.io enabled and found!  Will build robogen-server-sio")
-			else()
-				message(STATUS "  ${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient_tls.a Not Found")	
-			endif()
+		find_package(SocketIoClient)
+		if (SOCKET_IO_CLIENT_FOUND)
+			message(STATUS "Socket.io enabled and found!  Will build robogen-server-sio")
+			include_directories("${SOCKET_IO_CLIENT_INCLUDE_DIRS}")
+			add_definitions("-DSOCKET_IO_ENABLED")
 		else()
-			message(STATUS "  ${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/libsioclient.a Not Found")
+			message(STATUS "socket.io-client-cpp not found!  Socket.io support disabled!")
 		endif()
 	endif()
 
@@ -344,7 +339,7 @@ else()
 	target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
 
 
-	if (SOCKET_IO_FOUND)
+	if (SOCKET_IO_CLIENT_FOUND)
 		if( ENABLE_SOCKET_IO )
 			
   		# Robogen simulator server with socket.io
