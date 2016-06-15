@@ -1,0 +1,11 @@
+services:
+  - docker
+    
+script:
+  - docker build -t $DOCKER_IMAGE_NAME .
+    
+after_success:
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+    sh ./publishToDocker.sh;
+    fi
