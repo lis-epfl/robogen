@@ -1,4 +1,8 @@
-RoboGen -- Robot generation through artificial evolution
+# RoboGen -- Robot generation through artificial evolution
+
+[![Build Status](https://travis-ci.org/lis-epfl/robogen.svg?branch=master)](https://travis-ci.org/lis-epfl/robogen)
+
+
 =================
 Joshua Auerbach (joshua.auerbach@epfl.ch)
 
