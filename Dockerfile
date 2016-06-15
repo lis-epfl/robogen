@@ -27,7 +27,7 @@ RUN tar xf /deps/ode.tar.gz -C /deps && \
       mv /deps/ode-0.14 /deps/ode && \
       rm /deps/ode.tar.gz
 WORKDIR /robogen
-RUN git clone --recurse-submodules https://github.com/socketio/socket.io-client-cpp.git
+RUN git submodule update --init --recursive
 WORKDIR socket.io-client-cpp
 RUN cmake -DBOOST_VER:STRING=1.54 ./ && \
       make install -j$(nproc)
