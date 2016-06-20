@@ -1,4 +1,5 @@
-# RoboGen -- Robot generation through artificial evolution [http://robogen.org].
+# RoboGen -- Robot generation through artificial evolution -- http://robogen.org
+
 
 [![Build Status](https://travis-ci.org/lis-epfl/robogen.svg?branch=master)](https://travis-ci.org/lis-epfl/robogen)
 
@@ -8,11 +9,9 @@ Joshua Auerbach (joshua.auerbach@epfl.ch)
 
 Laboratory of Intelligent Systems, EPFL
 
-**Read carefully this document and the online documentation: [http://robogen.org/docs/robogen-software-suite/]
-before starting to do anything!**
+**Read carefully this document and the online documentation: http://robogen.org/docs/robogen-software-suite/ before starting to do anything!**
 
-**Please check at the end of the file for some tricks you might try in order**
-**to improve the stability of the simulator**
+
 
 -------------
 License
@@ -35,8 +34,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Getting Started
 -------------
 
-Download, installation and use of RoboGen is fully documented on [http://robogen.org].
-To get started using the platform, please read through the instructions for your operating system at [http://robogen.org/docs/get-started/]
+Download, installation and use of RoboGen is fully documented on http://robogen.org.
+To get started using the platform, please read through the instructions for your operating system at http://robogen.org/docs/get-started/
 
 In order to not have to maintain documentation in separate locations we will not duplicate those instructions here.
 
@@ -44,12 +43,12 @@ In order to not have to maintain documentation in separate locations we will not
 Seeking Help
 -------------
 
-If there is anything that you are stuck on or do not understand, we invite you to ask your question to the RoboGen User's Group: [https://groups.google.com/forum/#!forum/robogen-users]
+If there is anything that you are stuck on or do not understand, we invite you to ask your question to the RoboGen User's Group: https://groups.google.com/forum/#!forum/robogen-users
 
 -------------
 Contributing to RoboGen
 -------------
-If you would like to contriubte to RoboGen, please read through the github wiki: [https://github.com/lis-epfl/robogen/wiki]
+If you would like to contriubte to RoboGen, please read through the github wiki: https://github.com/lis-epfl/robogen/wiki
 Then we encourage you fork the repository and make pull requests for any features you would like to have included in the main RoboGen distribution.
 
 -------------
