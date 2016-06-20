@@ -40,7 +40,7 @@ def write_part(output, part, body, indentation_level=0) :
     if "evolvableParam" in part :
         for param in part["evolvableParam"] :
             output.write(" ")
-            output.write(str(param["paramValue"]))
+            output.write("{:0.8f}".format(param["paramValue"]))
     output.write("\n")
     if "connection" in body :
         for connection in body["connection"] :
