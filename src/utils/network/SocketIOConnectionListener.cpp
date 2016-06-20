@@ -26,6 +26,8 @@
  * @(#) $Id$
  */
 
+#ifdef SOCKET_IO_ENABLED
+
 #include "utils/network/SocketIOConnectionListener.h"
 
 namespace robogen {
@@ -108,3 +110,5 @@ void SocketIOConnectionListener::onReconnecting() {
 }
 
 }
+
+#endif
