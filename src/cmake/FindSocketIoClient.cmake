@@ -44,7 +44,7 @@ else ()
 			${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/build/include
 	)
 
-	find_library(SOCKET_IO_CLIENT_LIBRARIES
+	find_library(SOCKET_IO_CLIENT_LIBRARY
 	    NAMES
 		sioclient
 		sioclient_tls
@@ -55,10 +55,20 @@ else ()
 		${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/build/lib/Release
   	)
 
+	find_library(SOCKET_IO_CLIENT_TLS_LIBRARY
+	    NAMES
+		sioclient_tls
+	    PATHS
+		/usr/lib
+		/usr/local/lib
+		/opt/local/lib
+		${CMAKE_SOURCE_DIR}/../socket.io-client-cpp/build/lib/Release
+  	)
+
 
 	include(FindPackageHandleStandardArgs)
-	find_package_handle_standard_args(SOCKET_IO_CLIENT DEFAULT_MSG SOCKET_IO_CLIENT_LIBRARIES SOCKET_IO_CLIENT_INCLUDE_DIRS)
-
+	find_package_handle_standard_args(SOCKET_IO_CLIENT DEFAULT_MSG SOCKET_IO_CLIENT_LIBRARY SOCKET_IO_CLIENT_TLS_LIBRARY SOCKET_IO_CLIENT_INCLUDE_DIRS)
+	set(SOCKET_IO_CLIENT_LIBRARIES ${SOCKET_IO_CLIENT_LIBRARY} ${SOCKET_IO_CLIENT_TLS_LIBRARY})					
 	# show the vars only in advanced view
 	mark_as_advanced(SOCKET_IO_CLIENT_LIBRARIES SOCKET_IO_CLIENT_INCLUDE_DIRS)
 
