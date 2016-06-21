@@ -7,6 +7,10 @@
 # Ignore NeuralNetwork template
 NeuralNetwork.template
 
+# Ignore eclipse project files
+.cproject
+.project
+
 # Don't ignore this file
 !.gitignore
 
