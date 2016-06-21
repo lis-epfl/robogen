@@ -19,16 +19,24 @@ endif()
 # Add customized CMAKE modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
+# stuff needed for generating arduino NeuralNetwork.h files
+# handled differently for windows, since currently we only build windows with
+# old compiler
 if (WIN32)
 
-file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/../resources")
-file(COPY "${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h" DESTINATION "${CMAKE_SOURCE_DIR}/../resources")
+	file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/../resources")
+	file(COPY 
+	     "${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h" 
+	     DESTINATION 
+	     "${CMAKE_SOURCE_DIR}/../resources")
 
 else()
 
-execute_process(
-    COMMAND ${CMAKE_SOURCE_DIR}/../build_utils/wrap_file.sh ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.template
-) 
+	execute_process(COMMAND 
+			${CMAKE_SOURCE_DIR}/../build_utils/wrap_file.sh 
+			${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h 
+			${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.template
+			) 
 endif()
 
 # Pass source dir to preprocessor
@@ -37,7 +45,12 @@ add_definitions(-DSOURCE_DIR=${CMAKE_SOURCE_DIR})
 # Tell NEAT to use boost random
 add_definitions(-DUSE_BOOST_RANDOM)
 
-if(TARGET_JS) 
+add_custom_target(cmake-clean 
+	COMMAND ${CMAKE_COMMAND} -E remove CMakeCache.txt cmake_install.cmake
+	COMMAND ${CMAKE_COMMAND} -E remove robogen.pb.h robogen.pb.cc
+	COMMAND ${CMAKE_COMMAND} -E remove_directory CMakeFiles)
+
+if(TARGET_JS) ############################## JS VERSION #####################
 	# macro to find subdirectories
 	MACRO(SUBDIRLIST result curdir)
 		FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
@@ -152,7 +165,6 @@ if(TARGET_JS)
 		Robogen.cpp
 		PartList.cpp
 		Simulator.cpp
-		robogen.pb.cc
 
 		# I added a compilation flag to disable height map and then OsgDB is not needed anymore
 		scenario/*.cpp 
@@ -175,16 +187,29 @@ if(TARGET_JS)
 	)
 
 
-get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-foreach(dir ${dirs})
-  message(STATUS "dir='${dir}'")
-endforeach()
+	get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+	foreach(dir ${dirs})
+		message(STATUS "dir='${dir}'")
+	endforeach()
 	
+	if(NOT ((EXISTS "${CMAKE_BINARY_DIR}/robogen.pb.cc") AND 
+			(EXISTS "${CMAKE_BINARY_DIR}/robogen.pb.h")))
+		# don't want to send as error, because want to generate make file
+		message( "\n\nERROR: Protobuf files missing.  Please run:\n\n"
+			"\tmake cmake-clean\n"
+			"\tcmake -DTARGET_JS=OFF ../src\n"
+			"\tmake setup-js\n\n"
+			"before targeting JS\n\n")
+	else()
 
-add_executable(app "js/RobogenJS.cpp" ${ROBOGEN_JS_SOURCES})
-	target_link_libraries(app ${ROBOGEN_JS_LIBRARIES})
+		include_directories(${CMAKE_CURRENT_BINARY_DIR})
+	
+		add_executable(app "js/RobogenJS.cpp" ${ROBOGEN_JS_SOURCES} 
+			"${CMAKE_BINARY_DIR}/robogen.pb.cc")
+		target_link_libraries(app ${ROBOGEN_JS_LIBRARIES})
+	endif()
 
-else()
+else() ############################## C++ VERSION #####################
 	message(STATUS "Targeting the local architecture")
 
 	# Include Open Dynamics Engine (ODE)
@@ -369,6 +394,18 @@ else()
 		
 		qt5_use_modules(robogen Core Script)
 	endif()
+
+
+	# stuff needed to setup js build
+	add_custom_target(proto SOURCES ${PROTO_SRCS} )
+	# need to duplicate code here from cmake-clean target above, since
+	# make that a dependency means this target can never finish
+	# also want cmake-clean to delete the protobuf files
+	add_custom_target(setup-js DEPENDS proto
+			 COMMAND ${CMAKE_COMMAND} -E remove CMakeCache.txt cmake_install.cmake
+			 COMMAND ${CMAKE_COMMAND} -E remove_directory CMakeFiles)
+				 
+
 
 	# Tests
 	#add_executable(robogen-server-viewer-test viewer/ServerViewerTest.cpp)
