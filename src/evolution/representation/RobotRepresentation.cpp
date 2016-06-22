@@ -905,9 +905,11 @@ bool RobotRepresentation::removePart(const std::string& partId,
 
 	// Add one since will be freeing a slot when this node is removed
 	unsigned int nFreeSlots = parent->getFreeSlots().size() + 1;
-	if (nFreeSlots < nodeToRemove->numDescendants()) {
+	if (nFreeSlots < nodeToRemove->getChildrenCount()) {
 		if (printErrors) {
-			std::cerr << "Not enough free slots on parent to remove part"
+			std::cerr << "Not enough free slots on parent to remove part."
+					<< "Need " << nodeToRemove->numDescendants()
+					<< ", but only have " << nFreeSlots
 					<< std::endl;
 		}
 		return false;
