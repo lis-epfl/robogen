@@ -52,8 +52,8 @@ std::basic_ostream<CharT, Traits>& operator<<(
 	return out;
 }
 
-const double RobogenUtils::OSG_EPSILON = 1e-7;
-const double RobogenUtils::OSG_EPSILON_2 = 1e-5;
+const double RobogenUtils::EPSILON = 1e-7;
+const double RobogenUtils::EPSILON_2 = 1e-5;
 
 RobogenUtils::RobogenUtils() {
 
@@ -82,7 +82,7 @@ boost::shared_ptr<Joint> RobogenUtils::connect(boost::shared_ptr<Model> a,
 #ifdef ENFORCE_PLANAR
 	if (boost::dynamic_pointer_cast<CoreComponentModel>(b)) {
 		// enforce root being in orientation 0
-		if (boost::dynamic_pointer_cast<CoreComponentModel>(b)->hasSensors()) {
+		if (boost::dynamic_pointer_cast<CoreComponentModel>(b)->isCore()) {
 			b->setOrientationToParentSlot(0);
 		}
 		if (slotB == CoreComponentModel::LEFT_FACE_SLOT) {
@@ -152,6 +152,20 @@ boost::shared_ptr<Joint> RobogenUtils::connect(boost::shared_ptr<Model> a,
 	osg::Vec3 bSlotPos = b->getSlotPosition(slotB);
 	osg::Vec3 aSlotNewPos = bSlotPos;
 	osg::Vec3 aSlotPos = a->getSlotPosition(slotA);
+
+	if (boost::dynamic_pointer_cast<CoreComponentModel>(a) &&
+			boost::dynamic_pointer_cast<CoreComponentModel>(b)) {
+
+		// handle situation between two fixed bricks, really there is a
+		// connecting element there, but for now we just add the extra
+		// separation to solve problem with self intersections
+		// TODO actually add in connecting element
+
+		aSlotPos += a->getSlotAxis(slotA) *
+				(2 * CoreComponentModel::SLOT_THICKNESS);
+
+	}
+
 	osg::Vec3 aTranslation = aSlotNewPos - aSlotPos;
 	osg::Vec3 aCenter = a->getRootPosition();
 	a->setRootPosition(aCenter + aTranslation);
@@ -444,6 +458,23 @@ boost::shared_ptr<RenderModel> RobogenUtils::createRenderModel(
 	return boost::shared_ptr<RenderModel>();
 }
 
+std::string RobogenUtils::getSensorType(boost::shared_ptr<Sensor> sensor) {
+	if (boost::dynamic_pointer_cast<ImuSensorElement>(sensor)) {
+		return SENSOR_TYPE_IMU_SENSOR_ELEMENT;
+	} else if (boost::dynamic_pointer_cast<LightSensor>(sensor)) {
+		return SENSOR_TYPE_LIGHT_SENSOR;
+#ifdef IR_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<IrSensorElement>(sensor)) {
+		return SENSOR_TYPE_IR_SENSOR_ELEMENT;
+#endif
+
+#ifdef TOUCH_SENSORS_ENABLED
+	} else if (boost::dynamic_pointer_cast<TouchSensor>(sensor)) {
+		return SENSOR_TYPE_TOUCH_SENSOR;
+#endif
+	}
+	return "";
+}
 
 std::string RobogenUtils::getPartType(boost::shared_ptr<Model> model) {
 
@@ -523,7 +554,7 @@ osg::Quat RobogenUtils::makeRotate(const osg::Vec3& from, const osg::Vec3& to) {
 
 	// Check for opposite vectors
 
-	if ((rotation.w() < OSG_EPSILON_2) && (rotation.w() > -OSG_EPSILON_2)) {
+	if ((rotation.w() < EPSILON_2) && (rotation.w() > -EPSILON_2)) {
 
 		osg::Vec3 fromInverse = -from;
 		if (areAxisParallel(fromInverse, to)) {
@@ -591,7 +622,7 @@ std::istream& RobogenUtils::safeGetline(std::istream& is, std::string& t) {
 
 bool RobogenUtils::areAxisParallel(const osg::Vec3& a, const osg::Vec3& b) {
 
-	if (fabs(a * b - a.length() * b.length()) < OSG_EPSILON_2) {
+	if (fabs(a * b - a.length() * b.length()) < EPSILON_2) {
 		return true;
 	} else {
 		return false;

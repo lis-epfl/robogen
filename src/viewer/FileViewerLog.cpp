@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2012-2014 Titus Cieslweski, Joshua Auerbach
+ * Copyright © 2012-2016 Titus Cieslweski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -138,15 +138,15 @@ bool FileViewerLog::init(boost::shared_ptr<Robot> robot,
 	ArduinoNNCompiler::compile(*robot.get(),*config.get(),arduinoNN);
 
 	// compile neural network representation for Body
-	// open motor log
-	std::string bodyPath = logPath_ + "/" + BODY_FILE;
+
+	/*std::string bodyPath = logPath_ + "/" + BODY_FILE;
 	std::ofstream body;
 	body.open(bodyPath.c_str());
 	if (!motorLog_.is_open()){
 		std::cout << "Can't open body log file" << std::endl;
 		return false;
 	}
-	BodyCompiler::compile(*robot.get(),body);
+	BodyCompiler::compile(*robot.get(),body);*/
 
 	//TODO get rid of so much code duplication below
 

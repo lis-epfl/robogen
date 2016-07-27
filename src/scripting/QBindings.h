@@ -71,6 +71,7 @@ public:
 	QSensor(boost::weak_ptr<Sensor> basePtr);
 public slots:
 	QScriptValue getLabel();
+	QScriptValue getType();
 	QScriptValue read();
 private:
 	boost::weak_ptr<Sensor> basePtr_;
@@ -86,9 +87,12 @@ public slots:
 	QScriptValue getRootPosition();
 	QScriptValue getRootAttitude();
 	QScriptValue getType();
+	QScriptValue getSensors();
+	QScriptValue getId();
 
 private:
 	boost::weak_ptr<Model> basePtr_;
+	QScriptValue sensors_;
 };
 
 class QRobot :  public QObject, public QScriptable {
@@ -102,6 +106,7 @@ public slots:
 	QScriptValue getCoreComponent();
 	QScriptValue getMotors();
 	QScriptValue getSensors();
+	QScriptValue getAABB();
 
 
 private :

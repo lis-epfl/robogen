@@ -7,6 +7,7 @@ project (RoboGen)
 option(TARGET_JS "Build the project in javascript" OFF)
 option(ENABLE_QT "Enable QT for scriptable scenarios" ON)
 option(MAKE_JS_TEST "Make JavaScript test" OFF)
+option(ENABLE_SOCKET_IO "Enable socket io to run server connected to scheduler" ON)
 
 message(STATUS "${EM_ODE_INCLUDE_DIR}")
 
@@ -18,16 +19,24 @@ endif()
 # Add customized CMAKE modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
+# stuff needed for generating arduino NeuralNetwork.h files
+# handled differently for windows, since currently we only build windows with
+# old compiler
 if (WIN32)
 
-file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/../resources")
-file(COPY "${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h" DESTINATION "${CMAKE_SOURCE_DIR}/../resources")
+	file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/../resources")
+	file(COPY 
+	     "${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h" 
+	     DESTINATION 
+	     "${CMAKE_SOURCE_DIR}/../resources")
 
 else()
 
-execute_process(
-    COMMAND ${CMAKE_SOURCE_DIR}/../build_utils/wrap_file.sh ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h ${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.template
-) 
+	execute_process(COMMAND 
+			${CMAKE_SOURCE_DIR}/../build_utils/wrap_file.sh 
+			${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.h 
+			${CMAKE_SOURCE_DIR}/brain/NeuralNetwork.template
+			) 
 endif()
 
 # Pass source dir to preprocessor
@@ -36,7 +45,12 @@ add_definitions(-DSOURCE_DIR=${CMAKE_SOURCE_DIR})
 # Tell NEAT to use boost random
 add_definitions(-DUSE_BOOST_RANDOM)
 
-if(TARGET_JS) 
+add_custom_target(cmake-clean 
+	COMMAND ${CMAKE_COMMAND} -E remove CMakeCache.txt cmake_install.cmake
+	COMMAND ${CMAKE_COMMAND} -E remove robogen.pb.h robogen.pb.cc
+	COMMAND ${CMAKE_COMMAND} -E remove_directory CMakeFiles)
+
+if(TARGET_JS) ############################## JS VERSION #####################
 	# macro to find subdirectories
 	MACRO(SUBDIRLIST result curdir)
 		FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
@@ -48,6 +62,9 @@ if(TARGET_JS)
 		ENDFOREACH()
 		SET(${result} ${dirlist})
 	ENDMACRO()
+
+	# don't need c++ socket io support for js
+	set (ENABLE_SOCKET_IO OFF)
 
 	#list containing all the llvm-archives required to link the project
 	set (ROBOGEN_JS_REQUIRED_ARCHIVES "jansson" "ode" "osg" "boost_timer" "boost_system" "boost_chrono" "boost_regex" "boost_serialization" "boost_date_time" "boost_graph" "boost_program_options" "boost_wserialization" "boost_filesystem" "protobuf")
@@ -111,7 +128,6 @@ if(TARGET_JS)
 		endif()
 	endforeach()
 	message (STATUS "All include path found")
-
 	set(RELEASE_OPT_FLAG "-Oz")
 
 	include_directories (${CMAKE_SOURCE_DIR} ${ROBOGEN_JS_INCLUDES})
@@ -120,10 +136,16 @@ if(TARGET_JS)
 	set(CMAKE_CXX_FLAGS_RELEASE "-Oz" CACHE STRING "Robogen OPT") 
 	set(CMAKE_CXX_FLAGS_DEBUG "-Wall" CACHE STRING "Robogen Wall") 
 	if (CMAKE_BUILD_TYPE STREQUAL "Release")
-          set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${RELEASE_OPT_FLAG} -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1")
+		add_definitions(-pedantic -fPIC )
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${RELEASE_OPT_FLAG} -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1")
 		message("${CMAKE_EXE_LINKER_FLAGS}")
 		add_definitions("${RELEASE_OPT_FLAG}")
-	else ()
+	else()
+		# Turn on warnings in debug mode
+		add_definitions(-pedantic -Wno-long-long -Wall -Wextra -Wformat=2
+		                -Wredundant-decls -Wwrite-strings -Wmissing-include-dirs 
+		                -Wswitch-enum -Wuninitialized 
+		                -Wswitch-default -Winit-self -Wshadow -Wfloat-equal -fPIC )
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s DISABLE_EXCEPTION_CATCHING=0")
 	endif()
 
@@ -143,7 +165,6 @@ if(TARGET_JS)
 		Robogen.cpp
 		PartList.cpp
 		Simulator.cpp
-		robogen.pb.cc
 
 		# I added a compilation flag to disable height map and then OsgDB is not needed anymore
 		scenario/*.cpp 
@@ -166,16 +187,29 @@ if(TARGET_JS)
 	)
 
 
-get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-foreach(dir ${dirs})
-  message(STATUS "dir='${dir}'")
-endforeach()
+	get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+	foreach(dir ${dirs})
+		message(STATUS "dir='${dir}'")
+	endforeach()
 	
+	if(NOT ((EXISTS "${CMAKE_BINARY_DIR}/robogen.pb.cc") AND 
+			(EXISTS "${CMAKE_BINARY_DIR}/robogen.pb.h")))
+		# don't want to send as error, because want to generate make file
+		message( "\n\nERROR: Protobuf files missing.  Please run:\n\n"
+			"\tmake cmake-clean\n"
+			"\tcmake -DTARGET_JS=OFF ../src\n"
+			"\tmake setup-js\n\n"
+			"before targeting JS\n\n")
+	else()
 
-add_executable(app "robogen_js.cpp" ${ROBOGEN_JS_SOURCES})
-	target_link_libraries(app ${ROBOGEN_JS_LIBRARIES})
+		include_directories(${CMAKE_CURRENT_BINARY_DIR})
+	
+		add_executable(app "js/RobogenJS.cpp" ${ROBOGEN_JS_SOURCES} 
+			"${CMAKE_BINARY_DIR}/robogen.pb.cc")
+		target_link_libraries(app ${ROBOGEN_JS_LIBRARIES})
+	endif()
 
-else()
+else() ############################## C++ VERSION #####################
 	message(STATUS "Targeting the local architecture")
 
 	# Include Open Dynamics Engine (ODE)
@@ -199,9 +233,35 @@ else()
 		endif()
 
 	endif()
+	
+	if (ENABLE_SOCKET_IO)
+		message(STATUS "Looking for socket.io support")
+		find_package(SocketIoClient)
+		if (SOCKET_IO_CLIENT_FOUND)
+			message(STATUS "Socket.io enabled and found!  Will build robogen-server-sio")
+			include_directories("${SOCKET_IO_CLIENT_INCLUDE_DIRS}")
+			add_definitions("-DSOCKET_IO_ENABLED")
+		else()
+			message(STATUS "socket.io-client-cpp not found!  Socket.io support disabled!")
+		endif()
+	endif()
 
 
 	if(UNIX)
+
+	# Initialize CXXFLAGS.
+	# Compiler-specific C++11 activation.
+	if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+		execute_process(
+		    COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+		if (NOT (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7))
+		    message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.7 or greater.")
+		endif ()
+	elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+	else ()
+		message(FATAL_ERROR "Your C++ compiler does not support C++11.")
+	endif ()
 		# Compiler options
 		if (CMAKE_BUILD_TYPE STREQUAL "Release")
 			add_definitions(-std=c++11 -pedantic -fPIC )
@@ -216,7 +276,11 @@ else()
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb3 -DDEBUG")
 
 		# Release flags
-		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -funroll-loops -finline-functions -fomit-frame-pointer -DNDEBUG")
+		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O4 -funroll-loops -finline-functions -fomit-frame-pointer -DNDEBUG")
+
+		set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+
 
 
 	elseif(WIN32)
@@ -299,6 +363,15 @@ else()
 	add_library(robogen ${ROBOGEN_SRC} ${PROTO_SRCS} )
 	target_link_libraries(robogen ${ROBOGEN_DEPENDENCIES})
 
+
+	if (SOCKET_IO_CLIENT_FOUND)
+		if( ENABLE_SOCKET_IO )
+			
+  		# Robogen simulator server with socket.io
+  		add_executable(robogen-server-sio RobogenServerSIO.cpp)
+  		target_link_libraries(robogen-server-sio robogen ${ROBOGEN_DEPENDENCIES} ${SOCKET_IO_CLIENT_LIBRARIES})
+  		endif()
+  	endif()
 	# Evolver executable
 	add_executable(robogen-evolver Evolver.cpp)
 	target_link_libraries(robogen-evolver robogen ${ROBOGEN_DEPENDENCIES})
@@ -321,6 +394,18 @@ else()
 		
 		qt5_use_modules(robogen Core Script)
 	endif()
+
+
+	# stuff needed to setup js build
+	add_custom_target(proto SOURCES ${PROTO_SRCS} )
+	# need to duplicate code here from cmake-clean target above, since
+	# make that a dependency means this target can never finish
+	# also want cmake-clean to delete the protobuf files
+	add_custom_target(setup-js DEPENDS proto
+			 COMMAND ${CMAKE_COMMAND} -E remove CMakeCache.txt cmake_install.cmake
+			 COMMAND ${CMAKE_COMMAND} -E remove_directory CMakeFiles)
+				 
+
 
 	# Tests
 	#add_executable(robogen-server-viewer-test viewer/ServerViewerTest.cpp)

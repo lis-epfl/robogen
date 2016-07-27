@@ -6,7 +6,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2015 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
+ * Copyright © 2013-2016 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -35,12 +35,27 @@
 
 //#define DEBUG_MUTATE
 
+#define PRINT_ERRORS (false)
+
+#ifdef DEBUG_MUTATE
+#define PRINT_ERRORS (true)
+#endif
+
 namespace robogen {
 
 Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::random::mt19937 &rng) :
 		conf_(conf), rng_(rng), brainMutate_(conf->pBrainMutate),
 		weightCrossover_(conf->pBrainCrossover) {
+
+
+
+	addHiddenNeuronDist_ = boost::random::bernoulli_distribution<double>(
+			conf->pAddHiddenNeuron);
+
+	oscillatorNeuronDist_ = boost::random::bernoulli_distribution<double>(
+			conf->pOscillatorNeuron);
+
 
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
 		subtreeRemovalDist_ =
@@ -67,10 +82,7 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 				boost::random::bernoulli_distribution<double>(
 						conf->bodyOperatorProbability
 						[EvolverConfiguration::PARAMETER_MODIFICATION]);
-		oscillatorNeuronDist_ = boost::random::bernoulli_distribution<double>(
-				conf->pOscillatorNeuron);
 	}
-
 }
 
 Mutator::~Mutator() {
@@ -122,7 +134,7 @@ void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
 			std::vector<std::pair<std::string, std::string> > affectedBodyParts;
 			if (success
 					&& BodyVerifier::verify(*newBot.get(), errorCode,
-							affectedBodyParts)) {
+							affectedBodyParts, PRINT_ERRORS)) {
 				robot = newBot;
 				robot->setDirty();
 				break;
@@ -206,6 +218,25 @@ double clip(double value, double min, double max) {
 
 bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 	bool mutated = false;
+
+	// first potentially add hidden neurons
+	if ((robot->getBrain()->getNumHidden() < MAX_HIDDEN_NEURONS) &&
+			addHiddenNeuronDist_(rng_)) {
+		unsigned int neuronType = NeuronRepresentation::SIGMOID;
+		if (oscillatorNeuronDist_(rng_)) {
+			neuronType = NeuronRepresentation::OSCILLATOR;
+		}
+		std::string neuronId = robot->getBrain()->insertNeuron(
+				ioPair(robot->getBodyRootId(),
+										robot->getBrain()->getBodyPartNeurons(
+												robot->getBodyRootId()).size()),
+							NeuronRepresentation::HIDDEN, neuronType);
+		mutated = true;
+	}
+
+	// TODO allow removing hidden neurons???
+
+
 	std::vector<double*> weights;
 	std::vector<double*> params;
 	std::vector<unsigned int> types;
@@ -391,7 +422,7 @@ bool Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 				std::vector<std::pair<std::string, std::string> > affectedBodyParts;
 				if (mutationSuccess
 						&& BodyVerifier::verify(*newBot.get(), errorCode,
-								affectedBodyParts)) {
+								affectedBodyParts, PRINT_ERRORS)) {
 
 					if (!newBot->check()) {
 						std::cout << "Consistency check failed in mutation operator " << i << std::endl;
@@ -423,7 +454,7 @@ bool Mutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 	std::advance(subtreeRootPart, dist(rng_));
 
 	// Trim the body tree at the selected random body node
-	bool success = robot->trimBodyAt(subtreeRootPart->first);
+	bool success = robot->trimBodyAt(subtreeRootPart->first, PRINT_ERRORS);
 
 #ifdef DEBUG_MUTATE
 	std::cout << "Removing subtree at" << subtreeRootPart->first  << " " << success << std::endl;
@@ -474,7 +505,7 @@ bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 #endif
 
 		return robot->duplicateSubTree(subtreeRootPart->first,
-				subtreeDestPart->first, selectedSlotId);
+				subtreeDestPart->first, selectedSlotId, PRINT_ERRORS);
 
 	} else {
 
@@ -538,7 +569,8 @@ bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 	boost::shared_ptr<PartRepresentation> rootPart2 =
 			idPartMap.at(rootPartId2).lock();
 
-	return robot->swapSubTrees(rootPart1->getId(), rootPart2->getId());
+	return robot->swapSubTrees(rootPart1->getId(), rootPart2->getId(),
+			PRINT_ERRORS);
 
 }
 
@@ -551,21 +583,22 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
-	RobotRepresentation::IdPartMap::const_iterator parent = idPartMap.begin();
-	std::advance(parent, dist(rng_));
+	RobotRepresentation::IdPartMap::const_iterator parent;
+	boost::shared_ptr<PartRepresentation> parentPart;
 
-	boost::shared_ptr<PartRepresentation> parentPart = parent->second.lock();
+	// find a parent with arity > 0 (will exist, since at the very least will
+	// be the core)
 
-	std::vector<unsigned int> freeSlots = parentPart->getFreeSlots();
+	do {
+		parent = idPartMap.begin();
+		std::advance(parent, dist(rng_));
+		parentPart = parent->second.lock();
+	} while (parentPart->getArity() == 0);
 
 	// Sample a random slot
-	if (freeSlots.size() == 0) {
-		return false;
-	}
-
-	boost::random::uniform_int_distribution<> freeSlotsDist(0,
-					freeSlots.size() - 1);
-	unsigned int parentSlot = freeSlots[freeSlotsDist(rng_)];
+	boost::random::uniform_int_distribution<> slotDist(0,
+												parentPart->getArity() - 1);
+	unsigned int parentSlot = slotDist(rng_);
 
 
 	// Select node type
@@ -602,7 +635,8 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	return robot->insertPart(parent->first, parentSlot, newPart, newPartSlot,
 			oscillatorNeuronDist_(rng_) ? NeuronRepresentation::OSCILLATOR :
-					NeuronRepresentation::SIGMOID); //todo other types?
+					NeuronRepresentation::SIGMOID, PRINT_ERRORS);
+			//todo other neuron types?
 
 }
 
@@ -615,7 +649,7 @@ bool Mutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
 			idPartMap.begin();
 	std::advance(partToRemove, dist(rng_));
 
-	bool success= robot->removePart(partToRemove->first);
+	bool success= robot->removePart(partToRemove->first, PRINT_ERRORS);
 #ifdef DEBUG_MUTATE
 	std::cout << "Removed " << partToRemove->first << " " << success << std::endl;
 #endif
@@ -632,22 +666,25 @@ bool Mutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
 			idPartMap.begin();
 	std::advance(partToMutate, dist(rng_));
 
-	std::vector<double> params = partToMutate->second.lock()->getParams();
+	std::vector<double> &params = partToMutate->second.lock()->getParams();
 	// Select a random parameter/or orientation to mutate
 	boost::random::uniform_int_distribution<> distMutation(0, params.size());
 	unsigned int paramToMutate = distMutation(rng_);
 
 	if (paramToMutate == params.size()) { //mutate orientation
 		boost::random::uniform_int_distribution<> orientationDist(0, 3);
+		unsigned int oldOrientation = partToMutate->second.lock()->getOrientation();
 		unsigned int newOrientation = orientationDist(rng_);
 		partToMutate->second.lock()->setOrientation(newOrientation);
+		return (oldOrientation != newOrientation);
 	} else {
+		double oldParamValue = params[paramToMutate];
 		params[paramToMutate] += (normalDistribution_(rng_) *
 									conf_->bodyParamSigma);
 		params[paramToMutate] = clip(params[paramToMutate], 0., 1.);
+		return ( fabs(oldParamValue - params[paramToMutate]) >
+					RobogenUtils::EPSILON_2 );
 	}
-
-	return true;
 
 }
 

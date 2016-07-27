@@ -86,7 +86,9 @@ QScriptScenario::QScriptScenario(boost::shared_ptr<RobogenConfig> config) :
 	QScriptProgram program(QString::fromStdString(ss.str()));
 	QScriptValue result = engine_->evaluate(program);
 
-	if(result.isError()) {
+	initSuccess_ = !result.isError();
+
+	if(!initSuccess_) {
 		std::cerr << std::endl << "Problem with the provided scenario script!"
 				<< std::endl << std::endl
 				<< engine_->uncaughtException().toString().toStdString()
@@ -97,7 +99,11 @@ QScriptScenario::QScriptScenario(boost::shared_ptr<RobogenConfig> config) :
 			std::cerr << backtrace[i].toStdString() << std::endl;
 		}
 		std::cerr << std::endl;
-		exitRobogen(EXIT_FAILURE);
+		std::cerr<< "****************************************************" << std::endl;
+		std::cerr << config->getScenario() << std::endl;
+		std::cerr<< "****************************************************" << std::endl;
+		return;
+		//exitRobogen(EXIT_FAILURE);
 	}
 
 	userScenario_ = engine_->globalObject().property("qScriptScenario");
@@ -133,6 +139,8 @@ QScriptScenario::~QScriptScenario() {
 }
 
 bool QScriptScenario::setupSimulation() {
+	if(!initSuccess_)
+		return false;
 
 	// set up exposed stuff before user's setup
 	qRobot_ = engine_->newQObject(new qscript::QRobot(Scenario::getRobot()),
@@ -143,7 +151,13 @@ bool QScriptScenario::setupSimulation() {
 
 	if(implementedMethods_["setupSimulation"]) {
 		QScriptValue function = userScenario_.property("setupSimulation");
-		return function.call(userScenario_).toBool();
+		QScriptValue resultValue = function.call(userScenario_);
+		if(engine_->hasUncaughtException()) {
+			std::cerr << resultValue.toString().toStdString() << std::endl;
+			return false;
+		} else {
+			return resultValue.toBool();
+		}
 	}
 
 
@@ -153,7 +167,13 @@ bool QScriptScenario::setupSimulation() {
 bool QScriptScenario::afterSimulationStep() {
 	if(implementedMethods_["afterSimulationStep"]) {
 		QScriptValue function = userScenario_.property("afterSimulationStep");
-		return function.call(userScenario_).toBool();
+		QScriptValue resultValue = function.call(userScenario_);
+		if(engine_->hasUncaughtException()) {
+			std::cerr << resultValue.toString().toStdString() << std::endl;
+			return false;
+		} else {
+			return resultValue.toBool();
+		}
 	}
 	return true;
 }
@@ -162,7 +182,13 @@ bool QScriptScenario::endSimulation() {
 	bool result = true;
 	if(implementedMethods_["endSimulation"]) {
 		QScriptValue function = userScenario_.property("endSimulation");
-		result = function.call(userScenario_).toBool();
+		QScriptValue resultValue = function.call(userScenario_);
+		if(engine_->hasUncaughtException()) {
+			std::cerr << resultValue.toString().toStdString() << std::endl;
+			result = false;
+		} else {
+			result = resultValue.toBool();
+		}
 	}
 
 	curTrial_++;
@@ -184,7 +210,13 @@ int QScriptScenario::getCurTrial() const {
 
 double QScriptScenario::getFitness() {
 	QScriptValue function = userScenario_.property("getFitness");
-	return function.call(userScenario_).toNumber();
+	QScriptValue resultValue = function.call(userScenario_);
+	if(engine_->hasUncaughtException()) {
+		std::cerr << resultValue.toString().toStdString() << std::endl;
+		return NAN;
+	} else {
+		return resultValue.toNumber();
+	}
 }
 
 bool QScriptScenario::isValidFunction(std::string name) {

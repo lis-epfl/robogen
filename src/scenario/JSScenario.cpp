@@ -83,11 +83,11 @@ boost::shared_ptr<Scenario> JSScenario::createScenario(
 	// and registering it with the given uuid
 	{
 		std::stringstream ss;
-		ss << id << " = function () {\n";
+		ss << id << " = function () { ";
 		ss << "var UserScenario_" << id << " = Module.JSScenario.extend(\"JSScenario\",";
-		ss << config->getScenario() << "\n";
-		ss << ");\n" << "return new UserScenario_" << id << ";";
-		ss << "}();";
+		ss << config->getScenario();
+		ss << ");" << " return new UserScenario_" << id << ";";
+		ss << "}(); ";
 		ss << id << ".setId('" << id << "');";
 		emscripten_run_script(ss.str().c_str());
 	}

@@ -1,4 +1,33 @@
 /*
+ * @(#) EmscriptenTest.cpp   1.0   Aug 11, 2015
+ *
+ * Guillaume Leclerc (guillaume.leclerc@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
+ *
+ * The ROBOGEN Framework
+ * Copyright © 2012-2016 Guillaume Leclerc, Joshua Auerbach
+ *
+ * Laboratory of Intelligent Systems, EPFL
+ *
+ * This file is part of the ROBOGEN Framework.
+ *
+ * The ROBOGEN Framework is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License (GPL)
+ * as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @(#) $Id$
+ */
+
+/*
  * robogen_js.cpp
  *
  *  Created on: Aug 11, 2015
@@ -67,6 +96,7 @@ double EMSCRIPTEN_KEEPALIVE evaluate(int ptr, int length) {
 		std::cerr
 		<< "Problems parsing the configuration file. Quit."
 		<< std::endl;
+		exitRobogen(EXIT_FAILURE);
 		return -1;
 	}
 
@@ -77,6 +107,7 @@ double EMSCRIPTEN_KEEPALIVE evaluate(int ptr, int length) {
 	boost::shared_ptr<Scenario> scenario =
 	ScenarioFactory::createScenario(configuration);
 	if (!scenario) {
+		exitRobogen(EXIT_FAILURE);
 		return -1;
 	}
 
@@ -97,6 +128,7 @@ double EMSCRIPTEN_KEEPALIVE evaluate(int ptr, int length) {
 	delete viewer;
 
 	if (simulationResult == SIMULATION_FAILURE) {
+		exitRobogen(EXIT_FAILURE);
 		return -1;
 	}
 
@@ -137,7 +169,7 @@ struct ScenarioWrapper : public emscripten::wrapper<JSScenario> {
 
 #define TEST_EM
 #ifdef TEST_EM
-#include "emscripten_test.cpp"
+#include "js/EmscriptenTest.cpp"
 #endif
 
 // file utils for loading remote files
@@ -191,11 +223,34 @@ emscripten::val toArray(std::vector<VectorType> v) {
 	return result;
 }
 
+
+emscripten::val getModelSensors(boost::shared_ptr<Model> model) {
+	std::vector<boost::shared_ptr<Sensor> > sensors;
+	if( boost::dynamic_pointer_cast<PerceptiveComponent>(model) ) {
+		boost::dynamic_pointer_cast<PerceptiveComponent>(model
+												)->getSensors(sensors);
+	}
+	return toArray< boost::shared_ptr<Sensor> >(sensors);
+}
+
+emscripten::val getAABB(boost::shared_ptr<Robot> robot) {
+	double minX, maxX, minY, maxY, minZ, maxZ;
+	robot->getAABB(minX, maxX, minY, maxY, minZ, maxZ);
+	emscripten::val aabb(emscripten::val::object());
+	aabb.set("minX", minX);
+	aabb.set("maxX", maxX);
+	aabb.set("minY", minY);
+	aabb.set("maxY", maxY);
+	aabb.set("minZ", minZ);
+	aabb.set("maxZ", maxZ);
+	return aabb;
+}
+
 emscripten::val getBodyParts(boost::shared_ptr<Robot> robot) {
 	return toArray< boost::shared_ptr<Model> >(robot->getBodyParts());
 }
 
-emscripten::val getSensors(boost::shared_ptr<Robot> robot) {
+emscripten::val getRobotSensors(boost::shared_ptr<Robot> robot) {
 	return toArray< boost::shared_ptr<Sensor> >(robot->getSensors());
 }
 
@@ -204,7 +259,8 @@ emscripten::val getMotors(boost::shared_ptr<Robot> robot) {
 }
 
 emscripten::val getLightSources(boost::shared_ptr<Environment> environment) {
-	return toArray< boost::shared_ptr<LightSource> >(environment->getLightSources());
+	return toArray< boost::shared_ptr<LightSource> >(
+										environment->getLightSources());
 }
 
 emscripten::val getObstacles(boost::shared_ptr<Environment> environment) {
@@ -238,8 +294,10 @@ EMSCRIPTEN_BINDINGS(my_module) {
 
 	emscripten::class_<Model>("Model")
 		.smart_ptr<boost::shared_ptr<Model> >("shared_ptr<Model>")
+		.function("getId", &Model::getId)
 		.function("getRootPosition", &Model::getRootPosition)
 		.function("getRootAttitude", &Model::getRootAttitude)
+		.function("getSensors", &getModelSensors)
 		.function("getType", &RobogenUtils::getPartType)
 		;
 
@@ -247,6 +305,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.smart_ptr<boost::shared_ptr<Sensor> >("shared_ptr<Sensor>")
 		.function("getLabel", &Sensor::getLabel)
 		.function("read", &Sensor::read)
+		.function("getType", &RobogenUtils::getSensorType)
 		;
 
 	emscripten::class_<Motor>("Motor")
@@ -260,14 +319,16 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.smart_ptr<boost::shared_ptr<Robot> >("shared_ptr<Robot>")
 		.function("getBodyParts", &getBodyParts)
 		.function("getCoreComponent", &Robot::getCoreComponent)
-		.function("getSensors", &getSensors)
+		.function("getSensors", &getRobotSensors)
 		.function("getMotors", &getMotors)
+		.function("getAABB", &getAABB)
 		;
 
 
 	emscripten::class_<Scenario>("Scenario")
 		.function("getRobot", &Scenario::getRobot)
 		.function("getEnvironment", &Scenario::getEnvironment)
+		.function("stopSimulationNow", &Scenario::stopSimulationNow)
 		;
 
 	emscripten::class_<JSScenario, emscripten::base<Scenario>>("JSScenario")

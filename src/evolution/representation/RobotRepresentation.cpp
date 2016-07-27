@@ -6,7 +6,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
+ * Copyright © 2013-2016 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -46,6 +46,12 @@
 #include "PartList.h"
 #include "utils/json2pb/json2pb.h"
 #include "utils/RobogenUtils.h"
+#include "brain/NeuralNetwork.h"
+
+#define VERIFY_ON_LOAD_TXT
+#ifdef VERIFY_ON_LOAD_TXT
+#include "evolution/engine/BodyVerifier.h"
+#endif
 
 namespace robogen {
 
@@ -492,18 +498,25 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	// add new neurons
 
 	while (robotTextFileReadAddNeuronLine(file, id, neuronType)) {
-		std::string neuronId = neuralNetwork_->insertNeuron(ioPair(id,
-				neuralNetwork_->getBodyPartNeurons(id).size()),
-				NeuronRepresentation::HIDDEN, neuronType);
-		std::cout << "added hidden neuron "  << neuronId << " with type "
-				<< neuronType << std::endl;
+		if (neuralNetwork_->getNumHidden() < MAX_HIDDEN_NEURONS) {
+			std::string neuronId = neuralNetwork_->insertNeuron(ioPair(id,
+					neuralNetwork_->getBodyPartNeurons(id).size()),
+					NeuronRepresentation::HIDDEN, neuronType);
+			std::cout << "added hidden neuron "  << neuronId << " with type "
+					<< neuronType << std::endl;
+		} else {
+			std::cerr << "The number of specified hidden neurons is more than "
+					<< MAX_HIDDEN_NEURONS << ", which is the maximuma allowed."
+					<< std::endl;
+			return false;
+		}
 	}
 
 	// weights
 	while (robotTextFileReadWeightLine(file, from, fromIoId, to, toIoId,
 			value)) {
 		if (!neuralNetwork_->setWeight(from, fromIoId, to, toIoId, value)) {
-			std::cout << "Failed to set weight" << std::endl;
+			std::cerr << "Failed to set weight" << std::endl;
 			return false;
 		}
 	}
@@ -513,7 +526,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 
 	while (robotTextFileReadParamsLine(file, to, toIoId, neuronType, params)) {
 		if (!neuralNetwork_->setParams(to, toIoId, neuronType, params)) {
-			std::cout << "Failed to set neuron params" << std::endl;
+			std::cerr << "Failed to set neuron params" << std::endl;
 			return false;
 		}
 		params.clear();
@@ -656,7 +669,7 @@ void RobotRepresentation::recurseNeuronRemoval(
 	}
 }
 
-bool RobotRepresentation::trimBodyAt(const std::string& id) {
+bool RobotRepresentation::trimBodyAt(const std::string& id, bool printErrors) {
 	// kill all neurons and their weights
 	recurseNeuronRemoval(idToPart_[id].lock());
 
@@ -665,13 +678,17 @@ bool RobotRepresentation::trimBodyAt(const std::string& id) {
 	PartRepresentation *parent = idToPart_[id].lock()->getParent();
 	int position = idToPart_[id].lock()->getPosition();
 	if (!parent) {
-		std::cerr << "Trying to remove root body part!" << std::endl;
+		if (printErrors) {
+			std::cerr << "Trying to remove root body part!" << std::endl;
+		}
 		return false;
 	}
 	//std::cout << "Has references: " << idToPart_[id].lock().use_count()
 	//		<< std::endl;
 	if (!parent->setChild(position, boost::shared_ptr<PartRepresentation>())) {
-		std::cerr << "Failed trimming robot body!" << std::endl;
+		if (printErrors) {
+			std::cerr << "Failed trimming robot body!" << std::endl;
+		}
 		return false;
 	}
 	if (!parent->getChild(position)) {
@@ -725,7 +742,8 @@ bool RobotRepresentation::addClonesToMap(
 }
 
 bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
-		const std::string& subtreeDestPartId, unsigned int slotId) {
+		const std::string& subtreeDestPartId, unsigned int slotId,
+		bool printErrors) {
 
 	// find src part and dest part by id
 	boost::shared_ptr<PartRepresentation> src =
@@ -735,6 +753,9 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 
 	// If source is root node, then return
 	if (src->getId().compare(bodyTree_->getId()) == 0) {
+		if (printErrors) {
+			std::cerr << "Cannot duplicate root node!" << std::endl;
+		}
 		return false;
 	}
 
@@ -754,7 +775,7 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 }
 
 bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
-		const std::string& subtreeRoot2) {
+		const std::string& subtreeRoot2, bool printErrors) {
 
 	// Get roots of the subtrees
 	boost::shared_ptr<PartRepresentation> root1 =
@@ -765,6 +786,9 @@ bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
 	// Check none of them is the root node
 	if (root1->getId().compare(bodyTree_->getId()) == 0
 			|| root2->getId().compare(bodyTree_->getId()) == 0) {
+		if (printErrors) {
+			std::cerr << "Cannot swap root subtree" << std::endl;
+		}
 		return false;
 	}
 
@@ -808,7 +832,7 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId,
 		unsigned int parentPartSlot,
 		boost::shared_ptr<PartRepresentation> newPart,
 		unsigned int newPartSlot,
-		unsigned int motorNeuronType) {
+		unsigned int motorNeuronType, bool printErrors) {
 
 	// Set new ID for the inserted node
 	std::string newUniqueId = this->generateUniqueIdFromSomeId();
@@ -835,6 +859,10 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId,
 
 	// Check the arity of the new part
 	if (childPart != NULL && newPart->getArity() < 1) {
+		if (printErrors) {
+			std::cerr << "Cannot insert 0-arity part when there is already a"
+					" part present at its location" << std::endl;
+		}
 		return false;
 	}
 
@@ -850,26 +878,40 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId,
 
 }
 
-bool RobotRepresentation::removePart(const std::string& partId) {
+bool RobotRepresentation::removePart(const std::string& partId,
+		bool printErrors) {
 
 	boost::shared_ptr<PartRepresentation> nodeToRemove =
 			idToPart_[partId].lock();
 
 	// If root node, return
 	if (nodeToRemove->getId().compare(bodyTree_->getId()) == 0) {
+		if (printErrors) {
+			std::cerr << "Cannot remove root" << std::endl;
+		}
 		return false;
 	}
 
 	// Get parent of node to be removed
 	PartRepresentation* parent = nodeToRemove->getParent();
 
+	// this should be handled by check above, but just to be safe
 	if (parent == NULL) {
+		if (printErrors) {
+				std::cerr << "Cannot remove root" << std::endl;
+			}
 		return false;
 	}
 
 	// Add one since will be freeing a slot when this node is removed
 	unsigned int nFreeSlots = parent->getFreeSlots().size() + 1;
-	if (nFreeSlots < nodeToRemove->numDescendants()) {
+	if (nFreeSlots < nodeToRemove->getChildrenCount()) {
+		if (printErrors) {
+			std::cerr << "Not enough free slots on parent to remove part."
+					<< "Need " << nodeToRemove->numDescendants()
+					<< ", but only have " << nFreeSlots
+					<< std::endl;
+		}
 		return false;
 	}
 
@@ -952,11 +994,11 @@ bool RobotRepresentation::check() {
 	if (!idsMatch) {
 		std::cerr << "bodyPartIdsFromMap:";
 		for (unsigned int i = 0; i < bodyPartIdsFromMap.size(); ++i) {
-			std::cout<< " " << bodyPartIdsFromMap[i] ;
+			std::cerr << " " << bodyPartIdsFromMap[i] ;
 		}
 		std::cerr << "\nbodyIds:";
 		for (unsigned int i = 0; i < bodyIds.size(); ++i) {
-			std::cout<< " " << bodyIds[i] ;
+			std::cerr << " " << bodyIds[i] ;
 		}
 		std::cerr << "\n";
 
@@ -985,9 +1027,10 @@ bool RobotRepresentation::check() {
 			int totInputs = 0;
 			int totOutputs = 0;
 			for (unsigned int j = 0; j < neurons.size(); ++j) {
-				if (neurons[j].lock()->isInput()) {
+				unsigned int layer = neurons[j].lock()->getLayer();
+				if (layer == NeuronRepresentation::INPUT) {
 					totInputs++;
-				} else {
+				} else if (layer == NeuronRepresentation::OUTPUT) {
 					totOutputs++;
 				}
 			}
@@ -1052,6 +1095,20 @@ bool RobotRepresentation::createRobotMessageFromFile(robogenMessage::Robot
 			std::cerr << "Failed interpreting robot text file!" << std::endl;
 			return false;
 		}
+
+#ifdef VERIFY_ON_LOAD_TXT
+		int errorCode;
+
+		std::vector<std::pair<std::string, std::string> > affectedBodyParts;
+		if (!BodyVerifier::verify(robot, errorCode,
+						affectedBodyParts, true)) {
+			std::cerr << std::endl
+				<< "*************** Body does not verify!! *****************"
+				<< std::endl << std::endl;
+			return false;
+		}
+#endif
+
 		robotMessage = robot.serialize();
 
 	} else if (boost::filesystem::path(robotFileString

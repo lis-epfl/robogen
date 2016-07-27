@@ -118,6 +118,13 @@ public:
 	virtual bool afterSimulationStep() = 0;
 
 	/**
+	 * This is called just after afterSimulationStep
+	 * @return stopSimulationNow_, which is true only if the scenario has
+	 * 	called stopSimulationNow()
+	 */
+	bool shouldStopSimulationNow() { return stopSimulationNow_; }
+
+	/**
 	 * Called at the end of the physics simulation
 	 * @return true if the operation completed successfully, false otherwise
 	 */
@@ -148,6 +155,14 @@ public:
 		robogenConfig_ = robogenConfig;
 	}
 
+	/**
+	 * calling this will stop the simulation immediately after the next call to
+	 * afterSimulationStep
+	 */
+	void stopSimulationNow() {
+		stopSimulationNow_ = true;
+	}
+
 private:
 
 	/**
@@ -171,6 +186,8 @@ private:
 	boost::shared_ptr<Environment> environment_;
 
 	bool obstaclesRemoved_;
+
+	bool stopSimulationNow_;
 
 };
 

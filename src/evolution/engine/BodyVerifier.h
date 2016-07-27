@@ -71,10 +71,12 @@ public:
 	 * @param robot representation of robot to verify
 	 * @param errorCode if error, corresponding errorCode from errorCodes
 	 * @param affectedBodyParts if error, identifiers of affected body parts
+	 * @param print errors, if true print out errors to screen
 	 * @return true if robot valid, false otherwise
 	 */
 	static bool verify(const RobotRepresentation &robot, int &errorCode,
-			std::vector<std::pair<std::string,std::string> >&affectedBodyParts);
+			std::vector<std::pair<std::string,std::string> >&affectedBodyParts,
+			bool printErrors=true);
 
 	/**
 	 * Suggested routine for handling a robot body with potential

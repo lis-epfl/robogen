@@ -46,8 +46,8 @@ class RobogenUtils {
 
 public:
 
-	static const double OSG_EPSILON;
-	static const double OSG_EPSILON_2;
+	static const double EPSILON;
+	static const double EPSILON_2;
 
 	virtual ~RobogenUtils();
 
@@ -72,6 +72,8 @@ public:
 
 	static boost::shared_ptr<RenderModel> createRenderModel(
 			boost::shared_ptr<Model> model);
+
+	static std::string getSensorType(boost::shared_ptr<Sensor> sensor);
 
 	static std::string getPartType(boost::shared_ptr<Model> model);
 

@@ -5,7 +5,7 @@
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2015 Titus Cieslewski, Joshua Auerbach
+ * Copyright © 2013-2016 Titus Cieslewski, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -41,8 +41,9 @@ namespace robogen {
 const std::string
 EvolverConfiguration::BodyMutationOperatorsProbabilityCodes[] = {
 			"pSubtreeRemove", "pSubtreeDuplicate", "pSubtreeSwap",
-			"pNodeInsert", "pNodeRemove", "pParameterModify",
+			"pNodeInsert", "pNodeRemove", "pParameterModify"/*,
 			"pOrientationChange", "pSensorSwap", "pLinkChange", "pActivePassive"
+			*/
 	};
 
 // helper function to parse bounds options
@@ -90,6 +91,8 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	std::vector<std::string> allowedBodyPartTypeStrings;
 
 	//defaults - TODO add more
+	tournamentSize = 2;
+
 	useBrainSeed = false;
 
 	minBrainPhaseOffset = -1;
@@ -113,6 +116,11 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 
 	pOscillatorNeuron = 0.0;
+	pAddHiddenNeuron = 0.0;
+
+	pBrainCrossover = 0.0;
+
+    bodyParamSigma = 0.1;
 
 	// DON'T AUTO-INDENT THE FOLLOWING ON ECLIPSE:
 	desc.add_options()
@@ -130,13 +138,14 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				->required(), "Number of offspring")
 		("numGenerations",
 				boost::program_options::value<unsigned int>(&numGenerations)
-				->required(), "Amount of generations to be evaluated")
+				->required(), "Number of generations to be evaluated")
 		("selection",
-				boost::program_options::value<std::string>()->required(),
+				boost::program_options::value<std::string>(),
 				"Type of selection strategy: deterministic-tournament")
 		("tournamentSize",
 				boost::program_options::value<unsigned int>(&tournamentSize),
-				"Amount of participants in deterministic Tournament")
+				"Number of participants in deterministic tournament "\
+				"(default 2)")
 		("replacement",
 				boost::program_options::value<std::string>()->required(),
 				"Type of replacement strategy: comma or plus")
@@ -147,8 +156,15 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				boost::program_options::value<bool>(&useBrainSeed),
 				"Set true to continue evolving from provided brain instead of "\
 				"re-initialing.")
+		("evolutionaryAlgorithm",
+				boost::program_options::value<std::string>(),
+				"EA: Basic or HyperNEAT")
+		("neatParamsFile",
+				boost::program_options::value<std::string>(&neatParamsFile),
+				"File for NEAT/HyperNEAT specific params")
 		("pBrainMutate", boost::program_options::value<double>
-				(&pBrainMutate),"Probability of mutation for any single brain "\
+				(&pBrainMutate)->required(),
+				"Probability of mutation for any single brain "\
 				"parameter")
 		("brainSigma", boost::program_options::value<std::string>(),
 				"Sigma of all brain parameter mutations")
@@ -166,18 +182,40 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				"Sigma of brain tau mutation")
 		("tauBounds", boost::program_options::value<std::string>(),
 				"Bounds of brain taus. Format: min:max")
-		("periodSigma", boost::program_options::value<double>(&brainPeriodSigma),
+		("periodSigma", boost::program_options::value<double>(
+				&brainPeriodSigma),
 				"Sigma of brain period mutation (defined in terms of seconds)")
 		("periodBounds", boost::program_options::value<std::string>(),
-				"Bounds of brain period (defined in terms of seconds). Format: min:max")
-		("phaseOffsetSigma", boost::program_options::value<double>(&brainPhaseOffsetSigma),
-				"Sigma of brain phase offset mutation (defined in terms of # periods).")
+				"Bounds of brain period (defined in terms of seconds)."\
+				" Format: min:max")
+		("phaseOffsetSigma", boost::program_options::value<double>(
+				&brainPhaseOffsetSigma),
+				"Sigma of brain phase offset mutation"\
+				" (defined in terms of # periods).")
 		("phaseOffsetBounds", boost::program_options::value<std::string>(),
-				"Bounds of brain phase offset (defined in terms of # periods). Format: min:max")
-		("amplitudeSigma", boost::program_options::value<double>(&brainAmplitudeSigma),
+				"Bounds of brain phase offset (defined in terms of # periods)."\
+				" Format: min:max")
+		("amplitudeSigma", boost::program_options::value<double>(
+				&brainAmplitudeSigma),
 				"Sigma of brain amplitude mutation (relative to [0,1]).")
 		("amplitudeBounds", boost::program_options::value<std::string>(),
-				"Bounds of brain amplitude (must be a sub-interval of [0,1]). Format: min:max")
+				"Bounds of brain amplitude (must be a sub-interval of [0,1])."\
+				" Format: min:max")
+		("pBrainCrossover",
+				boost::program_options::value<double>(
+				&pBrainCrossover),
+				"Probability of crossover among brains")
+		("pAddHiddenNeuron",
+				boost::program_options::value<double>(
+				&pAddHiddenNeuron),
+				"Probability of adding a hidden neuron (currently only works "\
+				"if pBrainCrossover==0.0"
+		)
+		("pOscillatorNeuron",
+					boost::program_options::value<double>(
+					&pOscillatorNeuron),
+					"Probability of new neuron being oscillator"
+			)
 		("numInitialParts", boost::program_options::value<std::string>(),
 				"Number of initial body parts (not "\
 				"including core component). Format: min:max")
@@ -185,9 +223,6 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				boost::program_options::value<unsigned int>(
 				&maxBodyMutationAttempts),
 				"Max number of body mutation attempts")
-		("pBrainCrossover",
-				boost::program_options::value<double>(
-				&pBrainCrossover), "Probability of crossover among brains")
 		("socket", boost::program_options::value<std::vector<std::string> >()
 				->required(),	"Sockets to be used to connect to the server")
 		("addBodyPart",
@@ -197,24 +232,18 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		("maxBodyParts",
 				boost::program_options::value<unsigned int>(&maxBodyParts),
 				"Maximum number of body parts.")
-		("bodyParamSigma", boost::program_options::value<double>(&bodyParamSigma),
+		("bodyParamSigma", boost::program_options::value<double>(
+				&bodyParamSigma),
 				"Sigma of body param mutation (all params in [0,1])")
-		("evolutionaryAlgorithm",
-				boost::program_options::value<std::string>(),
-				"EA: Basic or HyperNEAT")
-		("neatParamsFile",
-				boost::program_options::value<std::string>(&neatParamsFile),
-				"File for NEAT/HyperNEAT specific params")
-		("pOscillatorNeuron",
-				boost::program_options::value<double>(
-				&pOscillatorNeuron), "Probability of new neuron being oscillator"
-		);
+		;
 	// generate body operator probability options from contraptions in header
 	for (unsigned i=0; i<NUM_BODY_OPERATORS; ++i){
 		desc.add_options()(
 			BodyMutationOperatorsProbabilityCodes[i].c_str(),
 			boost::program_options::value<double>(
 			&bodyOperatorProbability[i]),"Probability of given operator");
+		// default all to 0
+		bodyOperatorProbability[i] = 0.0;
 	}
 	boost::program_options::variables_map vm;
 
@@ -237,7 +266,8 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	}
 
 	// parse selection type
-	if (vm["selection"].as<std::string>() == "deterministic-tournament"){
+	if (vm.count("selection") == 0 ||
+			vm["selection"].as<std::string>() == "deterministic-tournament"){
 		selection = DETERMINISTIC_TOURNAMENT;
 	}
 	else {
@@ -404,10 +434,6 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		return false;
 	}
 
-	if (vm.count("pBrainMutate") == 0) {
-		std::cerr << "Must specify pBrainMutate" << std::endl;
-		return false;
-	}
 	// - 0. <= probabilities <= 1.
 	if (pBrainMutate > 1. || pBrainMutate < 0.){
 		std::cerr << "Brain mutation probability parameter " << pBrainMutate <<
@@ -415,10 +441,6 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		return false;
 	}
 
-	if (vm.count("pBrainCrossover") == 0) {
-		std::cerr << "Must specify pBrainCrossover" << std::endl;
-		return false;
-	}
 	if (pBrainCrossover > 1. || pBrainCrossover < 0.){
 		std::cerr << "Brain crossover probability parameter " << pBrainCrossover
 				<< " not between 0 and 1!" << std::endl;
@@ -429,6 +451,18 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	if (pOscillatorNeuron > 1. || pOscillatorNeuron < 0.) {
 		std::cerr << "Oscillator neuron probability parameter " <<
 				pOscillatorNeuron << " not between 0 and 1!" << std::endl;
+		return false;
+	}
+
+	if (pAddHiddenNeuron > 1. || pAddHiddenNeuron < 0. ) {
+		std::cerr << "Add hidden neuron probability parameter " <<
+				pAddHiddenNeuron << " not between 0 and 1!" << std::endl;
+		return false;
+	}
+
+	if (pAddHiddenNeuron > 0. && pBrainCrossover > 0. ) {
+		std::cerr << "Currently cannot have both pAddHiddenNeuron and "
+				<< "pBrainCrossover both greater than 0." << std::endl;
 		return false;
 	}
 
@@ -519,6 +553,12 @@ bool EvolverConfiguration::init(std::string configFileName) {
 					"one allowed body part to add." << std::endl;
 			return false;
 		}
+
+		if ( pBrainCrossover > 0.) {
+			std::cerr << "Currently brain crossover is not allowed when " <<
+					"evolving bodies." << std::endl;
+			return false;
+		}
 	}
 
 
@@ -552,14 +592,19 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 
 	// ---------------------------------------
-	// HyperNEAT stuff -- hardcoded for now
-	// TODO make configurable
+	// HyperNEAT stuff
 	// ---------------------------------------
 
 	evolutionaryAlgorithm = BASIC;
 	if ( vm.count("evolutionaryAlgorithm") > 0 ) {
 		if (vm["evolutionaryAlgorithm"].as<std::string>().compare("HyperNEAT")
 				== 0) {
+
+			if (evolutionMode == FULL_EVOLVER) {
+				std::cerr << "Currently using HyperNEAT with full evolution "
+						<< "is not supported" << std::endl;
+				return false;
+			}
 
 			evolutionaryAlgorithm = HYPER_NEAT;
 			neatParams.PopulationSize = mu;

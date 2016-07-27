@@ -30,7 +30,7 @@ PartRepresentation::~PartRepresentation() {
 
 }
 
-std::string &PartRepresentation::getId() {
+const std::string &PartRepresentation::getId() {
 	return id_;
 }
 
@@ -87,7 +87,7 @@ std::vector<unsigned int> PartRepresentation::getFreeSlots() {
 
 }
 
-std::string &PartRepresentation::getType() {
+const std::string &PartRepresentation::getType() {
 	return type_;
 }
 
@@ -243,7 +243,7 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::cloneSubtree() {
 
 }
 
-std::vector<double> PartRepresentation::getParams() {
+std::vector<double> &PartRepresentation::getParams() {
 	return params_;
 }
 

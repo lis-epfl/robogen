@@ -59,7 +59,8 @@ void BodyVerifier::collisionCallback(void *data, dGeomID o1, dGeomID o2) {
 }
 
 bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
-		std::vector<std::pair<std::string, std::string> > &affectedBodyParts) {
+		std::vector<std::pair<std::string, std::string> > &affectedBodyParts,
+		bool printErrors) {
 
 	bool success = true;
 	errorCode = INTERNAL_ERROR;
@@ -69,7 +70,6 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	dWorldID odeWorld = dWorldCreate();
 	dWorldSetGravity(odeWorld, 0, 0, 0);
 	dSpaceID odeSpace = dHashSpaceCreate(0);
-	CollisionData *collisionData = new CollisionData();
 
 
 #ifdef VISUAL_DEBUG
@@ -86,12 +86,14 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	robogenMessage::Robot robotMessage = robotRep.serialize();
 	// parse robot
 	boost::shared_ptr<Robot> robot(new Robot);
-	if (!robot->init(odeWorld, odeSpace, robotMessage)) {
-		std::cout << "Problem when initializing robot in body verifier!"
-				<< std::endl;
+	if (!robot->init(odeWorld, odeSpace, robotMessage, false, printErrors)) {
+		if (printErrors) {
+			std::cout << "Problem when initializing robot in body verifier!"
+					<< std::endl;
+		}
 		success = false;
 	}
-
+	boost::shared_ptr<CollisionData> collisionData(new CollisionData());
 	if (success) {
 
 		std::vector<boost::shared_ptr<Model> > bodyParts = robot->getBodyParts();
@@ -138,7 +140,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 			}
 		}
 
-		dSpaceCollide(odeSpace, (void *) collisionData, collisionCallback);
+		dSpaceCollide(odeSpace, (void *) collisionData.get(), collisionCallback);
 		std::vector<std::pair<dBodyID, dBodyID> >::iterator iter;
 		for (iter = collisionData->offendingBodies.begin();
 				iter != collisionData->offendingBodies.end(); ) {
@@ -146,8 +148,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 			std::string bodyB = dBodyToPartID[iter->second];
 			//std::cout << bodyA << " " << bodyB  << std::endl;
 
-			//std:: cout << robotRep.getBody().at(bodyA).lock()->getId() << std::endl;
-			//std:: cout << robotRep.getBody().at(bodyB).lock()->getId() << std::endl;
+
 
 			// purge out parent/child pairs
 			// TODO is there a better way to do this?  Stopped working do to
@@ -161,11 +162,19 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 
 			} else {
 				++iter;
+				if (printErrors) {
+					std:: cout << robotRep.getBody().at(bodyA).lock()->getId()
+							<< " is colliding with "
+							<< robotRep.getBody().at(bodyB).lock()->getId()
+							<< std::endl;
+				}
 			}
 		}
 
 		if (collisionData->offendingBodies.size()) {
-			//std::cout << "self intersection!" << std::endl;
+			if (printErrors) {
+				std::cout << "self intersection!" << std::endl;
+			}
 			success = false;
 			errorCode = SELF_INTERSECTION;
 		} else if(collisionData->cylinders.size() > 0) {
@@ -178,9 +187,11 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 				dGeomCylinderSetParams(collisionData->cylinders[i],
 						radius + WHEEL_SEPARATION, length);
 			}
-			dSpaceCollide(odeSpace, (void *) collisionData, collisionCallback);
+			dSpaceCollide(odeSpace, (void *) collisionData.get(), collisionCallback);
 			if ( collisionData->offendingBodies.size() ) {
-				//std::cout << "self intersection!" << std::endl;
+				if (printErrors) {
+					std::cout << "self intersection!" << std::endl;
+				}
 				success = false;
 				errorCode = SELF_INTERSECTION;
 			}
@@ -208,7 +219,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 
 	// destruction
 	collisionData->offendingBodies.clear();
-	delete collisionData;
+	collisionData.reset();
 	robot.reset();
 	dSpaceDestroy(odeSpace);
 	dWorldDestroy(odeWorld);

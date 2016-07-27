@@ -83,7 +83,7 @@ public:
 	 */
 	bool init(dWorldID odeWorld, dSpaceID odeSpace,
 			const robogenMessage::Robot& robotSpec,
-			bool printInfo=false);
+			bool printInfo=false, bool printInitErrors=true);
 
 	/**
 	 * Destructor
@@ -128,9 +128,9 @@ public:
 	void rotateRobot(const osg::Quat &rot);
 
 	/**
-	 * Returns the robot bounding box
+	 * Returns the robot axis-aligned bounding box
 	 */
-	void getBB(double& minX, double& maxX, double& minY, double& maxY,
+	void getAABB(double& minX, double& maxX, double& minY, double& maxY,
 			double& minZ, double& maxZ);
 
 	/**
@@ -266,6 +266,8 @@ private:
 	const robogenMessage::Robot* robotMessage_;
 
 	bool printInfo_;
+
+	bool printInitErrors_;
 
 	// store joints created by connecting components
 	// not a set because we don't want iteration order to depend on address,
