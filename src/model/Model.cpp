@@ -196,13 +196,16 @@ boost::shared_ptr<SimpleBody> Model::addCylinder(float mass,
 		int label) {
 
 	dMass massOde;
-	dMassSetCylinderTotal(&massOde, mass, direction, radius, height);
+	dMassSetCylinderTotal(&massOde, mass, 3, radius, height);
 	dxGeom* g = dCreateCylinder(this->getCollisionSpace(), radius, height);
 	osg::Quat rotateCylinder;
 	if (direction == 1) {
 		rotateCylinder.makeRotate(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
 	} else if (direction == 2) {
 		rotateCylinder.makeRotate(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
+	} else if (direction != 3) {
+		std::cout << "Model::addCylinder: invalid direction " << direction 
+				<< "; direction must be x=1, y=2 or z=3; applying default z=3" << std::endl;
 	}
 
 	boost::shared_ptr<SimpleBody> body(new SimpleBody(shared_from_this(),
@@ -217,7 +220,7 @@ boost::shared_ptr<SimpleBody> Model::addCapsule(float mass,
 		int label) {
 
 	dMass massOde;
-	dMassSetCapsuleTotal(&massOde, mass, direction, radius, height);
+	dMassSetCapsuleTotal(&massOde, mass, 3, radius, height);
 	dxGeom* g = dCreateCapsule(this->getCollisionSpace(), radius, height);
 
 	osg::Quat rotateCapsule;
@@ -226,6 +229,9 @@ boost::shared_ptr<SimpleBody> Model::addCapsule(float mass,
 		rotateCapsule.makeRotate(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
 	} else if (direction == 2) {
 		rotateCapsule.makeRotate(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
+	} else if (direction != 3) {
+		std::cout << "Model::addCapsule: invalid direction " << direction 
+				<< "; direction must be x=1, y=2 or z=3; applying default z=3" << std::endl;
 	}
 
 	boost::shared_ptr<SimpleBody> body(new SimpleBody(shared_from_this(),
