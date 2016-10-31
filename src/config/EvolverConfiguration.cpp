@@ -34,6 +34,8 @@
 #include <boost/filesystem.hpp>
 
 #include "config/EvolverConfiguration.h"
+#include "utils/ParsingUtils.h"
+
 #include "PartList.h"
 
 namespace robogen {
@@ -59,8 +61,8 @@ bool parseBounds(std::string value, double &min, double &max) {
 				"\" does not match pattern <min>:<max>" << std::endl;
 		return false;
 	}
-	min = std::atof(match[1].first);
-	max = std::atof(match[2].first);
+	min = parse_double(match[1].str());
+	max = parse_double(match[2].str());
 	if (min > max) {
 		std::cerr << "supplied min " << min << " is greater than supplied max "
 				<< max << std::endl;
@@ -331,11 +333,11 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		return false;
 	}
 	if(vm.count("brainSigma") > 0){
-		brainWeightSigma = atof(vm["brainSigma"].as<std::string>().c_str());
+		brainWeightSigma = parse_double(vm["brainSigma"].as<std::string>());
 		brainBiasSigma = brainWeightSigma;
 	} else if(vm.count("weightSigma") > 0 && vm.count("biasSigma") > 0) {
-		brainWeightSigma = atof(vm["weightSigma"].as<std::string>().c_str());
-		brainBiasSigma = atof(vm["biasSigma"].as<std::string>().c_str());
+		brainWeightSigma = parse_double(vm["weightSigma"].as<std::string>());
+		brainBiasSigma = parse_double(vm["biasSigma"].as<std::string>());
 	} else {
 		std::cerr << "Must supply either brainSigma or (weightSigma and biasSigma)"
 				<< " ( and sigmas for other brain params)" << std::endl;
@@ -385,8 +387,8 @@ bool EvolverConfiguration::init(std::string configFileName) {
 					"\" does not match pattern <min>:<max>" << std::endl;
 			return false;
 		}
-		minNumInitialParts = std::atof(match[1].first);
-		maxNumInitialParts = std::atof(match[2].first);
+		minNumInitialParts = parse_float(match[1].str());
+		maxNumInitialParts = parse_float(match[2].str());
 	}
 
 

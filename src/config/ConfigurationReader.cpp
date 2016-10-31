@@ -45,6 +45,7 @@
 #include "config/LightSourcesConfig.h"
 
 #include "utils/RobogenUtils.h"
+#include "utils/ParsingUtils.h"
 
 #define DEFAULT_LIGHT_SOURCE_HEIGHT (0.1)
 #define DEFAULT_OBSTACLE_DENSITY (0.)
@@ -451,10 +452,10 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		std::vector<std::string> gravityOpts;
 		boost::split(gravityOpts, gravityString, boost::is_any_of(","));
 		if (gravityOpts.size() == 1) {
-			gravity[2] = std::atof(gravityOpts[0].c_str());
+			gravity[2] = parse_float(gravityOpts[0]);
 		} else if (gravityOpts.size() == 3) {
 			for(unsigned int i=0; i<3; ++i) {
-				gravity[i] = std::atof(gravityOpts[i].c_str());
+				gravity[i] = parse_float(gravityOpts[i]);
 			}
 		} else {
 			std::cerr << "'gravity' must either be a single value for " <<
@@ -551,37 +552,37 @@ boost::shared_ptr<ObstaclesConfig> ConfigurationReader::parseObstaclesFile(
 				zRotation, rotationAngle;
 		if(boost::regex_match(line.c_str(), match,
 						fullObstacleRegex)){
-			x = std::atof(match[1].str().c_str());
-			y = std::atof(match[2].str().c_str());
-			z = std::atof(match[3].str().c_str());
-			xSize = std::atof(match[4].str().c_str());
-			ySize = std::atof(match[5].str().c_str());
-			zSize = std::atof(match[6].str().c_str());
-			density = std::atof(match[7].str().c_str());
-			xRotation = std::atof(match[8].str().c_str());
-			yRotation = std::atof(match[9].str().c_str());
-			zRotation = std::atof(match[10].str().c_str());
-			rotationAngle = std::atof(match[11].str().c_str());
+			x = parse_float(match[1].str());
+			y = parse_float(match[2].str());
+			z = parse_float(match[3].str());
+			xSize = parse_float(match[4].str());
+			ySize = parse_float(match[5].str());
+			zSize = parse_float(match[6].str());
+			density = parse_float(match[7].str());
+			xRotation = parse_float(match[8].str());
+			yRotation = parse_float(match[9].str());
+			zRotation = parse_float(match[10].str());
+			rotationAngle = parse_float(match[11].str());
 		} else {
 			xRotation = yRotation = zRotation = rotationAngle = 0.0;
 			if (boost::regex_match(line.c_str(), match, oldObstacleRegex)){
-				x = std::atof(match[1].str().c_str());
-				y = std::atof(match[2].str().c_str());
-				xSize = std::atof(match[3].str().c_str());
-				ySize = std::atof(match[4].str().c_str());
-				zSize = std::atof(match[5].str().c_str());
-				density = std::atof(match[6].str().c_str());
+				x = parse_float(match[1].str());
+				y = parse_float(match[2].str());
+				xSize = parse_float(match[3].str());
+				ySize = parse_float(match[4].str());
+				zSize = parse_float(match[5].str());
+				density = parse_float(match[6].str());
 
 				z = zSize/2;
 			} else if(boost::regex_match(line.c_str(), match,
 					noRotationObstacleRegex)){
-				x = std::atof(match[1].str().c_str());
-				y = std::atof(match[2].str().c_str());
-				z = std::atof(match[3].str().c_str());
-				xSize = std::atof(match[4].str().c_str());
-				ySize = std::atof(match[5].str().c_str());
-				zSize = std::atof(match[6].str().c_str());
-				density = std::atof(match[7].str().c_str());
+				x = parse_float(match[1].str());
+				y = parse_float(match[2].str());
+				z = parse_float(match[3].str());
+				xSize = parse_float(match[4].str());
+				ySize = parse_float(match[5].str());
+				zSize = parse_float(match[6].str());
+				density = parse_float(match[7].str());
 			} else {
 				std::cerr << "Error parsing line " << lineNum <<
 						" of obstacles file: '" << fileName << "'"
@@ -626,7 +627,7 @@ boost::shared_ptr<LightSourcesConfig> ConfigurationReader::parseLightSourcesFile
 		boost::cmatch match;
 		float x, y, z, intensity;
 		if(boost::regex_match(line.c_str(), match, fullRegex)){
-			intensity = std::atof(match[4].str().c_str());
+			intensity = parse_float(match[4].str());
 		} else {
 			intensity = 1.0;
 			if(!boost::regex_match(line.c_str(), match, noIntensityRegex)){
@@ -638,9 +639,9 @@ boost::shared_ptr<LightSourcesConfig> ConfigurationReader::parseLightSourcesFile
 				return boost::shared_ptr<LightSourcesConfig>();
 			}
 		}
-		x = std::atof(match[1].str().c_str());
-		y = std::atof(match[2].str().c_str());
-		z = std::atof(match[3].str().c_str());
+		x = parse_float(match[1].str());
+		y = parse_float(match[2].str());
+		z = parse_float(match[3].str());
 		coordinates.push_back(osg::Vec3(x, y, z));
 		intensities.push_back(intensity);
 
