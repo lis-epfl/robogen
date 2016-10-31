@@ -33,25 +33,63 @@
 
 namespace robogen
 {
+	/**
+	 * Parse the string to get the numeric value.
+	 * Supports NAN, INF, E and e (exponential).
+	 * @param str input string
+	 * @return parsed float; if failed, returns 0.0f
+	 */
 	static inline float parse_float(const std::string& str)
 	{
 
 		float f = 0.0f;
 		std::istringstream istr(str);
 
+		
 		istr >> f;
+
+		if(istr.fail())
+		{
+			// check for NAN, nan or NaN
+			if (!str.compare(0, 3, "NAN") || !str.compare(0, 3, "nan") || !str.compare(0, 3, "NaN"))
+			{
+				f = NAN;
+			}
+			else if (!str.compare(0, 3, "INF") || !str.compare(0, 3, "inf") || !str.compare(0, 3, "Inf"))
+			{
+				f = std::numeric_limits<float>::infinity();
+			}
+		}
 
 		return f;
 	}
 
-
+	/**
+	 * Parse the string to get the numeric value.
+	 * Supports NAN, INF, E and e (exponential).
+	 * @param str input string
+	 * @return parsed double; if failed, returns 0.0
+	 */
 	static inline double parse_double(const std::string& str)
 	{
 
-		double d = 0.0f;
+		double d = 0.0;
 		std::istringstream istr(str);
 
 		istr >> d;
+
+		if(istr.fail())
+		{
+			// check for NAN, nan or NaN
+			if (!str.compare(0, 3, "NAN") || !str.compare(0, 3, "nan") || !str.compare(0, 3, "NaN"))
+			{
+				d = NAN;
+			}
+			else if (!str.compare(0, 3, "INF") || !str.compare(0, 3, "inf") || !str.compare(0, 3, "Inf"))
+			{
+				d = std::numeric_limits<double>::infinity();
+			}
+		}
 
 		return d;
 	}
