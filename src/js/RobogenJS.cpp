@@ -273,7 +273,13 @@ void setLightSourcePosition(boost::shared_ptr<LightSource> lightSource,
 }
 
 EMSCRIPTEN_BINDINGS(my_module) {
-	emscripten::function("simulationViewer", &simulationViewer);
+	emscripten::function("simulationViewer",
+			emscripten::select_overload<std::string(int,
+			std::string, std::string, int, std::string, int,
+			bool, bool)>(&simulationViewer));
+	emscripten::function("simulationViewer",
+			emscripten::select_overload<std::string(emscripten::val,
+			std::string, std::string)>(&simulationViewer));
 	emscripten::function("runEvolution", &runEvolution);
 	emscripten::function("evaluate", &evaluate);
 	emscripten::function("evaluationResultAvailable", &evaluationResultAvailable);

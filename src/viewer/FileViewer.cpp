@@ -50,6 +50,8 @@
 #include "robogen.pb.h"
 #include "viewer/IViewer.h"
 
+#include "utils/json2pb/json2pb.h"
+
 #include "Simulator.h"
 
 #ifdef QT5_ENABLED
@@ -67,22 +69,13 @@ using namespace robogen;
 
 int fakeMain(int argc, char *argv[]);
 
-std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFileString,
-		std::string configFile, int startPosition, std::string outputDirectory,
-		int seed, bool enableWebGLLog, bool overwriteLogs) {
 
-	boost::shared_ptr<RobogenConfig> configuration = NULL;
-	try {
-		configuration = ConfigurationReader::parseConfigurationFile(configFile);
-	} catch (std::exception &e) { }
-	if (configuration == NULL) {
-		std::cerr << "Problems parsing the configuration file. Quit."
-		<< std::endl;
-		return "{\"error\" : \"ConfError\"}";
-	}
 
-	robogenMessage::Robot robotMessage;
-
+std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab,
+		const robogenMessage::Robot &robotMessage,
+		boost::shared_ptr<RobogenConfig> configuration,
+		boost::shared_ptr<FileViewerLog> log,
+		int startPosition, int seed) {
 
 	if (startPosition
 			> configuration->getStartingPos()->getStartPosition().size()) {
@@ -94,15 +87,6 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFile
 	// like for desktop version, should come in 1...n
 	startPosition--;
 
-	bool createRobotSuccess = false;
-	try {
-		createRobotSuccess = RobotRepresentation::createRobotMessageFromFile(
-				robotMessage, robotFileString);
-	} catch(std::exception &e) { }
-	if (!createRobotSuccess) {
-		std::cerr << "Problems parsing the robot file. Quit." << std::endl;
-		return "{\"error\" : \"RobotError\"}";
-	}
 
 	// ---------------------------------------
 	// Setup environment
@@ -118,26 +102,11 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFile
 	}
 	scenario->setStartingPosition(startPosition);
 
-	// ---------------------------------------
-	// Set up log files
-	// ---------------------------------------
 
-	boost::shared_ptr<FileViewerLog> log;
-
-	if (outputDirectory != "") {
-		log.reset(
-				new FileViewerLog(robotFileString, configFile,
-						configuration->getObstacleFile(),
-						configuration->getStartPosFile(),
-						configuration->getLightSourceFile(),
-						configuration->getScenarioFile(),
-						std::string(outputDirectory), overwriteLogs,
-						enableWebGLLog));
-	}
 
 	boost::random::mt19937 rng;
 	if (seed != -1)
-	rng.seed(seed);
+		rng.seed(seed);
 
 	// ---------------------------------------
 	// Run simulations
@@ -164,9 +133,114 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab, std::string robotFile
 	} else {
 		fitness = scenario->getFitness();
 	}
-	return "{\"fitness\" : \"" + boost::lexical_cast<std::string>(fitness) + "\"}";
+	return "{\"fitness\" : \"" + boost::lexical_cast<std::string>(fitness)
+			+ "\"}";
+
 }
 
+std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab,
+		std::string robotFileString,
+		std::string configFile, int startPosition, std::string outputDirectory,
+		int seed, bool enableWebGLLog, bool overwriteLogs) {
+
+	boost::shared_ptr<RobogenConfig> configuration = NULL;
+	try {
+		configuration = ConfigurationReader::parseConfigurationFile(configFile);
+	} catch (std::exception &e) { }
+	if (configuration == NULL) {
+		std::cerr << "Problems parsing the configuration file. Quit."
+		<< std::endl;
+		return "{\"error\" : \"ConfError\"}";
+	}
+
+	robogenMessage::Robot robotMessage;
+
+	bool createRobotSuccess = false;
+	try {
+		createRobotSuccess = RobotRepresentation::createRobotMessageFromFile(
+				robotMessage, robotFileString);
+	} catch(std::exception &e) { }
+	if (!createRobotSuccess) {
+		std::cerr << "Problems parsing the robot file. Quit." << std::endl;
+		return "{\"error\" : \"RobotError\"}";
+	}
+
+	// ---------------------------------------
+	// Set up log files
+	// ---------------------------------------
+
+	boost::shared_ptr<FileViewerLog> log;
+
+	if (outputDirectory != "") {
+		log.reset(
+				new FileViewerLog(robotFileString, configFile,
+						configuration->getObstacleFile(),
+						configuration->getStartPosFile(),
+						configuration->getLightSourceFile(),
+						configuration->getScenarioFile(),
+						std::string(outputDirectory), overwriteLogs,
+						enableWebGLLog));
+	}
+
+	return simulationViewer(tab, robotMessage, configuration, log,
+			startPosition, seed);
+
+
+}
+
+
+std::string EMSCRIPTEN_KEEPALIVE simulationViewer(emscripten::val args,
+		std::string robotJson, std::string confJson) {
+
+	robogenMessage::SimulatorConf confMessage;
+
+
+	try {
+		json2pb(confMessage, confJson.c_str(), confJson.length());
+
+	} catch(std::exception &e) {
+		std::cerr << "Problems parsing the configuration file. Quit." << std::endl;
+		std::cerr << e.what() << std::endl;
+		return "{\"error\" : \"ConfError\"}";
+	}
+
+	boost::shared_ptr<RobogenConfig> configuration =
+			ConfigurationReader::parseRobogenMessage(confMessage);
+	if (configuration == NULL) {
+		std::cerr
+				<< "Problems parsing the configuration file. Quit."
+				<< std::endl;
+		return "{\"error\" : \"ConfError\"}";
+	}
+
+
+	robogenMessage::Robot robotMessage;
+
+	try {
+		json2pb(robotMessage, robotJson.c_str(), robotJson.length());
+
+	} catch(std::exception &e) {
+		std::cerr << "Problems parsing the robot. Quit." << std::endl;
+		return "{\"error\" : \"RobotError\"}";
+	}
+
+	int startPosition = 1, tab = 0, seed = -1;
+
+	if(!args.isNull()) {
+		if (!args["startPosition"].isUndefined()) {
+			startPosition = args["startPosition"].as<int>();
+		}
+		if (!args["tab"].isUndefined()) {
+			tab = args["tab"].as<int>();
+		}
+		if (!args["seed"].isUndefined()) {
+			seed = args["seed"].as<int>();
+		}
+	}
+
+	return simulationViewer(tab, robotMessage, configuration, NULL,
+				startPosition, seed);
+}
 
 #else
 #include "viewer/Viewer.h"
