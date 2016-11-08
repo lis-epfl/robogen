@@ -42,6 +42,7 @@
 
 #include "config/RobogenConfig.h"
 #include "evolution/representation/PartRepresentation.h"
+#include "evolution/representation/Grammar.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
 #include "utils/network/TcpSocket.h"
 #include "robogen.pb.h"
@@ -247,6 +248,11 @@ private:
 	 */
 	bool addClonesToMap(boost::shared_ptr<PartRepresentation> part,
 			std::map<std::string, std::string> &neuronReMapping);
+
+	/**
+	 * Grammar used only for indirect encoding
+	 */
+	Grammar grammar_;
 
 	/**
 	 * Points to the root of the robot body tree
