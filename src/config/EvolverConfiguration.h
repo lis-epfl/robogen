@@ -58,6 +58,13 @@ typedef struct EvolverConfiguration {
 	};
 
 	/**
+	 * Types of encoding
+	 */
+	enum EncodingTypes{
+		ENCODING_DIRECT, ENCODING_INDIRECT
+	};
+
+	/**
 	 * Modes of evolution
 	 */
 	enum EvolutionModes {
@@ -128,6 +135,11 @@ typedef struct EvolverConfiguration {
 	 * Employed selection strategy
 	 */
 	int selection;
+
+	/**
+	 * Employed encoding type
+	 */
+	int encoding;
 
 	/**
 	 * Tournament size for tournaments

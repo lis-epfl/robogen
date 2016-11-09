@@ -159,6 +159,9 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		("evolutionaryAlgorithm",
 				boost::program_options::value<std::string>(),
 				"EA: Basic or HyperNEAT")
+		("encodingType",
+				boost::program_options::value<std::string>(),
+				"Genome encoding type: direct or indirect")
 		("neatParamsFile",
 				boost::program_options::value<std::string>(&neatParamsFile),
 				"File for NEAT/HyperNEAT specific params")
@@ -274,6 +277,20 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		std::cerr << "Specified selection strategy \"" <<
 				vm["selection"].as<std::string>() <<
 				"\" unknown. Options are \"deterministic-tournament\" or ..."
+				 << std::endl;
+		return false;
+	}
+
+	// parse encoding type
+	if (vm.count("encodingType") == 0 ||
+			vm["encodingType"].as<std::string>() == "direct"){
+		encoding = ENCODING_DIRECT;
+	} else if(vm["encodingType"].as<std::string>()=="indirect"){
+		encoding = ENCODING_INDIRECT;
+	} else {
+		std::cerr << "Specified encoding type \"" <<
+				vm["encodingType"].as<std::string>() <<
+				"\" unknown. Options are \"direct\" or \"indirect\""
 				 << std::endl;
 		return false;
 	}
