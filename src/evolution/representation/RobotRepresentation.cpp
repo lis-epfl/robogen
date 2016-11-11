@@ -70,6 +70,8 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 	// special treatment for base-pointed instances of derived classes as are
 	// our body parts
 	bodyTree_ = r.bodyTree_->cloneSubtree();
+	// Similar treatment for the grammar
+	this->grammar_.reset(new Grammar(r.bodyTree_->cloneSubtree()));
 	// neural network pointer needs to be reset to a copy-constructed instance
 	neuralNetwork_.reset(
 			new NeuralNetworkRepresentation(*(r.neuralNetwork_.get())));
@@ -371,6 +373,7 @@ bool RobotRepresentation::init() {
 		return false;
 	}
 	bodyTree_ = corePart;
+	this->grammar_.reset(new Grammar(bodyTree_->cloneSubtree()));
 	idToPart_[PART_TYPE_CORE_COMPONENT] = boost::weak_ptr<PartRepresentation>(
 			corePart);
 

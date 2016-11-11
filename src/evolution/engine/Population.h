@@ -64,6 +64,10 @@ public:
 			boost::shared_ptr<Mutator> mutator, bool growBodies,
 			bool randomizeBrains);
 
+	bool init(boost::shared_ptr<RobotRepresentation> robot, int popSize,
+		boost::shared_ptr<GrammarMutator> mutator, bool growBodies,
+		bool randomizeBrains);
+
 	/**
 	 * Creates a population from the popSize best individuals of origin.
 	 */

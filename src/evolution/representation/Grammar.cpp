@@ -13,12 +13,26 @@
 
 using namespace robogen;
 
-Grammar::Grammar(){
-    this->rules_.push_back( boost::shared_ptr<Rule>(new Rule(2)));
+Grammar::Grammar(boost::shared_ptr<PartRepresentation> axiom){
+
+    this->axiom_ = axiom;
+
+    //Hardcoded Rule:
+    boost::shared_ptr<PartRepresentation> searchPattern = PartRepresentation::create(
+			INVERSE_PART_TYPE_MAP.at(PART_TYPE_FIXED_BRICK),
+			PART_TYPE_CORE_COMPONENT, 0, std::vector<double>());
+
+    boost::shared_ptr<PartRepresentation> replacePattern = PartRepresentation::create(
+			INVERSE_PART_TYPE_MAP.at(PART_TYPE_FIXED_BRICK),
+			PART_TYPE_CORE_COMPONENT, 0, std::vector<double>());
+    this->rules_.push_back( boost::shared_ptr<Rule>(new Rule(2, searchPattern, replacePattern)));
 }
 
-Grammar::Rule::Rule(int iterations){
+Grammar::Rule::Rule(int iterations, boost::shared_ptr<PartRepresentation> searchPattern,
+                        boost::shared_ptr<PartRepresentation> replacePattern){
     this->iterations_ = iterations;
+    this->searchPattern_ = searchPattern;
+    this->replacePattern_ = replacePattern;
 }
 
 boost::shared_ptr<PartRepresentation> buildTree(void){

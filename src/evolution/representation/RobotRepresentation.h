@@ -252,7 +252,7 @@ private:
 	/**
 	 * Grammar used only for indirect encoding
 	 */
-	Grammar* grammar_;
+	boost::shared_ptr<Grammar> grammar_;
 
 	/**
 	 * Points to the root of the robot body tree

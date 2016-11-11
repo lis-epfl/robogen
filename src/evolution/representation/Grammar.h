@@ -46,33 +46,27 @@ namespace robogen{
     class Grammar{
     public:
 
-        class Axiom{
-        public:
-            Axiom();
-        private:
-            boost::shared_ptr<PartRepresentation> baseTree;
-        };
-
         class Rule{
         public:
-            Rule(int iterations);
+            Rule(int iterations, boost::shared_ptr<PartRepresentation> searchPattern,
+                            boost::shared_ptr<PartRepresentation> replacePattern);
         private:
             int iterations_;
-            boost::shared_ptr<PartRepresentation> NodeToSearch;
-            boost::shared_ptr<PartRepresentation> NodeToReplace;
+            boost::shared_ptr<PartRepresentation> searchPattern_;
+            boost::shared_ptr<PartRepresentation> replacePattern_;
         };
 
         /**
         * Default constructor, which takes as an axiom an initially random robot.
         */
-        Grammar();
+        Grammar(boost::shared_ptr<PartRepresentation> axiom);
 
         /**
         * Grow a tree according to the current rules and alphabet of the grammar.
         */
         boost::shared_ptr<PartRepresentation> buildTree(void);
     private:
-        Axiom axiom_;
+        boost::shared_ptr<PartRepresentation> axiom_;
         std::vector< boost::shared_ptr<Rule> > rules_;
     };
 }

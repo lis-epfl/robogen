@@ -43,6 +43,14 @@
 #define MAX_MUTATION_ATTEMPTS 100 //TODO move this somewhere else
 namespace robogen {
 
+class GrammarMutator{
+public:
+	GrammarMutator();
+	bool mutateGramar(boost::shared_ptr<RobotRepresentation> &robot);
+private:
+	bool shuffleRules(boost::shared_ptr<RobotRepresentation> &robot);
+};
+
 class Mutator {
 
 public:
