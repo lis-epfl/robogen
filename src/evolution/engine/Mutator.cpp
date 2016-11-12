@@ -43,7 +43,33 @@
 
 namespace robogen {
 
-Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
+IndirectMutator::~IndirectMutator() {
+}
+
+IndirectMutator::IndirectMutator(boost::shared_ptr<EvolverConfiguration> conf,
+		boost::random::mt19937 &rng) :
+		conf_(conf), rng_(rng){
+
+}
+
+void IndirectMutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
+
+}
+
+void IndirectMutator::randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot) {
+
+}
+
+std::vector<boost::shared_ptr<RobotRepresentation> > IndirectMutator::createOffspring(
+			boost::shared_ptr<RobotRepresentation> parent1,
+			boost::shared_ptr<RobotRepresentation> parent2) {
+
+	std::vector<boost::shared_ptr<RobotRepresentation> > offspring;
+
+	return offspring;
+}
+
+DirectMutator::DirectMutator(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::random::mt19937 &rng) :
 		conf_(conf), rng_(rng), brainMutate_(conf->pBrainMutate),
 		weightCrossover_(conf->pBrainCrossover) {
@@ -85,10 +111,10 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 	}
 }
 
-Mutator::~Mutator() {
+DirectMutator::~DirectMutator() {
 }
 
-std::vector<boost::shared_ptr<RobotRepresentation> > Mutator::createOffspring(
+std::vector<boost::shared_ptr<RobotRepresentation> > DirectMutator::createOffspring(
 			boost::shared_ptr<RobotRepresentation> parent1,
 			boost::shared_ptr<RobotRepresentation> parent2) {
 
@@ -114,7 +140,7 @@ std::vector<boost::shared_ptr<RobotRepresentation> > Mutator::createOffspring(
 	return offspring;
 }
 
-void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
+void DirectMutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	boost::random::uniform_int_distribution<> dist(conf_->minNumInitialParts,
 			conf_->maxNumInitialParts);
@@ -143,7 +169,7 @@ void Mutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
 	}
 }
 
-void Mutator::randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot) {
+void DirectMutator::randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// randomize weights and biases randomly in valid range
 	boost::random::uniform_01<double> distrib;
@@ -189,7 +215,7 @@ void Mutator::randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 
 }
 
-bool Mutator::mutate(boost::shared_ptr<RobotRepresentation>& robot) {
+bool DirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	bool mutated = false;
 
@@ -216,7 +242,7 @@ double clip(double value, double min, double max) {
 	return value;
 }
 
-bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
+bool DirectMutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 	bool mutated = false;
 
 	// first potentially add hidden neurons
@@ -316,7 +342,7 @@ bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 	return mutated;
 }
 
-bool Mutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
+bool DirectMutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
 		boost::shared_ptr<RobotRepresentation>& b) {
 
 	if (!weightCrossover_(rng_)) {
@@ -369,23 +395,23 @@ bool Mutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
 	return true;
 }
 
-typedef bool (Mutator::*MutationOperator)(
+typedef bool (DirectMutator::*MutationOperator)(
 		boost::shared_ptr<RobotRepresentation>&);
 
 typedef std::pair<MutationOperator,
 		boost::random::bernoulli_distribution<double> > MutOpPair;
 
-bool Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
+bool DirectMutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 #ifdef DEBUG_MUTATE
 	std::cout << "mutating body" << std::endl;
 #endif
 	bool mutated = false;
-	MutOpPair mutOpPairs[] = { std::make_pair(&Mutator::removeSubtree,
-			subtreeRemovalDist_), std::make_pair(&Mutator::duplicateSubtree,
-			subtreeDuplicationDist_), std::make_pair(&Mutator::swapSubtrees,
-			subtreeSwapDist_), std::make_pair(&Mutator::insertNode,
-			nodeInsertDist_), std::make_pair(&Mutator::removeNode,
-			nodeRemovalDist_), std::make_pair(&Mutator::mutateParams,
+	MutOpPair mutOpPairs[] = { std::make_pair(&DirectMutator::removeSubtree,
+			subtreeRemovalDist_), std::make_pair(&DirectMutator::duplicateSubtree,
+			subtreeDuplicationDist_), std::make_pair(&DirectMutator::swapSubtrees,
+			subtreeSwapDist_), std::make_pair(&DirectMutator::insertNode,
+			nodeInsertDist_), std::make_pair(&DirectMutator::removeNode,
+			nodeRemovalDist_), std::make_pair(&DirectMutator::mutateParams,
 			paramMutateDist_) };
 
 	int numOperators = sizeof(mutOpPairs) / sizeof(MutOpPair);
@@ -444,7 +470,7 @@ bool Mutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 	return mutated;
 }
 
-bool Mutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
+bool DirectMutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Get a random body node
 	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
@@ -463,7 +489,7 @@ bool Mutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 	return success;
 }
 
-bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
+bool DirectMutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Get a random root of the tree to duplicate
 	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
@@ -517,7 +543,7 @@ bool Mutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 
 }
 
-bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
+bool DirectMutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Get a random root of the tree to duplicate
 	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
@@ -574,7 +600,7 @@ bool Mutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 
 }
 
-bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
+bool DirectMutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 
@@ -640,7 +666,7 @@ bool Mutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 }
 
-bool Mutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
+bool DirectMutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Select node for removal
 	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
@@ -657,7 +683,7 @@ bool Mutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 }
 
-bool Mutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
+bool DirectMutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Select node for mutation
 	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();

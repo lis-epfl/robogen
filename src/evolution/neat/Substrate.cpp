@@ -54,7 +54,7 @@ Substrate::Substrate()
     m_max_weight_and_bias = 5.0;
     m_min_time_const = 0.1;
     m_max_time_const = 1.0;
-};
+}
 
 
 Substrate::Substrate(std::vector<std::vector<double> >& a_inputs,

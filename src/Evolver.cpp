@@ -184,7 +184,6 @@ namespace robogen {
 			exitRobogen(EXIT_FAILURE);
 		}
 
-		mutator.reset(new Mutator(conf, rng));
 		log.reset(new EvolverLog());
 		try {
 			if (!log->init(conf, robotConf, outputDirectory, overwrite, saveAll)) {
@@ -229,8 +228,26 @@ namespace robogen {
 
 		neat = (conf->evolutionaryAlgorithm == EvolverConfiguration::HYPER_NEAT);
 		population.reset(new Population());
+
+		// -------------------------------------------
+		// Check weather direct encoding is used
+		// -------------------------------------------
+
+		if(conf->encoding == EvolverConfiguration::ENCODING_DIRECT){
+			std::cout << "Direct encoding: The parsed robot will"
+					<< " work as a base population." << std::endl;
+
+			//Using default mutator, which acts on the Body Tree
+			mutator.reset(new DirectMutator(conf, rng));
+		} else {
+			std::cout << "Indirect encoding: The parsed robot will"
+					<< " work as an axiom." << std::endl;
+			//Using grammar mutator, which modifies the grammar rules.
+			mutator.reset(new IndirectMutator(conf, rng));
+		}
+
 		if (!population->init(referenceBot, conf->mu, mutator, growBodies,
-				(!(conf->useBrainSeed || neat)) ) ) {
+					(!(conf->useBrainSeed || neat)) ) ) {
 			std::cerr << "Error when initializing population!" << std::endl;
 			exitRobogen(EXIT_FAILURE);
 		}

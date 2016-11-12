@@ -43,15 +43,57 @@
 #define MAX_MUTATION_ATTEMPTS 100 //TODO move this somewhere else
 namespace robogen {
 
-class GrammarMutator{
+class Mutator{
 public:
-	GrammarMutator();
-	bool mutateGramar(boost::shared_ptr<RobotRepresentation> &robot);
+	/**
+	 * Performs mutation and crossover on a pair of robots
+	 */
+	virtual std::vector<boost::shared_ptr<RobotRepresentation> > createOffspring(
+				boost::shared_ptr<RobotRepresentation> parent1,
+				boost::shared_ptr<RobotRepresentation> parent2 =
+						boost::shared_ptr<RobotRepresentation>()) = 0;
+
+	virtual void growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) = 0;
+	virtual void randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot) = 0;
+};
+
+class IndirectMutator: public Mutator{
+public:
+	/**
+	 * Creates a Robogen brain mutator with the specified settings
+	 * @param pBrainMutate probability for a weight or bias to mutate
+	 * @param brainMuteSigma sigma of normal distribution for brain mutation
+	 * @param pBrainCrossover probability for crossover among brains
+	 */
+	IndirectMutator(boost::shared_ptr<EvolverConfiguration> conf,
+			boost::random::mt19937 &rng);
+
+	virtual ~IndirectMutator();
+
+	/**
+	 * Performs mutation and crossover on a pair of robots
+	 */
+	std::vector<boost::shared_ptr<RobotRepresentation> > createOffspring(
+			boost::shared_ptr<RobotRepresentation> parent1,
+			boost::shared_ptr<RobotRepresentation> parent2 =
+					boost::shared_ptr<RobotRepresentation>());
+
+	void growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot);
+	void randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot);
 private:
+	/**
+	 * Evolver Configuration
+	 */
+	boost::shared_ptr<EvolverConfiguration> conf_;
+
+	/**
+	 * Random number generator
+	 */
+	boost::random::mt19937 &rng_;
 	bool shuffleRules(boost::shared_ptr<RobotRepresentation> &robot);
 };
 
-class Mutator {
+class DirectMutator: public Mutator {
 
 public:
 
@@ -61,10 +103,10 @@ public:
 	 * @param brainMuteSigma sigma of normal distribution for brain mutation
 	 * @param pBrainCrossover probability for crossover among brains
 	 */
-	Mutator(boost::shared_ptr<EvolverConfiguration> conf,
+	DirectMutator(boost::shared_ptr<EvolverConfiguration> conf,
 			boost::random::mt19937 &rng);
 
-	virtual ~Mutator();
+	virtual ~DirectMutator();
 
 	/**
 	 * Performs mutation and crossover on a pair of robots

@@ -939,4 +939,4 @@ bool NeuralNetwork::Load(const char *a_filename)
 }
 
 
-}; // namespace NEAT
+} // namespace NEAT
