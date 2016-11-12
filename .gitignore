@@ -11,6 +11,9 @@ NeuralNetwork.template
 .cproject
 .project
 
+# Ignore vscode project files
+.vscode
+
 # Don't ignore this file
 !.gitignore
 
