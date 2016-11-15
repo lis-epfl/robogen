@@ -233,17 +233,24 @@ namespace robogen {
 		// Check weather direct encoding is used
 		// -------------------------------------------
 
-		if(conf->encoding == EvolverConfiguration::ENCODING_DIRECT){
-			std::cout << "Direct encoding: The parsed robot will"
-					<< " work as a base population." << std::endl;
-
-			//Using default mutator, which acts on the Body Tree
+		if(conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER){
+			std::cout << "Note: Encoding type parameter"
+					<< " will be ignored." << std::endl;
+			//Using grammar mutator, which modifies the grammar rules.
 			mutator.reset(new DirectMutator(conf, rng));
 		} else {
-			std::cout << "Indirect encoding: The parsed robot will"
-					<< " work as an axiom." << std::endl;
-			//Using grammar mutator, which modifies the grammar rules.
-			mutator.reset(new IndirectMutator(conf, rng));
+			if(conf->encoding == EvolverConfiguration::ENCODING_DIRECT){
+				std::cout << "Direct encoding: The parsed robot will"
+						<< " work as a base population." << std::endl;
+
+				//Using default mutator, which acts on the Body Tree
+				mutator.reset(new DirectMutator(conf, rng));
+			} else {
+				std::cout << "Indirect encoding: The parsed robot will"
+						<< " work as an axiom." << std::endl;
+				//Using grammar mutator, which modifies the grammar rules.
+				mutator.reset(new IndirectMutator(conf, rng));
+			}
 		}
 
 		if (!population->init(referenceBot, conf->mu, mutator, growBodies,

@@ -1,0 +1,44 @@
+0 CoreComponent Core 0
+	0 ActiveHinge Hip1 1 
+		0 FixedBrick UpperLeg1 1
+			0 ActiveHinge Knee1 0 
+				0 FixedBrick LowerLeg1 0
+					0 ParametricJoint Foot1 0 0.1 0 0 
+						0 FixedBrick OtherLeg1 0
+							1 ParametricJoint OtherFoot1 0 0.02 0 0 
+							2 ParametricJoint OtherFoot2 0 0.02 0 0 
+	1 ActiveHinge Hip2 1 
+		0 FixedBrick UpperLeg2 1
+			0 ActiveHinge Knee2 0 
+				0 FixedBrick LowerLeg2 0 
+					0 ParametricJoint Foot2 0 0.1 0 0 
+						0 FixedBrick OtherLeg2 0
+							1 ParametricJoint OtherFoot3 0 0.02 0 0 
+							2 ParametricJoint OtherFoot4 0 0.02 0 0 
+	2 ActiveHinge Hip3 0 
+		0 FixedBrick UpperLeg3 1
+			0 ActiveHinge Knee3 0 
+				0 FixedBrick LowerLeg3 0 
+					0 ParametricJoint Foot3 0 0.1 0 0 
+						0 FixedBrick OtherLeg3 0
+							1 ParametricJoint OtherFoot5 0 0.02 0 0 
+							2 ParametricJoint OtherFoot6 0 0.02 0 0 
+	3 ActiveHinge Hip4 0 
+		0 FixedBrick UpperLeg4 1
+			0 ActiveHinge Knee4 0 
+				0 FixedBrick LowerLeg4 0 
+					0 ParametricJoint Foot4 0 0.1 0 0 
+						0 FixedBrick OtherLeg4 0
+							1 ParametricJoint OtherFoot7 0 0.02 0 0 
+							2 ParametricJoint OtherFoot8 0 0.02 0 0 
+
+
+
+Hip1 0 Oscillator 2 0 0.2
+Hip2 0 Oscillator 2 0.5 0.2
+Hip3 0 Oscillator 2 0 0.2
+Hip4 0 Oscillator 2 0.5 0.2
+Knee1 0 Oscillator 2 0 0.8
+Knee2 0 Oscillator 2 0 0.8
+Knee3 0 Oscillator 2 0.5 0.8
+Knee4 0 Oscillator 2 0.5 0.8

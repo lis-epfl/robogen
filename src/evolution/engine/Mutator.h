@@ -80,6 +80,7 @@ public:
 
 	void growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot);
 	void randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot);
+
 private:
 	/**
 	 * Evolver Configuration
@@ -90,7 +91,31 @@ private:
 	 * Random number generator
 	 */
 	boost::random::mt19937 &rng_;
+
+	/**
+	 * Master Mutator
+	 */
+	void mutate(boost::shared_ptr<RobotRepresentation>& robot);
+
+	/**
+	 * Mutation for the Axiom and the rules 
+	 */
+	bool insertNode(boost::shared_ptr<RobotRepresentation>& robot);
 	bool shuffleRules(boost::shared_ptr<RobotRepresentation> &robot);
+
+	/**
+	 * Probability distribution for calling mutation operators
+	 */
+	boost::random::bernoulli_distribution<double> subtreeRemovalDist_;
+	boost::random::bernoulli_distribution<double> subtreeDuplicationDist_;
+	boost::random::bernoulli_distribution<double> subtreeSwapDist_;
+	boost::random::bernoulli_distribution<double> nodeInsertDist_;
+	boost::random::bernoulli_distribution<double> nodeRemovalDist_;
+	boost::random::bernoulli_distribution<double> paramMutateDist_;
+
+	boost::random::bernoulli_distribution<double> oscillatorNeuronDist_;
+
+	boost::random::bernoulli_distribution<double> addHiddenNeuronDist_;
 };
 
 class DirectMutator: public Mutator {
