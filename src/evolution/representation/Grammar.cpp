@@ -28,11 +28,11 @@ Grammar::Grammar(boost::shared_ptr<PartRepresentation> axiom){
     this->rules_.push_back( boost::shared_ptr<Rule>(new Rule(2, searchPattern, replacePattern)));
 }
 
-Grammar::Rule::Rule(int iterations, boost::shared_ptr<PartRepresentation> searchPattern,
-                        boost::shared_ptr<PartRepresentation> replacePattern){
+Grammar::Rule::Rule(int iterations, boost::shared_ptr<PartRepresentation> predecessor,
+                        boost::shared_ptr<PartRepresentation> successor){
     this->iterations_ = iterations;
-    this->searchPattern_ = searchPattern;
-    this->replacePattern_ = replacePattern;
+    this->predecessor_ = predecessor;
+    this->successor_ = successor;
 }
 
 boost::shared_ptr<PartRepresentation> buildTree(void){

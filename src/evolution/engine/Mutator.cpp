@@ -207,22 +207,50 @@ std::vector<boost::shared_ptr<RobotRepresentation> > IndirectMutator::createOffs
 }
 
 void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
-	bool success = false;
-	for (unsigned int attempt = 0;
-			(attempt < conf_->maxBodyMutationAttempts); ++attempt) {
+	RobotRepresentation::IdPartMap bot = robot->getBody();
+	typedef RobotRepresentation::IdPartMap::iterator it_type;
 
-		boost::shared_ptr<RobotRepresentation> newBot = boost::shared_ptr<
-				RobotRepresentation>(new RobotRepresentation(*robot.get()));
-		success = this->insertNode(newBot);
-		int errorCode;
+	std::cout << "%%%%%%%%%%%%% MUTATING %%%%%%%%%%%%%%%" << std::endl;
 
-		std::vector<std::pair<std::string, std::string> > affectedBodyParts;
-		if (success
-				&& BodyVerifier::verify(*newBot.get(), errorCode,
-						affectedBodyParts, PRINT_ERRORS)) {
-			robot = newBot;
-			robot->setDirty();
-			break;
+	for(it_type iterator = bot.begin(); iterator != bot.end(); iterator++) {
+		// iterator->first = key
+		// iterator->second = value
+		std::cout << "Working in piece " << iterator->first << std::endl;
+		std::cout << "----> ID = " << iterator->second.lock()->getType() << std::endl;
+
+		if(iterator->second.lock()->getType() == PART_TYPE_FIXED_BRICK){
+
+			std::cout << "------------------> IT'S A BRICK!!!" << std::endl;
+			std::cout << "------------------> Parent in slot " << iterator->second.lock()->getOrientation() << std::endl;
+
+			if(iterator->second.lock()->getChildrenCount()==0 || 1==1){
+				std::cout << "--------------------> NO CHHILDREENNNNNN PAAAARTYYYYYYYY!!!!" << std::endl;
+
+				char type = conf_->allowedBodyPartTypes[2];
+				std::cout << PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type)) << std::endl;
+
+				unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type));
+				std::vector<double> parameters;
+				boost::random::uniform_01<double> paramDist;
+				for (unsigned int i = 0; i < nParams; ++i) {
+					parameters.push_back(0.1f);
+				}
+
+				boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
+					type,
+					"",
+					0, //orientation
+					parameters);
+
+				robot->insertPart(iterator->first,
+					0, //Parent slot
+					newPart,
+					0, //newPartSlot
+					0 ? NeuronRepresentation::OSCILLATOR :
+							NeuronRepresentation::SIGMOID,
+							PRINT_ERRORS);
+			}
+
 		}
 	}
 }

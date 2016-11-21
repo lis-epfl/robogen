@@ -48,12 +48,12 @@ namespace robogen{
 
         class Rule{
         public:
-            Rule(int iterations, boost::shared_ptr<PartRepresentation> searchPattern,
-                            boost::shared_ptr<PartRepresentation> replacePattern);
+            Rule(int iterations, boost::shared_ptr<PartRepresentation> predecessor,
+                            boost::shared_ptr<PartRepresentation> successor);
         private:
             int iterations_;
-            boost::shared_ptr<PartRepresentation> searchPattern_;
-            boost::shared_ptr<PartRepresentation> replacePattern_;
+            boost::shared_ptr<PartRepresentation> predecessor_;
+            boost::shared_ptr<PartRepresentation> successor_;
         };
 
         /**
