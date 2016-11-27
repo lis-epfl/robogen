@@ -119,6 +119,16 @@ public:
 	const IdPartMap &getBody() const;
 
 	/**
+	 * very obvious
+	 */
+	void rebuildBodyMap(void);
+
+	/**
+	 * To perform indirect mutation operations
+	 */
+	boost::shared_ptr<Grammar> getGrammar(void);
+
+	/**
 	 * Evaluate individual using given socket and given configuration file.
 	 * @param socket
 	 * @param robotConf

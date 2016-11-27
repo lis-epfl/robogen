@@ -207,52 +207,20 @@ std::vector<boost::shared_ptr<RobotRepresentation> > IndirectMutator::createOffs
 }
 
 void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
-	RobotRepresentation::IdPartMap bot = robot->getBody();
-	typedef RobotRepresentation::IdPartMap::iterator it_type;
 
-	std::cout << "%%%%%%%%%%%%% MUTATING %%%%%%%%%%%%%%%" << std::endl;
+	boost::shared_ptr<Grammar> tmpGrammar = robot->getGrammar();
 
-	for(it_type iterator = bot.begin(); iterator != bot.end(); iterator++) {
-		// iterator->first = key
-		// iterator->second = value
-		std::cout << "Working in piece " << iterator->first << std::endl;
-		std::cout << "----> ID = " << iterator->second.lock()->getType() << std::endl;
+	std::cout << "Before mutation " << robot->getBody().size() << std::endl;
 
-		if(iterator->second.lock()->getType() == PART_TYPE_FIXED_BRICK){
+	//After mutating the rules or the axiom, we build the robot.
+	tmpGrammar->buildTree();
 
-			std::cout << "------------------> IT'S A BRICK!!!" << std::endl;
-			std::cout << "------------------> Parent in slot " << iterator->second.lock()->getOrientation() << std::endl;
+	//The grammar has spoken:
+	//Now a new tree with a new network has been built. We need to update
+	//the part map.
+	robot->rebuildBodyMap();
 
-			if(iterator->second.lock()->getChildrenCount()==0 || 1==1){
-				std::cout << "--------------------> NO CHHILDREENNNNNN PAAAARTYYYYYYYY!!!!" << std::endl;
-
-				char type = conf_->allowedBodyPartTypes[2];
-				std::cout << PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type)) << std::endl;
-
-				unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type));
-				std::vector<double> parameters;
-				boost::random::uniform_01<double> paramDist;
-				for (unsigned int i = 0; i < nParams; ++i) {
-					parameters.push_back(0.1f);
-				}
-
-				boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
-					type,
-					"",
-					0, //orientation
-					parameters);
-
-				robot->insertPart(iterator->first,
-					0, //Parent slot
-					newPart,
-					0, //newPartSlot
-					0 ? NeuronRepresentation::OSCILLATOR :
-							NeuronRepresentation::SIGMOID,
-							PRINT_ERRORS);
-			}
-
-		}
-	}
+	std::cout << "After mutation " << robot->getBody().size() << std::endl;
 }
 
 DirectMutator::DirectMutator(boost::shared_ptr<EvolverConfiguration> conf,

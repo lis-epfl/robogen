@@ -70,8 +70,6 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 	// special treatment for base-pointed instances of derived classes as are
 	// our body parts
 	bodyTree_ = r.bodyTree_->cloneSubtree();
-	// Similar treatment for the grammar
-	this->grammar_.reset(new Grammar(r.bodyTree_->cloneSubtree()));
 	// neural network pointer needs to be reset to a copy-constructed instance
 	neuralNetwork_.reset(
 			new NeuralNetworkRepresentation(*(r.neuralNetwork_.get())));
@@ -93,6 +91,9 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 	fitness_ = r.fitness_;
 	evaluated_ = r.evaluated_;
 	maxid_ = r.maxid_;
+
+	// Similar treatment for the grammar
+	this->grammar_.reset(new Grammar(bodyTree_, neuralNetwork_, this->maxid_));
 }
 
 /**
@@ -373,7 +374,7 @@ bool RobotRepresentation::init() {
 		return false;
 	}
 	bodyTree_ = corePart;
-	this->grammar_.reset(new Grammar(bodyTree_->cloneSubtree()));
+	//this->grammar_.reset(new Grammar(bodyTree_->cloneSubtree()));
 	idToPart_[PART_TYPE_CORE_COMPONENT] = boost::weak_ptr<PartRepresentation>(
 			corePart);
 
@@ -400,6 +401,8 @@ bool RobotRepresentation::init() {
 	}
 
 	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
+
+	this->grammar_.reset(new Grammar(bodyTree_, neuralNetwork_, this->maxid_));
 
 	return true;
 }
@@ -565,7 +568,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 		}
 	}
 
-
+	this->grammar_.reset(new Grammar(bodyTree_, neuralNetwork_, this->maxid_));
 
 	return true;
 }
@@ -595,6 +598,28 @@ boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain(
 
 const RobotRepresentation::IdPartMap& RobotRepresentation::getBody() const {
 	return idToPart_;
+}
+
+void RobotRepresentation::rebuildBodyMap(){
+	// rebuild ID to part map
+	this->idToPart_.clear();
+	std::queue<boost::shared_ptr<PartRepresentation> > q;
+	q.push(this->bodyTree_);
+	while (!q.empty()) {
+		boost::shared_ptr<PartRepresentation> cur = q.front();
+		q.pop();
+		//Using at instead of []
+		this->idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
+		for (unsigned int i = 0; i < cur->getArity(); ++i) {
+			if (cur->getChild(i)) {
+				q.push(cur->getChild(i));
+			}
+		}
+	}
+}
+
+boost::shared_ptr<Grammar> RobotRepresentation::getGrammar(void){
+	return this->grammar_;
 }
 
 const std::string& RobotRepresentation::getBodyRootId() {
