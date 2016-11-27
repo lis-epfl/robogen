@@ -127,8 +127,17 @@ namespace robogen{
         public:
             Rule(int iterations, boost::shared_ptr<PartRepresentation> predecessor,
                             boost::shared_ptr<PartRepresentation> successor);
+
+            bool matchesPredecessor(boost::shared_ptr<PartRepresentation> candidate);
+            void ignoreChildrenCount(bool state);
+            void ignorePosition(bool state);
+            void ignoreOrientation(bool state);
+            int getNumIterations(void);
         private:
             int iterations_;
+            bool ignoreChildrenCount_;
+            bool ignorePosition_;
+            bool ignoreOrientation_;
             boost::shared_ptr<PartRepresentation> predecessor_;
             boost::shared_ptr<PartRepresentation> successor_;
         };

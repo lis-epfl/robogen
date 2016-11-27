@@ -251,6 +251,41 @@ bool Grammar::Axiom::check() {
 
 }
 
+Grammar::Rule::Rule(int iterations, boost::shared_ptr<PartRepresentation> predecessor,
+                        boost::shared_ptr<PartRepresentation> successor){
+    this->iterations_ = iterations;
+    this->predecessor_ = predecessor;
+    this->successor_ = successor;
+
+	this->ignoreChildrenCount_=true;
+	this->ignorePosition_=true;
+	this->ignoreOrientation_=true;
+}
+
+int Grammar::Rule::getNumIterations(){
+	return this->iterations_;
+}
+
+void Grammar::Rule::ignoreChildrenCount(bool state){
+	this->ignoreChildrenCount_=state;
+}
+
+void Grammar::Rule::ignorePosition(bool state){
+	this->ignorePosition_=state;
+}
+
+void Grammar::Rule::ignoreOrientation(bool state){
+	this->ignoreOrientation_=state;
+}
+
+bool Grammar::Rule::matchesPredecessor(boost::shared_ptr<PartRepresentation> candidate){
+	bool matches=false;
+	if(candidate->getType()==this->predecessor_->getType())
+		if(candidate->getChildrenCount()==this->predecessor_->getChildrenCount() || this->ignoreChildrenCount_)
+			matches=true;
+	return matches;
+}
+
 Grammar::Grammar(boost::shared_ptr<PartRepresentation> bodytree,
                 boost::shared_ptr<NeuralNetworkRepresentation> neuralNetwork,
 				int maxid){
@@ -259,7 +294,6 @@ Grammar::Grammar(boost::shared_ptr<PartRepresentation> bodytree,
 
 	this->maxid_ = maxid;
 
-	std::cout<< "Creating grammar" << std::endl;
 	this->pBodyTree_=bodytree;
     this->pNeuralNetwork_.reset(new NeuralNetworkRepresentation(*(neuralNetwork.get())));
 
@@ -274,25 +308,21 @@ Grammar::Grammar(boost::shared_ptr<PartRepresentation> bodytree,
     this->rules_.push_back( boost::shared_ptr<Rule>(new Rule(2, searchPattern, replacePattern)));
 }
 
-Grammar::Rule::Rule(int iterations, boost::shared_ptr<PartRepresentation> predecessor,
-                        boost::shared_ptr<PartRepresentation> successor){
-    this->iterations_ = iterations;
-    this->predecessor_ = predecessor;
-    this->successor_ = successor;
-}
-
 boost::shared_ptr<PartRepresentation> Grammar::buildTree(void){
 
-	//this->pBodyTree_ = this->axiom_->getAxiomClone();
+	//We make the body tree of the robot mimic the axiom,
+	//while remaning independent
+	this->pBodyTree_->doppelGaenger(this->axiom_->getAxiomClone());
 
-	pIdToPart_.clear();
+	//We build a local map of the parts
+	this->pIdToPart_.clear();
 	std::queue<boost::shared_ptr<PartRepresentation> > q;
 	q.push(this->pBodyTree_);
 	while (!q.empty()) {
 		boost::shared_ptr<PartRepresentation> cur = q.front();
 		q.pop();
 		//Using at instead of []
-		pIdToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
+		this->pIdToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
 		for (unsigned int i = 0; i < cur->getArity(); ++i) {
 			if (cur->getChild(i)) {
 				q.push(cur->getChild(i));
@@ -302,51 +332,53 @@ boost::shared_ptr<PartRepresentation> Grammar::buildTree(void){
 
 	typedef IdPartMap::iterator it_type;
 
-	std::cout << "%%%%%%%%%%%%% MUTATING %%%%%%%%%%%%%%%" << std::endl;
-
-	std::cout << "Starting with " << this->pBodyTree_->numDescendants() << std::endl;
-
 	IdPartMap bot = pIdToPart_;
 
-	std::cout << "Equivalent to " << bot.size() << std::endl;
+	int nRules = this->rules_.size();
 
-	for(it_type iterator = bot.begin(); iterator != bot.end(); iterator++) {
-		// iterator->first = key
-		// iterator->second = value
+	//Iterate over every rule
+	for(int r=0;r<nRules;r++){
 
-		if(iterator->second.lock()->getType() == PART_TYPE_FIXED_BRICK){
+		//Repeat each rule as many times as required
+		for(int n=this->rules_.at(r)->getNumIterations();n>0;n--){
 
-			if(iterator->second.lock()->getChildrenCount()==0){
+			//look for the rule through all the tree
+			for(it_type iterator = bot.begin(); iterator != bot.end(); iterator++) {
 
-				char type = 'F';
+				if(this->rules_.at(r)->matchesPredecessor(iterator->second.lock())){
+				//if(iterator->second.lock()->getType() == PART_TYPE_FIXED_BRICK){
 
-				unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type));
-				std::vector<double> parameters;
-				for (unsigned int i = 0; i < nParams; ++i) {
-					parameters.push_back(0.1f);
+					if(iterator->second.lock()->getChildrenCount()==0 | 1==1){
+
+						char type = 'F';
+
+						unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type));
+						std::vector<double> parameters;
+						for (unsigned int i = 0; i < nParams; ++i) {
+							parameters.push_back(0.1f);
+						}
+
+						boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
+							type,
+							"",
+							0, //orientation
+							parameters);
+
+						this->insertPart(iterator->first,
+							0, //Parent slot
+							newPart,
+							0, //newPartSlot
+							0 ? NeuronRepresentation::OSCILLATOR :
+									NeuronRepresentation::SIGMOID,
+									false);
+					}
+
 				}
-
-				boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
-					type,
-					"",
-					0, //orientation
-					parameters);
-
-				this->insertPart(iterator->first,
-					0, //Parent slot
-					newPart,
-					0, //newPartSlot
-					0 ? NeuronRepresentation::OSCILLATOR :
-							NeuronRepresentation::SIGMOID,
-							false);
 			}
 
+			bot=pIdToPart_;
 		}
 	}
-
-	std::cout << "Finishing with " << this->pBodyTree_->numDescendants() << std::endl;
-
-	std::cout << "Equivalent to " << bot.size() << std::endl;
 
 	// Generate a core component
 
@@ -410,7 +442,6 @@ bool Grammar::insertPart(const std::string& parentPartId,
 		newPart->setChild(newPartSlot, childPart);
 
 	// Add to the map
-	std::cout << "New piece with id " << newUniqueId << std::endl;
 	pIdToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(newPart);
 
 	return true;

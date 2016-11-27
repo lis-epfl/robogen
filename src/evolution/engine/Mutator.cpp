@@ -210,8 +210,6 @@ void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
 
 	boost::shared_ptr<Grammar> tmpGrammar = robot->getGrammar();
 
-	std::cout << "Before mutation " << robot->getBody().size() << std::endl;
-
 	//After mutating the rules or the axiom, we build the robot.
 	tmpGrammar->buildTree();
 
@@ -219,8 +217,6 @@ void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
 	//Now a new tree with a new network has been built. We need to update
 	//the part map.
 	robot->rebuildBodyMap();
-
-	std::cout << "After mutation " << robot->getBody().size() << std::endl;
 }
 
 DirectMutator::DirectMutator(boost::shared_ptr<EvolverConfiguration> conf,
