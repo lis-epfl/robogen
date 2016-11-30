@@ -35,6 +35,7 @@
 
 #include "config/EvolverConfiguration.h"
 #include "PartList.h"
+#include "jansson.h"
 
 namespace robogen {
 
@@ -70,15 +71,29 @@ bool parseBounds(std::string value, double &min, double &max) {
 	return true;
 }
 
+bool EvolverConfiguration::initFromJSON(std::string configJSON) {
+	return this->init(configJSON, true);
+}
 
+bool EvolverConfiguration::init(std::string configFileName) {
+	return this->init(configFileName, false);
+}
 
 
 /**
  * Parses options from given conf file.
  */
-bool EvolverConfiguration::init(std::string configFileName) {
+bool EvolverConfiguration::init(std::string config, bool json) {
 
-	this->confFileName = configFileName;
+	if (json) {
+		confFileName = "";
+		confJSON = config;
+	} else {
+		confFileName = config;
+		confJSON = "";
+	}
+	usingFiles = !json;
+
 
 	// cleanse operator probabilities before reading in (not specified = 0)
 	memset(bodyOperatorProbability, 0, sizeof(bodyOperatorProbability));
@@ -123,13 +138,33 @@ bool EvolverConfiguration::init(std::string configFileName) {
     bodyParamSigma = 0.1;
 
 	// DON'T AUTO-INDENT THE FOLLOWING ON ECLIPSE:
-	desc.add_options()
-		("referenceRobotFile",
+    if (usingFiles) {
+    	desc.add_options()
+			("referenceRobotFile",
 				boost::program_options::value<std::string>(&referenceRobotFile),
 				"Path to the reference robot file")
-		("simulatorConfFile",
+			("simulatorConfFile",
 				boost::program_options::value<std::string>(&simulatorConfFile)
 				->required(), "Path to simulator configuration file")
+			("neatParamsFile",
+				boost::program_options::value<std::string>(&neatParamsFile),
+				"File for NEAT/HyperNEAT specific params")
+			;
+    } else {
+    	desc.add_options()
+			("referenceRobot",
+				boost::program_options::value<std::string>(&referenceRobotJSON),
+				"Reference robot in JSON form")
+			("simulatorConf",
+				boost::program_options::value<std::string>(&simulatorConfJSON)
+				, "Simulator configuration in JSON form ")
+			;
+    	// not requiring simulatorCOnf, because will handle both of these
+		// separately.  Just including here for documentation
+    }
+
+
+	desc.add_options()
 		("mu",
 				boost::program_options::value<unsigned int>(&mu)
 				->required(), "Number of parents")
@@ -159,9 +194,6 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		("evolutionaryAlgorithm",
 				boost::program_options::value<std::string>(),
 				"EA: Basic or HyperNEAT")
-		("neatParamsFile",
-				boost::program_options::value<std::string>(&neatParamsFile),
-				"File for NEAT/HyperNEAT specific params")
 		("pBrainMutate", boost::program_options::value<double>
 				(&pBrainMutate)->required(),
 				"Probability of mutation for any single brain "\
@@ -223,8 +255,8 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				boost::program_options::value<unsigned int>(
 				&maxBodyMutationAttempts),
 				"Max number of body mutation attempts")
-		("socket", boost::program_options::value<std::vector<std::string> >()
-				->required(),	"Sockets to be used to connect to the server")
+		("socket", boost::program_options::value<std::vector<std::string> >(),
+				"Sockets to be used to connect to the server")
 		("addBodyPart",
 				boost::program_options::value<std::vector<std::string> >(
 				&allowedBodyPartTypeStrings),
@@ -247,16 +279,84 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	}
 	boost::program_options::variables_map vm;
 
-	if (confFileName == "help") {
+	if (config == "help") {
 		desc.print(std::cout);
 		return true;
 	}
 
+	//json_simulatorCo
 
 	try{
-		boost::program_options::store(
-					boost::program_options::parse_config_file<char>(
-							confFileName.c_str(), desc, false), vm);
+		if(usingFiles) {
+			boost::program_options::store(
+						boost::program_options::parse_config_file<char>(
+								confFileName.c_str(), desc, false), vm);
+		} else {
+			// if using json we have to load it into an input stream
+			// to give to the parser
+
+			json_t *root;
+			json_error_t error;
+
+			root = json_loads(confJSON.c_str(), 0, &error);
+			if (!root) {
+				std::cerr << "Error while loading evolver configuration JSON"
+						<< error.text;
+				return false;
+			}
+
+			std::stringstream ss;
+
+			const char *key;
+			json_t *value;
+			void *iter = json_object_iter(root);
+			while(iter)
+			{
+			    key = json_object_iter_key(iter);
+			    value = json_object_iter_value(iter);
+
+			    if (json_is_object(value)) {
+				    char * res = json_dumps(value, JSON_PRESERVE_ORDER);
+
+				    if ( res == NULL ) {
+				    	std::cerr << "Error: " << key << "NULL" << std::endl;
+				    	return false;
+				    } else {
+				    	if (std::string("simulatorConf").compare(key) == 0)
+				    		simulatorConfJSON = std::string(res);
+				    	else if(std::string("referenceRobot").compare(key) == 0)
+				    		referenceRobotJSON = std::string(res);
+
+						free(res);
+				    }
+			    } else {
+
+					ss << key << "=";
+
+					if (json_is_string(value))
+						ss << json_string_value(value);
+					else if(json_is_integer(value))
+						ss << json_integer_value(value);
+					else if(json_is_real(value))
+						ss << json_real_value(value);
+					else if(json_is_boolean(value))
+						ss << json_boolean_value(value);
+					else {
+						std::cerr << "Error while processing evolver configuration:"
+								<< "Invalid type for " << key << std::endl;
+						return false;
+					}
+
+					ss << std::endl;
+			    }
+			    iter = json_object_iter_next(root, iter);
+			}
+			json_decref(root);
+			boost::program_options::store(
+						boost::program_options::parse_config_file<char>(
+								ss, desc, false), vm);
+		}
+
 		boost::program_options::notify(vm);
 	}
 	catch (boost::program_options::error& e) {
@@ -295,8 +395,12 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	// parse evolution mode
 	if (vm["evolutionMode"].as<std::string>() == "brain"){
 		evolutionMode = BRAIN_EVOLVER;
-		if (referenceRobotFile.compare("") == 0) {
+		if (usingFiles && (referenceRobotFile.compare("") == 0)) {
 			std::cerr << "evolutionMode is \"brain\" but no referenceRobotFile"
+					<< " was provided" << std::endl;
+			return false;
+		} else if ((!usingFiles) && (referenceRobotJSON.compare("") == 0)) {
+			std::cerr << "evolutionMode is \"brain\" but no referenceRobot"
 					<< " was provided" << std::endl;
 			return false;
 		}
@@ -393,20 +497,22 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	// parse sockets. The used regex is not super-restrictive, but we count
 	// on the TcpSocket to find the error... else:
 	// http://www.regular-expressions.info/examples.html
-	static const boost::regex socketRegex("^([\\d\\.]*):(\\d*)$");
-	std::vector<std::string> encSocket =
-			vm["socket"].as<std::vector<std::string> >();
-	sockets.clear();
-	for (unsigned int i = 0; i<encSocket.size(); i++){
-		// match[0]:whole string, match[1]:IP, match[2]:port
-		if (!boost::regex_match(encSocket[i].c_str(), match, socketRegex)){
-			std::cerr << "Supplied socket argument \"" << encSocket[i] <<
-					"\" does not match pattern <ip address>:<port>" <<
-					std::endl;
-			return false;
+	if (vm.count("socket") > 0) {
+		static const boost::regex socketRegex("^([\\d\\.]*):(\\d*)$");
+		std::vector<std::string> encSocket =
+				vm["socket"].as<std::vector<std::string> >();
+		sockets.clear();
+		for (unsigned int i = 0; i<encSocket.size(); i++){
+			// match[0]:whole string, match[1]:IP, match[2]:port
+			if (!boost::regex_match(encSocket[i].c_str(), match, socketRegex)){
+				std::cerr << "Supplied socket argument \"" << encSocket[i] <<
+						"\" does not match pattern <ip address>:<port>" <<
+						std::endl;
+				return false;
+			}
+			sockets.push_back(std::pair<std::string, int>(std::string(match[1]),
+					std::atoi(match[2].first)));
 		}
-		sockets.push_back(std::pair<std::string, int>(std::string(match[1]),
-				std::atoi(match[2].first)));
 	}
 
 	// now that everything is parsed, we verify configuration validity
@@ -562,34 +668,35 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	}
 
 
-
-	// convert file names to absolute paths, so that will use one relative to
-	// directory where the evolver conf file is
-
 	const boost::filesystem::path confFilePath(this->confFileName);
+	if (usingFiles) {
+		// convert file names to absolute paths, so that will use one relative to
+		// directory where the evolver conf file is
 
-	if ( referenceRobotFile.compare("") != 0 ) {
-		const boost::filesystem::path referenceRobotFilePath(
-				referenceRobotFile);
-		if (!referenceRobotFilePath.is_absolute()) {
-			const boost::filesystem::path absolutePath =
-					boost::filesystem::absolute(referenceRobotFilePath,
-							confFilePath.parent_path());
-			referenceRobotFile = absolutePath.string();
+
+
+		if ( referenceRobotFile.compare("") != 0 ) {
+			const boost::filesystem::path referenceRobotFilePath(
+					referenceRobotFile);
+			if (!referenceRobotFilePath.is_absolute()) {
+				const boost::filesystem::path absolutePath =
+						boost::filesystem::absolute(referenceRobotFilePath,
+								confFilePath.parent_path());
+				referenceRobotFile = absolutePath.string();
+			}
+		}
+
+		if ( simulatorConfFile.compare("") != 0 ) {
+			const boost::filesystem::path simulatorConfFilePath(
+					simulatorConfFile);
+			if (!simulatorConfFilePath.is_absolute()) {
+				const boost::filesystem::path absolutePath =
+						boost::filesystem::absolute(simulatorConfFilePath,
+								confFilePath.parent_path());
+				simulatorConfFile = absolutePath.string();
+			}
 		}
 	}
-
-	if ( simulatorConfFile.compare("") != 0 ) {
-		const boost::filesystem::path simulatorConfFilePath(
-				simulatorConfFile);
-		if (!simulatorConfFilePath.is_absolute()) {
-			const boost::filesystem::path absolutePath =
-					boost::filesystem::absolute(simulatorConfFilePath,
-							confFilePath.parent_path());
-			simulatorConfFile = absolutePath.string();
-		}
-	}
-
 
 	// ---------------------------------------
 	// HyperNEAT stuff
@@ -653,7 +760,7 @@ bool EvolverConfiguration::init(std::string configFileName) {
 			neatParams.ActivationFunction_Linear_Prob = 1.0;
 
 
-			if ( neatParamsFile.compare("") != 0 ) {
+			if ( usingFiles && neatParamsFile.compare("") != 0 ) {
 				const boost::filesystem::path neatParamsFilePath(
 						neatParamsFile);
 				if (!neatParamsFilePath.is_absolute()) {

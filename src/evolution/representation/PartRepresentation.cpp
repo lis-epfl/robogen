@@ -118,6 +118,28 @@ bool PartRepresentation::setChild(unsigned int n,
 
 }
 
+boost::shared_ptr<PartRepresentation> PartRepresentation::deserialize(
+		const robogenMessage::BodyPart &partMessage) {
+	char type;
+	if( INVERSE_PART_TYPE_MAP.count(partMessage.type()) == 0) {
+		std::cerr << "Invalid body part type: " << partMessage.type()
+				<< std::endl;
+		return boost::shared_ptr<PartRepresentation>();
+	} else {
+		type = INVERSE_PART_TYPE_MAP.at(partMessage.type());
+	}
+
+	std::vector<double> params;
+
+	for (int i=0; i<partMessage.evolvableparam_size(); ++i) {
+		params.push_back(partMessage.evolvableparam(i).paramvalue());
+	}
+
+	return PartRepresentation::create(type, partMessage.id(),
+			partMessage.orientation(), params);
+
+}
+
 boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 		std::string id, unsigned int orientation, std::vector<double> params) {
 

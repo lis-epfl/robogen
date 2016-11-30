@@ -92,9 +92,16 @@ typedef struct EvolverConfiguration {
 	std::string confFileName;
 
 	/**
-	 * Parses a configuration from a proper configuration file
+	 * Or, JSON string of configuration
 	 */
+	std::string confJSON;
+
+	/**
+	 * Parses a configuration from a proper configuration file or JSON string
+	 */
+	bool initFromJSON(std::string configJSON);
 	bool init(std::string configFileName);
+	bool init(std::string config, bool json);
 
 	// GENERAL EVOLUTION PARAMS
 	// ========================================================================
@@ -105,9 +112,19 @@ typedef struct EvolverConfiguration {
 	std::string referenceRobotFile;
 
 	/**
+	 * Or, JSON string of robot
+	 */
+	std::string referenceRobotJSON;
+
+	/**
 	 * Configuration file for simulator
 	 */
 	std::string simulatorConfFile;
+
+	/**
+	 * Or, JSON string of simulatorConf
+	 */
+	std::string simulatorConfJSON;
 
 	/**
 	 * Population size
@@ -281,6 +298,11 @@ typedef struct EvolverConfiguration {
 	double pOscillatorNeuron;
 
 	double pAddHiddenNeuron;
+
+	/**
+	 * Specify if coming from JSON rather than files
+	 */
+	bool usingFiles;
 
 
 } EvolverConfiguration;

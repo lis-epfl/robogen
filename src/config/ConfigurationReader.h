@@ -66,6 +66,9 @@ public:
 	static boost::shared_ptr<RobogenConfig> parseConfigurationFile(
 			const std::string& fileName);
 
+	static boost::shared_ptr<RobogenConfig> parseConfigurationJSON(
+			const std::string& confJSON);
+
 	static boost::shared_ptr<RobogenConfig> parseRobogenMessage(
 				const robogenMessage::SimulatorConf& simulatorConf);
 

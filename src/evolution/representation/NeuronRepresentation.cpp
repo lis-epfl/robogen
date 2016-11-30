@@ -29,6 +29,8 @@
 #include "evolution/representation/NeuronRepresentation.h"
 #include <sstream>
 #include <iostream>
+#include "Robogen.h"
+
 namespace robogen {
 
 void NeuronRepresentation::init(ioPair identification, unsigned int layer,
@@ -64,6 +66,42 @@ NeuronRepresentation::NeuronRepresentation(ioPair identification,
 		const std::vector<double> params) {
 	this->init(identification, layer, type);
 	this->setParams(type, params);
+}
+
+NeuronRepresentation::NeuronRepresentation(const robogenMessage::Neuron
+		&neuronMessage) {
+	id_ = neuronMessage.id();
+	if(neuronMessage.layer() == "output")
+		layer_ = OUTPUT;
+	else if(neuronMessage.layer() == "input")
+		layer_ = INPUT;
+	else if(neuronMessage.layer() == "hidden")
+		layer_ = HIDDEN;
+	else {
+		std::cerr << "Invald layer : " << neuronMessage.layer() << std::endl;
+		exitRobogen(EXIT_FAILURE);
+	}
+	identification_.first = neuronMessage.bodypartid();
+	identification_.second = neuronMessage.ioid();
+
+	if(neuronMessage.type() == "simple") {
+		type_ = SIMPLE;
+	} else if(neuronMessage.type() == "sigmoid") {
+		type_ = SIGMOID;
+		bias_ = neuronMessage.bias();
+	} else if(neuronMessage.type() == "ctrnn_sigmoid") {
+		type_ = CTRNN_SIGMOID;
+		bias_ = neuronMessage.bias();
+		tau_ = neuronMessage.tau();
+	} else if(neuronMessage.type() == "oscillator") {
+		type_ = OSCILLATOR;
+		period_ = neuronMessage.period();
+		phaseOffset_ = neuronMessage.phaseoffset();
+	} else {
+		std::cerr << "Invald type : " << neuronMessage.type() << std::endl;
+		exitRobogen(EXIT_FAILURE);
+	}
+	gain_ = neuronMessage.gain();
 }
 
 

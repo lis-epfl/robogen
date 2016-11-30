@@ -454,6 +454,26 @@ robogenMessage::Brain NeuralNetworkRepresentation::serialize() {
 
 }
 
+NeuralNetworkRepresentation::NeuralNetworkRepresentation(
+		const robogenMessage::Brain &brainMessage) {
+
+	for(int i=0; i<brainMessage.neuron_size(); ++i) {
+
+		boost::shared_ptr<NeuronRepresentation> neuron(
+				new NeuronRepresentation( brainMessage.neuron(i) ));
+		neurons_[neuron->getIoPair()] = neuron;
+	}
+
+	for(int i=0; i<brainMessage.connection_size(); ++i) {
+		robogenMessage::NeuralConnection connectionMessage =
+				brainMessage.connection(i);
+		weights_[std::make_pair(connectionMessage.src(),
+				connectionMessage.dest())] = connectionMessage.weight();
+	}
+
+}
+
+
 std::string NeuralNetworkRepresentation::toString() {
 
 	std::stringstream str;

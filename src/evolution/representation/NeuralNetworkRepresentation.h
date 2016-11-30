@@ -80,8 +80,12 @@ public:
 	NeuralNetworkRepresentation(std::map<std::string,int> &sensorParts,
 			std::map<std::string,int> &motorParts);
 
-	// Copy constructor should be provided by the compiler. As there is no
-	// pointing going on, this should not cause any problems.
+
+	/**
+	 * Create a new neural network from a protobuf representation
+	 * AKA deserialize
+	 */
+	NeuralNetworkRepresentation(const robogenMessage::Brain &brainMessage);
 
 	virtual ~NeuralNetworkRepresentation();
 

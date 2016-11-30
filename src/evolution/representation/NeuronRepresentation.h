@@ -74,6 +74,8 @@ public:
 	NeuronRepresentation(ioPair identification,	unsigned int layer,
 			unsigned int type, const std::vector<double> params);
 
+	NeuronRepresentation(const robogenMessage::Neuron &neuronMessage);
+
 	virtual ~NeuronRepresentation();
 
 	/**

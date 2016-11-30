@@ -401,6 +401,119 @@ bool RobotRepresentation::init() {
 	return true;
 }
 
+bool RobotRepresentation::initFromJSON(const std::string &robotJSON) {
+
+	robogenMessage::Robot robotMessage;
+
+	try {
+		json2pb(robotMessage, robotJSON.c_str(), robotJSON.length());
+
+	} catch(std::exception &e) {
+		std::cerr << "Problems parsing the robot." << std::endl;
+		return false;
+	}
+
+	return initFromMessage(robotMessage);
+}
+
+bool RobotRepresentation::initFromMessage(const robogenMessage::Robot &robot) {
+
+	const robogenMessage::Body body = robot.body();
+	/*message BodyPart {
+	  required string id = 1;
+	  required string type = 2;
+	  required bool root = 3;
+	  repeated EvolvableParameter evolvableParam = 4;
+	  required int32 orientation = 5;
+	}
+
+	message BodyConnection {
+	  required string src = 1;
+	  required string dest = 2;
+	  required int32 srcSlot = 3;
+	  required int32 destSlot = 4;
+	}
+
+	message Body {
+	  repeated BodyPart part = 1;
+	  repeated BodyConnection connection = 2;
+	}*/
+
+
+	boost::shared_ptr<PartRepresentation> current;
+
+	// to keep the hard references around
+	std::vector<boost::shared_ptr<PartRepresentation> > parts;
+	// add all parts
+	for(int i=0; i<body.part_size(); ++i) {
+		current = PartRepresentation::deserialize(body.part(i));
+		if (!current) {
+			std::cerr << "Failed to create node" << std::endl;
+			return false;
+		}
+		idToPart_[current->getId()] =
+				boost::weak_ptr<PartRepresentation>(current);
+		parts.push_back(current);
+		if(body.part(i).root()) {
+			if(bodyTree_) {
+				std::cerr << "Multiple root nodes!" << std::endl;
+				return false;
+			}
+			bodyTree_ = current;
+		}
+	}
+
+	// add all connections
+	for(int i=0; i<body.connection_size(); ++i) {
+		const robogenMessage::BodyConnection connection = body.connection(i);
+		boost::shared_ptr<PartRepresentation> parent =
+				idToPart_[connection.src()].lock();
+		int srcSlot;
+
+		if (isCore(parent->getType())) {
+			srcSlot = connection.srcslot();
+		} else {
+			srcSlot = connection.srcslot() - 1;
+		}
+
+		if(parent->getChild(srcSlot)) {
+			std::cerr << "Attempt to overwrite child "
+					<< parent->getChild(srcSlot)->getId() << " of "
+					<< parent->getId() << " with "
+					<< connection.dest() << std::endl;
+			return false;
+		}
+
+
+
+		if (!parent->setChild(srcSlot,
+				idToPart_[connection.dest()].lock())) {
+			std::cerr << "Failed to set child." << std::endl;
+			return false;
+		}
+	}
+
+	neuralNetwork_.reset(new NeuralNetworkRepresentation(robot.brain()));
+
+
+	maxid_ = 1000;
+
+	// loop through existing ids to find what new maxid should be.
+	// this is necessary when trying to seed evolution with a previously
+	// evolved morphology
+	for(IdPartMap::iterator i = idToPart_.begin(); i!= idToPart_.end(); ++i) {
+		if(i->first.substr(0,4).compare("myid") == 0) {
+			int idVal = atoi(i->first.substr(4).c_str());
+			if (idVal >= maxid_) {
+				maxid_ = idVal + 1;
+			}
+		}
+	}
+
+
+	return true;
+}
+
 bool RobotRepresentation::init(std::string robotTextFile) {
 
 	// open file

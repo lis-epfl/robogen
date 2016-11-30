@@ -91,6 +91,9 @@ public:
 	 */
 	bool init(std::string robotTextFile);
 
+	bool initFromJSON(const std::string &robotJSON);
+	bool initFromMessage(const robogenMessage::Robot &robot);
+
 	/**
 	 * @return robot message of this robot to be transmitted to simulator
 	 * or stored as population checkpoint

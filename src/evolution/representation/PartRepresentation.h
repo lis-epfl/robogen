@@ -123,6 +123,10 @@ public:
 	 */
 	bool setChild(unsigned int n, boost::shared_ptr<PartRepresentation> part);
 
+
+	static boost::shared_ptr<PartRepresentation> deserialize(
+			const robogenMessage::BodyPart &partMessage);
+
 	/**
 	 * Factory pattern to create derived classes, i.e. body part representations
 	 */

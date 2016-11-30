@@ -46,6 +46,8 @@
 
 #include "utils/RobogenUtils.h"
 
+#include "utils/json2pb/json2pb.h"
+
 #define DEFAULT_LIGHT_SOURCE_HEIGHT (0.1)
 #define DEFAULT_OBSTACLE_DENSITY (0.)
 #define DEFAULT_MAX_LINEAR_ACCELERATION (15.0)
@@ -684,6 +686,20 @@ boost::shared_ptr<StartPositionConfig> ConfigurationReader::parseStartPositionFi
 	return boost::shared_ptr<StartPositionConfig>(
 			new StartPositionConfig(startPositions));
 
+}
+
+boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationJSON(
+		const std::string& confJSON) {
+
+	robogenMessage::SimulatorConf confMessage;
+	try {
+		json2pb(confMessage, confJSON.c_str(), confJSON.length());
+		return parseRobogenMessage(confMessage);
+	} catch(std::exception &e) {
+		std::cerr << "Problems parsing the configuration." << std::endl;
+		std::cerr << e.what() << std::endl;
+		return boost::shared_ptr<RobogenConfig>();
+	}
 }
 
 boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
