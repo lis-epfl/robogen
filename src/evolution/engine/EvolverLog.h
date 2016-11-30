@@ -73,6 +73,8 @@ public:
 	bool logGeneration(int generation, Population &population);
 
 private:
+	bool savingToDisk_;
+
 	/**
 	 * Log directory
 	 */

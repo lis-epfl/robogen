@@ -64,7 +64,11 @@ bool EvolverLog::init(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::shared_ptr<RobogenConfig> robotConf,
 		const std::string& logDirectory, bool overwrite, bool saveAll) {
 
-
+	if (logDirectory.length() == 0) {
+		savingToDisk_ = false;
+		return true;
+	}
+	savingToDisk_ = true;
 
 	saveAll_ = saveAll;
 
@@ -147,8 +151,10 @@ bool EvolverLog::logGeneration(int generation, Population &population) {
 	std::cout << "Generation " << generation <<
 				 ", Best: " << best << " Average: " << average << " STD: " <<
 				 	 stdev << std::endl;
-	bestAvgStd_ << generation << " " << best << " " <<
+	if(savingToDisk_) {
+		bestAvgStd_ << generation << " " << best << " " <<
 			average << " "  << stdev << std::endl;
+	}
 
 	std::cout << "All fitnesses:";
 	for(unsigned int i = 0; i<population.size(); ++i) {
@@ -159,25 +165,27 @@ bool EvolverLog::logGeneration(int generation, Population &population) {
 	// save robot file of best robot (don't do with fake robot representation)
 	#ifndef FAKEROBOTREPRESENTATION_H
 
-	boost::shared_ptr<RobotRepresentation> bestRobot = population.best();
+	if(savingToDisk_) {
+		boost::shared_ptr<RobotRepresentation> bestRobot = population.best();
 
-	{
-		std::stringstream ss;
-		ss << logPath_ + "/" + GENERATION_BEST_PREFIX << generation << ".json";
-
-		// De-comment to save protobuf binary file
-		// ss << logPath_ + "/" + GENERATION_BEST_PREFIX << generation << ".dat
-		// bestRobot->serialize().SerializeToOstream(&curRobotFile);
-		saveRobotJson(bestRobot, ss.str());
-	}
-
-
-	if(saveAll_) {
-		for(unsigned int i = 0; i<population.size(); ++i) {
+		{
 			std::stringstream ss;
-			ss << logPath_ + "/Generation-" << generation << "-Guy-" << (i+1)
-					<< ".json";
-			saveRobotJson(population[i], ss.str());
+			ss << logPath_ + "/" + GENERATION_BEST_PREFIX << generation << ".json";
+
+			// De-comment to save protobuf binary file
+			// ss << logPath_ + "/" + GENERATION_BEST_PREFIX << generation << ".dat
+			// bestRobot->serialize().SerializeToOstream(&curRobotFile);
+			saveRobotJson(bestRobot, ss.str());
+		}
+
+
+		if(saveAll_) {
+			for(unsigned int i = 0; i<population.size(); ++i) {
+				std::stringstream ss;
+				ss << logPath_ + "/Generation-" << generation << "-Guy-" << (i+1)
+						<< ".json";
+				saveRobotJson(population[i], ss.str());
+			}
 		}
 	}
 

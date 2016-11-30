@@ -48,6 +48,11 @@
 
 namespace robogen {
 void init(unsigned int seed, std::string outputDirectory,
+		bool overwrite, bool saveAll);
+
+void initFromJSON(unsigned int seed, std::string outputDirectory,
+		std::string confJSON, bool overwrite, bool saveAll);
+void initFromFile(unsigned int seed, std::string outputDirectory,
 		std::string confFileName, bool overwrite, bool saveAll);
 
 void printUsage(char *argv[]) {
@@ -146,16 +151,23 @@ void parseArgsThenInit(int argc, char* argv[]) {
 
 	}
 
-	init(seed, outputDirectory, confFileName, overwrite, saveAll);
+	initFromFile(seed, outputDirectory, confFileName, overwrite, saveAll);
 
 }
 
-void init(unsigned int seed, std::string outputDirectory,
+void initFromJSON(unsigned int seed, std::string outputDirectory,
+		std::string confJSON, bool overwrite, bool saveAll) {
+	conf.reset(new EvolverConfiguration());
+	if(!conf->initFromJSON(confJSON)) {
+		std::cerr << "Problems parsing the evolution JSON. Quit."
+				<< std::endl;
+		exitRobogen(EXIT_FAILURE);
+	}
+	init(seed, outputDirectory, overwrite, saveAll);
+}
+
+void initFromFile(unsigned int seed, std::string outputDirectory,
 		std::string confFileName, bool overwrite, bool saveAll) {
-
-	// Seed random number generator
-
-	rng.seed(seed);
 
 	conf.reset(new EvolverConfiguration());
 	if (!conf->init(confFileName)) {
@@ -164,8 +176,24 @@ void init(unsigned int seed, std::string outputDirectory,
 		exitRobogen(EXIT_FAILURE);
 	}
 
-	robotConf = ConfigurationReader::parseConfigurationFile(
-			conf->simulatorConfFile);
+	init(seed, outputDirectory, overwrite, saveAll);
+}
+
+void init(unsigned int seed, std::string outputDirectory,
+		bool overwrite, bool saveAll) {
+
+	// Seed random number generator
+
+	rng.seed(seed);
+
+	if (conf->usingFiles) {
+		robotConf = ConfigurationReader::parseConfigurationFile(
+				conf->simulatorConfFile);
+	} else {
+		robotConf = ConfigurationReader::parseConfigurationJSON(
+				conf->simulatorConfJSON);
+	}
+
 	if (robotConf == NULL) {
 		std::cerr << "Problems parsing the robot configuration file. Quit."
 				<< std::endl;
@@ -206,14 +234,24 @@ void init(unsigned int seed, std::string outputDirectory,
 	boost::shared_ptr<RobotRepresentation> referenceBot(
 			new RobotRepresentation());
 	bool growBodies = false;
+	bool hasRobot = (
+			(conf->usingFiles && conf->referenceRobotFile.length() > 0)
+			||
+			(!conf->usingFiles && conf->referenceRobotJSON.length() > 0)
+			);
+
 	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
-			&& conf->referenceRobotFile.compare("") == 0) {
+			&& !hasRobot) {
 		std::cerr << "Trying to evolve brain, but no robot file provided."
 				<< std::endl;
 		exitRobogen(EXIT_FAILURE);
-	} else if (conf->referenceRobotFile.compare("") != 0) {
-		if (!referenceBot->init(conf->referenceRobotFile)) {
+	} else if (hasRobot) {
+		if (conf->usingFiles && !referenceBot->init(conf->referenceRobotFile)) {
 			std::cerr << "Failed interpreting robot from text file"
+					<< std::endl;
+			exitRobogen(EXIT_FAILURE);
+		} else if (!conf->usingFiles && !referenceBot->initFromJSON(conf->referenceRobotJSON)) {
+			std::cerr << "Failed interpreting robot from JSON"
 					<< std::endl;
 			exitRobogen(EXIT_FAILURE);
 		}
@@ -243,6 +281,11 @@ void init(unsigned int seed, std::string outputDirectory,
 	// open sockets for communication with simulator processes
 	// ---------------------------------------
 #ifndef EMSCRIPTEN
+	if (conf->sockets.size() == 0) {
+		std::cerr << "Need to provide at least one socket when using the "
+				<< "standard evolver" << std::endl;
+		exitRobogen(EXIT_FAILURE);
+	}
 	sockets.resize(conf->sockets.size());
 	for (unsigned int i = 0; i < conf->sockets.size(); i++) {
 		sockets[i] = new TcpSocket;
@@ -417,15 +460,41 @@ for (unsigned int i = 0; i < conf->sockets.size(); i++) {
 exitRobogen(EXIT_SUCCESS);
 }
 #else
-std::string EMSCRIPTEN_KEEPALIVE runEvolution(unsigned int seed, std::string outputDirectory, std::string confFileName,
-	bool overwrite, bool saveAll) {
-try {
-	init(seed, outputDirectory, confFileName, overwrite, saveAll);
-} catch (std::exception &e) {
-	std::cerr << "Evolution failed" << std::endl;
-	return "{\"error\" : \"Error\"}";
+std::string EMSCRIPTEN_KEEPALIVE runEvolution(unsigned int seed,
+		std::string outputDirectory, std::string confFileName,
+		bool overwrite, bool saveAll) {
+	try {
+		initFromFile(seed, outputDirectory, confFileName, overwrite, saveAll);
+	} catch (std::exception &e) {
+		std::cerr << "Evolution failed" << std::endl;
+		return "{\"error\" : \"Error\"}";
+	}
+	return "{}";
 }
-return "{}";
+
+std::string EMSCRIPTEN_KEEPALIVE runEvolutionNew(emscripten::val args,
+		std::string evolConfJSON) {
+	try {
+
+		int seed = -1;
+
+		if(!args.isNull()) {
+			if (!args["seed"].isUndefined()) {
+				seed = args["seed"].as<int>();
+			} else {
+				std::cerr << "Must provide seed for evolver" << std::endl;
+				return "{\"error\" : \"Error\"}";
+			}
+		}
+
+		initFromJSON(seed, "", evolConfJSON, false, false);
+	} catch (std::exception &e) {
+		std::cerr << "Evolution failed" << std::endl;
+		return "{\"error\" : \"Error\"}";
+	}
+	return "{}";
 }
+
+
 #endif
 

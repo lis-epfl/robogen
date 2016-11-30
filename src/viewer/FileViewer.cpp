@@ -50,6 +50,7 @@
 #include "robogen.pb.h"
 #include "viewer/IViewer.h"
 
+#include "utils/json2pb/json2pb.h"
 
 #include "Simulator.h"
 
@@ -189,10 +190,10 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(int tab,
 
 
 std::string EMSCRIPTEN_KEEPALIVE simulationViewer(emscripten::val args,
-		std::string robotJSON, std::string confJson) {
+		std::string robotJSON, std::string confJSON) {
 
 	boost::shared_ptr<RobogenConfig> configuration =
-			ConfigurationReader::parseConfigurationJSON(robotJSON);
+			ConfigurationReader::parseConfigurationJSON(confJSON);
 	if (configuration == NULL) {
 		std::cerr
 				<< "Problems parsing the configuration file. Quit."
@@ -204,7 +205,7 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(emscripten::val args,
 	robogenMessage::Robot robotMessage;
 
 	try {
-		json2pb(robotMessage, robotJson.c_str(), robotJson.length());
+		json2pb(robotMessage, robotJSON.c_str(), robotJSON.length());
 
 	} catch(std::exception &e) {
 		std::cerr << "Problems parsing the robot. Quit." << std::endl;
