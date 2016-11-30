@@ -516,6 +516,14 @@ bool RobotRepresentation::initFromMessage(const robogenMessage::Robot &robot) {
 
 bool RobotRepresentation::init(std::string robotTextFile) {
 
+	if (boost::filesystem::path(robotTextFile).extension().string().compare(
+				".json") == 0) {
+		// we know it's json here so won't get stack smashing
+		robogenMessage::Robot robotMessage;
+		createRobotMessageFromFile(robotMessage, robotTextFile);
+		return initFromMessage(robotMessage);
+	}
+
 	// open file
 	std::ifstream file;
 	file.open(robotTextFile.c_str());
