@@ -172,7 +172,10 @@ void WebGLLogger::generateBodyCollection() {
 	}
 }
 WebGLLogger::~WebGLLogger() {
-	json_dump_file(this->jsonRoot, this->fileName.c_str(), JSON_TAGS);
+	// if give an empty path then don't try to write to file
+	if(this->fileName.length() > 0) {
+		json_dump_file(this->jsonRoot, this->fileName.c_str(), JSON_TAGS);
+	}
 	json_decref(this->jsonRoot);
 }
 
