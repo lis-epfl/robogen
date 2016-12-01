@@ -1,69 +1,19 @@
-/*
- * @(#) RobotRepresentation.cpp   1.0   Aug 28, 2013
- *
- * Titus Cieslewski (dev@titus-c.ch)
- * Andrea Maesani (andrea.maesani@epfl.ch)
- * Joshua Auerbach (joshua.auerbach@epfl.ch)
- *
- * The ROBOGEN Framework
- * Copyright © 2013-2016 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
- *
- * Laboratory of Intelligent Systems, EPFL
- *
- * This file is part of the ROBOGEN Framework.
- *
- * The ROBOGEN Framework is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License (GPL)
- * as published by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @(#) $Id$
- */
+#include"SubRobotRepresentation.h"
 
-#include "evolution/representation/RobotRepresentation.h"
-#include "Robogen.h"
-
-#ifndef FAKEROBOTREPRESENTATION_H
-
-#include <iostream>
+#include <stack>
 #include <fstream>
 #include <sstream>
-#include <stack>
-#include <queue>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include "evolution/representation/PartRepresentation.h"
-#include "utils/network/ProtobufPacket.h"
-#include "PartList.h"
-#include "utils/json2pb/json2pb.h"
-#include "utils/RobogenUtils.h"
-#include "brain/NeuralNetwork.h"
 
-#define VERIFY_ON_LOAD_TXT
-#ifdef VERIFY_ON_LOAD_TXT
-#include "evolution/engine/BodyVerifier.h"
-#endif
+namespace robogen{
 
-namespace robogen {
-
-RobotRepresentation::RobotRepresentation() :
-		maxid_(1000), evaluated_(false) {
-
+SubRobotRepresentation::SubRobotRepresentation() :
+		maxid_(1000) {
 }
 
-RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
-
-	this->robotMorph_.reset(new SubRobotRepresentation(*(r.robotMorph_.get())));
-
+SubRobotRepresentation::SubRobotRepresentation(const SubRobotRepresentation &r){
 	// we need to handle bodyTree_, neuralNetwork_ and reservedIds_
 	// for the brainevolver, we could theoretically keep the bodyTree_ pointing
 	// to the same body, but that would be easy to miss when resuming to body
@@ -71,7 +21,8 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 
 	// special treatment for base-pointed instances of derived classes as are
 	// our body parts
-	bodyTree_ = r.bodyTree_->cloneSubtree();
+	//this->bodyTree_ = r.bodyTree_->cloneSubtree();
+	/*
 	// neural network pointer needs to be reset to a copy-constructed instance
 	neuralNetwork_.reset(
 			new NeuralNetworkRepresentation(*(r.neuralNetwork_.get())));
@@ -89,47 +40,11 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 			}
 		}
 	}
-	// fitness and associated flag are same
-	fitness_ = r.fitness_;
-	evaluated_ = r.evaluated_;
 	maxid_ = r.maxid_;
-
-	// Similar treatment for the grammar
-	this->grammar_.reset(new Grammar(bodyTree_, neuralNetwork_, this->maxid_));
+	*/
 }
 
-RobotRepresentation &RobotRepresentation::operator=(
-		const RobotRepresentation &r) {
-	// same as copy constructor, see there for explanations
-	bodyTree_ = r.bodyTree_->cloneSubtree();
-	neuralNetwork_.reset(
-			new NeuralNetworkRepresentation(*(r.neuralNetwork_.get())));
-	// rebuild ID to part map
-	idToPart_.clear();
-	std::queue<boost::shared_ptr<PartRepresentation> > q;
-	q.push(bodyTree_);
-	while (!q.empty()) {
-		boost::shared_ptr<PartRepresentation> cur = q.front();
-		q.pop();
-		idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
-		for (unsigned int i = 0; i < cur->getArity(); ++i) {
-			if (cur->getChild(i)) {
-				q.push(cur->getChild(i));
-			}
-		}
-	}
-	fitness_ = r.fitness_;
-	evaluated_ = r.evaluated_;
-	maxid_ = r.maxid_;
-	return *this;
-}
-
-void RobotRepresentation::asyncEvaluateResult(double fitness) {
-	fitness_ = fitness;
-	evaluated_ = true;
-}
-
-bool RobotRepresentation::init() {
+bool SubRobotRepresentation::init() {
 
 	// Generate a core component
 	boost::shared_ptr<PartRepresentation> corePart = PartRepresentation::create(
@@ -168,14 +83,11 @@ bool RobotRepresentation::init() {
 
 	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
 
-	this->robotMorph_->init();
-
-	this->grammar_.reset(new Grammar(bodyTree_, neuralNetwork_, this->maxid_));
-
 	return true;
 }
 
-bool RobotRepresentation::init(std::string robotTextFile) {
+
+bool SubRobotRepresentation::init(std::string robotTextFile) {
 
 	// open file
 	std::ifstream file;
@@ -336,136 +248,10 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 		}
 	}
 
-	this->grammar_.reset(new Grammar(bodyTree_, neuralNetwork_, this->maxid_));
-
-	return true;
-}
-
-robogenMessage::Robot RobotRepresentation::serialize() const {
-	robogenMessage::Robot message;
-	// id - this can probably be removed
-	message.set_id(1);
-	// body
-	bodyTree_->addSubtreeToBodyMessage(message.mutable_body(), true);
-	// brain
-	*(message.mutable_brain()) = neuralNetwork_->serialize();
-	return message;
 }
 
 
-void RobotRepresentation::getBrainGenome(std::vector<double*> &weights,
-		std::vector<unsigned int> &types,
-		std::vector<double*> &params) {
-	neuralNetwork_->getGenome(weights, types, params);
-}
-
-boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain(
-		) const {
-	return neuralNetwork_;
-}
-
-const RobotRepresentation::IdPartMap& RobotRepresentation::getBody() const {
-	return idToPart_;
-}
-
-void RobotRepresentation::rebuildBodyMap(){
-	// rebuild ID to part map
-	this->idToPart_.clear();
-	std::queue<boost::shared_ptr<PartRepresentation> > q;
-	q.push(this->bodyTree_);
-	while (!q.empty()) {
-		boost::shared_ptr<PartRepresentation> cur = q.front();
-		q.pop();
-		//Using at instead of []
-		this->idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
-		for (unsigned int i = 0; i < cur->getArity(); ++i) {
-			if (cur->getChild(i)) {
-				q.push(cur->getChild(i));
-			}
-		}
-	}
-}
-
-boost::shared_ptr<Grammar> RobotRepresentation::getGrammar(void){
-	return this->grammar_;
-}
-
-const std::string& RobotRepresentation::getBodyRootId() {
-	return bodyTree_->getId();
-}
-
-void RobotRepresentation::evaluate(Socket *socket,
-		boost::shared_ptr<RobogenConfig> robotConf) {
-
-	// 1. Prepare message to simulator
-	boost::shared_ptr<robogenMessage::EvaluationRequest> evalReq(
-			new robogenMessage::EvaluationRequest());
-	robogenMessage::Robot* evalRobot = evalReq->mutable_robot();
-	robogenMessage::SimulatorConf* evalConf = evalReq->mutable_configuration();
-	*evalRobot = serialize();
-	*evalConf = robotConf->serialize();
-
-	ProtobufPacket<robogenMessage::EvaluationRequest> robotPacket(evalReq);
-	std::vector<unsigned char> forgedMessagePacket;
-	robotPacket.forge(forgedMessagePacket);
-
-	// 2. send message to simulator
-	socket->write(forgedMessagePacket);
-
-#ifndef EMSCRIPTEN // we will do it later with javascript
-	// 3. receive message from simulator
-	ProtobufPacket<robogenMessage::EvaluationResult> resultPacket(
-			boost::shared_ptr<robogenMessage::EvaluationResult>(
-					new robogenMessage::EvaluationResult()));
-	std::vector<unsigned char> responseMessage;
-	socket->read(responseMessage,
-			ProtobufPacket<robogenMessage::EvaluationResult>::HEADER_SIZE);
-
-	// Decode the Header and read the payload-message-size
-	size_t msgLen = resultPacket.decodeHeader(responseMessage);
-	responseMessage.clear();
-
-	// Read the fitness payload message
-	socket->read(responseMessage, msgLen);
-
-	// Decode the packet
-	resultPacket.decodePayload(responseMessage);
-
-	// 4. write fitness to individual TODO exception
-	if (!resultPacket.getMessage()->has_fitness()) {
-		std::cerr << "Fitness field not set by Simulator!!!" << std::endl;
-		exit(EXIT_FAILURE);
-	} else {
-		fitness_ = resultPacket.getMessage()->fitness();
-		evaluated_ = true;
-	}
-#endif
-
-}
-
-double RobotRepresentation::getFitness() const {
-	return fitness_;
-}
-
-bool RobotRepresentation::isEvaluated() const {
-	return evaluated_;
-}
-
-void RobotRepresentation::setDirty() {
-	evaluated_ = false;
-}
-
-void RobotRepresentation::recurseNeuronRemoval(
-		boost::shared_ptr<PartRepresentation> part) {
-	neuralNetwork_->removeNeurons(part->getId());
-	for (unsigned int i = 0; i < part->getArity(); i++) {
-		if (part->getChild(i)) {
-			this->recurseNeuronRemoval(part->getChild(i));
-		}
-	}
-}
-
-bool RobotRepresentation::trimBodyAt(const std::string& id, bool printErrors) {
+bool SubRobotRepresentation::trimBodyAt(const std::string& id, bool printErrors) {
 	// kill all neurons and their weights
 	recurseNeuronRemoval(idToPart_[id].lock());
 
@@ -503,7 +289,7 @@ bool RobotRepresentation::trimBodyAt(const std::string& id, bool printErrors) {
 
 }
 
-std::string RobotRepresentation::generateUniqueIdFromSomeId() {
+std::string SubRobotRepresentation::generateUniqueIdFromSomeId() {
 
 	std::stringstream ss;
 	ss << "myid" << maxid_;
@@ -514,7 +300,17 @@ std::string RobotRepresentation::generateUniqueIdFromSomeId() {
 
 }
 
-bool RobotRepresentation::addClonesToMap(
+void SubRobotRepresentation::recurseNeuronRemoval(
+		boost::shared_ptr<PartRepresentation> part) {
+	neuralNetwork_->removeNeurons(part->getId());
+	for (unsigned int i = 0; i < part->getArity(); i++) {
+		if (part->getChild(i)) {
+			this->recurseNeuronRemoval(part->getChild(i));
+		}
+	}
+}
+
+bool SubRobotRepresentation::addClonesToMap(
 		boost::shared_ptr<PartRepresentation> part,
 		std::map<std::string, std::string> &neuronReMapping) {
 	std::string oldId = part->getId();
@@ -537,7 +333,7 @@ bool RobotRepresentation::addClonesToMap(
 
 }
 
-bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
+bool SubRobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 		const std::string& subtreeDestPartId, unsigned int slotId,
 		bool printErrors) {
 
@@ -570,7 +366,7 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 
 }
 
-bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
+bool SubRobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
 		const std::string& subtreeRoot2, bool printErrors) {
 
 	// Get roots of the subtrees
@@ -624,7 +420,7 @@ bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
 
 }
 
-bool RobotRepresentation::insertPart(const std::string& parentPartId,
+bool SubRobotRepresentation::insertPart(const std::string& parentPartId,
 		unsigned int parentPartSlot,
 		boost::shared_ptr<PartRepresentation> newPart,
 		unsigned int newPartSlot,
@@ -674,7 +470,7 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId,
 
 }
 
-bool RobotRepresentation::removePart(const std::string& partId,
+bool SubRobotRepresentation::removePart(const std::string& partId,
 		bool printErrors) {
 
 	boost::shared_ptr<PartRepresentation> nodeToRemove =
@@ -753,7 +549,7 @@ bool RobotRepresentation::removePart(const std::string& partId,
 	return true;
 }
 
-bool RobotRepresentation::check() {
+bool SubRobotRepresentation::check() {
 
 	// 1. Check that every body part in the body tree is in the idBodyPart map
 	// and there are no dangling references
@@ -845,99 +641,4 @@ bool RobotRepresentation::check() {
 
 }
 
-std::string RobotRepresentation::toString() {
-
-	std::stringstream str;
-	str << "[" << bodyTree_->getId() << " | " << bodyTree_->getType() << "]"
-			<< std::endl;
-	bodyTree_->toString(str, 0);
-	str << "Network:" << std::endl;
-	str << neuralNetwork_->toString();
-	return str.str();
-
 }
-
-
-bool RobotRepresentation::createRobotMessageFromFile(robogenMessage::Robot
-		&robotMessage, std::string robotFileString) {
-
-	if (boost::filesystem::path(robotFileString).extension().string().compare(
-			".dat") == 0) {
-
-		std::ifstream robotFile(robotFileString.c_str(), std::ios::binary);
-		if (!robotFile.is_open()) {
-			std::cerr << "Cannot open " << robotFileString << ". Quit."
-					<< std::endl;
-			return false;
-		}
-
-		ProtobufPacket<robogenMessage::Robot> robogenPacket;
-
-		robotFile.seekg(0, robotFile.end);
-		unsigned int packetSize = robotFile.tellg();
-		robotFile.seekg(0, robotFile.beg);
-
-		std::vector<unsigned char> packetBuffer;
-		packetBuffer.resize(packetSize);
-		robotFile.read((char*) &packetBuffer[0], packetSize);
-		robogenPacket.decodePayload(packetBuffer);
-		robotMessage = *robogenPacket.getMessage().get();
-
-	} else if (boost::filesystem::path(robotFileString
-			).extension().string().compare(".txt") == 0) {
-
-		RobotRepresentation robot;
-		if (!robot.init(robotFileString)) {
-			std::cerr << "Failed interpreting robot text file!" << std::endl;
-			return false;
-		}
-
-#ifdef VERIFY_ON_LOAD_TXT
-		int errorCode;
-
-		std::vector<std::pair<std::string, std::string> > affectedBodyParts;
-		if (!BodyVerifier::verify(robot, errorCode,
-						affectedBodyParts, true)) {
-			std::cerr << std::endl
-				<< "*************** Body does not verify!! *****************"
-				<< std::endl << std::endl;
-			return false;
-		}
-#endif
-
-		robotMessage = robot.serialize();
-
-	} else if (boost::filesystem::path(robotFileString
-				).extension().string().compare(".json") == 0) {
-		std::ifstream robotFile(robotFileString.c_str(),
-								std::ios::in | std::ios::binary);
-
-		if (!robotFile.is_open()) {
-			std::cerr << "Cannot open " << robotFileString << ". Quit."
-					<< std::endl;
-			return false;
-		}
-
-		robotFile.seekg(0, robotFile.end);
-		unsigned int packetSize = robotFile.tellg();
-		robotFile.seekg(0, robotFile.beg);
-
-		std::vector<unsigned char> packetBuffer;
-		packetBuffer.resize(packetSize);
-		robotFile.read((char*) &packetBuffer[0], packetSize);
-
-		json2pb(robotMessage, (char*) &packetBuffer[0], packetSize);
-
-	} else {
-		std::cerr << "File extension of provided robot file could not be "
-				"resolved. Use .dat or .json for robot messages and .txt for "
-				"robot text files" << std::endl;
-		return false;
-	}
-	return true;
-
-}
-
-}
-
-#endif /* usage of fake robot representation */

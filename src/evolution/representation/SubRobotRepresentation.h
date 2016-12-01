@@ -1,10 +1,12 @@
 /*
- * @(#) RobotRepresentation.h   1.0   Aug 28, 2013
+ * @(#) RobotRepresentation.cpp   1.0   Aug 28, 2013
  *
  * Titus Cieslewski (dev@titus-c.ch)
+ * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Joshua Auerbach (joshua.auerbach@epfl.ch)
  *
  * The ROBOGEN Framework
- * Copyright © 2013-2014 Titus Cieslewski
+ * Copyright © 2013-2016 Titus Cieslewski, Andrea Maesani, Joshua Auerbach
  *
  * Laboratory of Intelligent Systems, EPFL
  *
@@ -26,13 +28,6 @@
  * @(#) $Id$
  */
 
-#ifndef ROBOTREPRESENTATION_H
-#define ROBOTREPRESENTATION_H
-
-#if 0 // set to 1 to use fake robots for evolution algorithm benchmark
-#include "evolution/representation/FakeRobotRepresentation.h"
-#else
-
 #include <string>
 #include <set>
 #include <stdexcept>
@@ -46,47 +41,33 @@
 #include "evolution/representation/PartRepresentation.h"
 #include "evolution/representation/Grammar.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
-#include "evolution/representation/SubRobotRepresentation.h"
 #include "utils/network/TcpSocket.h"
 #include "robogen.pb.h"
 
-namespace robogen {
+namespace robogen{
 
-/**
- * Robot representation to be used for evolution. More lightweight than the
- * robot representation of the simulator, and implements evolution-specific
- * methods.
- */
-class RobotRepresentation {
-
+class SubRobotRepresentation{
 public:
-
-	/**
+    /**
 	 * Map from an id string to a weak pointer of a part representation
 	 */
 	typedef std::map<std::string, boost::weak_ptr<PartRepresentation> > IdPartMap;
 
 	/**
+	 * Constructor that casts a core as the root, nothing more
+	 */
+    SubRobotRepresentation();
+
+	/**
 	 * Copy constructor: Deep copy body parts and Neural network
 	 */
-	RobotRepresentation(const RobotRepresentation &r);
+	SubRobotRepresentation(const SubRobotRepresentation &r);
 
-	/**
-	 * Error-less constructor for memory assignment
-	 */
-	RobotRepresentation();
-
-	/**
-	 * assignment operator: Deep copy body parts and Neural network
-	 */
-	RobotRepresentation &operator=(const RobotRepresentation &r);
-
-
-	/**
-	 * Constructs a robot representation from nothing.
+    /**
+	 * Constructs a subrobot representation from nothing.
 	 * Will have just the core component.
 	 */
-	bool init();
+    bool init();
 
 	/**
 	 * Constructs a robot representation from a robot text file
@@ -95,66 +76,8 @@ public:
 	 */
 	bool init(std::string robotTextFile);
 
-	/**
-	 * @return robot message of this robot to be transmitted to simulator
-	 * or stored as population checkpoint
-	 */
-	robogenMessage::Robot serialize() const;
 
-	/**
-	 * Provides weight and bias handles for a mutator.
-	 * @param weights reference to a vector to be filled with weight pointers
-	 * @param types reference to a vector to be filled with types of neurons
-	 * @param params reference to a vector to be filled with params pointers
-	 */
-	void getBrainGenome(std::vector<double*> &weights,
-			std::vector<unsigned int> &types,
-			std::vector<double*> &params);
-
-	/**
-	 * @return a shared pointer to the robots brain
-	 */
-	boost::shared_ptr<NeuralNetworkRepresentation> getBrain() const;
-
-	/**
-	 * @return a shared pointer to the robots body
-	 */
-	const IdPartMap &getBody() const;
-
-	/**
-	 * very obvious
-	 */
-	void rebuildBodyMap(void);
-
-	/**
-	 * To perform indirect mutation operations
-	 */
-	boost::shared_ptr<Grammar> getGrammar(void);
-
-	/**
-	 * Evaluate individual using given socket and given configuration file.
-	 * @param socket
-	 * @param robotConf
-	 */
-	void evaluate(Socket *socket,
-			boost::shared_ptr<RobogenConfig> robotConf);
-
-	/**
-	 * @return fitness of individual
-	 */
-	double getFitness() const;
-
-	/**
-	 * @return evaluated_
-	 */
-	bool isEvaluated() const;
-
-	/**
-	 * Makes robot be not evaluated again
-	 */
-	void setDirty();
-
-	/**
+    /**
 	 * Removes body part and all children at indicated position.
 	 * @return false upon failure
 	 */
@@ -224,36 +147,13 @@ public:
 	 * dangling body parts/neurons
 	 */
 	bool check();
-
-	/**
-	 * Set the fiteness and evaluated field when doing an asynchronous evaluation
-	 * @param fitness the fitness to set
-	 */
-	void asyncEvaluateResult(double fitness);
-
-	/**
-	 * @return a string representation of the robot
-	 */
-	std::string toString();
-
-	/**
-	 * Static method to populate a robot message with a representation loaded
-	 * from a file
-	 *
-	 * @param robotMessage robotMessage to populate
-	 * @param robotFileString location of file to load
-	 * @return true if the operation completed successfully, false otherwise
-	 */
-	static bool createRobotMessageFromFile(robogenMessage::Robot &robotMessage,
-											std::string robotFileString);
-
 private:
-	/**
+    /**
 	 *
 	 */
 	void recurseNeuronRemoval(boost::shared_ptr<PartRepresentation> part);
-
-	/**
+    
+    /**
 	 * Insert parts to the body id-parts map
 	 *
 	 * @param part the root of the subtree to be inserted into the body id to parts map
@@ -262,14 +162,7 @@ private:
 	bool addClonesToMap(boost::shared_ptr<PartRepresentation> part,
 			std::map<std::string, std::string> &neuronReMapping);
 
-	/**
-	 * Grammar used only for indirect encoding
-	 */
-	boost::shared_ptr<Grammar> grammar_;
-
-	boost::shared_ptr<SubRobotRepresentation> robotMorph_;
-
-	/**
+    /**
 	 * Points to the root of the robot body tree
 	 */
 	boost::shared_ptr<PartRepresentation> bodyTree_;
@@ -285,30 +178,10 @@ private:
 	 */
 	IdPartMap idToPart_;
 
-	/**
-	 * Fitness of robot, once evaluated.
-	 */
-	double fitness_;
-
-	/**
+    /**
 	 * Counter for unique ID.
 	 */
 	int maxid_;
-
-	/**
-	 * Indicates whether robot evaluated
-	 */
-	bool evaluated_;
-
 };
 
-/**
- * Operator > returns true if fitness of a exceeds fitness of b
- */
-bool operator >(const RobotRepresentation &a, const RobotRepresentation &b);
-
 }
-
-#endif /* use of fake robot benchmark */
-
-#endif /* ROBOTREPRESENTATION_H */
