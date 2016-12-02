@@ -43,6 +43,7 @@
 
 #include "model/objects/BoxObstacle.h"
 #include <vector>
+#include "utils/json2pb/json2pb.h"
 
 /***** WARNING ******
  * WE ARE INCLUDING .cpp files !!
@@ -144,6 +145,16 @@ double EMSCRIPTEN_KEEPALIVE evaluate(int ptr, int length) {
 	std::cout << "Fitness for the current solution: " << fitness
 	<< std::endl << std::endl;
 	return fitness;
+}
+
+
+std::string createDefaultBrain(std::string robotJSON) {
+	robogenMessage::Robot robotMessage;
+	if(!RobotRepresentation::createRobotMessageFromJSON(robotMessage,
+			robotJSON)) {
+		return "{\"error\" : \"RobotError\"}";
+	}
+	return pb2json(robotMessage.brain());
 }
 
 struct ScenarioWrapper : public emscripten::wrapper<JSScenario> {
@@ -287,6 +298,8 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::function("evaluate", &evaluate);
 	emscripten::function("evaluationResultAvailable", &evaluationResultAvailable);
 	emscripten::function("evaluationIsDone", &evaluationIsDone);
+
+	emscripten::function("createDefaultBrain", &createDefaultBrain);
 
 	//emscripten::register_vector<boost::shared_ptr<LightSource> >("LightSourceVector");
 
