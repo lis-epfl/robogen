@@ -21,8 +21,8 @@ SubRobotRepresentation::SubRobotRepresentation(const SubRobotRepresentation &r){
 
 	// special treatment for base-pointed instances of derived classes as are
 	// our body parts
-	//this->bodyTree_ = r.bodyTree_->cloneSubtree();
-	/*
+	this->bodyTree_ = r.bodyTree_->cloneSubtree();
+
 	// neural network pointer needs to be reset to a copy-constructed instance
 	neuralNetwork_.reset(
 			new NeuralNetworkRepresentation(*(r.neuralNetwork_.get())));
@@ -41,7 +41,65 @@ SubRobotRepresentation::SubRobotRepresentation(const SubRobotRepresentation &r){
 		}
 	}
 	maxid_ = r.maxid_;
-	*/
+}
+
+const SubRobotRepresentation::IdPartMap& SubRobotRepresentation::getBody() const {
+	return idToPart_;
+}
+
+void SubRobotRepresentation::getBrainGenome(std::vector<double*> &weights,
+		std::vector<unsigned int> &types,
+		std::vector<double*> &params) {
+	neuralNetwork_->getGenome(weights, types, params);
+}
+
+boost::shared_ptr<NeuralNetworkRepresentation> SubRobotRepresentation::getBrain(
+		) const {
+	return this->neuralNetwork_;
+}
+
+boost::shared_ptr<PartRepresentation> SubRobotRepresentation::getTree(
+		) const {
+	return this->bodyTree_;
+}
+
+int SubRobotRepresentation::getMaxId(){
+	return this->maxid_;
+}
+
+robogenMessage::Robot SubRobotRepresentation::serialize() const {
+	robogenMessage::Robot message;
+	// id - this can probably be removed
+	message.set_id(1);
+	// body
+	this->bodyTree_->addSubtreeToBodyMessage(message.mutable_body(), true);
+	// brain
+	*(message.mutable_brain()) = this->neuralNetwork_->serialize();
+	return message;
+}
+
+SubRobotRepresentation &SubRobotRepresentation::operator=(
+		const SubRobotRepresentation &r) {
+	// same as copy constructor, see there for explanations
+	this->bodyTree_ = r.bodyTree_->cloneSubtree();
+	this->neuralNetwork_.reset(
+			new NeuralNetworkRepresentation(*(r.neuralNetwork_.get())));
+	// rebuild ID to part map
+	this->idToPart_.clear();
+	std::queue<boost::shared_ptr<PartRepresentation> > q;
+	q.push(bodyTree_);
+	while (!q.empty()) {
+		boost::shared_ptr<PartRepresentation> cur = q.front();
+		q.pop();
+		this->idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
+		for (unsigned int i = 0; i < cur->getArity(); ++i) {
+			if (cur->getChild(i)) {
+				q.push(cur->getChild(i));
+			}
+		}
+	}
+	maxid_ = r.maxid_;
+	return *this;
 }
 
 bool SubRobotRepresentation::init() {

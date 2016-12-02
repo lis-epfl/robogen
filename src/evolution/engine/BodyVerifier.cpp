@@ -240,7 +240,7 @@ bool BodyVerifier::fixRobotBody(RobotRepresentation &robot) {
 						<< std::endl;
 				for (unsigned int i = 0; i < offenders.size(); ++i) {
 					// get robots IdPartMap: Volatile, so needs update
-					const RobotRepresentation::IdPartMap idPartMap =
+					const SubRobotRepresentation::IdPartMap idPartMap =
 							robot.getBody();
 					std::cerr << offenders[i].first << " with "
 							<< offenders[i].second << std::endl;

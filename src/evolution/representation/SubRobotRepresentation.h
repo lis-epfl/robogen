@@ -28,6 +28,9 @@
  * @(#) $Id$
  */
 
+#ifndef SUB_ROBOT_REPRESENTATION_H
+#define SUB_ROBOT_REPRESENTATION_H
+
 #include <string>
 #include <set>
 #include <stdexcept>
@@ -39,12 +42,17 @@
 
 #include "config/RobogenConfig.h"
 #include "evolution/representation/PartRepresentation.h"
-#include "evolution/representation/Grammar.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
 #include "utils/network/TcpSocket.h"
 #include "robogen.pb.h"
 
 namespace robogen{
+
+/**
+ * The purpose of this class is to reduce the redundancy in the code,
+ * and also to spread the compelxity of Robogen across multiple
+ * not-so-long files
+ */
 
 class SubRobotRepresentation{
 public:
@@ -62,6 +70,40 @@ public:
 	 * Copy constructor: Deep copy body parts and Neural network
 	 */
 	SubRobotRepresentation(const SubRobotRepresentation &r);
+
+	/**
+	 * @return a shared pointer to the robots body
+	 */
+	const IdPartMap &getBody() const;
+
+	/**
+	 * Provides weight and bias handles for a mutator.
+	 * @param weights reference to a vector to be filled with weight pointers
+	 * @param types reference to a vector to be filled with types of neurons
+	 * @param params reference to a vector to be filled with params pointers
+	 */
+	void getBrainGenome(std::vector<double*> &weights,
+			std::vector<unsigned int> &types,
+			std::vector<double*> &params);
+
+	/**
+	 * @return a shared pointer to the robots brain
+	 */
+	boost::shared_ptr<NeuralNetworkRepresentation> getBrain() const;
+
+	/**
+	 * @return a shared pointer to the body tree
+	 */
+	boost::shared_ptr<PartRepresentation> getTree() const;
+
+	int getMaxId();
+
+	/**
+	 * Overloading the equals operator!=
+	 */
+	SubRobotRepresentation &operator=(const SubRobotRepresentation &r);
+
+	robogenMessage::Robot serialize() const;
 
     /**
 	 * Constructs a subrobot representation from nothing.
@@ -185,3 +227,4 @@ private:
 };
 
 }
+#endif //SUB_ROBOT_REPRESENTATION_H

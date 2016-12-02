@@ -62,11 +62,6 @@ class RobotRepresentation {
 public:
 
 	/**
-	 * Map from an id string to a weak pointer of a part representation
-	 */
-	typedef std::map<std::string, boost::weak_ptr<PartRepresentation> > IdPartMap;
-
-	/**
 	 * Copy constructor: Deep copy body parts and Neural network
 	 */
 	RobotRepresentation(const RobotRepresentation &r);
@@ -119,7 +114,7 @@ public:
 	/**
 	 * @return a shared pointer to the robots body
 	 */
-	const IdPartMap &getBody() const;
+	const SubRobotRepresentation::IdPartMap &getBody() const;
 
 	/**
 	 * very obvious
@@ -249,20 +244,6 @@ public:
 
 private:
 	/**
-	 *
-	 */
-	void recurseNeuronRemoval(boost::shared_ptr<PartRepresentation> part);
-
-	/**
-	 * Insert parts to the body id-parts map
-	 *
-	 * @param part the root of the subtree to be inserted into the body id to parts map
-	 * @return true if the operation completed successfully, false otherwise
-	 */
-	bool addClonesToMap(boost::shared_ptr<PartRepresentation> part,
-			std::map<std::string, std::string> &neuronReMapping);
-
-	/**
 	 * Grammar used only for indirect encoding
 	 */
 	boost::shared_ptr<Grammar> grammar_;
@@ -270,30 +251,9 @@ private:
 	boost::shared_ptr<SubRobotRepresentation> robotMorph_;
 
 	/**
-	 * Points to the root of the robot body tree
-	 */
-	boost::shared_ptr<PartRepresentation> bodyTree_;
-
-	/**
-	 * Neural network representation of the robot
-	 */
-	boost::shared_ptr<NeuralNetworkRepresentation> neuralNetwork_;
-
-	/**
-	 * Map from part id to part representation
-	 * @todo use to avoid multiple same names
-	 */
-	IdPartMap idToPart_;
-
-	/**
 	 * Fitness of robot, once evaluated.
 	 */
 	double fitness_;
-
-	/**
-	 * Counter for unique ID.
-	 */
-	int maxid_;
 
 	/**
 	 * Indicates whether robot evaluated

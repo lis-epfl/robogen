@@ -42,6 +42,7 @@
 #include "PartList.h"
 #include "evolution/representation/PartRepresentation.h"
 #include "evolution/representation/NeuralNetworkRepresentation.h"
+#include "evolution/representation/SubRobotRepresentation.h"
 #include "utils/network/TcpSocket.h"
 #include "robogen.pb.h"
 
@@ -145,9 +146,7 @@ namespace robogen{
         /**
         * Default constructor, which takes as an axiom an initially random robot.
         */
-        Grammar(boost::shared_ptr<PartRepresentation> bodytree,
-                boost::shared_ptr<NeuralNetworkRepresentation> neuralNetwork,
-                int maxid);
+        Grammar(boost::shared_ptr<SubRobotRepresentation> r);
 
         /**
         * Grow a tree according to the current rules and alphabet of the grammar.

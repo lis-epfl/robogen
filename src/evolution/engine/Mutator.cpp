@@ -31,6 +31,7 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/random/uniform_01.hpp>
 #include "evolution/engine/Mutator.h"
+#include "evolution/representation/SubRobotRepresentation.h"
 #include "PartList.h"
 
 //#define DEBUG_MUTATE
@@ -114,14 +115,14 @@ void IndirectMutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& r
 }
 
 bool IndirectMutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot){
-	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
+	const SubRobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 
 	if ( idPartMap.size() >= conf_->maxBodyParts )
 		return false;
 
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
-	RobotRepresentation::IdPartMap::const_iterator parent;
+	SubRobotRepresentation::IdPartMap::const_iterator parent;
 	boost::shared_ptr<PartRepresentation> parentPart;
 
 	// find a parent with arity > 0 (will exist, since at the very least will
@@ -622,9 +623,9 @@ bool DirectMutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 bool DirectMutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Get a random body node
-	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
+	const SubRobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
-	RobotRepresentation::IdPartMap::const_iterator subtreeRootPart =
+	SubRobotRepresentation::IdPartMap::const_iterator subtreeRootPart =
 			idPartMap.begin();
 	std::advance(subtreeRootPart, dist(rng_));
 
@@ -641,12 +642,12 @@ bool DirectMutator::removeSubtree(boost::shared_ptr<RobotRepresentation>& robot)
 bool DirectMutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Get a random root of the tree to duplicate
-	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
+	const SubRobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
 	unsigned int totalNodes = idPartMap.size();
 
-	RobotRepresentation::IdPartMap::const_iterator subtreeRootPart =
+	SubRobotRepresentation::IdPartMap::const_iterator subtreeRootPart =
 			idPartMap.begin();
 	std::advance(subtreeRootPart, dist(rng_));
 
@@ -659,7 +660,7 @@ bool DirectMutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& rob
 		return false;
 
 	// Select another node
-	RobotRepresentation::IdPartMap::const_iterator subtreeDestPart =
+	SubRobotRepresentation::IdPartMap::const_iterator subtreeDestPart =
 			idPartMap.begin();
 	std::advance(subtreeDestPart, dist(rng_));
 
@@ -695,10 +696,10 @@ bool DirectMutator::duplicateSubtree(boost::shared_ptr<RobotRepresentation>& rob
 bool DirectMutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Get a random root of the tree to duplicate
-	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
+	const SubRobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
-	RobotRepresentation::IdPartMap::const_iterator rootPartIt1 =
+	SubRobotRepresentation::IdPartMap::const_iterator rootPartIt1 =
 			idPartMap.begin();
 	std::advance(rootPartIt1, dist(rng_));
 
@@ -717,7 +718,7 @@ bool DirectMutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) 
 
 	// Retrieve all the body part ids
 	std::vector<std::string> robotPartIds;
-	for (RobotRepresentation::IdPartMap::const_iterator it = idPartMap.begin();
+	for (SubRobotRepresentation::IdPartMap::const_iterator it = idPartMap.begin();
 			it != idPartMap.end(); ++it) {
 		robotPartIds.push_back(it->first);
 	}
@@ -751,14 +752,14 @@ bool DirectMutator::swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot) 
 
 bool DirectMutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
-	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
+	const SubRobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 
 	if ( idPartMap.size() >= conf_->maxBodyParts )
 		return false;
 
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
 
-	RobotRepresentation::IdPartMap::const_iterator parent;
+	SubRobotRepresentation::IdPartMap::const_iterator parent;
 	boost::shared_ptr<PartRepresentation> parentPart;
 
 	// find a parent with arity > 0 (will exist, since at the very least will
@@ -818,9 +819,9 @@ bool DirectMutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
 bool DirectMutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Select node for removal
-	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
+	const SubRobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
-	RobotRepresentation::IdPartMap::const_iterator partToRemove =
+	SubRobotRepresentation::IdPartMap::const_iterator partToRemove =
 			idPartMap.begin();
 	std::advance(partToRemove, dist(rng_));
 
@@ -835,9 +836,9 @@ bool DirectMutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
 bool DirectMutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) {
 
 	// Select node for mutation
-	const RobotRepresentation::IdPartMap& idPartMap = robot->getBody();
+	const SubRobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
-	RobotRepresentation::IdPartMap::const_iterator partToMutate =
+	SubRobotRepresentation::IdPartMap::const_iterator partToMutate =
 			idPartMap.begin();
 	std::advance(partToMutate, dist(rng_));
 

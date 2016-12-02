@@ -286,16 +286,14 @@ bool Grammar::Rule::matchesPredecessor(boost::shared_ptr<PartRepresentation> can
 	return matches;
 }
 
-Grammar::Grammar(boost::shared_ptr<PartRepresentation> bodytree,
-                boost::shared_ptr<NeuralNetworkRepresentation> neuralNetwork,
-				int maxid){
+Grammar::Grammar(boost::shared_ptr<SubRobotRepresentation> r){
 
-    this->axiom_ = boost::shared_ptr<Axiom>(new Axiom(bodytree->cloneSubtree()));
+    this->axiom_ = boost::shared_ptr<Axiom>(new Axiom(r->getTree()->cloneSubtree()));
 
-	this->maxid_ = maxid;
+	this->maxid_ = r->getMaxId();
 
-	this->pBodyTree_=bodytree;
-    this->pNeuralNetwork_.reset(new NeuralNetworkRepresentation(*(neuralNetwork.get())));
+	this->pBodyTree_=r->getTree();
+    this->pNeuralNetwork_.reset(new NeuralNetworkRepresentation(*(r->getBrain().get())));
 
     //Hardcoded Rule:
     boost::shared_ptr<PartRepresentation> searchPattern = PartRepresentation::create(

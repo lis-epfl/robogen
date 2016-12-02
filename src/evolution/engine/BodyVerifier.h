@@ -27,6 +27,7 @@
 #include "robogen.pb.h"
 #include "viewer/FileViewerLog.h"
 #include "evolution/representation/RobotRepresentation.h"
+#include "evolution/representation/SubRobotRepresentation.h"
 
 #ifdef VISUAL_DEBUG
 #include <osgGA/TrackballManipulator>

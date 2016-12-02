@@ -30,6 +30,7 @@
 #include <algorithm>
 
 #include "evolution/engine/neat/NeatContainer.h"
+#include "evolution/representation/SubRobotRepresentation.h"
 
 //#define NEAT_CONTAINER_DEBUG
 
@@ -243,7 +244,7 @@ bool NeatContainer::fillBrain(NEAT::Genome *genome,
 			break;
 		}
 
-		RobotRepresentation::IdPartMap body = robotRepresentation->getBody();
+		SubRobotRepresentation::IdPartMap body = robotRepresentation->getBody();
 		boost::shared_ptr<NeuralNetworkRepresentation> brain =
 				robotRepresentation->getBrain();
 
@@ -253,7 +254,7 @@ bool NeatContainer::fillBrain(NEAT::Genome *genome,
 #ifdef NEAT_CONTAINER_DEBUG
 		std::cout << "POSITIONS: " << std::endl;
 #endif
-		for(RobotRepresentation::IdPartMap::iterator i = body.begin();
+		for(SubRobotRepresentation::IdPartMap::iterator i = body.begin();
 				i != body.end(); i++) {
 			std::string id = i->first;
 			boost::shared_ptr<PartRepresentation> part = i->second.lock();

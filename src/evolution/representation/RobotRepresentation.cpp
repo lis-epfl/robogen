@@ -56,14 +56,15 @@
 namespace robogen {
 
 RobotRepresentation::RobotRepresentation() :
-		maxid_(1000), evaluated_(false) {
-
+		evaluated_(false) {
+			//I should initialize maxId to 1000
 }
 
 RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 
 	this->robotMorph_.reset(new SubRobotRepresentation(*(r.robotMorph_.get())));
 
+/*
 	// we need to handle bodyTree_, neuralNetwork_ and reservedIds_
 	// for the brainevolver, we could theoretically keep the bodyTree_ pointing
 	// to the same body, but that would be easy to miss when resuming to body
@@ -93,14 +94,16 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 	fitness_ = r.fitness_;
 	evaluated_ = r.evaluated_;
 	maxid_ = r.maxid_;
+*/
 
 	// Similar treatment for the grammar
-	this->grammar_.reset(new Grammar(bodyTree_, neuralNetwork_, this->maxid_));
+	this->grammar_.reset(new Grammar(this->robotMorph_));
 }
 
 RobotRepresentation &RobotRepresentation::operator=(
 		const RobotRepresentation &r) {
 	// same as copy constructor, see there for explanations
+	/*
 	bodyTree_ = r.bodyTree_->cloneSubtree();
 	neuralNetwork_.reset(
 			new NeuralNetworkRepresentation(*(r.neuralNetwork_.get())));
@@ -118,9 +121,10 @@ RobotRepresentation &RobotRepresentation::operator=(
 			}
 		}
 	}
+	*/
+	*this->robotMorph_ = *(r.robotMorph_);
 	fitness_ = r.fitness_;
 	evaluated_ = r.evaluated_;
-	maxid_ = r.maxid_;
 	return *this;
 }
 
@@ -131,6 +135,7 @@ void RobotRepresentation::asyncEvaluateResult(double fitness) {
 
 bool RobotRepresentation::init() {
 
+	/*
 	// Generate a core component
 	boost::shared_ptr<PartRepresentation> corePart = PartRepresentation::create(
 			INVERSE_PART_TYPE_MAP.at(PART_TYPE_CORE_COMPONENT),
@@ -167,16 +172,18 @@ bool RobotRepresentation::init() {
 	}
 
 	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
+	*/
 
 	this->robotMorph_->init();
 
-	this->grammar_.reset(new Grammar(bodyTree_, neuralNetwork_, this->maxid_));
+	this->grammar_.reset(new Grammar(this->robotMorph_));
 
 	return true;
 }
 
 bool RobotRepresentation::init(std::string robotTextFile) {
 
+	/*
 	// open file
 	std::ifstream file;
 	file.open(robotTextFile.c_str());
@@ -335,13 +342,18 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 			}
 		}
 	}
+	*/
 
-	this->grammar_.reset(new Grammar(bodyTree_, neuralNetwork_, this->maxid_));
+	this->robotMorph_.reset(new SubRobotRepresentation());
+	this->robotMorph_->init(robotTextFile);
+
+	this->grammar_.reset(new Grammar(this->robotMorph_));
 
 	return true;
 }
 
 robogenMessage::Robot RobotRepresentation::serialize() const {
+	/*
 	robogenMessage::Robot message;
 	// id - this can probably be removed
 	message.set_id(1);
@@ -350,26 +362,32 @@ robogenMessage::Robot RobotRepresentation::serialize() const {
 	// brain
 	*(message.mutable_brain()) = neuralNetwork_->serialize();
 	return message;
+	*/
+	return this->robotMorph_->serialize();
 }
 
 
 void RobotRepresentation::getBrainGenome(std::vector<double*> &weights,
 		std::vector<unsigned int> &types,
 		std::vector<double*> &params) {
-	neuralNetwork_->getGenome(weights, types, params);
+	//neuralNetwork_->getGenome(weights, types, params);
+	this->robotMorph_->getBrainGenome(weights,types,params);
 }
 
 boost::shared_ptr<NeuralNetworkRepresentation> RobotRepresentation::getBrain(
 		) const {
-	return neuralNetwork_;
+	//return neuralNetwork_;
+	return this->robotMorph_->getBrain();
 }
 
-const RobotRepresentation::IdPartMap& RobotRepresentation::getBody() const {
-	return idToPart_;
+const SubRobotRepresentation::IdPartMap& RobotRepresentation::getBody() const {
+	//return idToPart_;
+	return this->robotMorph_->getBody();
 }
 
 void RobotRepresentation::rebuildBodyMap(){
 	// rebuild ID to part map
+	/*
 	this->idToPart_.clear();
 	std::queue<boost::shared_ptr<PartRepresentation> > q;
 	q.push(this->bodyTree_);
@@ -384,6 +402,7 @@ void RobotRepresentation::rebuildBodyMap(){
 			}
 		}
 	}
+	*/
 }
 
 boost::shared_ptr<Grammar> RobotRepresentation::getGrammar(void){
@@ -391,7 +410,8 @@ boost::shared_ptr<Grammar> RobotRepresentation::getGrammar(void){
 }
 
 const std::string& RobotRepresentation::getBodyRootId() {
-	return bodyTree_->getId();
+	//return bodyTree_->getId();
+	return this->robotMorph_->getTree()->getId();
 }
 
 void RobotRepresentation::evaluate(Socket *socket,
@@ -455,17 +475,8 @@ void RobotRepresentation::setDirty() {
 	evaluated_ = false;
 }
 
-void RobotRepresentation::recurseNeuronRemoval(
-		boost::shared_ptr<PartRepresentation> part) {
-	neuralNetwork_->removeNeurons(part->getId());
-	for (unsigned int i = 0; i < part->getArity(); i++) {
-		if (part->getChild(i)) {
-			this->recurseNeuronRemoval(part->getChild(i));
-		}
-	}
-}
-
 bool RobotRepresentation::trimBodyAt(const std::string& id, bool printErrors) {
+	/*
 	// kill all neurons and their weights
 	recurseNeuronRemoval(idToPart_[id].lock());
 
@@ -500,40 +511,21 @@ bool RobotRepresentation::trimBodyAt(const std::string& id, bool printErrors) {
 		}
 	}
 	return true;
+	*/
 
+	return this->robotMorph_->trimBodyAt(id,printErrors);
 }
 
 std::string RobotRepresentation::generateUniqueIdFromSomeId() {
 
+	/*
 	std::stringstream ss;
 	ss << "myid" << maxid_;
 
 	std::string newUniqueId = ss.str();
 	maxid_++;
 	return newUniqueId;
-
-}
-
-bool RobotRepresentation::addClonesToMap(
-		boost::shared_ptr<PartRepresentation> part,
-		std::map<std::string, std::string> &neuronReMapping) {
-	std::string oldId = part->getId();
-	std::string newUniqueId = this->generateUniqueIdFromSomeId();
-	part->setId(newUniqueId);
-	// insert part in map
-	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(part);
-	// clone neurons, save mapping
-	neuralNetwork_->cloneNeurons(oldId, part->getId(), neuronReMapping);
-
-	for (unsigned int i = 0; i < part->getArity(); i++) {
-
-		if (part->getChild(i)) {
-			this->addClonesToMap(part->getChild(i), neuronReMapping);
-		}
-
-	}
-
-	return true;
+	*/
 
 }
 
@@ -541,6 +533,7 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 		const std::string& subtreeDestPartId, unsigned int slotId,
 		bool printErrors) {
 
+	/*
 	// find src part and dest part by id
 	boost::shared_ptr<PartRepresentation> src =
 			idToPart_[subtreeRootPartId].lock();
@@ -567,12 +560,16 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 	neuralNetwork_->generateCloneWeights(neuronReMapping);
 
 	return true;
+	*/
+
+	return this->robotMorph_->duplicateSubTree(subtreeRootPartId, subtreeDestPartId, slotId, printErrors);
 
 }
 
 bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
 		const std::string& subtreeRoot2, bool printErrors) {
 
+			/*
 	// Get roots of the subtrees
 	boost::shared_ptr<PartRepresentation> root1 =
 			idToPart_[subtreeRoot1].lock();
@@ -621,6 +618,9 @@ bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
 	parentRoot1->setChild(slotParentRoot1, root2);
 
 	return true;
+	*/
+
+	return this->robotMorph_->swapSubTrees(subtreeRoot1, subtreeRoot2, printErrors);
 
 }
 
@@ -629,6 +629,8 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId,
 		boost::shared_ptr<PartRepresentation> newPart,
 		unsigned int newPartSlot,
 		unsigned int motorNeuronType, bool printErrors) {
+
+	/*
 
 	// Set new ID for the inserted node
 	std::string newUniqueId = this->generateUniqueIdFromSomeId();
@@ -671,12 +673,16 @@ bool RobotRepresentation::insertPart(const std::string& parentPartId,
 	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(newPart);
 
 	return true;
+	*/
+
+	return this->robotMorph_->insertPart(parentPartId, parentPartSlot, newPart, newPartSlot, motorNeuronType, printErrors);
 
 }
 
 bool RobotRepresentation::removePart(const std::string& partId,
 		bool printErrors) {
 
+/*
 	boost::shared_ptr<PartRepresentation> nodeToRemove =
 			idToPart_[partId].lock();
 
@@ -751,10 +757,14 @@ bool RobotRepresentation::removePart(const std::string& partId,
 		}
 	}
 	return true;
+	*/
+
+	return this->robotMorph_->removePart(partId, printErrors);
 }
 
 bool RobotRepresentation::check() {
 
+/*
 	// 1. Check that every body part in the body tree is in the idBodyPart map
 	// and there are no dangling references
 	std::vector<std::string> bodyPartIdsFromMap;
@@ -842,17 +852,20 @@ bool RobotRepresentation::check() {
 	// TODO Consistency check is not complete, neural representation is
 	// only partially checked
 	return true;
+	*/
+
+	return this->robotMorph_->check();
 
 }
 
 std::string RobotRepresentation::toString() {
 
 	std::stringstream str;
-	str << "[" << bodyTree_->getId() << " | " << bodyTree_->getType() << "]"
+	str << "[" << this->robotMorph_->getTree()->getId() << " | " << this->robotMorph_->getTree()->getType() << "]"
 			<< std::endl;
-	bodyTree_->toString(str, 0);
+	this->robotMorph_->getTree()->toString(str, 0);
 	str << "Network:" << std::endl;
-	str << neuralNetwork_->toString();
+	str << this->robotMorph_->getBrain()->toString();
 	return str.str();
 
 }
