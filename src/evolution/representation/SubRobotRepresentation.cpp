@@ -78,6 +78,24 @@ robogenMessage::Robot SubRobotRepresentation::serialize() const {
 	return message;
 }
 
+void SubRobotRepresentation::rebuildBodyMap(){
+	// rebuild ID to part map
+	this->idToPart_.clear();
+	std::queue<boost::shared_ptr<PartRepresentation> > q;
+	q.push(this->bodyTree_);
+	while (!q.empty()) {
+		boost::shared_ptr<PartRepresentation> cur = q.front();
+		q.pop();
+		//Using at instead of []
+		this->idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
+		for (unsigned int i = 0; i < cur->getArity(); ++i) {
+			if (cur->getChild(i)) {
+				q.push(cur->getChild(i));
+			}
+		}
+	}
+}
+
 SubRobotRepresentation &SubRobotRepresentation::operator=(
 		const SubRobotRepresentation &r) {
 	// same as copy constructor, see there for explanations

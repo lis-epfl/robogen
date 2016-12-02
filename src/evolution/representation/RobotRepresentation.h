@@ -72,6 +72,11 @@ public:
 	RobotRepresentation();
 
 	/**
+	 * Construct from existent subrobot
+	 */
+	RobotRepresentation(boost::shared_ptr<SubRobotRepresentation> target);
+
+	/**
 	 * assignment operator: Deep copy body parts and Neural network
 	 */
 	RobotRepresentation &operator=(const RobotRepresentation &r);
@@ -154,11 +159,6 @@ public:
 	 * @return false upon failure
 	 */
 	bool trimBodyAt(const std::string& id, bool printErrors=true);
-
-	/**
-	 * @return a string unique id
-	 */
-	std::string generateUniqueIdFromSomeId();
 
 	/**
 	 * Duplicate a subtree in the body tree

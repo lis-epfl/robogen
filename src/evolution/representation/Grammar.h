@@ -50,80 +50,6 @@ namespace robogen{
 
     class Grammar{
     public:
-        /**
-         * The axiom is a robot representation but we define a new class to avoid
-         * cyclic definitions
-         */
-
-         /**
-        * Map from an id string to a weak pointer of a part representation
-        */
-        typedef std::map<std::string, boost::weak_ptr<PartRepresentation> > IdPartMap;
-
-        class Axiom{
-        public:
-
-            Axiom(boost::shared_ptr<PartRepresentation> r);
-
-            boost::shared_ptr<PartRepresentation> getAxiomClone(void);
-
-            /**
-            * @return a string unique id
-            */
-            std::string generateUniqueIdFromSomeId();
-
-            /**
-            * Insert a part into the body tree
-            *
-            * @param parentPartId id of the part that will become the parent of newPart
-            * @param parentPartSlot slot id where the newPart will be inserted
-            * @param newPart the new part to insert
-            * @param newPartSlot the slot of the new part where the subtree of parentPartId
-            *        connected to parentPartSlot will be connected to
-            * @param motorNeuronType the type of the motor neurn (if applicable)
-            * @return true if the operation completed successfully, false otherwise
-            */
-            bool insertPart(const std::string& parentPartId,
-                    unsigned int parentPartSlot,
-                    boost::shared_ptr<PartRepresentation> newPart,
-                    unsigned int newPartSlot,
-                    unsigned int motorNeuronType,
-                    bool printErrors=true);
-
-            /**
-            * Remove a part from the body tree
-            *
-            * @param partId id of the part to remove
-            * @return true if the operation completed successfully, false otherwise
-            */
-            bool removePart(const std::string& partId, bool printErrors=true);
-
-            /**
-            * Check the consistency of this robot
-            * @return true if the body is consistent with the neural representation, and there are no
-            * dangling body parts/neurons
-            */
-            bool check();
-        private:
-            boost::shared_ptr<PartRepresentation> tree_;
-
-            /**
-            * Neural network representation of the robot
-            */
-            boost::shared_ptr<NeuralNetworkRepresentation> neuralNetwork_;
-
-            /**
-            * Map from part id to part representation
-            * @todo use to avoid multiple same names
-            */
-            IdPartMap idToPart_;
-
-            /**
-            * Counter for unique ID.
-            */
-            int maxid_;
-        };
-
         class Rule{
         public:
             Rule(int iterations, boost::shared_ptr<PartRepresentation> predecessor,
@@ -151,49 +77,10 @@ namespace robogen{
         /**
         * Grow a tree according to the current rules and alphabet of the grammar.
         */
-        boost::shared_ptr<PartRepresentation> buildTree(void);
-
-        /**
-        * @return a string unique id
-        */
-        std::string generateUniqueIdFromSomeId();
-
-        /**
-        * Insert a part into the body tree
-        *
-        * @param parentPartId id of the part that will become the parent of newPart
-        * @param parentPartSlot slot id where the newPart will be inserted
-        * @param newPart the new part to insert
-        * @param newPartSlot the slot of the new part where the subtree of parentPartId
-        *        connected to parentPartSlot will be connected to
-        * @param motorNeuronType the type of the motor neurn (if applicable)
-        * @return true if the operation completed successfully, false otherwise
-        */
-        bool insertPart(const std::string& parentPartId,
-                unsigned int parentPartSlot,
-                boost::shared_ptr<PartRepresentation> newPart,
-                unsigned int newPartSlot,
-                unsigned int motorNeuronType,
-                bool printErrors=true);
-
-        /**
-        * Check the consistency of this robot
-        * @return true if the body is consistent with the neural representation, and there are no
-        * dangling body parts/neurons
-        */
-        bool check();
+        boost::shared_ptr<SubRobotRepresentation> buildTree(void);
     private:
-
-        boost::shared_ptr<Axiom> axiom_;
+        boost::shared_ptr<SubRobotRepresentation> axiom_;
         std::vector< boost::shared_ptr<Rule> > rules_;
-
-        boost::shared_ptr<PartRepresentation> pBodyTree_;
-        boost::shared_ptr<NeuralNetworkRepresentation> pNeuralNetwork_;
-        IdPartMap pIdToPart_;
-        /**
-        * Counter for unique ID.
-        */
-        int maxid_;
     };
 }
 

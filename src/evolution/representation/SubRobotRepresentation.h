@@ -105,6 +105,8 @@ public:
 
 	robogenMessage::Robot serialize() const;
 
+	void rebuildBodyMap();
+
     /**
 	 * Constructs a subrobot representation from nothing.
 	 * Will have just the core component.
