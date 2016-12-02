@@ -236,6 +236,8 @@ public:
 	static bool createRobotMessageFromFile(robogenMessage::Robot &robotMessage,
 											std::string robotFileString);
 
+	static bool createRobotMessageFromJSON(robogenMessage::Robot &robotMessage,
+											std::string robotJSON);
 private:
 	/**
 	 *
@@ -250,6 +252,11 @@ private:
 	 */
 	bool addClonesToMap(boost::shared_ptr<PartRepresentation> part,
 			std::map<std::string, std::string> &neuronReMapping);
+
+	/**
+	 * Create default brain from current sensors and motors
+	 */
+	void createDefaultBrain();
 
 	/**
 	 * Points to the root of the robot body tree

@@ -29,6 +29,8 @@
 
 #include <cmath>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "utils/RobogenUtils.h"
 #include "PartList.h"
@@ -618,6 +620,13 @@ std::istream& RobogenUtils::safeGetline(std::istream& is, std::string& t) {
         }
     }
     return is;
+}
+
+std::string RobogenUtils::loadFile(const std::string& fileName) {
+	std::ifstream t(fileName);
+	std::stringstream buffer;
+	buffer << t.rdbuf();
+	return buffer.str();
 }
 
 bool RobogenUtils::areAxisParallel(const osg::Vec3& a, const osg::Vec3& b) {

@@ -416,29 +416,29 @@ bool RobotRepresentation::initFromJSON(const std::string &robotJSON) {
 	return initFromMessage(robotMessage);
 }
 
+void RobotRepresentation::createDefaultBrain() {
+	// create neural network: create map from body id to ioId for all sensor and
+	// motor body parts
+	std::map<std::string, int> sensorMap, motorMap;
+	for (std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator
+			it = idToPart_.begin(); it != idToPart_.end(); it++) {
+
+		// omitting weak pointer checks, as this really shouldn't go wrong here!
+		if (it->second.lock()->getMotors().size()) {
+			motorMap[it->first] = it->second.lock()->getMotors().size();
+		}
+		if (it->second.lock()->getSensors().size()) {
+			sensorMap[it->first] = it->second.lock()->getSensors().size();
+		}
+
+	}
+
+	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
+}
+
 bool RobotRepresentation::initFromMessage(const robogenMessage::Robot &robot) {
 
 	const robogenMessage::Body body = robot.body();
-	/*message BodyPart {
-	  required string id = 1;
-	  required string type = 2;
-	  required bool root = 3;
-	  repeated EvolvableParameter evolvableParam = 4;
-	  required int32 orientation = 5;
-	}
-
-	message BodyConnection {
-	  required string src = 1;
-	  required string dest = 2;
-	  required int32 srcSlot = 3;
-	  required int32 destSlot = 4;
-	}
-
-	message Body {
-	  repeated BodyPart part = 1;
-	  repeated BodyConnection connection = 2;
-	}*/
-
 
 	boost::shared_ptr<PartRepresentation> current;
 
@@ -493,7 +493,13 @@ bool RobotRepresentation::initFromMessage(const robogenMessage::Robot &robot) {
 		}
 	}
 
-	neuralNetwork_.reset(new NeuralNetworkRepresentation(robot.brain()));
+	if ( robot.has_brain() ) {
+		neuralNetwork_.reset(new NeuralNetworkRepresentation(robot.brain()));
+	} else {
+		createDefaultBrain();
+	}
+
+
 
 
 	maxid_ = 1000;
@@ -594,27 +600,15 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 		idToPart_[id] = boost::weak_ptr<PartRepresentation>(current);
 	}
 
+
+	createDefaultBrain();
+
+
 	// process brain
 	std::string from, to;
 	int fromIoId, toIoId;
 	double value;
-	// create neural network: create map from body id to ioId for all sensor and
-	// motor body parts
-	std::map<std::string, int> sensorMap, motorMap;
-	for (std::map<std::string, boost::weak_ptr<PartRepresentation> >::iterator
-			it = idToPart_.begin(); it != idToPart_.end(); it++) {
 
-		// omitting weak pointer checks, as this really shouldn't go wrong here!
-		if (it->second.lock()->getMotors().size()) {
-			motorMap[it->first] = it->second.lock()->getMotors().size();
-		}
-		if (it->second.lock()->getSensors().size()) {
-			sensorMap[it->first] = it->second.lock()->getSensors().size();
-		}
-
-	}
-
-	neuralNetwork_.reset(new NeuralNetworkRepresentation(sensorMap, motorMap));
 	unsigned int neuronType;
 	// add new neurons
 
@@ -1182,6 +1176,35 @@ std::string RobotRepresentation::toString() {
 
 }
 
+bool RobotRepresentation::createRobotMessageFromJSON(robogenMessage::Robot
+		&robotMessage, std::string robotJSON) {
+	std::cout << robotJSON;
+	try {
+		std::cout << "parsing robot json" << std::endl;
+		json2pb(robotMessage, robotJSON.c_str(), robotJSON.length());
+
+	} catch(std::exception &e) {
+		std::cerr << "Problems parsing the robot. " << e.what() <<
+				" Quit." << std::endl;
+		return false;
+	}
+
+	if(!robotMessage.has_brain()) {
+		std::cout << "No brain provided, so will create default."
+				<< std::endl;
+
+		// leverage initFromMessage functionality to create default brain
+
+		RobotRepresentation robot;
+		if (!robot.initFromMessage(robotMessage)) {
+			std::cerr << "Failed interpreting robot message!" << std::endl;
+			return false;
+		}
+		robotMessage = robot.serialize();
+
+	}
+	return true;
+}
 
 bool RobotRepresentation::createRobotMessageFromFile(robogenMessage::Robot
 		&robotMessage, std::string robotFileString) {
@@ -1234,24 +1257,10 @@ bool RobotRepresentation::createRobotMessageFromFile(robogenMessage::Robot
 
 	} else if (boost::filesystem::path(robotFileString
 				).extension().string().compare(".json") == 0) {
-		std::ifstream robotFile(robotFileString.c_str(),
-								std::ios::in | std::ios::binary);
+		std::string jsonString = RobogenUtils::loadFile(robotFileString);
+		return createRobotMessageFromJSON(robotMessage, jsonString);
 
-		if (!robotFile.is_open()) {
-			std::cerr << "Cannot open " << robotFileString << ". Quit."
-					<< std::endl;
-			return false;
-		}
 
-		robotFile.seekg(0, robotFile.end);
-		unsigned int packetSize = robotFile.tellg();
-		robotFile.seekg(0, robotFile.beg);
-
-		std::vector<unsigned char> packetBuffer;
-		packetBuffer.resize(packetSize);
-		robotFile.read((char*) &packetBuffer[0], packetSize);
-
-		json2pb(robotMessage, (char*) &packetBuffer[0], packetSize);
 
 	} else {
 		std::cerr << "File extension of provided robot file could not be "

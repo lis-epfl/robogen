@@ -50,8 +50,6 @@
 #include "robogen.pb.h"
 #include "viewer/IViewer.h"
 
-#include "utils/json2pb/json2pb.h"
-
 #include "Simulator.h"
 
 #ifdef QT5_ENABLED
@@ -204,11 +202,8 @@ std::string EMSCRIPTEN_KEEPALIVE simulationViewer(emscripten::val args,
 
 	robogenMessage::Robot robotMessage;
 
-	try {
-		json2pb(robotMessage, robotJSON.c_str(), robotJSON.length());
-
-	} catch(std::exception &e) {
-		std::cerr << "Problems parsing the robot. Quit." << std::endl;
+	if(!RobotRepresentation::createRobotMessageFromJSON(robotMessage,
+			robotJSON)) {
 		return "{\"error\" : \"RobotError\"}";
 	}
 

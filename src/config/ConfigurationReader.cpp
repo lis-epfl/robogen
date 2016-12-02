@@ -69,7 +69,11 @@ void makeAbsolute(std::string &fileName,
 
 boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationFile(
 		const std::string& fileName) {
-
+	
+	if (boost::filesystem::path(fileName).extension().string().compare(
+		".json") == 0) {
+		return parseConfigurationJSON(RobogenUtils::loadFile(fileName));
+	}
 	boost::program_options::options_description desc(
 			"Allowed options for Simulation Config File");
 	desc.add_options()
@@ -704,6 +708,8 @@ boost::shared_ptr<RobogenConfig> ConfigurationReader::parseConfigurationJSON(
 
 boost::shared_ptr<RobogenConfig> ConfigurationReader::parseRobogenMessage(
 		const robogenMessage::SimulatorConf& simulatorConf) {
+
+	simulatorConf.CheckInitialized();
 
 	// Decode obstacles
 	std::vector<osg::Vec3> obstaclesCoord;

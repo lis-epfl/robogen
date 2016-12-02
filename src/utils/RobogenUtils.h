@@ -59,6 +59,8 @@ public:
 
 	static std::istream& safeGetline(std::istream& is, std::string& t);
 
+	static std::string loadFile(const std::string& fileName);
+
 	/**
 	 * It is b that remains fixed!!
 	 */
