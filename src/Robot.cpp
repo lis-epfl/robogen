@@ -450,7 +450,8 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				//TODO add in this stuff for other neurons
 				if (printInitErrors_) {
 					std::cerr << "only sigmoid and oscillator neurons supported "
-						<< "currently" << std::endl;
+						<< "currently.  received: " << neuron.type()
+						<< std::endl;
 				}
 				return false;
 			}
