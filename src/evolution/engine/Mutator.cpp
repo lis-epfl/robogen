@@ -44,6 +44,8 @@
 
 namespace robogen {
 
+bool debugto=true;
+
 IndirectMutator::~IndirectMutator() {
 }
 
@@ -209,20 +211,53 @@ std::vector<boost::shared_ptr<RobotRepresentation> > IndirectMutator::createOffs
 
 void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
 
-	boost::shared_ptr<Grammar> tmpGrammar = robot->getGrammar();
+	//We generate a new robot, a clone
+	boost::shared_ptr<RobotRepresentation> finalBot = boost::shared_ptr<RobotRepresentation>(new RobotRepresentation(*robot.get()));
 
-	//After mutating the rules or the axiom, we build the robot.
-	boost::shared_ptr<SubRobotRepresentation> endSubRob = tmpGrammar->buildTree();
-	boost::shared_ptr<RobotRepresentation> endBot;
-	endBot.reset(new RobotRepresentation(endSubRob));
+	//We get the grammar from this clone
+	boost::shared_ptr<Grammar> tmpGrammar = finalBot->getGrammar();
 
-	robot = endBot;
-	robot->setDirty();
+	//We MUTATE THE GRAMMAR AAAAAAHHHHHH
+	boost::shared_ptr<SubRobotRepresentation> predecessor = boost::shared_ptr<SubRobotRepresentation>(new SubRobotRepresentation());
+	//We give a core to the predecessor, at least, to not be mean.
+	predecessor->init();
 
+	std::vector<double> parameters;
+
+	boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
+		'F',
+		"",
+		0, //orientation
+		parameters);
+
+	SubRobotRepresentation::IdPartMap::const_iterator targetPart = predecessor->getBody().begin();
+
+	predecessor->insertPart(targetPart->first,
+			0, //Parent slot
+			newPart,
+			0, //newPartSlot
+			0 ? NeuronRepresentation::OSCILLATOR :
+			NeuronRepresentation::SIGMOID,
+			false);
+
+	if(tmpGrammar->getNumberOfRules()==0){
+		tmpGrammar->addRule(boost::shared_ptr<Grammar::Rule>(new Grammar::Rule(1, predecessor, this->rng_,0,1,2)));
+	}
+
+	boost::shared_ptr<Grammar::Rule> tmpRule = tmpGrammar->getRule(0);
+
+	if(debugto){
+		std::cout << tmpRule->getPredecessor()->toString() << std::endl;
+
+		std::cout << tmpRule->getSuccessor()->toString() << std::endl;
+		debugto = false;
+	}
+
+	bool success = finalBot->buildFromGrammar();
 	//The grammar has spoken:
-	//Now a new tree with a new network has been built. We need to update
-	//the part map.
-	//robot->rebuildBodyMap();
+
+	robot = finalBot;
+	robot->setDirty();
 }
 
 DirectMutator::DirectMutator(boost::shared_ptr<EvolverConfiguration> conf,

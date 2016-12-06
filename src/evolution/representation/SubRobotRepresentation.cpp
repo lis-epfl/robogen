@@ -625,6 +625,16 @@ bool SubRobotRepresentation::removePart(const std::string& partId,
 	return true;
 }
 
+std::string SubRobotRepresentation::toString() {
+	std::stringstream str;
+	str << "[" << this->bodyTree_->getId() << " | " << this->bodyTree_->getType() << "]"
+			<< std::endl;
+	this->bodyTree_->toString(str, 0);
+	str << "Network:" << std::endl;
+	str << this->neuralNetwork_->toString();
+	return str.str();
+}
+
 bool SubRobotRepresentation::check() {
 
 	// 1. Check that every body part in the body tree is in the idBodyPart map
@@ -715,6 +725,10 @@ bool SubRobotRepresentation::check() {
 	// only partially checked
 	return true;
 
+}
+
+boost::shared_ptr<PartRepresentation> SubRobotRepresentation::getNodeById(std::string id){
+	return this->idToPart_[id].lock();
 }
 
 }

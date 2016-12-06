@@ -64,13 +64,8 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 
 	this->robotMorph_.reset(new SubRobotRepresentation(*(r.robotMorph_.get())));
 
-	// Similar treatment for the grammar
-	this->grammar_.reset(new Grammar(this->robotMorph_));
-}
-
-RobotRepresentation::RobotRepresentation(boost::shared_ptr<SubRobotRepresentation> target){
-	this->robotMorph_.reset(new SubRobotRepresentation());
-	*this->robotMorph_ = *target;
+	// We copy the AXIOM
+	this->grammar_.reset(new Grammar(r.grammar_->getAxiom()));
 }
 
 RobotRepresentation &RobotRepresentation::operator=(
@@ -91,7 +86,6 @@ bool RobotRepresentation::init() {
 	this->robotMorph_->init();
 
 	this->grammar_.reset(new Grammar(this->robotMorph_));
-
 	return true;
 }
 
@@ -100,6 +94,7 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 	this->robotMorph_.reset(new SubRobotRepresentation());
 	this->robotMorph_->init(robotTextFile);
 
+	//In this case, we make the axiom the content of the textfile
 	this->grammar_.reset(new Grammar(this->robotMorph_));
 
 	return true;
@@ -212,14 +207,12 @@ bool RobotRepresentation::duplicateSubTree(const std::string& subtreeRootPartId,
 		bool printErrors) {
 
 	return this->robotMorph_->duplicateSubTree(subtreeRootPartId, subtreeDestPartId, slotId, printErrors);
-
 }
 
 bool RobotRepresentation::swapSubTrees(const std::string& subtreeRoot1,
 		const std::string& subtreeRoot2, bool printErrors) {
 
 	return this->robotMorph_->swapSubTrees(subtreeRoot1, subtreeRoot2, printErrors);
-
 }
 
 bool RobotRepresentation::insertPart(const std::string& parentPartId,
@@ -335,6 +328,11 @@ bool RobotRepresentation::createRobotMessageFromFile(robogenMessage::Robot
 	}
 	return true;
 
+}
+
+bool RobotRepresentation::buildFromGrammar(void){
+	this->robotMorph_ = this->grammar_->buildTree();
+	return true;
 }
 
 }

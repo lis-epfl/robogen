@@ -72,11 +72,6 @@ public:
 	RobotRepresentation();
 
 	/**
-	 * Construct from existent subrobot
-	 */
-	RobotRepresentation(boost::shared_ptr<SubRobotRepresentation> target);
-
-	/**
 	 * assignment operator: Deep copy body parts and Neural network
 	 */
 	RobotRepresentation &operator=(const RobotRepresentation &r);
@@ -241,6 +236,14 @@ public:
 	 */
 	static bool createRobotMessageFromFile(robogenMessage::Robot &robotMessage,
 											std::string robotFileString);
+
+	/**
+	 * Rebuild the final state of the robot using the grammar (only available
+	 * if indirect encoding is used)
+	 * @return false if direct encoding is used, or the Robot had conflicts
+	 * at build time
+	 */
+	bool buildFromGrammar(void);
 
 private:
 	/**

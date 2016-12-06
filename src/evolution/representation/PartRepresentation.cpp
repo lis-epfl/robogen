@@ -291,23 +291,4 @@ void PartRepresentation::toString(std::stringstream& str, unsigned int depth) {
 
 }
 
-void PartRepresentation::doppelGaenger(boost::shared_ptr<PartRepresentation> originalPart){
-	
-	this->id_ = originalPart->getId();
-	this->orientation_ = originalPart->getOrientation();
-	this->arity_ = originalPart->getArity();
-	this->type_ = originalPart->getType();
-	//std::vector<boost::shared_ptr<PartRepresentation> > children_;
-
-	this->parent_ = originalPart->getParent();
-
-	this->position_ = originalPart->getPosition();
-
-	this->params_ = originalPart->getParams();
-
-	this->motors_ = originalPart->getMotors();
-
-	this->sensors_ = originalPart->getSensors();
-}
-
 } /* namespace robogen */

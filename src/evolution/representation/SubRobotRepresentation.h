@@ -181,6 +181,11 @@ public:
 	bool removePart(const std::string& partId, bool printErrors=true);
 
 	/**
+	 * Auxiliar method to see the SubRobot as a string
+	 */
+	std::string toString();
+
+	/**
 	 * @return the id of the root body part
 	 */
 	const std::string& getBodyRootId();
@@ -191,6 +196,8 @@ public:
 	 * dangling body parts/neurons
 	 */
 	bool check();
+
+	boost::shared_ptr<PartRepresentation> getNodeById(std::string id);
 private:
     /**
 	 *

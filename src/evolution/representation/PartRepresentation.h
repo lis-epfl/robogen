@@ -204,13 +204,6 @@ public:
 	 */
 	void toString(std::stringstream& str, unsigned int depth);
 
-	/**
-	 * Replicate every private variable from another
-	 * @param originalPart part from which to copy
-	 */
-
-	void doppelGaenger(boost::shared_ptr<PartRepresentation> originalPart);
-
 private:
 
 	/**
