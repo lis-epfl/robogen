@@ -75,6 +75,18 @@ int main(int argc, char** argv) {
 #include <Evolver.cpp>
 #include <viewer/FileViewer.cpp>
 
+std::string getRobotJSON(int ptr, int length) {
+	unsigned char* data = (unsigned char*) ptr;
+
+	ProtobufPacket<robogenMessage::EvaluationRequest> packet;
+	std::vector<unsigned char> payloadBuffer;
+	for (unsigned int i = ProtobufPacket<robogenMessage::EvaluationRequest>::HEADER_SIZE ; i < length; ++i) {
+		payloadBuffer.push_back(data[i]);
+	}
+	packet.decodePayload(payloadBuffer);
+	return pb2json(packet.getMessage()->robot());
+}
+
 double EMSCRIPTEN_KEEPALIVE evaluate(int ptr, int length) {
 	unsigned char* data = (unsigned char*) ptr;
 	boost::random::mt19937 rng;
@@ -294,6 +306,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	emscripten::function("runEvolutionOld",&runEvolution);
 	emscripten::function("runEvolution",&runEvolutionNew);
 
+	emscripten::function("getRobotJSON", &getRobotJSON);
 
 	emscripten::function("evaluate", &evaluate);
 	emscripten::function("evaluationResultAvailable", &evaluationResultAvailable);
