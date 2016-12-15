@@ -147,7 +147,7 @@ void PartRepresentation::addSubtreeToBodyMessage(
 		robogenMessage::Body *bodyMessage, bool amIRoot) {
 
 	// first, insert self
-	robogenMessage::BodyPart* serialization = bodyMessage->add_part();
+	robogenMessage::BodyPart* serialization = bodyMessage->add_part(); 
 
 	// required string id = 1;
 	serialization->set_id(id_);

@@ -157,6 +157,21 @@ typedef struct EvolverConfiguration {
 	unsigned int evolutionMode;
 
 	/**
+	 * Insertion probability for indirect encoding
+	 */
+	double insertionProb;
+	
+	/**
+	 * Deletion probability for indirect encoding
+	 */
+	double deletionProb;
+
+	/**
+	 * Maximum number of pieces in successor
+	 */
+	int maxSuccessorPieces;
+
+	/**
 	 *  Flag to continue evolving from provided brain instead of re-initialing
 	 *  params randomly
 	 */

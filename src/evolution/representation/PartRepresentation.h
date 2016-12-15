@@ -204,6 +204,14 @@ public:
 	 */
 	void toString(std::stringstream& str, unsigned int depth);
 
+	/**
+	 * EXTREME WARNING, THIS FUNCTION MIGHT BREAK ALL
+	 */
+	void popAllChildren(void){
+		while(this->children_.size()>0)
+			this->children_.pop_back();
+	}
+
 private:
 
 	/**

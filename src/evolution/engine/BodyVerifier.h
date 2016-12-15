@@ -8,6 +8,8 @@
 #ifndef BODYVERIFIER_H_
 #define BODYVERIFIER_H_
 
+//#define VISUAL_DEBUG
+
 #include <boost/shared_ptr.hpp>
 
 #include "Robogen.h"

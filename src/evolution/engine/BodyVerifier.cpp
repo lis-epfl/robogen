@@ -63,6 +63,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 		bool printErrors) {
 
 	bool success = true;
+	
 	errorCode = INTERNAL_ERROR;
 
 	// Initialize ODE
@@ -84,6 +85,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 
 	// parse robot message
 	robogenMessage::Robot robotMessage = robotRep.serialize();
+	
 	// parse robot
 	boost::shared_ptr<Robot> robot(new Robot);
 	if (!robot->init(odeWorld, odeSpace, robotMessage, false, printErrors)) {
@@ -224,6 +226,7 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	dSpaceDestroy(odeSpace);
 	dWorldDestroy(odeWorld);
 	dCloseODE();
+	
 	return success;
 }
 

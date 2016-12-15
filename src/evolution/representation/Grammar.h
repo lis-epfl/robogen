@@ -36,6 +36,7 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/random/bernoulli_distribution.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
+#include <boost/random/uniform_01.hpp>
 #include <queue>
 
 #include "config/EvolverConfiguration.h"
@@ -74,7 +75,7 @@ namespace robogen{
              * @param successor SubRobot of the replace pattern
              */
             Rule(int iterations, boost::shared_ptr<SubRobotRepresentation> predecessor,
-                boost::random::mt19937 &rng, float p, float s, int nS);
+                boost::random::mt19937 &rng, boost::shared_ptr<EvolverConfiguration> conf);
 
             /**
              * Check if the predecessor is identical to the candidate
@@ -145,6 +146,8 @@ namespace robogen{
         boost::shared_ptr<Rule> getRule(int id);
 
         bool addRule(boost::shared_ptr<Rule> newRule);
+        void popLastRule(void);
+        bool lastBuildFailed();
     private:
         /**
          * Axiom of the grammar
@@ -155,6 +158,8 @@ namespace robogen{
          * Vector of rules in the grammar
          */
         std::vector< boost::shared_ptr<Rule> > rules_;
+
+        bool lastBuildWorked;
     };
 }
 

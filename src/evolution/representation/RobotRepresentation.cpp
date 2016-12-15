@@ -332,7 +332,7 @@ bool RobotRepresentation::createRobotMessageFromFile(robogenMessage::Robot
 
 bool RobotRepresentation::buildFromGrammar(void){
 	this->robotMorph_ = this->grammar_->buildTree();
-	return true;
+	return !this->grammar_->lastBuildFailed();
 }
 
 }

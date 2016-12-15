@@ -114,6 +114,10 @@ bool EvolverConfiguration::init(std::string configFileName) {
 	maxBrainTau = 0.5;
 	brainTauSigma = 0.1;
 
+	insertionProb = 1;
+	deletionProb=0;
+	maxSuccessorPieces=2;
+
 
 	pOscillatorNeuron = 0.0;
 	pAddHiddenNeuron = 0.0;
@@ -162,6 +166,15 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		("encodingType",
 				boost::program_options::value<std::string>(),
 				"Genome encoding type: direct or indirect")
+		("insertionProbability",
+				boost::program_options::value<double>(),
+				"Insertion probability for Rule creation.")
+		("deletionProbability",
+				boost::program_options::value<double>(),
+				"Deletion probability for Rule creation.")
+		("maxSuccessorPieces",
+				boost::program_options::value<int>(),
+				"Maximum number of pieces in successor (indirect mode)")
 		("neatParamsFile",
 				boost::program_options::value<std::string>(&neatParamsFile),
 				"File for NEAT/HyperNEAT specific params")
@@ -294,6 +307,46 @@ bool EvolverConfiguration::init(std::string configFileName) {
 				 << std::endl;
 		return false;
 	}
+
+	// parse addition probability
+	if (vm.count("insertionProbability") == 0){
+		insertionProb = 1;
+	} else if(vm["insertionProbability"].as<double>()<=1 && vm["insertionProbability"].as<double>()>=0){
+		insertionProb = vm["insertionProbability"].as<double>();
+	} else {
+		std::cerr << "Specified insertion probability \"" <<
+				vm["insertionProbability"].as<double>() <<
+				"\" out of range. Must be between 0 and 1 (inclusive)"
+				 << std::endl;
+		return false;
+	}
+
+	// parse deletion probability
+	if (vm.count("deletionProbability") == 0){
+		deletionProb = 0;
+	} else if(vm["deletionProbability"].as<double>()<=1 && vm["deletionProbability"].as<double>()>=0){
+		deletionProb = vm["deletionProbability"].as<double>();
+	} else {
+		std::cerr << "Specified deletion probability \"" <<
+				vm["deletionProbability"].as<double>() <<
+				"\" out of range. Must be between 0 and 1 (inclusive)"
+				 << std::endl;
+		return false;
+	}
+
+	// parse maxSuccessorPieces
+	if (vm.count("maxSuccessorPieces") == 0){
+		maxSuccessorPieces = 2;
+	} else if(vm["maxSuccessorPieces"].as<int>()<=6 && vm["maxSuccessorPieces"].as<int>()>=0){
+		maxSuccessorPieces = vm["maxSuccessorPieces"].as<int>();
+	} else {
+		std::cerr << "Specified number of pieces for successor \"" <<
+				vm["maxSuccessorPieces"].as<int>() <<
+				"\" out of range. Must be between 0 and 6 (inclusive)"
+				 << std::endl;
+		return false;
+	}
+
 
 	// parse replacement type
 	if (vm["replacement"].as<std::string>() == "comma"){
