@@ -270,16 +270,8 @@ bool Grammar::Rule::applyRule(boost::shared_ptr<SubRobotRepresentation> robot, b
 
 	bool match = generateCloneMap(this->predecessor_->getTree()->getChild(0), node, tmpMap);
 
-	typedef Grammar::Rule::effectMap::iterator it_type;
-	std::cout << "Applying with the following buildMap:\n"; 
-	for(it_type iterator2 = tmpMap->begin(); iterator2 != tmpMap->end(); iterator2++) {
-		std::cout << iterator2->first << " and " << iterator2->second << std::endl;
-	}
-
 	for(int i=0; i< this->insertions_.size(); i++){
 		buildStep tmpStep = this->insertions_.at(i);
-
-		std::cout << "Attempting at " << tmpStep.parentPartId << "(Equivalent " << (*tmpMap)[tmpStep.parentPartId] << ")" << std::endl;
 
 		boost::shared_ptr<PartRepresentation> newPart = boost::shared_ptr<PartRepresentation>(new PartRepresentation(*tmpStep.newPart.get()));
 
@@ -300,21 +292,10 @@ bool Grammar::Rule::applyRule(boost::shared_ptr<SubRobotRepresentation> robot, b
 				false);
 
 		if(!success){
-			std::cout << "EPIC FAIL BROOOOO\n";
 			return false;
-		} else {
-			std::cout << "The insertion worked..\n";
 		}
 
-		std::cout << "The new id is.." << newPart2->getId() << std::endl;
-
-		//std::cout << "Ready: " << robot->getNodeById(tmpStep.parentPartId)->getId() << std::endl;//getChild(tmpStep.newPartSlot)->getId() << std::endl;
-		//*(this->buildMap_)[tmpStep.parentPartId] = robot->getBody()[(*this->buildMap_)[tmpStep.parentPartId]].lock()->getChild(tmpStep.parentPartSlot)->getId();
 		(*tmpMap)[successor->getNodeById(tmpStep.parentPartId)->getChild(tmpStep.parentPartSlot)->getId()] = newPart2->getId();
-	}
-	std::cout << "Final buildMap:\n"; 
-	for(it_type iterator2 = tmpMap->begin(); iterator2 != tmpMap->end(); iterator2++) {
-		std::cout << iterator2->first << " and " << iterator2->second << std::endl;
 	}
 
 	return true;
@@ -404,26 +385,18 @@ boost::shared_ptr<SubRobotRepresentation> Grammar::buildTree(void){
 
 				if(this->rules_.at(r)->matchesPredecessor(iterator->second.lock())){
 
-					std::cout << "Element " << iterator->first << " matched. trying to apply rule" << std::endl;
 					if(!this->rules_.at(r)->applyRule(final, iterator->second.lock())){
 						//The robot can't be built!
 						*final = *this->axiom_;
 						this->lastBuildWorked=false;
 						return final;
 					}
-					std::cout << "Rule successfully applied to last element\n\n";
 
 				}
 			}
 
 			bot=final->getBody();
 		}
-
-		std::cout << "Rule successfully applied everywhere. Resulting map:\n";
-		for(it_type iterator = bot.begin(); iterator != bot.end(); iterator++) {
-			std::cout << iterator->first << std::endl;
-		}
-		std::cout << "\n\n";
 	}
 	
 	this->lastBuildWorked=true;

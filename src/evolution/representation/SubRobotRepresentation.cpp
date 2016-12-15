@@ -502,19 +502,6 @@ bool SubRobotRepresentation::insertPart(const std::string& parentPartId,
 		unsigned int newPartSlot,
 		unsigned int motorNeuronType, bool printErrors) {
 
-	// create Neurons in NeuralNetwork
-	std::vector<std::string> sensors = newPart->getSensors();
-	for (unsigned int i = 0; i < sensors.size(); ++i) {
-		neuralNetwork_->insertNeuron(ioPair(newPart->getId(), i),
-				NeuronRepresentation::INPUT, NeuronRepresentation::SIMPLE);
-	}
-	std::vector<std::string> motors = newPart->getMotors();
-	for (unsigned int i = 0; i < motors.size(); ++i) {
-		neuralNetwork_->insertNeuron(
-				ioPair(newPart->getId(), sensors.size() + i),
-				NeuronRepresentation::OUTPUT, motorNeuronType);
-	}
-
 	// find dst part by id
 	boost::shared_ptr<PartRepresentation> parentPart =
 			idToPart_[parentPartId].lock();
@@ -530,15 +517,27 @@ bool SubRobotRepresentation::insertPart(const std::string& parentPartId,
 		return false;
 	}
 
+	// Set new ID for the inserted node
+	std::string newUniqueId = this->generateUniqueIdFromSomeId();
+	newPart->setId(newUniqueId);
+
+	// create Neurons in NeuralNetwork
+	std::vector<std::string> sensors = newPart->getSensors();
+	for (unsigned int i = 0; i < sensors.size(); ++i) {
+		neuralNetwork_->insertNeuron(ioPair(newPart->getId(), i),
+				NeuronRepresentation::INPUT, NeuronRepresentation::SIMPLE);
+	}
+	std::vector<std::string> motors = newPart->getMotors();
+	for (unsigned int i = 0; i < motors.size(); ++i) {
+		neuralNetwork_->insertNeuron(
+				ioPair(newPart->getId(), sensors.size() + i),
+				NeuronRepresentation::OUTPUT, motorNeuronType);
+	}
+
 	parentPart->setChild(parentPartSlot, newPart);
 
 	if (childPart != NULL)
 		newPart->setChild(newPartSlot, childPart);
-
-		// Set new ID for the inserted node
-	std::string newUniqueId = this->generateUniqueIdFromSomeId();
-	newPart->setId(newUniqueId);
-
 
 	// Add to the map
 	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(newPart);
