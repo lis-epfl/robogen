@@ -502,10 +502,6 @@ bool SubRobotRepresentation::insertPart(const std::string& parentPartId,
 		unsigned int newPartSlot,
 		unsigned int motorNeuronType, bool printErrors) {
 
-	// Set new ID for the inserted node
-	std::string newUniqueId = this->generateUniqueIdFromSomeId();
-	newPart->setId(newUniqueId);
-
 	// create Neurons in NeuralNetwork
 	std::vector<std::string> sensors = newPart->getSensors();
 	for (unsigned int i = 0; i < sensors.size(); ++i) {
@@ -538,6 +534,11 @@ bool SubRobotRepresentation::insertPart(const std::string& parentPartId,
 
 	if (childPart != NULL)
 		newPart->setChild(newPartSlot, childPart);
+
+		// Set new ID for the inserted node
+	std::string newUniqueId = this->generateUniqueIdFromSomeId();
+	newPart->setId(newUniqueId);
+
 
 	// Add to the map
 	idToPart_[newUniqueId] = boost::weak_ptr<PartRepresentation>(newPart);
