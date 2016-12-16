@@ -36,6 +36,7 @@
 #include "render/components/CoreComponentRenderModel.h"
 #include "render/components/HingeRenderModel.h"
 #include "render/components/ParametricBrickRenderModel.h"
+#include "render/components/ParametricPrismRenderModel.h"
 #include "render/components/PassiveWheelRenderModel.h"
 #include "render/components/RotateJointRenderModel.h"
 #include "render/components/ActiveWhegRenderModel.h"

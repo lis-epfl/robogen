@@ -3,6 +3,7 @@
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
+ * Basil Huber (basil.huber@epfl.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
@@ -38,6 +39,7 @@
 namespace robogen {
 
 class Model;
+class ConvexBody;
 
 class RenderModel {
 
@@ -64,6 +66,8 @@ public:
 			const osg::Vec4& color);
 
 	osg::ref_ptr<osg::Geode> getCapsule(float radius, float height);
+
+	osg::ref_ptr<osg::Geode> getConvex(boost::shared_ptr<ConvexBody> body, const osg::Vec4& color);
 
 	boost::shared_ptr<Model> getModel();
 

@@ -46,7 +46,6 @@ CoreComponentModel::CoreComponentModel(dWorldID odeWorld, dSpaceID odeSpace,
 	if (hasSensors) {
 		sensor_.reset(new ImuSensor(id + "-IMU"));
 	}
-
 }
 
 CoreComponentModel::~CoreComponentModel() {

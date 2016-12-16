@@ -50,6 +50,21 @@ unsigned int PartRepresentation::getArity() {
 	return arity_;
 }
 
+bool PartRepresentation::setArity(unsigned int arity, std::string partType){
+
+//check if the bodyPartType as the right to mutate its connection
+	if(!PART_TYPE_IS_VARIABLE_ARITY_MAP.at(partType))
+		return false;
+//check if the newArity is in the range	
+	std::pair<unsigned int, unsigned int> range = 
+		PART_TYPE_VARIABLE_ARITY_RANGE_MAP.at(partType);
+	if(arity<range.first || arity>range.second)
+		return false;
+
+	arity_ = arity;
+	return true;
+}
+
 unsigned int PartRepresentation::numDescendants() {
 
 	int descendants = 0;
@@ -118,9 +133,76 @@ bool PartRepresentation::setChild(unsigned int n,
 
 }
 
+bool PartRepresentation::setChildren(std::vector<boost::shared_ptr<PartRepresentation>> children){
+	
+	unsigned int childrenSize = children.size();
+	boost::shared_ptr<PartRepresentation> child;
+
+	// check if the partType has the right to use this function
+	if(PART_TYPE_IS_VARIABLE_ARITY_MAP.at(this->getType()) == false){
+		std::cout 	<< "The part "
+					<< this->getType()
+					<< " hasn't the right to use the function" 
+					<< " PartRepresentation::setChildren"
+					<< std::endl;
+		return false;
+	}
+	//check if the vector children size = arity
+	if(children.size() != this->getArity()){
+		std::cout	<< "RobotRepresentation::setChildPosition: "
+					<< "children vector size is "
+					<< children.size()
+					<< " and must be the same of the arity, so "
+					<< this->getArity()
+					<< std::endl;
+		return false;
+	}
+//Gael Debug*************************************************************************
+	std::cout 	<< "Children = [";
+	for(int i=0; i<children.size(); i++){
+		if(children[i] != NULL)
+			std::cout 	<< " "
+						<< i;
+		else
+			std::cout 	<< " NULL";
+	}
+	std::cout 	<< " ]"
+				<< std::endl;
+//***********************************************************************************
+
+	children_.resize(childrenSize, boost::shared_ptr<PartRepresentation>());
+	for(int i=0; i<childrenSize; i++){
+		// don't try to access part if void
+		child = children[i];
+		if (child) {
+			child->setParent(this);
+			child->setPosition(i);
+		}
+		children_[i] = child;	
+	}
+
+//Gael Debug*************************************************************************
+	std::cout 	<< "Children_ = [";
+	for(int i=0; i<children.size(); i++){
+		if(children_[i] != NULL)
+			std::cout 	<< " "
+						<< i;
+		else
+			std::cout 	<< " NULL";
+	}
+	std::cout 	<< " ]"
+				<< std::endl;
+//***********************************************************************************
+
+std::cout << "*******************setChildrenEND********************"
+			<<std::endl;
+	return true;
+}
+
 boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 		std::string id, unsigned int orientation, std::vector<double> params) {
-
+	int arity;
+std::cout << "CREATE patram size " << params.size() << std::endl;
 	if (PART_TYPE_MAP.count(type) == 0) {
 		std::cout << "Unknown part type '" << type << "'" << std::endl;
 		return boost::shared_ptr<PartRepresentation>();
@@ -135,9 +217,24 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 		return boost::shared_ptr<PartRepresentation>();
 	}
 
+	// In order to save the compability with Mutator::mutateParams
+	// we will keep only the params that this function needs in the vector Params
+	if(PART_TYPE_IS_VARIABLE_ARITY_MAP.at(partType)){
+		if(	partType == PART_TYPE_PARAM_PRISM_CORE ||
+			partType == PART_TYPE_PARAM_PRISM_CORE_NO_IMU)
+				arity =params.at(0);
+		else
+			arity = params.at(0)-1; // remove the Parent Connection
+		params.erase(params.begin());
+	}
+	else
+	{
+		arity = PART_TYPE_ARITY_MAP.at(partType);
+	}
+
 	return boost::shared_ptr<PartRepresentation>(
 			new PartRepresentation(id, orientation,
-					PART_TYPE_ARITY_MAP.at(partType), partType, params,
+					arity, partType, params,
 					PART_TYPE_MOTORS_MAP.at(partType),
 					PART_TYPE_SENSORS_MAP.at(partType)));
 
@@ -158,8 +255,24 @@ void PartRepresentation::addSubtreeToBodyMessage(
 	// required bool root = 3;
 	serialization->set_root(amIRoot);
 
+	// BASIL
+	/*
+	* TODO: if isTheCore put param->set_paramvalue(arity_)
+	*/
+	unsigned i0param = 0;
+	if(PART_TYPE_IS_VARIABLE_ARITY_MAP.at(this->getType())){
+		robogenMessage::EvolvableParameter *param =
+					serialization->add_evolvableparam();
+		if(	this->getType() == PART_TYPE_PARAM_PRISM_CORE ||
+			this->getType() == PART_TYPE_PARAM_PRISM_CORE_NO_IMU)
+			param->set_paramvalue(arity_);
+		else
+			param->set_paramvalue(arity_ + 1);
+		i0param = 1;
+	}
 	// repeated EvolvableParameter evolvableParam = 4;
-	for (unsigned int i = 0; i < params_.size(); ++i) {
+	// The first parameter can be a non-normalized Arity map
+	for (unsigned int i = i0param; i < params_.size(); ++i) {
 		robogenMessage::EvolvableParameter *param =
 				serialization->add_evolvableparam();
 

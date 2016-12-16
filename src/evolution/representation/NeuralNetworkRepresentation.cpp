@@ -224,6 +224,11 @@ std::string NeuralNetworkRepresentation::insertNeuron(ioPair identification,
 	boost::shared_ptr<NeuronRepresentation> neuron = boost::shared_ptr<
 			NeuronRepresentation>(
 			new NeuronRepresentation(identification, layer, type));
+		//Gael Degug*************************************************************
+			std::cout 	<<"*********NeuralNetworkRepresentation::insertNeuron********** "
+						
+					 	<<std::endl;
+	//***********************************************************************
 	// insert into map
 	if (neurons_.count(identification)) {
 		std::cout << "ATTENTION: attempting to insert a neuron with id " <<

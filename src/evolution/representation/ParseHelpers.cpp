@@ -63,7 +63,15 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 			exitRobogen(EXIT_FAILURE);
 			//return false;
 		}
-		for (unsigned int i = 0; i < rawParams.size(); i++) {
+
+		// Do not normalize arity param
+		unsigned int iParam0;
+		if(PART_TYPE_IS_VARIABLE_ARITY_MAP.at(PART_TYPE_MAP.at(type)))
+			iParam0 = 1;
+		else
+			iParam0 = 0;
+
+		for (unsigned int i = 0; i < rawParams.size(); i++){
 			std::pair<double, double> ranges = PART_TYPE_PARAM_RANGE_MAP.at(
 					std::make_pair(PART_TYPE_MAP.at(type), i));
 			double rawParamValue = rawParams[i];
@@ -76,10 +84,17 @@ bool robotTextFileReadPartLine(std::ifstream &file, unsigned int &indent,
 				//return false;
 				exitRobogen(EXIT_FAILURE);
 			}
-			//add param in [0,1]
-			params.push_back((fabs(ranges.first - ranges.second) < 1e-6) ? 0 :
-					(rawParamValue - ranges.first)
-							/ (ranges.second - ranges.first));
+			if(i<iParam0)
+			{
+				params.push_back(rawParams[i]);
+			}
+			else
+			{
+				//add param in [0,1]
+				params.push_back((fabs(ranges.first - ranges.second) < 1e-6) ? 0 :
+						(rawParamValue - ranges.first)
+								/ (ranges.second - ranges.first));
+			}
 		}
 
 		return true;

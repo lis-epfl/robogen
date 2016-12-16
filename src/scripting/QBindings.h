@@ -89,6 +89,7 @@ public slots:
 	QScriptValue getType();
 	QScriptValue getSensors();
 	QScriptValue getId();
+	QScriptValue getArity();
 
 private:
 	boost::weak_ptr<Model> basePtr_;

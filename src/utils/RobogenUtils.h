@@ -61,6 +61,7 @@ public:
 
 	/**
 	 * It is b that remains fixed!!
+	 * a is the model that will be connected to b
 	 */
 	static boost::shared_ptr<Joint> connect(boost::shared_ptr<Model> a, unsigned int slotA,
 			boost::shared_ptr<Model> b, unsigned int slotB,
@@ -83,7 +84,6 @@ public:
 								const unsigned int id);
 	static osg::Quat getRelativeAttitude(boost::shared_ptr<Model> model,
 								const unsigned int id);
-
 private:
 
 	RobogenUtils();

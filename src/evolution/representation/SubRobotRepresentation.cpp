@@ -123,6 +123,8 @@ SubRobotRepresentation &SubRobotRepresentation::operator=(
 bool SubRobotRepresentation::init() {
 
 	// Generate a core component
+	// Gael: TODO: Remove completely core_component
+	/*
 	boost::shared_ptr<PartRepresentation> corePart = PartRepresentation::create(
 			INVERSE_PART_TYPE_MAP.at(PART_TYPE_CORE_COMPONENT),
 			PART_TYPE_CORE_COMPONENT, 0, std::vector<double>());
@@ -134,7 +136,20 @@ bool SubRobotRepresentation::init() {
 	//this->grammar_.reset(new Grammar(bodyTree_->cloneSubtree()));
 	idToPart_[PART_TYPE_CORE_COMPONENT] = boost::weak_ptr<PartRepresentation>(
 			corePart);
-
+	*/
+std::cout <<  "SubRobotRepresentation::init() " << std::endl;
+std::vector<double> params;
+params.push_back(4);
+	boost::shared_ptr<PartRepresentation> corePart = PartRepresentation::create(
+			INVERSE_PART_TYPE_MAP.at(PART_TYPE_PARAM_PRISM_CORE),
+			PART_TYPE_PARAM_PRISM_CORE, 0, params);
+	if (!corePart) {
+		std::cout << "Failed to create root node" << std::endl;
+		return false;
+	}
+	bodyTree_ = corePart;
+	idToPart_[PART_TYPE_PARAM_PRISM_CORE] = boost::weak_ptr<PartRepresentation>(
+			corePart);
 	// TODO abstract this to a different function so it doesn't
 	// duplicate what we have below
 
@@ -622,6 +637,35 @@ bool SubRobotRepresentation::removePart(const std::string& partId,
 			}
 		}
 	}
+	return true;
+}
+
+bool SubRobotRepresentation::setChildPosition(const std::string& partId,  
+			std::vector<boost::shared_ptr<PartRepresentation>> children,
+			bool printErrors){
+
+	boost::shared_ptr<PartRepresentation> part = idToPart_[partId].lock();
+
+//check the coherency of the vector children
+	if(children.size() != part->getArity()){
+		if(printErrors){
+		std::cout	<< "RobotRepresentation::setChildPosition: "
+					<< "children vector size is "
+					<< children.size()
+					<< " and must be the same of the arity, so "
+					<< part->getArity()
+					<< std::endl;
+		}
+		return false;
+	}
+
+//Set the children
+	//Gael Debug*************************************************************************
+	std::cout 	<< "********************setChildren**********************"
+				<< std::endl;
+	//***********************************************************************************
+
+	part -> setChildren(children);
 	return true;
 }
 

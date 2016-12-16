@@ -94,6 +94,10 @@ unsigned int runSimulations(boost::shared_ptr<Scenario> scenario,
 		// ---------------------------------------
 		// Generate Robot
 		// ---------------------------------------
+		//Gael Degug*************************************************************
+			std::cout <<"Simulator::runSimulations"
+					 <<std::endl;
+		//***********************************************************************
 		boost::shared_ptr<Robot> robot(new Robot);
 		if (!robot->init(odeWorld, odeSpace, robotMessage)) {
 			std::cout << "Problems decoding the robot. Quit."

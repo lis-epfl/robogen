@@ -2,6 +2,7 @@
  * @(#) Model.h   1.0   Feb 8, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Basil Huber (basil.huber@epfl.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2013 Andrea Maesani
@@ -33,6 +34,7 @@
 #include <sstream>
 
 #include "CompositeBody.h"
+#include "ConvexBody.h"
 
 namespace robogen {
 
@@ -68,8 +70,10 @@ osg::Quat Model::getRootAttitude() {
 std::set<boost::shared_ptr<AbstractBody> > Model::bodiesToMove() {
 	std::set<boost::shared_ptr<AbstractBody> > rootBodies;
 
-	for(size_t i=0; i<bodies_.size(); ++i) {
-		boost::shared_ptr<AbstractBody> bodyRoot = bodies_[i]->getRoot();
+	// iterate over bodies_
+	std::map<int, boost::shared_ptr<SimpleBody> >::iterator it;
+	for(it = bodies_.begin(); it != bodies_.end(); it++){
+		boost::shared_ptr<AbstractBody> bodyRoot = it->second->getRoot();
 		boost::shared_ptr<CompositeBody> composite =
 						boost::dynamic_pointer_cast<CompositeBody>(bodyRoot);
 		if( !(composite && composite->isMultiModel()) ) {
@@ -196,13 +200,16 @@ boost::shared_ptr<SimpleBody> Model::addCylinder(float mass,
 		int label) {
 
 	dMass massOde;
-	dMassSetCylinderTotal(&massOde, mass, direction, radius, height);
+	dMassSetCylinderTotal(&massOde, mass, 3, radius, height);
 	dxGeom* g = dCreateCylinder(this->getCollisionSpace(), radius, height);
 	osg::Quat rotateCylinder;
 	if (direction == 1) {
 		rotateCylinder.makeRotate(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
 	} else if (direction == 2) {
 		rotateCylinder.makeRotate(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
+	} else if (direction != 3) {
+		std::cout << "Model::addCylinder: invalid direction " << direction 
+				<< "; direction must be x=1, y=2 or z=3; applying default z=3" << std::endl;
 	}
 
 	boost::shared_ptr<SimpleBody> body(new SimpleBody(shared_from_this(),
@@ -217,7 +224,7 @@ boost::shared_ptr<SimpleBody> Model::addCapsule(float mass,
 		int label) {
 
 	dMass massOde;
-	dMassSetCapsuleTotal(&massOde, mass, direction, radius, height);
+	dMassSetCapsuleTotal(&massOde, mass, 3, radius, height);
 	dxGeom* g = dCreateCapsule(this->getCollisionSpace(), radius, height);
 
 	osg::Quat rotateCapsule;
@@ -226,10 +233,22 @@ boost::shared_ptr<SimpleBody> Model::addCapsule(float mass,
 		rotateCapsule.makeRotate(osg::inDegrees(90.0), osg::Vec3(0, 1, 0));
 	} else if (direction == 2) {
 		rotateCapsule.makeRotate(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
+	} else if (direction != 3) {
+		std::cout << "Model::addCapsule: invalid direction " << direction 
+				<< "; direction must be x=1, y=2 or z=3; applying default z=3" << std::endl;
 	}
 
 	boost::shared_ptr<SimpleBody> body(new SimpleBody(shared_from_this(),
 					massOde, g, pos, rotateCapsule));
+	this->addBody(body, label);
+	return body;
+}
+
+boost::shared_ptr<SimpleBody> Model::addConvex(dMass mass,
+		const osg::Vec3& pos, unsigned int pointCount, dReal* points, unsigned int planeCount, dReal* planes, unsigned int* polygons,
+		int label){
+	boost::shared_ptr<ConvexBody> body(new ConvexBody(shared_from_this(), mass, pointCount, points, planeCount, planes, polygons));
+	body->setPosition(pos);
 	this->addBody(body, label);
 	return body;
 }

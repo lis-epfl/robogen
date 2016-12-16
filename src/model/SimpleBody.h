@@ -46,7 +46,7 @@ public:
 			dGeomID geom, const osg::Vec3& pos,
 			const osg::Quat& attitude = osg::Quat());
 
-	inline ~SimpleBody() {
+	virtual inline ~SimpleBody() {
 		/*if(geom_) {
 			printf("destroying geom!!!\n");
 			std::cout << geom_ << std::endl;

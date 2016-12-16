@@ -173,6 +173,7 @@ private:
 	bool insertNode(boost::shared_ptr<RobotRepresentation>& robot);
 	bool removeNode(boost::shared_ptr<RobotRepresentation>& robot);
 	bool mutateParams(boost::shared_ptr<RobotRepresentation>& robot);
+	bool mutateArity(boost::shared_ptr<RobotRepresentation>& robot);
 
 	/**
 	 * Evolver Configuration
@@ -202,6 +203,7 @@ private:
 	boost::random::bernoulli_distribution<double> nodeInsertDist_;
 	boost::random::bernoulli_distribution<double> nodeRemovalDist_;
 	boost::random::bernoulli_distribution<double> paramMutateDist_;
+	boost::random::bernoulli_distribution<double> arityMutateDist_;
 
 	boost::random::bernoulli_distribution<double> oscillatorNeuronDist_;
 

@@ -1,11 +1,12 @@
 simulatorConfFile=myConf.txt
-referenceRobotFile=simpleRobot.txt
+referenceRobotFile=myAnt.txt
+useBrainSeed=true
 mu=20
 lambda=20
 selection=deterministic-tournament
 replacement=plus
 tournamentSize=2
-numGenerations=40
+numGenerations=400
 evolutionMode=brain
 pBrainMutate=.3
 brainSigma=.7

@@ -233,6 +233,15 @@ emscripten::val getModelSensors(boost::shared_ptr<Model> model) {
 	return toArray< boost::shared_ptr<Sensor> >(sensors);
 }
 
+int getModelArity(boost::shared_ptr<Model> model) {
+	if (boost::dynamic_pointer_cast<ParametricPrismModel>(model)) {
+		return boost::dynamic_pointer_cast<ParametricPrismModel>(model
+				)->getFaceNumber();
+	} else {
+		return PART_TYPE_ARITY_MAP.at(RobogenUtils::getPartType(model));
+	}
+}
+
 emscripten::val getAABB(boost::shared_ptr<Robot> robot) {
 	double minX, maxX, minY, maxY, minZ, maxZ;
 	robot->getAABB(minX, maxX, minY, maxY, minZ, maxZ);
@@ -299,6 +308,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.function("getRootAttitude", &Model::getRootAttitude)
 		.function("getSensors", &getModelSensors)
 		.function("getType", &RobogenUtils::getPartType)
+		.function("getArity", &getModelArity)
 		;
 
 	emscripten::class_<Sensor>("Sensor")

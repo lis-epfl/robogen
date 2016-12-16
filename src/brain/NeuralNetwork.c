@@ -39,7 +39,7 @@ void initNetwork(NeuralNetwork* network, unsigned int nInputs,
 		const unsigned int *types) {
 
 	unsigned int i = 0;
-
+	
 	/* Copy weights, params and types */
 	memcpy(network->weight, weights,
 			sizeof(float) * ((nInputs + nOutputs + nHidden) *

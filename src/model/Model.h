@@ -2,6 +2,7 @@
  * @(#) Model.h   1.0   Feb 8, 2013
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
+ * Basil Huber (basil.huber@epfl.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2013 Andrea Maesani
@@ -173,7 +174,7 @@ public:
 	 * Create a capsule geometry for the body
 	 * @param mass
 	 * @param pos
-	 * @param direction
+	 * @param direction 	direction of symmetrical axis: x=1,  y=2,  z=3
 	 * @param radius
 	 * @param height
 	 * @param label
@@ -185,13 +186,30 @@ public:
 	 * Create a cylinder geometry for the body
 	 * @param mass
 	 * @param pos
-	 * @param direction
+	 * @param direction 	direction of symmetrical axis: x=1,  y=2,  z=3
 	 * @param radius
 	 * @param height
 	 * @param label
 	 */
 	boost::shared_ptr<SimpleBody> addCylinder(float mass, const osg::Vec3& pos,
 			int direction, float radius, float height, int label=-1);
+
+	/**
+	 * Create a convex polygon geometry for the body
+	 * @param mass 			mass (incl. moment of inertia) of the body
+	 * @param pos
+	 * @param pointCount	number of points of the convex polygon
+	 * @param points 		array of corners (vertices) in form: X,Y,Z
+	 * @param planeCount 	number of planes (faces) of the convex polygon
+	 * @param planes 		array of planes (forming the faces) in form:  normal X, normal Y, normal Z,Distance
+	 * @param polygons 		An array of indices to the points of each polygon,
+	 * 						it should be the number of vertices
+	 * 						followed by that amount of indices to "points" in counter clockwise order
+	 * @param label
+	 */
+	boost::shared_ptr<SimpleBody> addConvex(dMass mass,
+		const osg::Vec3& pos, unsigned int pointCount, dReal* points, unsigned int planeCount, dReal* planes, unsigned int* polygons,
+		int label);
 
 	/**
 	 * Fix bodies together

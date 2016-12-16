@@ -46,6 +46,7 @@
 #include "model/components/HingeModel.h"
 #include "model/components/ParametricBrickModel.h"
 #include "model/components/PassiveWheelModel.h"
+#include "model/components/ParametricPrismModel.h"
 
 #include "model/components/perceptive/CoreComponentModel.h"
 #include "model/components/perceptive/LightSensorModel.h"

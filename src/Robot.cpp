@@ -113,6 +113,10 @@ bool Robot::init(dWorldID odeWorld, dSpaceID odeSpace,
 	}
 	// decode brain needs to come after decode body, as IO reordering
 	if (!this->decodeBrain(brain)) {
+	//Gael Debug ********************************************************
+		std::cout 	<< "BRAIN"
+					<< std::endl;
+	//*******************************************************************
 		if (printInitErrors_) {
 			std::cerr << "Cannot decode the brain of the robot."
 				<< std::endl;
@@ -365,9 +369,19 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	memset(weight, 0, sizeof(weight));
 
 	// Read neurons
+	//Gael Degug*************************************************************
+			std::cout 	<<"robotBrain size = "
+						<<robotBrain.neuron_size()
+					 	<<std::endl;
+	//***********************************************************************
 	for (int i = 0; i < robotBrain.neuron_size(); ++i) {
 
 		const robogenMessage::Neuron& neuron = robotBrain.neuron(i);
+		//Gael Degug*************************************************************
+			std::cout 	<<neuron.layer()
+					 	<<std::endl;
+		//***********************************************************************
+
 		if (neuron.layer().compare("input") == 0) {
 
 			// Retrieve the body part id from the neuron part id

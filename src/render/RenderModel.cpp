@@ -3,6 +3,7 @@
  *
  * Andrea Maesani (andrea.maesani@epfl.ch)
  * Joshua Auerbach (joshua.auerbach@epfl.ch)
+ * Basil Huber (basil.huber@epfl.ch)
  *
  * The ROBOGEN Framework
  * Copyright © 2012-2014 Andrea Maesani, Joshua Auerbach
@@ -30,8 +31,10 @@
 #include <osg/Geode>
 #include <osg/ShapeDrawable>
 #include <osg/BlendFunc>
+#include <osg/Geometry>
 
 #include "model/Model.h"
+#include "model/ConvexBody.h"
 
 #include "render/callback/BodyCallback.h"
 #include "render/RenderModel.h"
@@ -220,6 +223,65 @@ osg::ref_ptr<osg::Geode> RenderModel::getCapsule(float radius, float height) {
 
 }
 
+osg::ref_ptr<osg::Geode> RenderModel::getConvex(const boost::shared_ptr<ConvexBody> body, const osg::Vec4& color) {
+
+	// easy access to arrays of ConvexBody
+	const dReal* points = body->getPoints();
+	const unsigned int* polygons = body->getPolygons();
+	const dReal* planes = body->getPlanes();
+
+	osg::Geode* geode = new osg::Geode();
+    osg::Geometry* geometry = new osg::Geometry();
+    geode->addDrawable(geometry); 
+
+	/* copy data from points to vertices (can surely be optimized (maybe replaced by memcpy))
+  	 * convert from ODE to OSG (change scaling) */
+	osg::Vec3Array* vertices = new osg::Vec3Array;
+	for(int i = 0; i < body->getPointCount(); i++){
+		float x = (float) fromOde(points[3*i]);
+		float y = (float) fromOde(points[3*i+1]);
+		float z = (float) fromOde(points[3*i+2]);
+		vertices->push_back(osg::Vec3(x,y,z));
+	}
+	geometry->setVertexArray(vertices);
+
+	// copy and convert polygon indices to vertex indices of triangleMesh
+	// iterate over polygons with build surfaces of Convex
+	unsigned int iIndex = 0;	// index of the index of the current point
+	for(int i = 0; i < body->getPlaneCount(); i++) {
+		int pointCountPoly = polygons[iIndex++]; // number of points for current (ith) polygon
+		unsigned int* indicesPoly = const_cast<unsigned int*>(&(polygons[iIndex]));	// array of indices for the current polygon
+		osg::DrawElementsUInt* polygon = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
+
+		// iterate over points of a polygon; start at j=2 since we always take 0;j-1;j
+		for(int j = 2; j < pointCountPoly; j++){
+			polygon->push_back(indicesPoly[0]);
+			polygon->push_back(indicesPoly[j-1]);
+			polygon->push_back(indicesPoly[j]);
+		}
+		geometry->addPrimitiveSet(polygon);
+		iIndex += pointCountPoly;
+	}
+
+ 	osg::Vec4Array* colors = new osg::Vec4Array;
+ 	colors->push_back(color);
+    geometry->setColorArray(colors);
+	geometry->setColorBinding(osg::Geometry::BIND_OVERALL );
+
+	// create surface normals
+	osg::Vec3Array *normalArray = new osg::Vec3Array();
+	for(int i = 0; i < body->getPlaneCount(); i++)
+	{
+		float x = (float)planes[4*i];
+		float y = (float)planes[4*i+1];
+		float z = (float)planes[4*i+2];
+		normalArray->push_back(osg::Vec3(x,y,z));
+	}
+	geometry->setNormalArray(normalArray, osg::Array::Binding::BIND_PER_PRIMITIVE_SET);
+
+	return geode;
+}
+
 osg::ref_ptr<osg::PositionAttitudeTransform> RenderModel::attachBox(int label, float lengthX, float lengthY,
 		float lengthZ) {
 
@@ -311,9 +373,25 @@ std::vector<osg::ref_ptr<osg::PositionAttitudeTransform> > RenderModel::attachGe
 				break;
 			}
 
+			case dConvexClass:
+			{
+				/* get parameters of dxConvex */
+				boost::shared_ptr<ConvexBody> body = boost::dynamic_pointer_cast<ConvexBody>(this->getModel()->getBody(ids[i]));
+				if(body != NULL)
+				{
+					osg::ref_ptr<osg::Geode> convexGeode = getConvex(body, colors[count % colors.size()]);
+					osg::ref_ptr<osg::PositionAttitudeTransform> pat = this->attachGeode(ids[i],convexGeode);
+					pats.push_back(pat);
+
+				}else{
+					std::cout << "ERROR: Body is not a convex body" << std::endl;
+				}
+				break;
+			}
+
 			default:
 			{
-				std::cout << "not a box or cylinder," <<
+				std::cout << "not a box, cylinder or convex," <<
 						" not yet configured to draw!" << std::endl;
 			}
 		}

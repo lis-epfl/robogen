@@ -180,6 +180,17 @@ public:
 	 */
 	bool removePart(const std::string& partId, bool printErrors=true);
 
+
+	/**
+	*Change a part into another one
+	*
+	*@param partId id of the part that will change his children position
+	*@param children the new children vector
+	*@return true if the operation completed successfully, false otherwise
+	*/
+	bool setChildPosition(const std::string& partId,  
+			std::vector<boost::shared_ptr<PartRepresentation>> children,
+			bool printErrors);
 	/**
 	 * Auxiliar method to see the SubRobot as a string
 	 */

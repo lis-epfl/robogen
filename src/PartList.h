@@ -63,6 +63,9 @@ namespace robogen {
 #define PART_TYPE_FIXED_BRICK 		"FixedBrick"
 #define PART_TYPE_LIGHT_SENSOR 		"LightSensor"
 #define PART_TYPE_PARAM_JOINT 		"ParametricJoint"
+#define PART_TYPE_PARAM_PRISM		"ParametricPrism"
+#define PART_TYPE_PARAM_PRISM_CORE	"ParametricPrismCore"
+#define PART_TYPE_PARAM_PRISM_CORE_NO_IMU	"ParametricPrismCoreNoIMU"
 
 #define SENSOR_TYPE_IMU_SENSOR_ELEMENT	"ImuSensorElement"
 #define SENSOR_TYPE_LIGHT_SENSOR		"LightSensor"
@@ -91,9 +94,12 @@ extern const std::map<char, std::string> LEGACY_PART_TYPE_MAP;
 extern const std::map<char, std::string> PART_TYPE_MAP;
 extern const std::map<std::string, char> INVERSE_PART_TYPE_MAP;
 extern const std::map<std::string, unsigned int> PART_TYPE_ARITY_MAP;
+extern const std::map<std::string, bool> PART_TYPE_IS_VARIABLE_ARITY_MAP;
 extern const std::map<std::string, unsigned int> PART_TYPE_PARAM_COUNT_MAP;
 extern const std::map<std::pair<std::string, unsigned int>,
 	std::pair<double, double> > PART_TYPE_PARAM_RANGE_MAP;
+extern const std::map<std::string,
+	std::pair<unsigned int, unsigned int> > PART_TYPE_VARIABLE_ARITY_RANGE_MAP;
 extern const std::map<std::string, std::vector<std::string> >
 	PART_TYPE_MOTORS_MAP;
 extern const std::map<std::string, std::vector<std::string> >

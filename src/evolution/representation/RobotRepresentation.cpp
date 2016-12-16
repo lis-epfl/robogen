@@ -65,7 +65,7 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 	this->robotMorph_.reset(new SubRobotRepresentation(*(r.robotMorph_.get())));
 
 	// We copy the AXIOM
-	this->grammar_.reset(new Grammar(r.grammar_->getAxiom()));
+	//this->grammar_.reset(new Grammar(r.grammar_->getAxiom()));
 }
 
 RobotRepresentation &RobotRepresentation::operator=(
@@ -229,6 +229,13 @@ bool RobotRepresentation::removePart(const std::string& partId,
 		bool printErrors) {
 
 	return this->robotMorph_->removePart(partId, printErrors);
+}
+
+bool RobotRepresentation::setChildPosition(const std::string& partId,  
+			std::vector<boost::shared_ptr<PartRepresentation>> children,
+			bool printErrors){
+
+	return this->robotMorph_->setChildPosition(partId, children, printErrors);
 }
 
 bool RobotRepresentation::check() {

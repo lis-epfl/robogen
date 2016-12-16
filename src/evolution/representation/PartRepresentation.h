@@ -102,6 +102,12 @@ public:
 	std::vector<double> &getParams();
 
 	/**
+	 * Set a new arity (only for variable arity part)
+	 * return true if the operation success
+	 */
+	bool setArity(unsigned int arity, std::string partType);
+	
+	/**
 	 * @return arity = number of child slots of part
 	 */
 	unsigned int getArity();
@@ -122,6 +128,13 @@ public:
 	 * @return true if successful
 	 */
 	bool setChild(unsigned int n, boost::shared_ptr<PartRepresentation> part);
+
+	/**
+	*@param children the new vector children of the part
+	*the vector children_ will be updated with this function
+	*this function work only with part that can change its arity
+	*/
+	bool setChildren(std::vector<boost::shared_ptr<PartRepresentation>> children);
 
 	/**
 	 * Factory pattern to create derived classes, i.e. body part representations

@@ -119,6 +119,16 @@ QScriptValue QModel::getSensors() {
 	return sensors_;
 }
 
+QScriptValue QModel::getArity() {
+	boost::shared_ptr<Model> model = basePtr_.lock();
+	if (boost::dynamic_pointer_cast<ParametricPrismModel>(model)) {
+		return boost::dynamic_pointer_cast<ParametricPrismModel>(model
+				)->getFaceNumber();
+	} else {
+		return PART_TYPE_ARITY_MAP.at(RobogenUtils::getPartType(model));
+	}
+}
+
 
 // QRobot
 
