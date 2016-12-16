@@ -206,17 +206,6 @@ std::vector<boost::shared_ptr<RobotRepresentation> > IndirectMutator::createOffs
 		this->mutate(offspring[i]);
 	}
 
-	/*
-	std::cout << "Offspring rules are the following:\n";
-	for(int i=0; i< offspring.size(); i++){
-		if(offspring[i]->getGrammar()->getNumberOfRules()==0){
-			std::cout << "Robot " << i << " has no rules...\n";
-		} else {
-			std::cout << "Robot " << i << ";\n" << offspring[i]->getGrammar()->getRule(0)->getSuccessor()->toString() << std::endl;
-		}
-	}
-	*/
-
 	return offspring;
 }
 

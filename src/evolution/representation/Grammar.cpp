@@ -330,32 +330,6 @@ Grammar::Grammar(boost::shared_ptr<SubRobotRepresentation> axiom){
 	*this->axiom_ = *axiom;
 
 	this->lastBuildWorked=true;
-
-    //Hardcoded Rule:
-	//We MUTATE THE GRAMMAR AAAAAAHHHHHH
-	boost::shared_ptr<SubRobotRepresentation> predecessor = boost::shared_ptr<SubRobotRepresentation>(new SubRobotRepresentation());
-	//We give a core to the predecessor, at least, to not be mean.
-	predecessor->init();
-
-	std::vector<double> parameters;
-
-	//Is a default value of 4 faces, Idealy the parameter must be generate randomly
-	parameters.push_back(4);
-	boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
-		'P',
-		"",
-		0, //orientation
-		parameters);
-
-	SubRobotRepresentation::IdPartMap::const_iterator targetPart = predecessor->getBody().begin();
-
-	predecessor->insertPart(targetPart->first,
-			0, //Parent slot
-			newPart,
-			0, //newPartSlot
-			0 ? NeuronRepresentation::OSCILLATOR :
-			NeuronRepresentation::SIGMOID,
-			false);
 }
 
 boost::shared_ptr<SubRobotRepresentation> Grammar::getAxiom(void){

@@ -83,6 +83,10 @@ namespace robogen{
              */
             bool matchesPredecessor(boost::shared_ptr<PartRepresentation> candidate);
 
+            /**
+             * Apply the rule for one single iteration in the node from a robot
+             * @param candidate PartRepresentation, a node in the robot to be compared.a
+             */
             bool applyRule(boost::shared_ptr<SubRobotRepresentation> robot, boost::shared_ptr<PartRepresentation> node);
 
             /**
@@ -90,37 +94,53 @@ namespace robogen{
              */
             int getNumIterations(void);
 
-            boost::shared_ptr<SubRobotRepresentation> getSuccessor(void);
-
+            /**
+             * Return the predecessor of the Rule
+             */
             boost::shared_ptr<SubRobotRepresentation> getPredecessor(void);
 
-            effectMap getDelMap(){
-                return *this->deleteMap_;
-            }
-            effectMap getBuiMap(){
-                return *this->buildMap_;
-            }
+            /**
+             * Return the successor of the Rule
+             */
+            boost::shared_ptr<SubRobotRepresentation> getSuccessor(void);
         private:
-            boost::shared_ptr<effectMap> buildMap_;
+
+            /*The killer Rule: includes or not the root element of the successor.
+            */
+            bool rootRule;
+
+            /**
+             * Map from the intact predecessor
+             */
             boost::shared_ptr<effectMap> deleteMap_;
+
+            /**
+             * Map from the final successor
+             */
+            boost::shared_ptr<effectMap> buildMap_;
 
             /**
              * Number of iterations for the rules.
              */
             int iterations_;
-
-            bool removePart();
             
             /**
              * Predecessor of the rule
              */
             boost::shared_ptr<SubRobotRepresentation> predecessor_;
             
+            /**
+             * Deletion steps (IDs) from the predecessor
+             */
             std::vector< std::string > deletions_;
+
+            /**
+             * Insertions steps from the predecessor
+             */
             std::vector<buildStep> insertions_;
 
             /**
-             * Successor of the rule (just for clarity purposes)
+             * Successor of the rule
              */
             boost::shared_ptr<SubRobotRepresentation> successor_;
         };
