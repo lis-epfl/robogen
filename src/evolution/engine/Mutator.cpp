@@ -1010,58 +1010,18 @@ bool DirectMutator::mutateArity(boost::shared_ptr<RobotRepresentation>& robot){
 		if (freeSlots.size() > 0) {
 			boost::random::uniform_int_distribution<> freeSlotsDist(0, freeSlots.size() - 1);
 			unsigned int selectedSlotId = freeSlots[freeSlotsDist(rng_)];
-//Gael Debug*************************************************************************
-std::cout 	<< "freeSlots = [";
-for(int i=0; i<freeSlots.size(); i++){
-	std::cout 	<< " "
-				<< freeSlots[i];
-}
-std::cout 	<< " ]"
-			<< std::endl;
-
-std::cout 	<< "selectedSlotId = "
-			<< selectedSlotId
-			<< std::endl;
-//***********************************************************************************
 			//set position of children
 			for(int i = 0; i <= partToMutateLastChildId; i++){
 				child = partToMutate->second.lock()->getChild(i);
 				if(child != NULL){
-				//Gael Debug*************************************************************************
-					std::cout << "oldChildPos = i = "
-								<< i
-								<< std::endl;
-				//***********************************************************************************
 					if(i<selectedSlotId){
-						children[i] = child;
-						//Gael Debug*************************************************************************
-					std::cout << "newChildPos = i = "
-								<< i
-								<< std::endl;
-				//***********************************************************************************
-				
+						children[i] = child;				
 					}
 					else{
-						//Gael Debug*************************************************************************
-					std::cout << "newChildPos = i = "
-								<< i+arityModifier
-								<< std::endl;
-				//***********************************************************************************
-				
 						children[i+arityModifier] = child;
 					}
 				}
 			}
-//Gael Debug*************************************************************************
-	std::cout 	<< "Children = [";
-	for(int i=0; i<children.size(); i++){
-		if(children[i] != NULL)
-			std::cout 	<< " "
-						<< i;
-	}
-	std::cout 	<< " ]"
-				<< std::endl;
-//***********************************************************************************
 		}
 		else
 			return false;
@@ -1099,11 +1059,6 @@ std::cout 	<< "selectedSlotId = "
 	//Set the newChildPosition
 	bool success =
 		robot -> setChildPosition(partToMutate->first, children, PRINT_ERRORS);
-//Gael Debug*************************************************************************
-	std::cout 	<< "success = "
-				<< success
-				<< std::endl;
-//***********************************************************************************
 	return success;
 }
 

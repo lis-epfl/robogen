@@ -137,8 +137,8 @@ bool SubRobotRepresentation::init() {
 	idToPart_[PART_TYPE_CORE_COMPONENT] = boost::weak_ptr<PartRepresentation>(
 			corePart);
 	*/
-std::cout <<  "SubRobotRepresentation::init() " << std::endl;
 std::vector<double> params;
+//TODO params.push_back(randomValue)
 params.push_back(4);
 	boost::shared_ptr<PartRepresentation> corePart = PartRepresentation::create(
 			INVERSE_PART_TYPE_MAP.at(PART_TYPE_PARAM_PRISM_CORE),
@@ -660,11 +660,6 @@ bool SubRobotRepresentation::setChildPosition(const std::string& partId,
 	}
 
 //Set the children
-	//Gael Debug*************************************************************************
-	std::cout 	<< "********************setChildren**********************"
-				<< std::endl;
-	//***********************************************************************************
-
 	part -> setChildren(children);
 	return true;
 }

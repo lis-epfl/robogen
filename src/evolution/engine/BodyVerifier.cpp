@@ -88,12 +88,6 @@ bool BodyVerifier::verify(const RobotRepresentation &robotRep, int &errorCode,
 	
 	// parse robot
 	boost::shared_ptr<Robot> robot(new Robot);
-	
-		//Gael Degug*************************************************************
-			std::cout <<"BodyVerifier::verify"
-					 <<std::endl;
-		//***********************************************************************
-
 	if (!robot->init(odeWorld, odeSpace, robotMessage, false, printErrors)) {
 		if (printErrors) {
 			std::cout << "Problem when initializing robot in body verifier!"

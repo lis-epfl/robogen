@@ -238,10 +238,6 @@ bool NeatContainer::fillBrain(NEAT::Genome *genome,
 		robogenMessage::Robot robotMessage = robotRepresentation->serialize();
 		// parse robot
 
-		//Gael Degug*************************************************************
-			std::cout <<"NeatContainer::fillBrain"
-					 <<std::endl;
-		//***********************************************************************
 		boost::shared_ptr<Robot> robot(new Robot);
 		if (!robot->init(odeWorld, odeSpace, robotMessage)) {
 			std::cout << "Problem when initializing robot in "

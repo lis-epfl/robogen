@@ -157,19 +157,6 @@ bool PartRepresentation::setChildren(std::vector<boost::shared_ptr<PartRepresent
 					<< std::endl;
 		return false;
 	}
-//Gael Debug*************************************************************************
-	std::cout 	<< "Children = [";
-	for(int i=0; i<children.size(); i++){
-		if(children[i] != NULL)
-			std::cout 	<< " "
-						<< i;
-		else
-			std::cout 	<< " NULL";
-	}
-	std::cout 	<< " ]"
-				<< std::endl;
-//***********************************************************************************
-
 	children_.resize(childrenSize, boost::shared_ptr<PartRepresentation>());
 	for(int i=0; i<childrenSize; i++){
 		// don't try to access part if void
@@ -180,29 +167,12 @@ bool PartRepresentation::setChildren(std::vector<boost::shared_ptr<PartRepresent
 		}
 		children_[i] = child;	
 	}
-
-//Gael Debug*************************************************************************
-	std::cout 	<< "Children_ = [";
-	for(int i=0; i<children.size(); i++){
-		if(children_[i] != NULL)
-			std::cout 	<< " "
-						<< i;
-		else
-			std::cout 	<< " NULL";
-	}
-	std::cout 	<< " ]"
-				<< std::endl;
-//***********************************************************************************
-
-std::cout << "*******************setChildrenEND********************"
-			<<std::endl;
 	return true;
 }
 
 boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 		std::string id, unsigned int orientation, std::vector<double> params) {
 	int arity;
-std::cout << "CREATE patram size " << params.size() << std::endl;
 	if (PART_TYPE_MAP.count(type) == 0) {
 		std::cout << "Unknown part type '" << type << "'" << std::endl;
 		return boost::shared_ptr<PartRepresentation>();
