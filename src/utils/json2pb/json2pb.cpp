@@ -203,9 +203,9 @@ static void _json2field(Message &msg, const FieldDescriptor *field,
                         break;                                        \
                 }
 
-	_CONVERT(CPPTYPE_DOUBLE, double, "f", SetDouble, AddDouble)
+	_CONVERT(CPPTYPE_DOUBLE, double, "F", SetDouble, AddDouble)
 		;
-	_CONVERT(CPPTYPE_FLOAT, double, "f", SetFloat, AddFloat)
+	_CONVERT(CPPTYPE_FLOAT, double, "F", SetFloat, AddFloat)
 		;
 	_CONVERT(CPPTYPE_INT64, json_int_t, "I", SetInt64, AddInt64)
 		;
