@@ -339,8 +339,10 @@ Grammar::Grammar(boost::shared_ptr<SubRobotRepresentation> axiom){
 
 	std::vector<double> parameters;
 
+	//Is a default value of 4 faces, Idealy the parameter must be generate randomly
+	parameters.push_back(4);
 	boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
-		'F',
+		'P',
 		"",
 		0, //orientation
 		parameters);

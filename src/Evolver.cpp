@@ -183,7 +183,6 @@ namespace robogen {
 					<< std::endl;
 			exitRobogen(EXIT_FAILURE);
 		}
-
 		log.reset(new EvolverLog());
 		try {
 			if (!log->init(conf, robotConf, outputDirectory, overwrite, saveAll)) {

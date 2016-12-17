@@ -82,6 +82,8 @@ void RobotRepresentation::asyncEvaluateResult(double fitness) {
 }
 
 bool RobotRepresentation::init() {
+	
+	this->robotMorph_.reset(new SubRobotRepresentation());
 
 	this->robotMorph_->init();
 
@@ -92,6 +94,7 @@ bool RobotRepresentation::init() {
 bool RobotRepresentation::init(std::string robotTextFile) {
 
 	this->robotMorph_.reset(new SubRobotRepresentation());
+
 	this->robotMorph_->init(robotTextFile);
 
 	//In this case, we make the axiom the content of the textfile
