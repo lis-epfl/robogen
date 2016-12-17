@@ -138,7 +138,8 @@ bool SubRobotRepresentation::init() {
 			corePart);
 	*/
 std::vector<double> params;
-//TODO params.push_back(randomValue)
+//by Default we have a prism with 4 faces because we can't have the seed so
+//we can't create a random value
 params.push_back(4);
 	boost::shared_ptr<PartRepresentation> corePart = PartRepresentation::create(
 			INVERSE_PART_TYPE_MAP.at(PART_TYPE_PARAM_PRISM_CORE),

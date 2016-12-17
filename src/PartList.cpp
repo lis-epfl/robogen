@@ -230,10 +230,11 @@ std::map<std::pair<std::string, unsigned int>, std::pair<double, double> >
 #endif
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_PRISM, 0)] =
 			std::make_pair(3, 8); // Number of faces
+	//If the prism has less than 4 faces it will not have enough space to put the ship
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_PRISM_CORE, 0)] =
-			std::make_pair(3, 8); // Number of faces
+			std::make_pair(4, 8); // Number of faces
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_PRISM_CORE_NO_IMU, 0)] =
-			std::make_pair(3, 8); // Number of faces
+			std::make_pair(4, 8); // Number of faces
 	return partTypeParamRangeMap;
 }
 
@@ -281,28 +282,32 @@ std::map<std::string, std::pair<unsigned int, unsigned int> >
 		partTypeVariableArityRangeMap;
 
 	//Arity of the Parametric Prism depend of his number of faces
-	std::pair<double, double> ranges = 
+	std::pair<double, double> rangesPrism = 
 	PART_TYPE_PARAM_RANGE_MAP.at(std::make_pair(PART_TYPE_PARAM_PRISM, 0));
+	std::pair<double, double> rangesPrismCore = 
+	PART_TYPE_PARAM_RANGE_MAP.at(std::make_pair(PART_TYPE_PARAM_PRISM_CORE, 0));
+	std::pair<double, double> rangesPrismCoreNoImu = 
+	PART_TYPE_PARAM_RANGE_MAP.at(std::make_pair(PART_TYPE_PARAM_PRISM_CORE_NO_IMU, 0));
 #ifdef ENFORCE_PLANAR
 	partTypeVariableArityRangeMap[PART_TYPE_PARAM_PRISM] =
-			std::make_pair( (unsigned int) (ranges.first-1), 
-							(unsigned int) (ranges.second-1));
+			std::make_pair( (unsigned int) (rangesPrism.first-1), 
+							(unsigned int) (rangesPrism.second-1));
 	partTypeVariableArityRangeMap[PART_TYPE_PARAM_PRISM_CORE] =
-			std::make_pair( (unsigned int) (ranges.first), 
-							(unsigned int) (ranges.second));
+			std::make_pair( (unsigned int) (rangesPrismCore.first), 
+							(unsigned int) (rangesPrismCore.second));
 	partTypeVariableArityRangeMap[PART_TYPE_PARAM_PRISM_CORE_NO_IMU] =
-			std::make_pair( (unsigned int) (ranges.first), 
-							(unsigned int) (ranges.second));
+			std::make_pair( (unsigned int) (rangesPrismCoreNoImu.first), 
+							(unsigned int) (rangesPrismCoreNoImu.second));
 #else
 	partTypeVariableArityRangeMap[PART_TYPE_PARAM_PRISM] =
-			std::make_pair( (unsigned int) (ranges.first-1+2), 
-							(unsigned int) (ranges.second-1+2));
+			std::make_pair( (unsigned int) (rangesPrism.first-1+2), 
+							(unsigned int) (rangesPrism.second-1+2));
 	partTypeVariableArityRangeMap[PART_TYPE_PARAM_PRISM_CORE] =
-			std::make_pair( (unsigned int) (ranges.first+2), 
-							(unsigned int) (ranges.second+2));
+			std::make_pair( (unsigned int) (rangesPrismCore.first+2), 
+							(unsigned int) (rangesPrismCore.second+2));
 	partTypeVariableArityRangeMap[PART_TYPE_PARAM_PRISM_CORE_NO_IMU] =
-			std::make_pair( (unsigned int) (ranges.first+2), 
-							(unsigned int) (ranges.second+2));
+			std::make_pair( (unsigned int) (rangesPrismCoreNoImu.first+2), 
+							(unsigned int) (rangesPrismCoreNoImu.second+2));
 #endif	
 	return partTypeVariableArityRangeMap;
 }
