@@ -122,21 +122,7 @@ SubRobotRepresentation &SubRobotRepresentation::operator=(
 
 bool SubRobotRepresentation::init() {
 
-	// Generate a core component
-	// Gael: TODO: Remove completely core_component
-	/*
-	boost::shared_ptr<PartRepresentation> corePart = PartRepresentation::create(
-			INVERSE_PART_TYPE_MAP.at(PART_TYPE_CORE_COMPONENT),
-			PART_TYPE_CORE_COMPONENT, 0, std::vector<double>());
-	if (!corePart) {
-		std::cout << "Failed to create root node" << std::endl;
-		return false;
-	}
-	bodyTree_ = corePart;
-	//this->grammar_.reset(new Grammar(bodyTree_->cloneSubtree()));
-	idToPart_[PART_TYPE_CORE_COMPONENT] = boost::weak_ptr<PartRepresentation>(
-			corePart);
-	*/
+// Generate a core component
 std::vector<double> params;
 //by Default we have a prism with 4 faces because we can't have the seed so
 //we can't create a random value

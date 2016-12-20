@@ -174,7 +174,7 @@ boost::shared_ptr<Joint> RobogenUtils::connect(boost::shared_ptr<Model> a,
 		// TODO actually add in connecting element
 
 		aSlotPos += a->getSlotAxis(slotA) *
-				(2 * CoreComponentModel::SLOT_THICKNESS);
+				(2 * ParametricPrismModel::SLOT_THICKNESS);
 	}
 
 	osg::Vec3 aTranslation = aSlotNewPos - aSlotPos;
@@ -548,6 +548,17 @@ std::string RobogenUtils::getPartType(boost::shared_ptr<Model> model) {
 			}
 		} else {
 			return PART_TYPE_FIXED_BRICK;
+		}
+	} else if (boost::dynamic_pointer_cast<ParametricPrismModel>(model)) {
+		if (boost::dynamic_pointer_cast<ParametricPrismModel>(model)->isCore()) {
+			if (boost::dynamic_pointer_cast<ParametricPrismModel>(model
+					)->hasSensors()) {
+				return PART_TYPE_PARAM_PRISM_CORE;
+			} else {
+				return PART_TYPE_PARAM_PRISM_CORE_NO_IMU;
+			}
+		} else {
+			return PART_TYPE_PARAM_PRISM;
 		}
 #ifdef ALLOW_CARDANS
 	} else if (boost::dynamic_pointer_cast<ActiveCardanModel>(model)) {

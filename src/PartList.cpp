@@ -34,6 +34,10 @@ namespace robogen {
 
 std::map<char, std::string> initLegacyPartTypeMap() {
 	std::map<char, std::string> partTypeMap;
+
+	partTypeMap['E'] = PART_TYPE_CORE_COMPONENT;
+	partTypeMap['N'] = PART_TYPE_CORE_COMPONENT_NO_IMU;
+	partTypeMap['F'] = PART_TYPE_FIXED_BRICK;
 #ifdef ALLOW_CARDANS
 	partTypeMap['K'] = PART_TYPE_ACTIVE_CARDAN;
 	partTypeMap['C'] = PART_TYPE_PASSIVE_CARDAN;
@@ -54,9 +58,6 @@ std::map<char, std::string> initPartTypeMap(const std::map<char, std::string>
 
 	partTypeMap['I'] = PART_TYPE_ACTIVE_HINGE;
 
-	partTypeMap['E'] = PART_TYPE_CORE_COMPONENT;
-	partTypeMap['N'] = PART_TYPE_CORE_COMPONENT_NO_IMU;
-	partTypeMap['F'] = PART_TYPE_FIXED_BRICK;
 	partTypeMap['L'] = PART_TYPE_LIGHT_SENSOR;
 	partTypeMap['B'] = PART_TYPE_PARAM_JOINT;
 	partTypeMap['P'] = PART_TYPE_PARAM_PRISM;
