@@ -85,6 +85,7 @@ bool RobotRepresentation::init() {
 	
 	this->robotMorph_.reset(new SubRobotRepresentation());
 
+	this->robotMorph_.reset(new SubRobotRepresentation());
 	this->robotMorph_->init();
 
 	this->grammar_.reset(new Grammar(this->robotMorph_));
