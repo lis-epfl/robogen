@@ -217,7 +217,7 @@ void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
 	//We get the grammar from this clone
 	boost::shared_ptr<Grammar> tmpGrammar = finalBot->getGrammar();
 
-	//We MUTATE THE GRAMMAR AAAAAAHHHHHH
+	//We MUTATE THE GRAMMAR
 	boost::shared_ptr<SubRobotRepresentation> predecessor = boost::shared_ptr<SubRobotRepresentation>(new SubRobotRepresentation());
 	//We give a core to the predecessor, at least, to not be mean.
 	predecessor->init();
