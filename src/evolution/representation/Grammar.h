@@ -69,10 +69,11 @@ namespace robogen{
             typedef bool (SubRobotRepresentation::*RuleOperation)(boost::shared_ptr<SubRobotRepresentation>&);
             
             /**
-             * Produces a random rule with the given successor and predecessor
+             * Produces a random rule with the given predecessor
              * @param iterations number of times the rule is applied
              * @param predecessor SubRobot of the pattern to search
-             * @param successor SubRobot of the replace pattern
+             * @param rng a random generator
+             * @param conf the evolver configuration
              */
             Rule(int iterations, boost::shared_ptr<SubRobotRepresentation> predecessor,
                 boost::random::mt19937 &rng, boost::shared_ptr<EvolverConfiguration> conf);

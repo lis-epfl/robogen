@@ -64,8 +64,8 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 
 	this->robotMorph_.reset(new SubRobotRepresentation(*(r.robotMorph_.get())));
 
-	// We copy the AXIOM
-	//this->grammar_.reset(new Grammar(r.grammar_->getAxiom()));
+	// We copy the AXIOM to the grammar
+	this->grammar_.reset(new Grammar(r.grammar_->getAxiom()));
 }
 
 RobotRepresentation &RobotRepresentation::operator=(

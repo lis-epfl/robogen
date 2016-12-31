@@ -89,6 +89,7 @@ IndirectMutator::IndirectMutator(boost::shared_ptr<EvolverConfiguration> conf,
 }
 
 void IndirectMutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
+	/*
 	boost::random::uniform_int_distribution<> dist(conf_->minNumInitialParts,
 			conf_->maxNumInitialParts);
 	unsigned int numPartsToAdd = dist(rng_);
@@ -114,9 +115,10 @@ void IndirectMutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& r
 			}
 		}
 	}
+	*/
 }
 
-bool IndirectMutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot){
+bool IndirectMutator::insertNode(boost::shared_ptr<SubRobotRepresentation>& robot){
 	const SubRobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 
 	if ( idPartMap.size() >= conf_->maxBodyParts )
@@ -140,7 +142,12 @@ bool IndirectMutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot){
 	boost::random::uniform_int_distribution<> slotDist(0,
 												parentPart->getArity() - 1);
 	unsigned int parentSlot = slotDist(rng_);
-	
+
+	if(idPartMap.size()==1){
+		parentSlot = 0;
+	}
+
+
 	// Select node type
 	boost::random::uniform_int_distribution<> distType(0,
 			conf_->allowedBodyPartTypes.size() - 1);
@@ -154,7 +161,18 @@ bool IndirectMutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot){
 	unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type));
 	std::vector<double> parameters;
 	boost::random::uniform_01<double> paramDist;
-	for (unsigned int i = 0; i < nParams; ++i) {
+	unsigned int i0Param = 0;
+	//generate a random arity for the parts with variable arity
+	if(PART_TYPE_IS_VARIABLE_ARITY_MAP.at(PART_TYPE_MAP.at(type))){
+		std::pair<double, double> range = PART_TYPE_PARAM_RANGE_MAP.at(
+					std::make_pair(PART_TYPE_MAP.at(type), 0));
+		boost::random::uniform_int_distribution<> arityDist((int)range.first,(int)range.second);
+
+		parameters.push_back(arityDist(rng_));
+		i0Param = 1;
+	}
+	//generate random parameters that can be mutate with mutator::mutateParam
+	for (unsigned int i = i0Param; i < nParams; ++i) {
 		parameters.push_back(paramDist(rng_));
 	}
 
@@ -166,6 +184,7 @@ bool IndirectMutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot){
 
 	if (newPart->getArity() > 0) {
 		// Generate a random slot in the new node, if it has arity > 0
+		// newPartSlot will have the number of the child like the .txt
 		boost::random::uniform_int_distribution<> distNewPartSlot(0,
 				newPart->getArity() - 1);
 		newPartSlot = distNewPartSlot(rng_);
@@ -192,7 +211,6 @@ std::vector<boost::shared_ptr<RobotRepresentation> > IndirectMutator::createOffs
 	offspring.push_back(boost::shared_ptr<RobotRepresentation>(new
 			RobotRepresentation(*parent1.get())));
 
-
 	// only allow crossover if doing just brain mutation
 	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
 			&& parent2) {
@@ -210,14 +228,13 @@ std::vector<boost::shared_ptr<RobotRepresentation> > IndirectMutator::createOffs
 }
 
 void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
-
 	//We generate a new robot, a clone
 	boost::shared_ptr<RobotRepresentation> finalBot = boost::shared_ptr<RobotRepresentation>(new RobotRepresentation(*robot.get()));
 
 	//We get the grammar from this clone
 	boost::shared_ptr<Grammar> tmpGrammar = finalBot->getGrammar();
 
-	//We MUTATE THE GRAMMAR
+	//Now we start to modify the grammar
 	boost::shared_ptr<SubRobotRepresentation> predecessor = boost::shared_ptr<SubRobotRepresentation>(new SubRobotRepresentation());
 	//We give a core to the predecessor, at least, to not be mean.
 	predecessor->init();
@@ -225,7 +242,7 @@ void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
 	std::vector<double> parameters;
 
 	boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
-		'F',
+		INVERSE_PART_TYPE_MAP.at("FixedBrick"),
 		"",
 		0, //orientation
 		parameters);
@@ -241,18 +258,25 @@ void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
 			false);
 
 	int attempt=0;
-	if(tmpGrammar->getNumberOfRules()<5){
-		while(attempt<10000){
-			tmpGrammar->addRule(boost::shared_ptr<Grammar::Rule>(new Grammar::Rule(1, predecessor, this->rng_, this->conf_)));
 
-			/*
-			std::cout << "The rule is:\n\n";
+	for(int i = 0; i < conf_->allowedBodyPartTypes.size(); i++)
+		std::cout << "We got it: " << conf_->allowedBodyPartTypes[i] << std::endl;
+
+	
+
+	if(tmpGrammar->getNumberOfRules()<5){
+		while(attempt<1000){
+			//tmpGrammar->addRule(boost::shared_ptr<Grammar::Rule>(new Grammar::Rule(1, predecessor, this->rng_, this->conf_)));
+			tmpGrammar->addRule(boost::shared_ptr<Grammar::Rule>(new Grammar::Rule(1, generateRandomPredecessor(), this->rng_, this->conf_)));
+
+			std::cout << "And the successor is:\n\n";
 			std::cout << tmpGrammar->getRule(tmpGrammar->getNumberOfRules()-1)->getSuccessor()->toString() << std::endl;
-			std::cout << std::endl;
-			*/
+
+			//std::cout << "Trying to build the bot:" << std::endl;
 
 			bool success = finalBot->buildFromGrammar();
 
+			//std::cout << "The final superbot is :" << std::endl;
 			//std::cout << finalBot->toString() << std::endl;
 
 			attempt++;
@@ -266,14 +290,47 @@ void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
 					std::cout << "Consistency check failed in mutation operator " << std::endl;
 				}
 
+				std::cout << "Rule accepted.\n\n" << std::endl;
+				std::cout << "/////////////////////////////////////////////////" << std::endl;
 				robot = finalBot;
 				robot->setDirty();
 				break;
 			} else {
+				std::cout << "Rule not accepted.\n\n" << std::endl;
+				std::cout << "/////////////////////////////////////////////////" << std::endl;
 				tmpGrammar->popLastRule();
 			}
 		}
 	}
+}
+
+boost::shared_ptr<SubRobotRepresentation> IndirectMutator::generateRandomPredecessor(){
+	boost::random::uniform_int_distribution<> dist(1, conf_->maxPredecessorParts);
+	unsigned int numPartsToAdd = dist(rng_);
+
+	boost::shared_ptr<SubRobotRepresentation> predecessor;
+	predecessor.reset(new SubRobotRepresentation());
+	predecessor->init();
+
+	for (unsigned int i = 0; i < numPartsToAdd; i++) {
+		bool success = false;
+
+		for (unsigned int attempt = 0;
+				(attempt < 10); ++attempt) {
+
+			boost::shared_ptr<SubRobotRepresentation> newBot = boost::shared_ptr<SubRobotRepresentation>(new SubRobotRepresentation(*predecessor.get()));
+
+			success = this->insertNode(newBot);
+			if (success) {
+				predecessor = newBot;
+				break;
+			}
+		}
+	}
+
+	std::cout << "Checkout the predecessor:\n\n";
+	std::cout << predecessor->toString() << std::endl;
+	return predecessor;
 }
 
 DirectMutator::DirectMutator(boost::shared_ptr<EvolverConfiguration> conf,

@@ -100,7 +100,9 @@ private:
 	/**
 	 * Mutation for the Axiom and the rules 
 	 */
-	bool insertNode(boost::shared_ptr<RobotRepresentation>& robot);
+
+	boost::shared_ptr<SubRobotRepresentation> generateRandomPredecessor();
+	bool insertNode(boost::shared_ptr<SubRobotRepresentation>& robot);
 	bool shuffleRules(boost::shared_ptr<RobotRepresentation> &robot);
 
 	/**

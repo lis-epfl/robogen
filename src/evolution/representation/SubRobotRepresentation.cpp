@@ -554,6 +554,8 @@ bool SubRobotRepresentation::removePart(const std::string& partId,
 	boost::shared_ptr<PartRepresentation> nodeToRemove =
 			idToPart_[partId].lock();
 
+	std::cout << nodeToRemove->getId() << std::endl;
+
 	// If root node, return
 	if (nodeToRemove->getId().compare(bodyTree_->getId()) == 0) {
 		if (printErrors) {

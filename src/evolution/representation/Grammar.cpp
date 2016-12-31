@@ -59,19 +59,23 @@ Grammar::Rule::Rule(int iterations, boost::shared_ptr<SubRobotRepresentation> pr
 		//We try to remove the part of the subrobot
 		bool success = successor->removePart(partToRemove->first, false);
 
+		if(success){
+			deletions_.push_back(partToRemove->first);
+		}
+
 		//we update the bodyMap
 		parts = successor->getBody();
 	}
 
 	//Now to the insertion block
 
-	while(shouldInsert(rng) && parts.size()<conf->maxSuccessorPieces+1){
+	while(shouldInsert(rng) && parts.size()<conf->maxSuccessorParts+1){
 		//APPEND TIMEEEEEEE
 
 		int offSet = 0;
 
 		if(successor->getBody().size()>1){
-			offSet=1;
+			offSet = 1;
 		}
 
 		boost::random::uniform_int_distribution<> dist(offSet, successor->getBody().size() - 1);
@@ -80,17 +84,23 @@ Grammar::Rule::Rule(int iterations, boost::shared_ptr<SubRobotRepresentation> pr
 
 
 		boost::shared_ptr<PartRepresentation> parentPart;
-		// find a parent with arity > 0 (will exist, since at the very least will
-		// be the core)
 
+		// find a parent with arity > 0 , give up after 100 attempts
+		int attempt = 0;
 		do {
 			parent = successor->getBody().begin();
 			std::advance(parent, dist(rng));
 			parentPart = parent->second.lock();
-		} while (parentPart->getArity() == 0);
+			attempt++;
+		} while (parentPart->getArity() == 0 && attempt<100);
+
+		if(attempt==100){
+			std::cout << "Predecessor impossible to grow." << std::endl;
+			break;
+		}
 
 		boost::random::uniform_int_distribution<> distType(0,
-			conf->allowedBodyPartTypes.size() - 1);
+			conf->allowedBodyPartTypes.size() - 1 - 1);
 		char type = conf->allowedBodyPartTypes[distType(rng)];
 
 		// Randomly generate node orientation
@@ -270,6 +280,16 @@ bool Grammar::Rule::applyRule(boost::shared_ptr<SubRobotRepresentation> robot, b
 
 	bool match = generateCloneMap(this->predecessor_->getTree()->getChild(0), node, tmpMap);
 
+	std::cout << "We have to delete " << this->deletions_.size() << std::endl;
+	for(int i=0; i< this->deletions_.size(); i++){
+		std::cout << "Part " << tmpMap->at(deletions_.at(i)) << std::endl;
+		bool success = successor->removePart(tmpMap->at(deletions_.at(i)), false);
+		std::cout << "And the success is ...." << success << std::endl;
+		if(!success){
+			return false;
+		}
+	}
+
 	for(int i=0; i< this->insertions_.size(); i++){
 		buildStep tmpStep = this->insertions_.at(i);
 
@@ -360,6 +380,7 @@ boost::shared_ptr<SubRobotRepresentation> Grammar::buildTree(void){
 			for(it_type iterator = bot.begin(); iterator != bot.end(); iterator++) {
 
 				if(this->rules_.at(r)->matchesPredecessor(iterator->second.lock())){
+					std::cout << "Matching predecessor!!!" << std::endl;
 
 					if(!this->rules_.at(r)->applyRule(final, iterator->second.lock())){
 						//The robot can't be built!
