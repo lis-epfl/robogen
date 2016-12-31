@@ -169,7 +169,12 @@ typedef struct EvolverConfiguration {
 	/**
 	 * Maximum number of pieces in successor
 	 */
-	int maxSuccessorPieces;
+	int maxSuccessorParts;
+
+	/**
+	 * Maximum number of pieces in predecessor
+	 */
+	int maxPredecessorParts;
 
 	/**
 	 *  Flag to continue evolving from provided brain instead of re-initialing

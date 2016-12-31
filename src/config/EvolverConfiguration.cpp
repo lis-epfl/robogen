@@ -116,7 +116,8 @@ bool EvolverConfiguration::init(std::string configFileName) {
 
 	insertionProb = 1;
 	deletionProb=0;
-	maxSuccessorPieces=2;
+	maxSuccessorParts=2;
+	maxPredecessorParts=1;
 
 
 	pOscillatorNeuron = 0.0;
@@ -173,9 +174,12 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		("deletionProbability",
 				boost::program_options::value<double>(),
 				"Deletion probability for Rule creation.")
-		("maxSuccessorPieces",
+		("maxSuccessorParts",
 				boost::program_options::value<int>(),
-				"Maximum number of pieces in successor (indirect mode)")
+				"Maximum number of parts in successor (indirect mode)")
+		("maxPredecessorParts",
+				boost::program_options::value<int>(),
+				"Maximum number of parts in predecessor (indirect mode)")
 		("neatParamsFile",
 				boost::program_options::value<std::string>(&neatParamsFile),
 				"File for NEAT/HyperNEAT specific params")
@@ -338,14 +342,27 @@ bool EvolverConfiguration::init(std::string configFileName) {
 		return false;
 	}
 
-	// parse maxSuccessorPieces
-	if (vm.count("maxSuccessorPieces") == 0){
-		maxSuccessorPieces = 2;
-	} else if(vm["maxSuccessorPieces"].as<int>()<=6 && vm["maxSuccessorPieces"].as<int>()>=0){
-		maxSuccessorPieces = vm["maxSuccessorPieces"].as<int>();
+	// parse maxSuccessorParts
+	if (vm.count("maxSuccessorParts") == 0){
+		maxSuccessorParts = 2;
+	} else if(vm["maxSuccessorParts"].as<int>()<=6 && vm["maxSuccessorParts"].as<int>()>=0){
+		maxSuccessorParts = vm["maxSuccessorParts"].as<int>();
 	} else {
-		std::cerr << "Specified number of pieces for successor \"" <<
-				vm["maxSuccessorPieces"].as<int>() <<
+		std::cerr << "Specified number of parts for successor \"" <<
+				vm["maxSuccessorParts"].as<int>() <<
+				"\" out of range. Must be between 0 and 6 (inclusive)"
+				 << std::endl;
+		return false;
+	}
+
+	// parse maxPredecessorParts
+	if (vm.count("maxPredecessorParts") == 0){
+		maxPredecessorParts = 2;
+	} else if(vm["maxPredecessorParts"].as<int>()<=6 && vm["maxPredecessorParts"].as<int>()>=0){
+		maxPredecessorParts = vm["maxPredecessorParts"].as<int>();
+	} else {
+		std::cerr << "Specified number of parts for successor \"" <<
+				vm["maxPredecessorParts"].as<int>() <<
 				"\" out of range. Must be between 0 and 6 (inclusive)"
 				 << std::endl;
 		return false;
