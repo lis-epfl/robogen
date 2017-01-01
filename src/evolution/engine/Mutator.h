@@ -93,6 +93,12 @@ private:
 	boost::random::mt19937 &rng_;
 
 	/**
+	 * Operators to create a predecessor
+	 */
+	boost::shared_ptr<SubRobotRepresentation> generateRandomPredecessor();
+	bool insertNode(boost::shared_ptr<SubRobotRepresentation>& robot);
+
+	/**
 	 * Master Mutator
 	 */
 	bool mutate(boost::shared_ptr<RobotRepresentation>& robot);
@@ -103,23 +109,22 @@ private:
 	/**
 	 * Mutation for the Axiom and the rules 
 	 */
+	
+	bool createRule(boost::shared_ptr<RobotRepresentation> &robot);
+	bool swapRules(boost::shared_ptr<RobotRepresentation> &robot);
+	bool supressRule(boost::shared_ptr<RobotRepresentation> &robot);
+	bool mutateRule(boost::shared_ptr<RobotRepresentation> &robot);
 
-	boost::shared_ptr<SubRobotRepresentation> generateRandomPredecessor();
-	bool insertNode(boost::shared_ptr<SubRobotRepresentation>& robot);
-	bool shuffleRules(boost::shared_ptr<RobotRepresentation> &robot);
+	bool mutateAxiom(boost::shared_ptr<RobotRepresentation> &robot);
 
 	/**
 	 * Probability distribution for calling mutation operators
 	 */
-	boost::random::bernoulli_distribution<double> subtreeRemovalDist_;
-	boost::random::bernoulli_distribution<double> subtreeDuplicationDist_;
-	boost::random::bernoulli_distribution<double> subtreeSwapDist_;
-	boost::random::bernoulli_distribution<double> nodeInsertDist_;
-	boost::random::bernoulli_distribution<double> nodeRemovalDist_;
-	boost::random::bernoulli_distribution<double> paramMutateDist_;
+	boost::random::bernoulli_distribution<double> removeRule_;
+	boost::random::bernoulli_distribution<double> removeRule_;
+	boost::random::bernoulli_distribution<double> removeRule_;
 
 	boost::random::bernoulli_distribution<double> oscillatorNeuronDist_;
-
 	boost::random::bernoulli_distribution<double> addHiddenNeuronDist_;
 
 	boost::random::bernoulli_distribution<double> brainMutate_;
