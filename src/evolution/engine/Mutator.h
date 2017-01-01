@@ -95,7 +95,10 @@ private:
 	/**
 	 * Master Mutator
 	 */
-	void mutate(boost::shared_ptr<RobotRepresentation>& robot);
+	bool mutate(boost::shared_ptr<RobotRepresentation>& robot);
+
+	bool mutateBrain(boost::shared_ptr<RobotRepresentation>& robot);
+	bool mutateBody(boost::shared_ptr<RobotRepresentation>& robot);
 
 	/**
 	 * Mutation for the Axiom and the rules 
@@ -118,6 +121,9 @@ private:
 	boost::random::bernoulli_distribution<double> oscillatorNeuronDist_;
 
 	boost::random::bernoulli_distribution<double> addHiddenNeuronDist_;
+
+	boost::random::bernoulli_distribution<double> brainMutate_;
+	boost::random::normal_distribution<double> normalDistribution_;
 };
 
 class DirectMutator: public Mutator {

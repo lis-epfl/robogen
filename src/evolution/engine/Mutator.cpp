@@ -46,12 +46,22 @@ namespace robogen {
 
 bool debugto=true;
 
+//helper function for mutations
+
+double clip(double value, double min, double max) {
+	if ( value < min )
+		return min;
+	if (value > max )
+		return max;
+	return value;
+}
+
 IndirectMutator::~IndirectMutator() {
 }
 
 IndirectMutator::IndirectMutator(boost::shared_ptr<EvolverConfiguration> conf,
 		boost::random::mt19937 &rng) :
-		conf_(conf), rng_(rng){
+		conf_(conf), rng_(rng), brainMutate_(conf->pBrainMutate){
 
 	addHiddenNeuronDist_ = boost::random::bernoulli_distribution<double>(
 			conf->pAddHiddenNeuron);
@@ -124,19 +134,30 @@ bool IndirectMutator::insertNode(boost::shared_ptr<SubRobotRepresentation>& robo
 	if ( idPartMap.size() >= conf_->maxBodyParts )
 		return false;
 
-	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
+	int offset = 0;
+
+	if(idPartMap.size() >1){
+		offset=1;
+	}
+
+	boost::random::uniform_int_distribution<> dist(offset, idPartMap.size() - 1);
 
 	SubRobotRepresentation::IdPartMap::const_iterator parent;
 	boost::shared_ptr<PartRepresentation> parentPart;
 
-	// find a parent with arity > 0 (will exist, since at the very least will
-	// be the core)
-
+	// find a parent with arity > 0 , give up after 100 attempts
+	int attempt = 0;
 	do {
-		parent = idPartMap.begin();
+		parent = robot->getBody().begin();
 		std::advance(parent, dist(rng_));
 		parentPart = parent->second.lock();
-	} while (parentPart->getArity() == 0);
+		attempt++;
+	} while (parentPart->getArity() == 0 && attempt<100);
+
+	if(attempt==100){
+		//This means we can't really grow the predecessor
+		return false;
+	}
 
 	// Sample a random slot
 	boost::random::uniform_int_distribution<> slotDist(0,
@@ -227,7 +248,125 @@ std::vector<boost::shared_ptr<RobotRepresentation> > IndirectMutator::createOffs
 	return offspring;
 }
 
-void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
+bool IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
+	bool mutated = false;
+
+	// mutate brain TODO conf bits?
+
+	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
+		mutated = (this->mutateBody(robot) || mutated);
+	}
+
+	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
+			|| conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
+		mutated = (this->mutateBrain(robot) || mutated);
+	}
+
+	return mutated;
+}
+
+bool IndirectMutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot){
+	bool mutated = false;
+
+	// first potentially add hidden neurons
+	if ((robot->getBrain()->getNumHidden() < MAX_HIDDEN_NEURONS) &&
+			addHiddenNeuronDist_(rng_)) {
+		unsigned int neuronType = NeuronRepresentation::SIGMOID;
+		if (oscillatorNeuronDist_(rng_)) {
+			neuronType = NeuronRepresentation::OSCILLATOR;
+		}
+		std::string neuronId = robot->getBrain()->insertNeuron(
+				ioPair(robot->getBodyRootId(),
+										robot->getBrain()->getBodyPartNeurons(
+												robot->getBodyRootId()).size()),
+							NeuronRepresentation::HIDDEN, neuronType);
+		mutated = true;
+	}
+
+	// TODO allow removing hidden neurons???
+
+
+	std::vector<double*> weights;
+	std::vector<double*> params;
+	std::vector<unsigned int> types;
+	robot->getBrainGenome(weights, types, params);
+
+	// mutate weights
+	for (unsigned int i = 0; i < weights.size(); ++i) {
+		if (brainMutate_(rng_)) {
+			mutated = true;
+			*weights[i] += (normalDistribution_(rng_) *
+					conf_->brainWeightSigma);
+			*weights[i] = clip(*weights[i], conf_->minBrainWeight,
+					conf_->maxBrainWeight);
+
+		}
+	}
+	// mutate params (biases, etc)
+	unsigned int paramCounter = 0;
+	for (unsigned int i = 0; i < types.size(); ++i) {
+		if(types[i] == NeuronRepresentation::SIGMOID) {
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter] += (normalDistribution_(rng_) *
+						conf_->brainBiasSigma);
+				*params[paramCounter] = clip(*params[paramCounter],
+						conf_->minBrainBias, conf_->maxBrainBias);
+			}
+			paramCounter+=1;
+		} else if(types[i] == NeuronRepresentation::CTRNN_SIGMOID) {
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter] += (normalDistribution_(rng_) *
+						conf_->brainBiasSigma);
+				*params[paramCounter] = clip(*params[paramCounter],
+						conf_->minBrainBias, conf_->maxBrainBias);
+			}
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter+1] += (normalDistribution_(rng_) *
+						conf_->brainTauSigma);
+				*params[paramCounter+1] = clip(*params[paramCounter+1],
+						conf_->minBrainTau, conf_->maxBrainTau);
+			}
+			paramCounter += 2;
+		} else if(types[i] == NeuronRepresentation::OSCILLATOR) {
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter] += (normalDistribution_(rng_) *
+						conf_->brainPeriodSigma);
+				*params[paramCounter] = clip(*params[paramCounter],
+						conf_->minBrainPeriod, conf_->maxBrainPeriod);
+			}
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter+1] += (normalDistribution_(rng_) *
+						conf_->brainPhaseOffsetSigma);
+				*params[paramCounter+1] = clip(*params[paramCounter+1],
+						conf_->minBrainPhaseOffset, conf_->maxBrainPhaseOffset);
+			}
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter+2] += (normalDistribution_(rng_) *
+						conf_->brainAmplitudeSigma);
+				*params[paramCounter+2] = clip(*params[paramCounter+2],
+						conf_->minBrainAmplitude, conf_->maxBrainAmplitude);
+			}
+			paramCounter += 3;
+		} else {
+			std::cout << "INVALID TYPE ENCOUNTERED " << types[i] << std::endl;
+		}
+
+	}
+
+	if (mutated) {
+		robot->setDirty();
+	}
+	
+	return mutated;
+}
+
+bool IndirectMutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot){
 	//We generate a new robot, a clone
 	boost::shared_ptr<RobotRepresentation> finalBot = boost::shared_ptr<RobotRepresentation>(new RobotRepresentation(*robot.get()));
 
@@ -259,18 +398,13 @@ void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
 
 	int attempt=0;
 
-	for(int i = 0; i < conf_->allowedBodyPartTypes.size(); i++)
-		std::cout << "We got it: " << conf_->allowedBodyPartTypes[i] << std::endl;
-
-	
-
 	if(tmpGrammar->getNumberOfRules()<5){
 		while(attempt<1000){
 			//tmpGrammar->addRule(boost::shared_ptr<Grammar::Rule>(new Grammar::Rule(1, predecessor, this->rng_, this->conf_)));
 			tmpGrammar->addRule(boost::shared_ptr<Grammar::Rule>(new Grammar::Rule(1, generateRandomPredecessor(), this->rng_, this->conf_)));
 
-			std::cout << "And the successor is:\n\n";
-			std::cout << tmpGrammar->getRule(tmpGrammar->getNumberOfRules()-1)->getSuccessor()->toString() << std::endl;
+			//std::cout << "And the successor is:\n\n";
+			//std::cout << tmpGrammar->getRule(tmpGrammar->getNumberOfRules()-1)->getSuccessor()->toString() << std::endl;
 
 			//std::cout << "Trying to build the bot:" << std::endl;
 
@@ -290,14 +424,10 @@ void IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
 					std::cout << "Consistency check failed in mutation operator " << std::endl;
 				}
 
-				std::cout << "Rule accepted.\n\n" << std::endl;
-				std::cout << "/////////////////////////////////////////////////" << std::endl;
 				robot = finalBot;
 				robot->setDirty();
 				break;
 			} else {
-				std::cout << "Rule not accepted.\n\n" << std::endl;
-				std::cout << "/////////////////////////////////////////////////" << std::endl;
 				tmpGrammar->popLastRule();
 			}
 		}
@@ -328,8 +458,8 @@ boost::shared_ptr<SubRobotRepresentation> IndirectMutator::generateRandomPredece
 		}
 	}
 
-	std::cout << "Checkout the predecessor:\n\n";
-	std::cout << predecessor->toString() << std::endl;
+	//std::cout << "Checkout the predecessor:\n\n";
+	//std::cout << predecessor->toString() << std::endl;
 	return predecessor;
 }
 
@@ -497,16 +627,6 @@ bool DirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot) {
 	}
 
 	return mutated;
-}
-
-//helper function for mutations
-
-double clip(double value, double min, double max) {
-	if ( value < min )
-		return min;
-	if (value > max )
-		return max;
-	return value;
 }
 
 bool DirectMutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {

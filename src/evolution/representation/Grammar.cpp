@@ -95,7 +95,7 @@ Grammar::Rule::Rule(int iterations, boost::shared_ptr<SubRobotRepresentation> pr
 		} while (parentPart->getArity() == 0 && attempt<100);
 
 		if(attempt==100){
-			std::cout << "Predecessor impossible to grow." << std::endl;
+			//std::cout << "Predecessor impossible to grow." << std::endl;
 			break;
 		}
 
@@ -279,12 +279,16 @@ bool Grammar::Rule::applyRule(boost::shared_ptr<SubRobotRepresentation> robot, b
 	boost::shared_ptr<Rule::effectMap> tmpMap = boost::shared_ptr<Rule::effectMap>(new Rule::effectMap(*this->buildMap_.get()));
 
 	bool match = generateCloneMap(this->predecessor_->getTree()->getChild(0), node, tmpMap);
+	(*tmpMap)[this->predecessor_->getTree()->getId()] = node->getParent()->getId();
 
-	std::cout << "We have to delete " << this->deletions_.size() << std::endl;
+	//typedef effectMap::iterator it_type;
+	//for(it_type iterator = tmpMap->begin(); iterator != tmpMap->end(); iterator++) {
+	//	std::cout << iterator->first << " and " << iterator->second << std::endl;
+	//}
+
 	for(int i=0; i< this->deletions_.size(); i++){
-		std::cout << "Part " << tmpMap->at(deletions_.at(i)) << std::endl;
-		bool success = successor->removePart(tmpMap->at(deletions_.at(i)), false);
-		std::cout << "And the success is ...." << success << std::endl;
+		successor->removePart(deletions_.at(i), false);
+		bool success = robot->removePart(tmpMap->at(deletions_.at(i)), false);
 		if(!success){
 			return false;
 		}
@@ -380,7 +384,6 @@ boost::shared_ptr<SubRobotRepresentation> Grammar::buildTree(void){
 			for(it_type iterator = bot.begin(); iterator != bot.end(); iterator++) {
 
 				if(this->rules_.at(r)->matchesPredecessor(iterator->second.lock())){
-					std::cout << "Matching predecessor!!!" << std::endl;
 
 					if(!this->rules_.at(r)->applyRule(final, iterator->second.lock())){
 						//The robot can't be built!
