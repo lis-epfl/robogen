@@ -790,6 +790,13 @@ ModelMeshMap initModelMeshMap() {
 	modelMeshMap[std::make_pair(&typeid(CoreComponentModel),
 			static_cast<unsigned int>(CoreComponentModel::B_CORE_COMPONENT_ID))] =
 			"CoreComponent.stl";
+			//"ParametricPrism_5.stl";
+
+//Gael TODO
+	//stl for each faceNumber of the ParametricPrism
+	modelMeshMap[std::make_pair(&typeid(ParametricPrismModel),
+			static_cast<unsigned int>(5))] =
+			"ParametricPrism_5.stl";
 
 	// Hinge
 	modelMeshMap[std::make_pair(&typeid(HingeModel),
@@ -1018,6 +1025,10 @@ RelativeAttitudeMap initRelativeAttitudeMap() {
 
 	relativeAttitudeMap[std::make_pair(&typeid(CoreComponentModel),
 			static_cast<unsigned int>(CoreComponentModel::B_CORE_COMPONENT_ID))] =
+			osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
+
+	relativeAttitudeMap[std::make_pair(&typeid(ParametricPrismModel),
+			static_cast<unsigned int>(5))] =
 			osg::Quat(osg::inDegrees(90.0), osg::Vec3(1, 0, 0));
 
 	// Hinge
