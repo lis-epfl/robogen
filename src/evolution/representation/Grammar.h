@@ -85,6 +85,14 @@ namespace robogen{
             bool matchesPredecessor(boost::shared_ptr<PartRepresentation> candidate);
 
             /**
+             * Muatet the steps of deletion or insertion of the Rule
+             * @param rng Random No. Generator to ensure repeatibility.
+             * @param conf Evolution configuration file
+             * @return True if the operation was successfull
+             */
+            bool mutate(boost::random::mt19937 &rng, boost::shared_ptr<EvolverConfiguration> conf);
+
+            /**
              * Apply the rule for one single iteration in the node from a robot
              * @param candidate PartRepresentation, a node in the robot to be compared.a
              */
@@ -166,8 +174,30 @@ namespace robogen{
 
         boost::shared_ptr<Rule> getRule(int id);
 
+        /**
+         * Adds a new rule to the grammar
+         * @param newRule Shared pointer to the rule to be appended
+         * @return Weather it was possible to add the rule or not
+         */
         bool addRule(boost::shared_ptr<Rule> newRule);
+
+        /**
+         * Swaps two rules in the rule vector.
+         * @param rule1 Index to the first rule
+         * @param rule2 Index to the second rule
+         * @return True if the operation was successfull
+         */
+        bool swapRules(int rule1, int rule2);
+
         void popLastRule(void);
+
+        /**
+         * Kick out a rule from the grammar, by index.
+         * @param indx index of the rule to be erased
+         * @return True if the operation was successfull
+        */
+        bool popRuleAt(int indx);
+
         bool lastBuildFailed();
     private:
         /**
