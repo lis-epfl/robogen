@@ -55,6 +55,15 @@ double clip(double value, double min, double max) {
 		return max;
 	return value;
 }
+//Definition of special types for the mutation function.
+
+typedef bool (DirectMutator::*DirMutationOperator)(boost::shared_ptr<RobotRepresentation>&);
+
+typedef std::pair<DirMutationOperator, boost::random::bernoulli_distribution<double> > DirMutOpPair;
+
+typedef bool (IndirectMutator::*IndMutationOperator)(boost::shared_ptr<RobotRepresentation>&);
+
+typedef std::pair<IndMutationOperator, boost::random::bernoulli_distribution<double> > IndMutOpPair;
 
 IndirectMutator::~IndirectMutator() {
 }
@@ -71,37 +80,19 @@ IndirectMutator::IndirectMutator(boost::shared_ptr<EvolverConfiguration> conf,
 
 
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
-		subtreeRemovalDist_ =
-				boost::random::bernoulli_distribution<double>(
-						conf->bodyOperatorProbability
-						[EvolverConfiguration::SUBTREE_REMOVAL]);
-		subtreeDuplicationDist_ =
-				boost::random::bernoulli_distribution<double>(
-						conf->bodyOperatorProbability
-						[EvolverConfiguration::SUBTREE_DUPLICATION]);
-		subtreeSwapDist_ =
-				boost::random::bernoulli_distribution<double>(
-						conf->bodyOperatorProbability
-						[EvolverConfiguration::SUBTREE_SWAPPING]);
-		nodeInsertDist_ =
-				boost::random::bernoulli_distribution<double>(
-						conf->bodyOperatorProbability
-						[EvolverConfiguration::NODE_INSERTION]);
-		nodeRemovalDist_ =
-				boost::random::bernoulli_distribution<double>(
-						conf->bodyOperatorProbability
-						[EvolverConfiguration::NODE_REMOVAL]);
-		paramMutateDist_ =
-				boost::random::bernoulli_distribution<double>(
-						conf->bodyOperatorProbability
-						[EvolverConfiguration::PARAMETER_MODIFICATION]);
+		suppressRuleDist_ =
+				boost::random::bernoulli_distribution<double>(0.4);
+		createRuleDist_ =
+				boost::random::bernoulli_distribution<double>(0.9);
+		swapRulesDist_ =
+				boost::random::bernoulli_distribution<double>(0.2);
+		mutateRuleDist_ =
+				boost::random::bernoulli_distribution<double>(0.4);
 	}
 }
 
 void IndirectMutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) {
-	/*
-	boost::random::uniform_int_distribution<> dist(conf_->minNumInitialParts,
-			conf_->maxNumInitialParts);
+	boost::random::uniform_int_distribution<> dist(0,8);
 	unsigned int numPartsToAdd = dist(rng_);
 
 	for (unsigned int i = 0; i < numPartsToAdd; i++) {
@@ -112,8 +103,12 @@ void IndirectMutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& r
 
 			boost::shared_ptr<RobotRepresentation> newBot = boost::shared_ptr<
 					RobotRepresentation>(new RobotRepresentation(*robot.get()));
-			success = this->insertNode(newBot);
+
+			boost::shared_ptr<SubRobotRepresentation> axiom = newBot->getGrammar()->getAxiom();
+			success = this->insertNode(axiom, true);
 			int errorCode;
+
+			newBot->buildFromGrammar();
 
 			std::vector<std::pair<std::string, std::string> > affectedBodyParts;
 			if (success
@@ -125,10 +120,9 @@ void IndirectMutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& r
 			}
 		}
 	}
-	*/
 }
 
-bool IndirectMutator::insertNode(boost::shared_ptr<SubRobotRepresentation>& robot){
+bool IndirectMutator::insertNode(boost::shared_ptr<SubRobotRepresentation>& robot, bool isAxiom){
 	const SubRobotRepresentation::IdPartMap& idPartMap = robot->getBody();
 
 	if ( idPartMap.size() >= conf_->maxBodyParts )
@@ -136,7 +130,7 @@ bool IndirectMutator::insertNode(boost::shared_ptr<SubRobotRepresentation>& robo
 
 	int offset = 0;
 
-	if(idPartMap.size() >1){
+	if(idPartMap.size() >1 && !isAxiom){
 		offset=1;
 	}
 
@@ -164,7 +158,7 @@ bool IndirectMutator::insertNode(boost::shared_ptr<SubRobotRepresentation>& robo
 												parentPart->getArity() - 1);
 	unsigned int parentSlot = slotDist(rng_);
 
-	if(idPartMap.size()==1){
+	if(idPartMap.size()==1 && !isAxiom){
 		parentSlot = 0;
 	}
 
@@ -220,7 +214,46 @@ bool IndirectMutator::insertNode(boost::shared_ptr<SubRobotRepresentation>& robo
 }
 
 void IndirectMutator::randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot) {
+	// randomize weights and biases randomly in valid range
+	boost::random::uniform_01<double> distrib;
 
+	std::vector<double*> weights;
+	std::vector<double*> params;
+	std::vector<unsigned int> types;
+	robot->getBrainGenome(weights, types, params);
+
+	// set weights
+	for (unsigned int i = 0; i < weights.size(); ++i) {
+		*weights[i] = distrib(rng_) * (conf_->maxBrainWeight -
+				conf_->minBrainWeight) + conf_->minBrainWeight;
+	}
+	// set params (biases, etc)
+	unsigned int paramCounter = 0;
+	for (unsigned int i = 0; i < types.size(); ++i) {
+		if(types[i] == NeuronRepresentation::SIGMOID) {
+			*params[paramCounter] = distrib(rng_) * (conf_->maxBrainBias -
+					conf_->minBrainBias) + conf_->minBrainBias;
+			paramCounter+=1;
+		} else if(types[i] == NeuronRepresentation::CTRNN_SIGMOID) {
+			*params[paramCounter] = distrib(rng_) * (conf_->maxBrainBias -
+					conf_->minBrainBias) + conf_->minBrainBias;
+			*params[paramCounter + 1] = distrib(rng_) * (conf_->maxBrainTau -
+					conf_->minBrainTau) + conf_->minBrainTau;
+			paramCounter += 2;
+		} else if(types[i] == NeuronRepresentation::OSCILLATOR) {
+			*params[paramCounter] = distrib(rng_) * (conf_->maxBrainPeriod -
+					conf_->minBrainPeriod) + conf_->minBrainPeriod;
+			*params[paramCounter + 1] = distrib(rng_) * (conf_->maxBrainPhaseOffset -
+					conf_->minBrainPhaseOffset) + conf_->minBrainPhaseOffset;
+			*params[paramCounter + 2] = distrib(rng_) * (conf_->maxBrainAmplitude -
+					conf_->minBrainAmplitude) + conf_->minBrainAmplitude;
+			paramCounter += 3;
+		} else {
+			std::cout << "INVALID TYPE ENCOUNTERED " << types[i] << std::endl;
+		}
+
+	}
+	robot->setDirty();
 }
 
 std::vector<boost::shared_ptr<RobotRepresentation> > IndirectMutator::createOffspring(
@@ -256,6 +289,8 @@ bool IndirectMutator::mutate(boost::shared_ptr<RobotRepresentation>& robot){
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
 		mutated = (this->mutateBody(robot) || mutated);
 	}
+
+	robot->buildFromGrammar();
 
 	if (conf_->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
 			|| conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
@@ -367,6 +402,48 @@ bool IndirectMutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot)
 }
 
 bool IndirectMutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot){
+	bool mutated = false;
+	IndMutOpPair mutOpPairs[] = { 
+			std::make_pair(&IndirectMutator::suppressRule, suppressRuleDist_),
+			std::make_pair(&IndirectMutator::createRule, createRuleDist_),
+			std::make_pair(&IndirectMutator::swapRules, swapRulesDist_),
+			std::make_pair(&IndirectMutator::mutateRule, mutateRuleDist_)};
+
+	int numOperators = sizeof(mutOpPairs) / sizeof(IndMutOpPair);
+	for (int i = 0; i < numOperators; ++i) {
+
+		IndMutationOperator mutOp = mutOpPairs[i].first;
+		boost::random::bernoulli_distribution<double> dist =
+				mutOpPairs[i].second;
+
+		if (dist(rng_)) {
+			boost::shared_ptr<RobotRepresentation> newBot =
+					boost::shared_ptr<RobotRepresentation>(
+							new RobotRepresentation(*robot.get()));
+
+			bool mutationSuccess = (this->*mutOp)(newBot);
+
+			int errorCode;
+			std::vector<std::pair<std::string, std::string> > affectedBodyParts;
+			if (mutationSuccess
+					&& BodyVerifier::verify(*newBot.get(), errorCode,
+							affectedBodyParts, PRINT_ERRORS)) {
+
+				if (!newBot->check()) {
+					std::cout << "Consistency check failed in mutation operator " << i << std::endl;
+				}
+
+				robot = newBot;
+				robot->setDirty();
+				mutated = true;
+				break;
+
+			}
+		}
+	}
+}
+
+bool IndirectMutator::createRule(boost::shared_ptr<RobotRepresentation> &robot){
 	//We generate a new robot, a clone
 	boost::shared_ptr<RobotRepresentation> finalBot = boost::shared_ptr<RobotRepresentation>(new RobotRepresentation(*robot.get()));
 
@@ -398,20 +475,18 @@ bool IndirectMutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot){
 
 	int attempt=0;
 
-	if(tmpGrammar->getNumberOfRules()<5){
+	if(tmpGrammar->getNumberOfRules()<30){
 		while(attempt<1000){
-			//tmpGrammar->addRule(boost::shared_ptr<Grammar::Rule>(new Grammar::Rule(1, predecessor, this->rng_, this->conf_)));
 			tmpGrammar->addRule(boost::shared_ptr<Grammar::Rule>(new Grammar::Rule(1, generateRandomPredecessor(), this->rng_, this->conf_)));
 
-			//std::cout << "And the successor is:\n\n";
-			//std::cout << tmpGrammar->getRule(tmpGrammar->getNumberOfRules()-1)->getSuccessor()->toString() << std::endl;
-
-			//std::cout << "Trying to build the bot:" << std::endl;
+			#ifdef DEBUG_MUTATE
+			std::cout << "The predecessor is:\n";
+			std::cout << predecessor->toString() << std::endl;
+			std::cout << "The successor is:\n";
+			std::cout << tmpGrammar->getRule(tmpGrammar->getNumberOfRules()-1)->getSuccessor()->toString() << std::endl;
+			#endif
 
 			bool success = finalBot->buildFromGrammar();
-
-			//std::cout << "The final superbot is :" << std::endl;
-			//std::cout << finalBot->toString() << std::endl;
 
 			attempt++;
 
@@ -434,6 +509,60 @@ bool IndirectMutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot){
 	}
 }
 
+bool IndirectMutator::swapRules(boost::shared_ptr<RobotRepresentation> &robot){
+	boost::shared_ptr<Grammar> tmpGrammar = robot->getGrammar();
+
+	if(tmpGrammar->getNumberOfRules()==0){
+		return false;
+	}
+
+	boost::random::uniform_int_distribution<> dist(0, tmpGrammar->getNumberOfRules()-1);
+
+	int first = dist(rng_);
+	int second=0;
+
+	int attempt=0;
+	while(attempt<100){
+		second = dist(rng_);
+		if(second!=first){
+			break;
+		}
+		attempt++;
+	}
+
+	if(attempt==100){ //Couldn't find a pair of rules
+		return false;
+	} else {
+		return tmpGrammar->swapRules(first,second);
+	}
+}
+
+bool IndirectMutator::suppressRule(boost::shared_ptr<RobotRepresentation> &robot){
+	boost::shared_ptr<Grammar> tmpGrammar = robot->getGrammar();
+
+	if(tmpGrammar->getNumberOfRules()==0){
+		return false;
+	} else {
+		boost::random::uniform_int_distribution<> dist(0, tmpGrammar->getNumberOfRules()-1);
+		return tmpGrammar->popRuleAt(dist(rng_));
+	}
+}
+
+bool IndirectMutator::mutateRule(boost::shared_ptr<RobotRepresentation> &robot){
+	boost::shared_ptr<Grammar> tmpGrammar = robot->getGrammar();
+
+	if(tmpGrammar->getNumberOfRules()==0){
+		return false;
+	}
+	boost::random::uniform_int_distribution<> dist(0, tmpGrammar->getNumberOfRules()-1);
+
+	return tmpGrammar->getRule(dist(rng_))->mutate(this->rng_, this->conf_);
+}
+
+bool IndirectMutator::mutateAxiom(boost::shared_ptr<RobotRepresentation> &robot){
+	return true;
+}
+
 boost::shared_ptr<SubRobotRepresentation> IndirectMutator::generateRandomPredecessor(){
 	boost::random::uniform_int_distribution<> dist(1, conf_->maxPredecessorParts);
 	unsigned int numPartsToAdd = dist(rng_);
@@ -450,7 +579,7 @@ boost::shared_ptr<SubRobotRepresentation> IndirectMutator::generateRandomPredece
 
 			boost::shared_ptr<SubRobotRepresentation> newBot = boost::shared_ptr<SubRobotRepresentation>(new SubRobotRepresentation(*predecessor.get()));
 
-			success = this->insertNode(newBot);
+			success = this->insertNode(newBot, false);
 			if (success) {
 				predecessor = newBot;
 				break;
@@ -458,8 +587,6 @@ boost::shared_ptr<SubRobotRepresentation> IndirectMutator::generateRandomPredece
 		}
 	}
 
-	//std::cout << "Checkout the predecessor:\n\n";
-	//std::cout << predecessor->toString() << std::endl;
 	return predecessor;
 }
 
@@ -782,12 +909,6 @@ bool DirectMutator::crossover(boost::shared_ptr<RobotRepresentation>& a,
 	return true;
 }
 
-typedef bool (DirectMutator::*MutationOperator)(
-		boost::shared_ptr<RobotRepresentation>&);
-
-typedef std::pair<MutationOperator,
-		boost::random::bernoulli_distribution<double> > MutOpPair;
-
 bool DirectMutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 #ifdef DEBUG_MUTATE
 	std::cout << "mutating body" << std::endl;
@@ -798,7 +919,7 @@ bool DirectMutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 	* only an empty face in order to not change the probability of removeSubtree
 	*/
 	bool mutated = false;
-	MutOpPair mutOpPairs[] = { 
+	DirMutOpPair mutOpPairs[] = { 
 			std::make_pair(&DirectMutator::removeSubtree, subtreeRemovalDist_), 
 			std::make_pair(&DirectMutator::mutateArity, arityMutateDist_),
 			std::make_pair(&DirectMutator::duplicateSubtree, subtreeDuplicationDist_),
@@ -807,10 +928,10 @@ bool DirectMutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot) {
 			std::make_pair(&DirectMutator::removeNode, nodeRemovalDist_), 
 			std::make_pair(&DirectMutator::mutateParams, paramMutateDist_) };
 
-	int numOperators = sizeof(mutOpPairs) / sizeof(MutOpPair);
+	int numOperators = sizeof(mutOpPairs) / sizeof(DirMutOpPair);
 	for (int i = 0; i < numOperators; ++i) {
 
-		MutationOperator mutOp = mutOpPairs[i].first;
+		DirMutationOperator mutOp = mutOpPairs[i].first;
 		boost::random::bernoulli_distribution<double> dist =
 				mutOpPairs[i].second;
 
