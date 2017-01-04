@@ -1,5 +1,5 @@
 simulatorConfFile=myConf.txt
-referenceRobotFile=myAnt.txt
+referenceRobotFile=myRobot2.txt
 useBrainSeed=true
 mu=20
 lambda=20

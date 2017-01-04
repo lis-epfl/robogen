@@ -230,12 +230,12 @@ std::map<std::pair<std::string, unsigned int>, std::pair<double, double> >
 			std::make_pair(0.03, 0.08); // radius in m
 #endif
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_PRISM, 0)] =
-			std::make_pair(3, 8); // Number of faces
+			std::make_pair(3, 8); // Number of faces (3, 8)
 	//If the prism has less than 4 faces it will not have enough space to put the ship
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_PRISM_CORE, 0)] =
-			std::make_pair(4, 8); // Number of faces
+			std::make_pair(4, 8); // Number of faces (4, 8)
 	partTypeParamRangeMap[std::make_pair(PART_TYPE_PARAM_PRISM_CORE_NO_IMU, 0)] =
-			std::make_pair(4, 8); // Number of faces
+			std::make_pair(4, 8); // Number of faces (4, 8)
 	return partTypeParamRangeMap;
 }
 
