@@ -56,13 +56,17 @@
 namespace robogen {
 
 RobotRepresentation::RobotRepresentation() :
-		evaluated_(false) {
+		evaluated_(false), fitness_(0) {
 			//I should initialize maxId to 1000
 }
 
 RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 
 	this->robotMorph_.reset(new SubRobotRepresentation(*(r.robotMorph_.get())));
+
+	//This was leading to issues, copy also fitness values
+	this->fitness_ = r.fitness_;
+	this->evaluated_ = r.evaluated_;
 
 	// We copy the AXIOM to the grammar
 	this->grammar_.reset(new Grammar(r.grammar_->getAxiom()));
@@ -71,6 +75,7 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 RobotRepresentation &RobotRepresentation::operator=(
 		const RobotRepresentation &r) {
 	*this->robotMorph_ = *(r.robotMorph_);
+	*this->grammar_ = *(r.grammar_);
 	fitness_ = r.fitness_;
 	evaluated_ = r.evaluated_;
 	return *this;
@@ -82,9 +87,6 @@ void RobotRepresentation::asyncEvaluateResult(double fitness) {
 }
 
 bool RobotRepresentation::init() {
-	
-	this->robotMorph_.reset(new SubRobotRepresentation());
-
 	this->robotMorph_.reset(new SubRobotRepresentation());
 	this->robotMorph_->init();
 
