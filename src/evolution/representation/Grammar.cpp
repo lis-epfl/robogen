@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <math.h>
+#include <queue>
 
 #include "evolution/representation/Grammar.h"
 
@@ -272,6 +273,159 @@ bool Grammar::Rule::matchesPredecessor(boost::shared_ptr<PartRepresentation> can
 	return matchingTree(tree->getChild(0), candidate);
 }
 
+bool Grammar::Rule::mutate(boost::random::mt19937 &rng, boost::shared_ptr<EvolverConfiguration> conf){
+	boost::random::bernoulli_distribution<double> dist(0.5);
+	std::cout << "Entering the power!" << std::endl;
+
+	//We first build a copy of the predecessor to advance it to the last
+	//step of the deletions
+
+	int attempt=0;
+
+	boost::shared_ptr<SubRobotRepresentation> successor = boost::shared_ptr<SubRobotRepresentation>(new SubRobotRepresentation(*this->predecessor_.get()));
+	SubRobotRepresentation::IdPartMap parts = successor->getBody();
+	for(int i=0; i< this->deletions_.size(); i++){
+		successor->removePart(deletions_.at(i), false);
+	}
+
+	if(dist(rng)){ //Mutation in the deletion steps
+		std::string target;
+		while(attempt<100){
+			//We generate a uniform random distribution for all pieces in the predecessor.
+			boost::random::uniform_int_distribution<> dist(0, parts.size() - 1 -1);
+			//We get an iterator and we point it to the beginning of the parts.
+			SubRobotRepresentation::IdPartMap::const_iterator partToRemove =
+					parts.begin();
+			//We advance the pointer by a random number of steps, skipping the core
+			std::advance(partToRemove, dist(rng)+1);
+
+			//We try to remove the part of the subrobot
+			target = partToRemove->first;
+			bool success = successor->removePart(target, false);
+
+			if(success){
+				deletions_.push_back(target);
+				break;
+			}
+			attempt++;
+		}
+		if(attempt==100){
+			return false;
+		} else {
+			std::queue<std::string> toEliminate;
+			toEliminate.push(target);
+			while(!toEliminate.empty()){
+				std::string current = toEliminate.front();
+				toEliminate.pop();
+
+				for(int i =0; i < this->insertions_.size(); i++){
+					if(current == this->insertions_.at(i).parentPartId){
+						toEliminate.push(this->insertions_.at(i).newPart->getId());
+						this->insertions_.erase(this->insertions_.begin()+i);
+						i--;
+					}
+				}
+			}
+		}
+
+	} else { //Mutation in the Insertion steps
+		//APPEND TIMEEEEEEE
+
+		int offSet = 0;
+
+		if(successor->getBody().size()>1){
+			offSet = 1;
+		}
+
+		boost::random::uniform_int_distribution<> dist(offSet, successor->getBody().size() - 1);
+
+		SubRobotRepresentation::IdPartMap::const_iterator parent;
+
+
+		boost::shared_ptr<PartRepresentation> parentPart;
+
+		// find a parent with arity > 0 , give up after 100 attempts
+		int attempt = 0;
+		do {
+			parent = successor->getBody().begin();
+			std::advance(parent, dist(rng));
+			parentPart = parent->second.lock();
+			attempt++;
+		} while (parentPart->getArity() == 0 && attempt<100);
+
+		if(attempt==100){
+			//std::cout << "Predecessor impossible to grow." << std::endl;
+			return false;
+		}
+
+		boost::random::uniform_int_distribution<> distType(0,
+			conf->allowedBodyPartTypes.size() - 1 - 1);
+		char type = conf->allowedBodyPartTypes[distType(rng)];
+
+		// Randomly generate node orientation
+		boost::random::uniform_int_distribution<> orientationDist(0, 3);
+		unsigned int curOrientation = orientationDist(rng);
+
+		// Randomly generate parameters
+		unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type));
+		std::vector<double> parameters;
+		boost::random::uniform_01<double> paramDist;
+		for (unsigned int i = 0; i < nParams; ++i) {
+			parameters.push_back(paramDist(rng));
+		}
+
+		// Create the new part
+		boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
+				type, "", curOrientation, parameters);
+
+		//Create a backup Part, before it got inserted in the predecessor
+		boost::shared_ptr<PartRepresentation> backupNewPart = PartRepresentation::create(
+				type, "", curOrientation, parameters);
+
+		unsigned int newPartSlot = 0;
+
+		if (newPart->getArity() > 0) {
+			// Generate a random slot in the new node, if it has arity > 0
+			boost::random::uniform_int_distribution<> distNewPartSlot(0,
+					newPart->getArity() - 1);
+			newPartSlot = distNewPartSlot(rng);
+		}
+		// otherwise just keep it at 0... inserting part will fail if arity is 0 and
+		// there were previously parts attached to the parent's chosen slot
+
+		boost::random::bernoulli_distribution<double> oscillatorNeuronDist_(conf->pOscillatorNeuron);
+
+		int mNType = oscillatorNeuronDist_(rng) ? NeuronRepresentation::OSCILLATOR :
+						NeuronRepresentation::SIGMOID;
+
+		// Sample a random slot
+		boost::random::uniform_int_distribution<> slotDist(0,
+													parentPart->getArity() - 1);
+		unsigned int parentSlot = slotDist(rng);
+
+		if(successor->getBody().size()==1){
+			parentSlot=0;
+		}
+
+		bool succeed = successor->insertPart(parent->first, parentSlot, newPart, newPartSlot,
+				mNType, false);
+
+		//If the insertion was successfull, we keep this step in the insertions.
+		if(succeed){
+			buildStep tmpStep;
+
+			tmpStep.parentPartId = parent->first;
+			tmpStep.parentPartSlot = parentSlot;
+			tmpStep.newPart = backupNewPart;
+			tmpStep.newPartSlot = newPartSlot;
+			tmpStep.motorNeuronType = mNType;
+
+			this->insertions_.push_back(tmpStep);
+		}
+	}
+	std::cout << "Leaving the power!" << std::endl;
+}
+
 bool Grammar::Rule::applyRule(boost::shared_ptr<SubRobotRepresentation> robot, boost::shared_ptr<PartRepresentation> node){
 	
 	boost::shared_ptr<SubRobotRepresentation> successor = boost::shared_ptr<SubRobotRepresentation>(new SubRobotRepresentation(*this->predecessor_.get()));
@@ -341,9 +495,21 @@ boost::shared_ptr<Grammar::Rule> Grammar::getRule(int id){
 	return this->rules_.at(id);
 }
 
+bool Grammar::swapRules(int rule1, int rule2){
+
+}
+
 void Grammar::popLastRule(void){
 	if(this->rules_.size()>0){
 		this->rules_.pop_back();
+	}
+}
+
+bool Grammar::popRuleAt(int indx){
+	if(indx >= this->rules_.size()){
+		return false;
+	} else {
+		this->rules_.erase(this->rules_.begin() + indx);
 	}
 }
 
