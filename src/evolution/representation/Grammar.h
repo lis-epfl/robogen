@@ -161,6 +161,12 @@ namespace robogen{
         Grammar(boost::shared_ptr<SubRobotRepresentation> axiom);
 
         /**
+         * Default constructor, which takes an axiom and a set o rules.
+         * @param axiom shared pointer to a subrobotrepresentation which will become the axiom.
+         */
+        Grammar(boost::shared_ptr<SubRobotRepresentation> axiom, std::vector< boost::shared_ptr<Rule> > rules);
+
+        /**
          * Get a shared pointer to the axiom
          */
         boost::shared_ptr<SubRobotRepresentation> getAxiom(void);
@@ -199,6 +205,8 @@ namespace robogen{
         bool popRuleAt(int indx);
 
         bool lastBuildFailed();
+
+        std::vector< boost::shared_ptr<Rule> > getAllRules(void);
     private:
         /**
          * Axiom of the grammar

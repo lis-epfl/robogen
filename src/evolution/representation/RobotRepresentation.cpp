@@ -69,7 +69,7 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 	this->evaluated_ = r.evaluated_;
 
 	// We copy the AXIOM to the grammar
-	this->grammar_.reset(new Grammar(r.grammar_->getAxiom()));
+	this->grammar_.reset(new Grammar(r.grammar_->getAxiom(), r.grammar_->getAllRules()));
 }
 
 RobotRepresentation &RobotRepresentation::operator=(
@@ -107,7 +107,6 @@ bool RobotRepresentation::init(std::string robotTextFile) {
 }
 
 robogenMessage::Robot RobotRepresentation::serialize() const {
-	
 	return this->robotMorph_->serialize();
 }
 

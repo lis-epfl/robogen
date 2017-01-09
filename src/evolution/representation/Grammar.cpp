@@ -275,7 +275,6 @@ bool Grammar::Rule::matchesPredecessor(boost::shared_ptr<PartRepresentation> can
 
 bool Grammar::Rule::mutate(boost::random::mt19937 &rng, boost::shared_ptr<EvolverConfiguration> conf){
 	boost::random::bernoulli_distribution<double> dist(0.5);
-	std::cout << "Entering the power!" << std::endl;
 
 	//We first build a copy of the predecessor to advance it to the last
 	//step of the deletions
@@ -288,7 +287,13 @@ bool Grammar::Rule::mutate(boost::random::mt19937 &rng, boost::shared_ptr<Evolve
 		successor->removePart(deletions_.at(i), false);
 	}
 
+	parts = successor->getBody();
+
 	if(dist(rng)){ //Mutation in the deletion steps
+		if(parts.size()==1){ //We only have the core already
+			return false;
+		}
+
 		std::string target;
 		while(attempt<100){
 			//We generate a uniform random distribution for all pieces in the predecessor.
@@ -312,6 +317,7 @@ bool Grammar::Rule::mutate(boost::random::mt19937 &rng, boost::shared_ptr<Evolve
 		if(attempt==100){
 			return false;
 		} else {
+
 			std::queue<std::string> toEliminate;
 			toEliminate.push(target);
 			while(!toEliminate.empty()){
@@ -423,7 +429,6 @@ bool Grammar::Rule::mutate(boost::random::mt19937 &rng, boost::shared_ptr<Evolve
 			this->insertions_.push_back(tmpStep);
 		}
 	}
-	std::cout << "Leaving the power!" << std::endl;
 }
 
 bool Grammar::Rule::applyRule(boost::shared_ptr<SubRobotRepresentation> robot, boost::shared_ptr<PartRepresentation> node){
@@ -522,8 +527,22 @@ Grammar::Grammar(boost::shared_ptr<SubRobotRepresentation> axiom){
 	this->lastBuildWorked=true;
 }
 
+Grammar::Grammar(boost::shared_ptr<SubRobotRepresentation> axiom, std::vector< boost::shared_ptr<Rule> > rules){
+	//Make the pointer point to a new empty subrobot representation
+    this->axiom_.reset(new SubRobotRepresentation());
+	//Deep copy the passed axiom.
+	*this->axiom_ = *axiom;
+	this->rules_ = rules;
+
+	this->lastBuildWorked=true;
+}
+
 boost::shared_ptr<SubRobotRepresentation> Grammar::getAxiom(void){
 	return this->axiom_;
+}
+
+std::vector< boost::shared_ptr<Grammar::Rule> > Grammar::getAllRules(){
+	return this->rules_;
 }
 
 boost::shared_ptr<SubRobotRepresentation> Grammar::buildTree(void){

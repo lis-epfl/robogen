@@ -117,6 +117,9 @@ private:
 
 	bool mutateAxiom(boost::shared_ptr<RobotRepresentation> &robot);
 
+	bool insertNode(boost::shared_ptr<RobotRepresentation>& robot);
+	bool removeNode(boost::shared_ptr<RobotRepresentation>& robot);
+
 	/**
 	 * Probability distribution for calling mutation operators
 	 */
@@ -124,6 +127,7 @@ private:
 	boost::random::bernoulli_distribution<double> createRuleDist_;
 	boost::random::bernoulli_distribution<double> swapRulesDist_;
 	boost::random::bernoulli_distribution<double> mutateRuleDist_;
+	boost::random::bernoulli_distribution<double> mutateAxiomDist_;
 
 	boost::random::bernoulli_distribution<double> oscillatorNeuronDist_;
 	boost::random::bernoulli_distribution<double> addHiddenNeuronDist_;

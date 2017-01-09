@@ -177,6 +177,31 @@ typedef struct EvolverConfiguration {
 	int maxPredecessorParts;
 
 	/**
+	 * Probability of a swap operation
+	 */
+	double pSwapRules;
+
+	/**
+	 * Probability of a creation operation
+	 */
+	double pCreateRule;
+
+	/**
+	 * Probability of a suppression operation
+	 */
+	double pSuppressRule;
+
+	/**
+	 * Probability of a mutation (rule) operation
+	 */
+	double pMutateRule;
+
+	/**
+	 * Probability of an axiom mutation operation
+	 */
+	double pMutateAxiom;
+
+	/**
 	 *  Flag to continue evolving from provided brain instead of re-initialing
 	 *  params randomly
 	 */

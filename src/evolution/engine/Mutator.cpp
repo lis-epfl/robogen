@@ -81,13 +81,15 @@ IndirectMutator::IndirectMutator(boost::shared_ptr<EvolverConfiguration> conf,
 
 	if (conf_->evolutionMode == EvolverConfiguration::FULL_EVOLVER) {
 		suppressRuleDist_ =
-				boost::random::bernoulli_distribution<double>(0.4);
+				boost::random::bernoulli_distribution<double>(conf->pSuppressRule);
 		createRuleDist_ =
-				boost::random::bernoulli_distribution<double>(0.9);
+				boost::random::bernoulli_distribution<double>(conf->pCreateRule);
 		swapRulesDist_ =
-				boost::random::bernoulli_distribution<double>(0.2);
+				boost::random::bernoulli_distribution<double>(conf->pSwapRules);
 		mutateRuleDist_ =
-				boost::random::bernoulli_distribution<double>(0.4);
+				boost::random::bernoulli_distribution<double>(conf->pMutateRule);
+		mutateAxiomDist_ =
+				boost::random::bernoulli_distribution<double>(conf->pMutateAxiom);
 	}
 }
 
@@ -120,6 +122,105 @@ void IndirectMutator::growBodyRandomly(boost::shared_ptr<RobotRepresentation>& r
 			}
 		}
 	}
+}
+
+bool IndirectMutator::insertNode(boost::shared_ptr<RobotRepresentation>& robot) {
+
+	boost::shared_ptr<SubRobotRepresentation> axiom = robot->getGrammar()->getAxiom();
+
+	const SubRobotRepresentation::IdPartMap& idPartMap = axiom->getBody();
+
+	if ( idPartMap.size() >= conf_->maxBodyParts )
+		return false;
+
+	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
+
+	SubRobotRepresentation::IdPartMap::const_iterator parent;
+	boost::shared_ptr<PartRepresentation> parentPart;
+
+	// find a parent with arity > 0 (will exist, since at the very least will
+	// be the core)
+
+	do {
+		parent = idPartMap.begin();
+		std::advance(parent, dist(rng_));
+		parentPart = parent->second.lock();
+	} while (parentPart->getArity() == 0);
+
+	// Sample a random slot
+	boost::random::uniform_int_distribution<> slotDist(0,
+												parentPart->getArity() - 1);
+	unsigned int parentSlot = slotDist(rng_);
+
+
+	// Select node type
+	boost::random::uniform_int_distribution<> distType(0,
+			conf_->allowedBodyPartTypes.size() - 1);
+	char type = conf_->allowedBodyPartTypes[distType(rng_)];
+
+	// Randomly generate node orientation
+	boost::random::uniform_int_distribution<> orientationDist(0, 3);
+	unsigned int curOrientation = orientationDist(rng_);
+
+	// Randomly generate parameters
+	unsigned int nParams = PART_TYPE_PARAM_COUNT_MAP.at(PART_TYPE_MAP.at(type));
+	std::vector<double> parameters;
+	boost::random::uniform_01<double> paramDist;
+	unsigned int i0Param = 0;
+	//generate a random arity for the parts with variable arity
+	if(PART_TYPE_IS_VARIABLE_ARITY_MAP.at(PART_TYPE_MAP.at(type))){
+		std::pair<double, double> range = PART_TYPE_PARAM_RANGE_MAP.at(
+					std::make_pair(PART_TYPE_MAP.at(type), 0));
+		boost::random::uniform_int_distribution<> arityDist((int)range.first,(int)range.second);
+
+		parameters.push_back(arityDist(rng_));
+		i0Param = 1;
+	}
+	//generate random parameters that can be mutate with mutator::mutateParam
+	for (unsigned int i = i0Param; i < nParams; ++i) {
+		parameters.push_back(paramDist(rng_));
+	}
+
+	// Create the new part
+	boost::shared_ptr<PartRepresentation> newPart = PartRepresentation::create(
+			type, "", curOrientation, parameters);
+
+	unsigned int newPartSlot = 0;
+	if (newPart->getArity() > 0) {
+		// Generate a random slot in the new node, if it has arity > 0
+		// newPartSlot will have the number of the child like the .txt
+		boost::random::uniform_int_distribution<> distNewPartSlot(0,
+				newPart->getArity() - 1);
+		newPartSlot = distNewPartSlot(rng_);
+	}
+	// otherwise just keep it at 0... inserting part will fail if arity is 0 and
+	// there were previously parts attached to the parent's chosen slot
+
+	return axiom->insertPart(parent->first, parentSlot, newPart, newPartSlot,
+			oscillatorNeuronDist_(rng_) ? NeuronRepresentation::OSCILLATOR :
+					NeuronRepresentation::SIGMOID, PRINT_ERRORS);
+			//todo other neuron types?
+
+}
+
+bool IndirectMutator::removeNode(boost::shared_ptr<RobotRepresentation>& robot) {
+
+	boost::shared_ptr<SubRobotRepresentation> axiom = robot->getGrammar()->getAxiom();
+
+
+	// Select node for removal
+	const SubRobotRepresentation::IdPartMap& idPartMap = axiom->getBody();
+	boost::random::uniform_int_distribution<> dist(0, idPartMap.size() - 1);
+	SubRobotRepresentation::IdPartMap::const_iterator partToRemove =
+			idPartMap.begin();
+	std::advance(partToRemove, dist(rng_));
+
+	bool success= axiom->removePart(partToRemove->first, PRINT_ERRORS);
+#ifdef DEBUG_MUTATE
+	std::cout << "Removed " << partToRemove->first << " " << success << std::endl;
+#endif
+	return success;
+
 }
 
 bool IndirectMutator::insertNode(boost::shared_ptr<SubRobotRepresentation>& robot, bool isAxiom){
@@ -407,7 +508,8 @@ bool IndirectMutator::mutateBody(boost::shared_ptr<RobotRepresentation>& robot){
 			std::make_pair(&IndirectMutator::suppressRule, suppressRuleDist_),
 			std::make_pair(&IndirectMutator::createRule, createRuleDist_),
 			std::make_pair(&IndirectMutator::swapRules, swapRulesDist_),
-			std::make_pair(&IndirectMutator::mutateRule, mutateRuleDist_)};
+			std::make_pair(&IndirectMutator::mutateRule, mutateRuleDist_),
+			std::make_pair(&IndirectMutator::mutateAxiom, mutateAxiomDist_)};
 
 	int numOperators = sizeof(mutOpPairs) / sizeof(IndMutOpPair);
 	for (int i = 0; i < numOperators; ++i) {
@@ -475,7 +577,7 @@ bool IndirectMutator::createRule(boost::shared_ptr<RobotRepresentation> &robot){
 
 	int attempt=0;
 
-	if(tmpGrammar->getNumberOfRules()<30){
+	if(tmpGrammar->getNumberOfRules()<20){
 		while(attempt<1000){
 			tmpGrammar->addRule(boost::shared_ptr<Grammar::Rule>(new Grammar::Rule(1, generateRandomPredecessor(), this->rng_, this->conf_)));
 
@@ -560,6 +662,12 @@ bool IndirectMutator::mutateRule(boost::shared_ptr<RobotRepresentation> &robot){
 }
 
 bool IndirectMutator::mutateAxiom(boost::shared_ptr<RobotRepresentation> &robot){
+	boost::random::bernoulli_distribution<double> dist(0.5);
+	if(dist(rng_)){
+		this->insertNode(robot);
+	} else {
+		this->removeNode(robot);
+	}
 	return true;
 }
 
