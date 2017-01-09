@@ -40,13 +40,59 @@ ParametricPrismRenderModel::ParametricPrismRenderModel(
 		boost::shared_ptr<ParametricPrismModel> model) :
 		RenderModel(model), prismModel_(model) {
 
+			this->mesh_.reset(new Mesh());
 }
 
 ParametricPrismRenderModel::~ParametricPrismRenderModel() {
 
 }
 
+//TODO: correct the error due to the commented code
 bool ParametricPrismRenderModel::initRenderModel() {
+ 
+/*	
+	unsigned int faceNumber = (unsigned int) prismModel_->getFaceNumber();
+	
+	bool meshLoading = this->mesh_->loadMesh(RobogenUtils::getMeshFile(
+			this->getModel(),faceNumber));
+
+	if (!meshLoading) {
+		std::cerr << "[CoreComponentRenderModel] Error loading model"
+				<< std::endl;
+		return false;
+	}
+	
+	if (isDebugActive()) {
+		this->showDebugView();
+	}
+	osg::ref_ptr<osg::PositionAttitudeTransform> brick = this->mesh_->getMesh();
+
+
+	this->mesh_->getMesh()->setAttitude(
+			RobogenUtils::getRelativeAttitude(this->getModel(),
+					faceNumber));
+
+	osg::ref_ptr<osg::PositionAttitudeTransform> brickFrame(
+			new osg::PositionAttitudeTransform());
+	brickFrame->addChild(brick);
+
+	this->getMeshes()->addChild(brickFrame.get());
+	brickFrame->setUpdateCallback(
+			new BodyCallback(this->getModel(),
+					faceNumber));
+
+	if (boost::dynamic_pointer_cast<ParametricPrismModel>(this->getModel())->
+					isCore() ) {
+		this->setColor(osg::Vec4(1,0,0,0.7));
+	} else {
+		this->setColor(osg::Vec4(1,1,1,0.7));
+	}
+	if (isDebugActive()) {
+		this->activateTransparency(brick->getOrCreateStateSet());
+	}
+	return true;
+*/
+
 
 	if (isDebugActive()) {
 		this->showDebugView();

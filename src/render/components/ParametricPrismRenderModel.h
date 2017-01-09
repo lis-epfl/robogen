@@ -53,6 +53,7 @@ namespace robogen {
 	private:
 
 		boost::shared_ptr<ParametricPrismModel> prismModel_;
+		boost::shared_ptr<Mesh> mesh_;
 
 	};
 
