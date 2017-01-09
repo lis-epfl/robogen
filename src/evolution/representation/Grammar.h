@@ -64,6 +64,11 @@ namespace robogen{
             };
 
             /**
+             * Map for the param vector mutations
+             */
+            typedef std::pair< std::string, std::vector<double> > paramMutationMap;
+
+            /**
              * Type defined to simplify the insertion and deletion of nodes
              */
             typedef bool (SubRobotRepresentation::*RuleOperation)(boost::shared_ptr<SubRobotRepresentation>&);
@@ -147,6 +152,11 @@ namespace robogen{
              * Insertions steps from the predecessor
              */
             std::vector<buildStep> insertions_;
+
+            /**
+             * Parameter mutation to the successor
+             */
+            std::vector<paramMutationMap> paramMutations_;
 
             /**
              * Successor of the rule
