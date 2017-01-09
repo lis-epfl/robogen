@@ -35,6 +35,8 @@
 #include "evolution/engine/Population.h"
 #include "evolution/engine/Selector.h"
 #include "evolution/engine/Mutator.h"
+#include "evolution/engine/IndirectMutator.h"
+#include "evolution/engine/DirectMutator.h"
 #include "evolution/engine/selectors/DeterministicTournament.h"
 
 #include "evolution/engine/neat/NeatContainer.h"

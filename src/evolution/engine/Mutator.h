@@ -40,6 +40,15 @@
 #include "evolution/representation/RobotRepresentation.h"
 #include "evolution/engine/BodyVerifier.h"
 
+//#define DEBUG_MUTATE
+
+#define PRINT_ERRORS (false)
+
+#ifdef DEBUG_MUTATE
+#define PRINT_ERRORS (true)
+#endif
+
+
 #define MAX_MUTATION_ATTEMPTS 100 //TODO move this somewhere else
 namespace robogen {
 
@@ -55,178 +64,6 @@ public:
 
 	virtual void growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot) = 0;
 	virtual void randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot) = 0;
-};
-
-class IndirectMutator: public Mutator{
-public:
-	/**
-	 * Creates a Robogen brain mutator with the specified settings
-	 * @param pBrainMutate probability for a weight or bias to mutate
-	 * @param brainMuteSigma sigma of normal distribution for brain mutation
-	 * @param pBrainCrossover probability for crossover among brains
-	 */
-	IndirectMutator(boost::shared_ptr<EvolverConfiguration> conf,
-			boost::random::mt19937 &rng);
-
-	virtual ~IndirectMutator();
-
-	/**
-	 * Performs mutation and crossover on a pair of robots
-	 */
-	std::vector<boost::shared_ptr<RobotRepresentation> > createOffspring(
-			boost::shared_ptr<RobotRepresentation> parent1,
-			boost::shared_ptr<RobotRepresentation> parent2 =
-					boost::shared_ptr<RobotRepresentation>());
-
-	void growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot);
-	void randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot);
-
-private:
-	/**
-	 * Evolver Configuration
-	 */
-	boost::shared_ptr<EvolverConfiguration> conf_;
-
-	/**
-	 * Random number generator
-	 */
-	boost::random::mt19937 &rng_;
-
-	/**
-	 * Operators to create a predecessor
-	 */
-	boost::shared_ptr<SubRobotRepresentation> generateRandomPredecessor();
-	bool insertNode(boost::shared_ptr<SubRobotRepresentation>& robot, bool isAxiom);
-
-	/**
-	 * Master Mutator
-	 */
-	bool mutate(boost::shared_ptr<RobotRepresentation>& robot);
-
-	bool mutateBrain(boost::shared_ptr<RobotRepresentation>& robot);
-	bool mutateBody(boost::shared_ptr<RobotRepresentation>& robot);
-
-	/**
-	 * Mutation for the Axiom and the rules 
-	 */
-	
-	bool createRule(boost::shared_ptr<RobotRepresentation> &robot);
-	bool swapRules(boost::shared_ptr<RobotRepresentation> &robot);
-	bool suppressRule(boost::shared_ptr<RobotRepresentation> &robot);
-	bool mutateRule(boost::shared_ptr<RobotRepresentation> &robot);
-
-	bool mutateAxiom(boost::shared_ptr<RobotRepresentation> &robot);
-
-	bool insertNode(boost::shared_ptr<RobotRepresentation>& robot);
-	bool removeNode(boost::shared_ptr<RobotRepresentation>& robot);
-
-	/**
-	 * Probability distribution for calling mutation operators
-	 */
-	boost::random::bernoulli_distribution<double> suppressRuleDist_;
-	boost::random::bernoulli_distribution<double> createRuleDist_;
-	boost::random::bernoulli_distribution<double> swapRulesDist_;
-	boost::random::bernoulli_distribution<double> mutateRuleDist_;
-	boost::random::bernoulli_distribution<double> mutateAxiomDist_;
-
-	boost::random::bernoulli_distribution<double> oscillatorNeuronDist_;
-	boost::random::bernoulli_distribution<double> addHiddenNeuronDist_;
-
-	boost::random::bernoulli_distribution<double> brainMutate_;
-	boost::random::normal_distribution<double> normalDistribution_;
-};
-
-class DirectMutator: public Mutator {
-
-public:
-
-	/**
-	 * Creates a Robogen brain mutator with the specified settings
-	 * @param pBrainMutate probability for a weight or bias to mutate
-	 * @param brainMuteSigma sigma of normal distribution for brain mutation
-	 * @param pBrainCrossover probability for crossover among brains
-	 */
-	DirectMutator(boost::shared_ptr<EvolverConfiguration> conf,
-			boost::random::mt19937 &rng);
-
-	virtual ~DirectMutator();
-
-	/**
-	 * Performs mutation and crossover on a pair of robots
-	 */
-	std::vector<boost::shared_ptr<RobotRepresentation> > createOffspring(
-			boost::shared_ptr<RobotRepresentation> parent1,
-			boost::shared_ptr<RobotRepresentation> parent2 =
-					boost::shared_ptr<RobotRepresentation>());
-
-	void growBodyRandomly(boost::shared_ptr<RobotRepresentation>& robot);
-	void randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot);
-
-private:
-
-	/**
-	 * Mutates a single robot
-	 * @return true if robot has been modified
-	 * @todo specify bounds in the Neural Network, not here, e.g. with
-	 * a MutableDouble class
-	 */
-	bool mutate(boost::shared_ptr<RobotRepresentation>& robot);
-
-	/**
-	 * Performs crossover between two robots
-	 * @return true if some crossover has been performed
-	 * @todo enable asymmetric crossover
-	 */
-	bool crossover(boost::shared_ptr<RobotRepresentation>& a,
-			boost::shared_ptr<RobotRepresentation>& b);
-
-	/**
-	 * Mutation operators
-	 */
-	bool mutateBrain(boost::shared_ptr<RobotRepresentation>& robot);
-	bool mutateBody(boost::shared_ptr<RobotRepresentation>& robot);
-	bool removeSubtree(boost::shared_ptr<RobotRepresentation>& robot);
-	bool duplicateSubtree(boost::shared_ptr<RobotRepresentation>& robot);
-	bool swapSubtrees(boost::shared_ptr<RobotRepresentation>& robot);
-	bool insertNode(boost::shared_ptr<RobotRepresentation>& robot);
-	bool removeNode(boost::shared_ptr<RobotRepresentation>& robot);
-	bool mutateParams(boost::shared_ptr<RobotRepresentation>& robot);
-	bool mutateArity(boost::shared_ptr<RobotRepresentation>& robot);
-
-	/**
-	 * Evolver Configuration
-	 */
-	boost::shared_ptr<EvolverConfiguration> conf_;
-
-	/**
-	 * Random number generator
-	 */
-	boost::random::mt19937 &rng_;
-
-	/**
-	 * Diverse distributions to be used for mutation
-	 */
-	boost::random::bernoulli_distribution<double> brainMutate_;
-	boost::random::normal_distribution<double> normalDistribution_;
-
-
-	boost::random::bernoulli_distribution<double> weightCrossover_;
-
-	/**
-	 * Probability distribution for calling mutation operators
-	 */
-	boost::random::bernoulli_distribution<double> subtreeRemovalDist_;
-	boost::random::bernoulli_distribution<double> subtreeDuplicationDist_;
-	boost::random::bernoulli_distribution<double> subtreeSwapDist_;
-	boost::random::bernoulli_distribution<double> nodeInsertDist_;
-	boost::random::bernoulli_distribution<double> nodeRemovalDist_;
-	boost::random::bernoulli_distribution<double> paramMutateDist_;
-	boost::random::bernoulli_distribution<double> arityMutateDist_;
-
-	boost::random::bernoulli_distribution<double> oscillatorNeuronDist_;
-
-	boost::random::bernoulli_distribution<double> addHiddenNeuronDist_;
-
 };
 
 }
