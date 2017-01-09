@@ -38,7 +38,7 @@
 namespace robogen {
 //helper function for mutations
 //TODO move this somewhere else
-double clip(double value, double min, double max) {
+double clipD(double value, double min, double max) {
 	if ( value < min )
 		return min;
 	if (value > max )
@@ -250,7 +250,7 @@ bool DirectMutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 			mutated = true;
 			*weights[i] += (normalDistribution_(rng_) *
 					conf_->brainWeightSigma);
-			*weights[i] = clip(*weights[i], conf_->minBrainWeight,
+			*weights[i] = clipD(*weights[i], conf_->minBrainWeight,
 					conf_->maxBrainWeight);
 
 		}
@@ -263,7 +263,7 @@ bool DirectMutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 				mutated = true;
 				*params[paramCounter] += (normalDistribution_(rng_) *
 						conf_->brainBiasSigma);
-				*params[paramCounter] = clip(*params[paramCounter],
+				*params[paramCounter] = clipD(*params[paramCounter],
 						conf_->minBrainBias, conf_->maxBrainBias);
 			}
 			paramCounter+=1;
@@ -272,14 +272,14 @@ bool DirectMutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 				mutated = true;
 				*params[paramCounter] += (normalDistribution_(rng_) *
 						conf_->brainBiasSigma);
-				*params[paramCounter] = clip(*params[paramCounter],
+				*params[paramCounter] = clipD(*params[paramCounter],
 						conf_->minBrainBias, conf_->maxBrainBias);
 			}
 			if (brainMutate_(rng_)) {
 				mutated = true;
 				*params[paramCounter+1] += (normalDistribution_(rng_) *
 						conf_->brainTauSigma);
-				*params[paramCounter+1] = clip(*params[paramCounter+1],
+				*params[paramCounter+1] = clipD(*params[paramCounter+1],
 						conf_->minBrainTau, conf_->maxBrainTau);
 			}
 			paramCounter += 2;
@@ -288,21 +288,21 @@ bool DirectMutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 				mutated = true;
 				*params[paramCounter] += (normalDistribution_(rng_) *
 						conf_->brainPeriodSigma);
-				*params[paramCounter] = clip(*params[paramCounter],
+				*params[paramCounter] = clipD(*params[paramCounter],
 						conf_->minBrainPeriod, conf_->maxBrainPeriod);
 			}
 			if (brainMutate_(rng_)) {
 				mutated = true;
 				*params[paramCounter+1] += (normalDistribution_(rng_) *
 						conf_->brainPhaseOffsetSigma);
-				*params[paramCounter+1] = clip(*params[paramCounter+1],
+				*params[paramCounter+1] = clipD(*params[paramCounter+1],
 						conf_->minBrainPhaseOffset, conf_->maxBrainPhaseOffset);
 			}
 			if (brainMutate_(rng_)) {
 				mutated = true;
 				*params[paramCounter+2] += (normalDistribution_(rng_) *
 						conf_->brainAmplitudeSigma);
-				*params[paramCounter+2] = clip(*params[paramCounter+2],
+				*params[paramCounter+2] = clipD(*params[paramCounter+2],
 						conf_->minBrainAmplitude, conf_->maxBrainAmplitude);
 			}
 			paramCounter += 3;
@@ -698,7 +698,7 @@ bool DirectMutator::mutateParams(boost::shared_ptr<RobotRepresentation>& robot) 
 		params[paramToMutate] += (normalDistribution_(rng_) *
 									conf_->bodyParamSigma);
 
-		params[paramToMutate] = clip(params[paramToMutate], 0., 1.);
+		params[paramToMutate] = clipD(params[paramToMutate], 0., 1.);
 		return ( fabs(oldParamValue - params[paramToMutate]) >
 					RobogenUtils::EPSILON_2 );
 	}
