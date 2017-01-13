@@ -224,7 +224,7 @@ bool Scenario::init(dWorldID odeWorld, dSpaceID odeSpace,
 			RobogenConfig::ELEVATE_ROBOT) {
 
 		robot->translateRobot(
-				osg::Vec3(startingPosition.x(), startingPosition.y(),
+				osg::Vec3(0, 0,
 						overlapMaxZ + inMm(2) - minZ));
 	}
 
