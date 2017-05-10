@@ -287,10 +287,19 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	// exposes x,y,z as read only properties
 	emscripten::class_<osg::Vec3>("Vec3")
 			//.constructor<float, float, float>()
-			.property("x",static_cast<float(osg::Vec3::*)() const>(&osg::Vec3::x))
-			.property("y",static_cast<float(osg::Vec3::*)() const>(&osg::Vec3::y))
-			.property("z",static_cast<float(osg::Vec3::*)() const>(&osg::Vec3::z))
+			.property("x",static_cast<osg::Vec3::value_type(osg::Vec3::*)() const>(&osg::Vec3::x))
+			.property("y",static_cast<osg::Vec3::value_type(osg::Vec3::*)() const>(&osg::Vec3::y))
+			.property("z",static_cast<osg::Vec3::value_type(osg::Vec3::*)() const>(&osg::Vec3::z))
 			;
+
+	emscripten::class_<osg::Quat>("Quat")
+			//.constructor<float, float, float>()
+			.property("x",static_cast<osg::Quat::value_type(osg::Quat::*)() const>(&osg::Quat::x))
+			.property("y",static_cast<osg::Quat::value_type(osg::Quat::*)() const>(&osg::Quat::y))
+			.property("z",static_cast<osg::Quat::value_type(osg::Quat::*)() const>(&osg::Quat::z))
+			.property("w",static_cast<osg::Quat::value_type(osg::Quat::*)() const>(&osg::Quat::w))
+			;
+
 
 	emscripten::class_<Model>("Model")
 		.smart_ptr<boost::shared_ptr<Model> >("shared_ptr<Model>")
@@ -313,6 +322,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 		.function("getVelocity", &Motor::getVelocity)
 		.function("getPosition", &Motor::getPosition)
 		.function("getTorque", &Motor::getTorque)
+		.function("getId", &getMotorId)
 		;
 
 	emscripten::class_<Robot>("Robot")
