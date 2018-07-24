@@ -131,8 +131,41 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::deserialize(
 
 	std::vector<double> params;
 
+	// setup params, check if correct number (will be re-checked in create,
+	// but need to know here in order to be sure can get value from map)
+	std::string partType = PART_TYPE_MAP.at(type);
+	if (partMessage.evolvableparam_size() !=
+			PART_TYPE_PARAM_COUNT_MAP.at(partType)) {
+
+		std::cerr << "The parameter count (" << params.size()
+				<< ") does not equal the requested parameter count ("
+				<< PART_TYPE_PARAM_COUNT_MAP.at(partType) << ") for the part: '"
+				<< partMessage.id() << "'" << std::endl;
+		return boost::shared_ptr<PartRepresentation>();
+	}
+
+	// now check if value is in range and then
+	// map to [0,1] (inverse of what happens on serialize)
 	for (int i=0; i<partMessage.evolvableparam_size(); ++i) {
-		params.push_back(partMessage.evolvableparam(i).paramvalue());
+		std::pair<double, double> ranges = PART_TYPE_PARAM_RANGE_MAP.at(
+						std::make_pair(partMessage.type(), i));
+
+		double rawParamValue = partMessage.evolvableparam(i).paramvalue();
+
+		// round to prevent weird floating point issues
+		rawParamValue = round(rawParamValue * 10000)/10000.0;
+
+		if ( rawParamValue < ranges.first || rawParamValue > ranges.second ) {
+			std::cerr << partType << " requires param " << i
+					  << " to be in [" << ranges.first << ", "
+					  << ranges.second << "], but " << rawParamValue
+					  << " was received" << std::endl;
+			return boost::shared_ptr<PartRepresentation>();
+		}
+
+		params.push_back((fabs(ranges.first - ranges.second) < 1e-6) ? 0 :
+							(rawParamValue - ranges.first)
+							/ (ranges.second - ranges.first));
 	}
 
 	return PartRepresentation::create(type, partMessage.id(),
@@ -144,13 +177,13 @@ boost::shared_ptr<PartRepresentation> PartRepresentation::create(char type,
 		std::string id, unsigned int orientation, std::vector<double> params) {
 
 	if (PART_TYPE_MAP.count(type) == 0) {
-		std::cout << "Unknown part type '" << type << "'" << std::endl;
+		std::cerr << "Unknown part type '" << type << "'" << std::endl;
 		return boost::shared_ptr<PartRepresentation>();
 	}
 
 	std::string partType = PART_TYPE_MAP.at(type);
 	if (params.size() != PART_TYPE_PARAM_COUNT_MAP.at(partType)) {
-		std::cout << "The parameter count (" << params.size()
+		std::cerr << "The parameter count (" << params.size()
 				<< ") does not equal the requested parameter count ("
 				<< PART_TYPE_PARAM_COUNT_MAP.at(partType) << ") for the part: '"
 				<< id << "'" << std::endl;

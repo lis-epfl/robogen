@@ -1192,17 +1192,18 @@ bool RobotRepresentation::createRobotMessageFromJSON(robogenMessage::Robot
 	if(!robotMessage.has_brain()) {
 		std::cout << "No brain provided, so will create default."
 				<< std::endl;
-
-		// leverage initFromMessage functionality to create default brain
-
-		RobotRepresentation robot;
-		if (!robot.initFromMessage(robotMessage)) {
-			std::cerr << "Failed interpreting robot message!" << std::endl;
-			return false;
-		}
-		robotMessage = robot.serialize();
-
 	}
+
+	// leverage initFromMessage functionality to create default brain
+	// and perform checks
+
+	RobotRepresentation robot;
+	if (!robot.initFromMessage(robotMessage)) {
+		std::cerr << "Failed interpreting robot message!" << std::endl;
+		return false;
+	}
+	robotMessage = robot.serialize();
+
 	return true;
 }
 
