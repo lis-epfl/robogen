@@ -146,7 +146,7 @@ if(TARGET_JS) ############################## JS VERSION #####################
 		                -Wredundant-decls -Wwrite-strings -Wmissing-include-dirs 
 		                -Wswitch-enum -Wuninitialized 
 		                -Wswitch-default -Winit-self -Wshadow -Wfloat-equal -fPIC )
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s DISABLE_EXCEPTION_CATCHING=0")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s DISABLE_EXCEPTION_CATCHING=0 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 ")
 	endif()
 
 	file(GLOB_RECURSE ROBOGEN_JS_SOURCES 
