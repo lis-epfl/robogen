@@ -444,6 +444,13 @@ bool RobotRepresentation::initFromMessage(const robogenMessage::Robot &robot) {
 
 	// to keep the hard references around
 	std::vector<boost::shared_ptr<PartRepresentation> > parts;
+	
+	// verify have at least one part
+	if(body.part_size() == 0) {
+		std::cerr << "Empty robot body!" << std::endl;
+		return false;
+	}
+
 	// add all parts
 	for(int i=0; i<body.part_size(); ++i) {
 		current = PartRepresentation::deserialize(body.part(i));

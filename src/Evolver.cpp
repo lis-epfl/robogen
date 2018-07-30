@@ -237,12 +237,13 @@ void init(unsigned int seed, std::string outputDirectory,
 	bool hasRobot = (
 			(conf->usingFiles && conf->referenceRobotFile.length() > 0)
 			||
-			(!conf->usingFiles && conf->referenceRobotJSON.length() > 0)
+			(!conf->usingFiles && conf->referenceRobotJSON.length() > 0
+					&& conf->referenceRobotJSON != "{}")
 			);
 
 	if (conf->evolutionMode == EvolverConfiguration::BRAIN_EVOLVER
 			&& !hasRobot) {
-		std::cerr << "Trying to evolve brain, but no robot file provided."
+		std::cerr << "Trying to evolve brain, but no reference robot provided."
 				<< std::endl;
 		exitRobogen(EXIT_FAILURE);
 	} else if (hasRobot) {
