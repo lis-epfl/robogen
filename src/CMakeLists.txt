@@ -204,9 +204,9 @@ if(TARGET_JS) ############################## JS VERSION #####################
 
 		include_directories(${CMAKE_CURRENT_BINARY_DIR})
 	
-		add_executable(app "js/RobogenJS.cpp" ${ROBOGEN_JS_SOURCES} 
+		add_executable(robogen_cpp "js/RobogenJS.cpp" ${ROBOGEN_JS_SOURCES} 
 			"${CMAKE_BINARY_DIR}/robogen.pb.cc")
-		target_link_libraries(app ${ROBOGEN_JS_LIBRARIES})
+		target_link_libraries(robogen_cpp ${ROBOGEN_JS_LIBRARIES})
 	endif()
 
 else() ############################## C++ VERSION #####################
