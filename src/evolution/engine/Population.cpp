@@ -51,6 +51,7 @@ bool Population::init(boost::shared_ptr<RobotRepresentation> robot, int popSize,
 		boost::shared_ptr<Mutator> mutator, bool growBodies,
 		bool randomizeBrains) {
 
+
 	// fill population vector
 	for (int i = 0; i < popSize; i++) {
 

@@ -50,8 +50,9 @@ public:
 	 * order the population by fitness.
 	 * @param robotConfig the robot configuration
 	 * @param sockets a vector of Socket pointers. On each should be a simulator
+	 * @return Amount of individuals that were evaluated
 	 */
-	void evaluate(boost::shared_ptr<RobogenConfig> robotConfig, std::vector<Socket*> &sockets);
+	int evaluate(boost::shared_ptr<RobogenConfig> robotConfig, std::vector<Socket*> &sockets);
 
 	/**
 	 * Sorts individuals from best to worst.

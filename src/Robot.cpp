@@ -164,15 +164,13 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 		const robogenMessage::BodyPart& bodyPart = robotBody.part(i);
 		boost::shared_ptr<Model> model = RobogenUtils::createModel(bodyPart,
 				odeWorld_, odeSpace_);
-
-		if (model == NULL) {
+		if (!model) {
 			if (printInitErrors_) {
 				std::cerr << "Unrecognized body part: " << bodyPart.id()
 					<< "." << std::endl;
 			}
 			return false;
 		}
-
 		model->initModel();
 		model->setRootPosition(osg::Vec3(x, y, z));
 		bodyParts_.push_back(model);
@@ -277,9 +275,8 @@ bool Robot::decodeBody(const robogenMessage::Body& robotBody) {
 	}
 
 
-
 	// Look for the root node and modify its position to the origin
-	bodyParts_[rootNode_]->setRootPosition(osg::Vec3(0, 0, 0));
+	if(bodyParts_[rootNode_]) bodyParts_[rootNode_]->setRootPosition(osg::Vec3(0, 0, 0));
 
 	// get the connections
 	bodyTree_.reset(new BodyGraph(robotBody.part_size()));

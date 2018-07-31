@@ -77,7 +77,7 @@ void evaluationThread(
 
 }
 
-void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
+int IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 		std::vector<Socket*> &sockets) {
 
 	// 1. Create mutexed queue of Individual pointers
@@ -88,7 +88,8 @@ void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 			indiQueue.push(this->at(i));
 		}
 	}
-	std::cout << indiQueue.size() << " individuals queued for evaluation."
+	int amount = indiQueue.size();
+	std::cout << amount << " individuals queued for evaluation."
 			<< " Progress:" << std::endl;
 
 #ifdef EMSCRIPTEN
@@ -122,8 +123,33 @@ void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 		}
 		message += "]}";
 	}
+	/*if(!amount)
+	{
+		++sent;
+		FakeJSSocket socket;
+		int ptrToIndividual = (int)NULL;
+		if (!firstIndividual) {
+			message += ",";
+		} else {
+			firstIndividual = false;
+		}
+		message += "{ptr:";
+		message += boost::lexical_cast<std::string>(ptrToIndividual);
+		message += ", packet : [";
+		bool firstByte = true;
+		std::vector<unsigned char> content {'\0'};
+		for (size_t k = 0 ; k < content.size(); ++k) {
+			if (!firstByte) {
+				message += ",";
+			} else {
+				firstByte = false;
+			}
+			message += boost::lexical_cast<std::string>((int) content[k]);
+		}
+		message += "]}";
+	}*/
 	message += "]";
-	sendJSEvent("needsEvaluation", message);
+	if(amount) sendJSEvent("needsEvaluation", message);
 	std::cout << sent << " individual sent to the javascript scheduler" << std::endl;
 
 #else
@@ -146,6 +172,7 @@ void IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 #endif
 
 	evaluated_ = true;
+	return amount;
 }
 
 bool robotFitnessComparator(const boost::shared_ptr<RobotRepresentation>& a,

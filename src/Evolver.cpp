@@ -381,7 +381,9 @@ void mainEvolutionLoop() {
 						<< std::endl;
 				exitRobogen(EXIT_FAILURE);
 			}
+			std::cout << "Evaluating population..." << std::endl;
 			population->evaluate(robotConf, sockets);
+			std::cout << "Evaluated population." << std::endl;
 
 		} else {
 			selector->initPopulation(population);
@@ -422,14 +424,20 @@ void mainEvolutionLoop() {
 					numOffspring++;
 				}
 			}
-			children.evaluate(robotConf, sockets);
+			std::cout << "Evaluating children..." << std::endl;
+			if(!children.evaluate(robotConf, sockets)) triggerPostEvaluate();
+			std::cout << "Evaluated children." << std::endl;
 		}
 #ifndef EMSCRIPTEN
+		std::cout << "Triggering post evaluation..." << std::endl;
 		triggerPostEvaluate();
+		std::cout << "Triggered post evaluation." << std::endl;
 #endif
 	} else {
 #ifdef EMSCRIPTEN
+		std::cout << "Terminating evolution..." << std::endl;
 		sendJSEvent("evolutionTerminated", "{}");
+		std::cout << "Terminated evolution." << std::endl;
 #endif
 
 	}
@@ -477,6 +485,7 @@ std::string EMSCRIPTEN_KEEPALIVE runEvolutionNew(emscripten::val args,
 		std::string evolConfJSON) {
 	try {
 
+		std::cout << "Config JSON: " << evolConfJSON << std::endl;
 		int seed = -1;
 
 		if(!args.isNull()) {

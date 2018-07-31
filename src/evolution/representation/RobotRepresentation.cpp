@@ -69,7 +69,12 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 
 	// special treatment for base-pointed instances of derived classes as are
 	// our body parts
-	bodyTree_ = r.bodyTree_->cloneSubtree();
+	if(r.bodyTree_) bodyTree_ = r.bodyTree_->cloneSubtree();
+	else
+	{
+		std::cout << "Warning: Could not clone subtree due to the robot not having a body tree.  This may cause undefined behavior." << std::endl;
+		bodyTree_ = r.bodyTree_;
+	}
 	// neural network pointer needs to be reset to a copy-constructed instance
 	neuralNetwork_.reset(
 			new NeuralNetworkRepresentation(*(r.neuralNetwork_.get())));
@@ -80,6 +85,7 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 	while (!q.empty()) {
 		boost::shared_ptr<PartRepresentation> cur = q.front();
 		q.pop();
+		if(!cur) continue;
 		idToPart_[cur->getId()] = boost::weak_ptr<PartRepresentation>(cur);
 		for (unsigned int i = 0; i < cur->getArity(); ++i) {
 			if (cur->getChild(i)) {
@@ -694,7 +700,8 @@ robogenMessage::Robot RobotRepresentation::serialize() const {
 	// id - this can probably be removed
 	message.set_id(1);
 	// body
-	bodyTree_->addSubtreeToBodyMessage(message.mutable_body(), true);
+	if(bodyTree_) bodyTree_->addSubtreeToBodyMessage(message.mutable_body(), true);
+	else std::cout << "No subtree to add to body message." << std::endl;
 	// brain
 	*(message.mutable_brain()) = neuralNetwork_->serialize();
 	return message;
