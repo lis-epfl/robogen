@@ -70,7 +70,7 @@ RobotRepresentation::RobotRepresentation(const RobotRepresentation &r) {
 	// special treatment for base-pointed instances of derived classes as are
 	// our body parts
 	if(!r.bodyTree_) {
-		std::cerr << "Error: Robot has no body!\n"
+		std::cerr << "Error: Robot has no body!\n";
 		exitRobogen(EXIT_FAILURE);
 	}
 	bodyTree_ = r.bodyTree_->cloneSubtree();
@@ -699,7 +699,7 @@ robogenMessage::Robot RobotRepresentation::serialize() const {
 	message.set_id(1);
 	// body
 	if(!bodyTree_) {
-		std::cerr << "Error: Robot has no body!\n"
+		std::cerr << "Error: Robot has no body!\n";
 		exitRobogen(EXIT_FAILURE);	
 	}
 	bodyTree_->addSubtreeToBodyMessage(message.mutable_body(), true);
