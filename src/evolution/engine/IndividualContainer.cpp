@@ -124,7 +124,8 @@ int IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 		message += "]}";
 	}
 	message += "]";
-	if(amount) sendJSEvent("needsEvaluation", message);
+	if(amount)
+		sendJSEvent("needsEvaluation", message);
 	std::cout << sent << " individual sent to the javascript scheduler" << std::endl;
 
 #else

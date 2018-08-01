@@ -423,9 +423,11 @@ void mainEvolutionLoop() {
 				}
 			}
 #ifdef EMSCRIPTEN
-			if(!children.evaluate(robotConf, sockets)) triggerPostEvaluate();
+			if(!children.evaluate(robotConf, sockets))
+				triggerPostEvaluate();
 #else
-			children.evaluate(robotConf, sockets)
+			cout << children.evaluate(robotConf, sockets) << 
+				" individuals evaluated\n";
 #endif
 		}
 #ifndef EMSCRIPTEN
@@ -481,7 +483,6 @@ std::string EMSCRIPTEN_KEEPALIVE runEvolutionNew(emscripten::val args,
 		std::string evolConfJSON) {
 	try {
 
-		std::cout << "Config JSON: " << evolConfJSON << std::endl;
 		int seed = -1;
 
 		if(!args.isNull()) {
