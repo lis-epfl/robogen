@@ -426,8 +426,8 @@ void mainEvolutionLoop() {
 			if(!children.evaluate(robotConf, sockets))
 				triggerPostEvaluate();
 #else
-			cout << children.evaluate(robotConf, sockets) << 
-				" individuals evaluated\n";
+			std::cout << children.evaluate(robotConf, sockets) << 
+					" individuals evaluated\n";
 #endif
 		}
 #ifndef EMSCRIPTEN
