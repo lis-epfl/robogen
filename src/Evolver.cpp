@@ -381,9 +381,7 @@ void mainEvolutionLoop() {
 						<< std::endl;
 				exitRobogen(EXIT_FAILURE);
 			}
-			std::cout << "Evaluating population..." << std::endl;
 			population->evaluate(robotConf, sockets);
-			std::cout << "Evaluated population." << std::endl;
 
 		} else {
 			selector->initPopulation(population);
@@ -424,24 +422,18 @@ void mainEvolutionLoop() {
 					numOffspring++;
 				}
 			}
-			std::cout << "Evaluating children..." << std::endl;
 #ifdef EMSCRIPTEN
 			if(!children.evaluate(robotConf, sockets)) triggerPostEvaluate();
 #else
 			children.evaluate(robotConf, sockets)
 #endif
-			std::cout << "Evaluated children." << std::endl;
 		}
 #ifndef EMSCRIPTEN
-		std::cout << "Triggering post evaluation..." << std::endl;
 		triggerPostEvaluate();
-		std::cout << "Triggered post evaluation." << std::endl;
 #endif
 	} else {
 #ifdef EMSCRIPTEN
-		std::cout << "Terminating evolution..." << std::endl;
 		sendJSEvent("evolutionTerminated", "{}");
-		std::cout << "Terminated evolution." << std::endl;
 #endif
 
 	}

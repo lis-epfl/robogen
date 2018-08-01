@@ -123,31 +123,6 @@ int IndividualContainer::evaluate(boost::shared_ptr<RobogenConfig> robotConf,
 		}
 		message += "]}";
 	}
-	/*if(!amount)
-	{
-		++sent;
-		FakeJSSocket socket;
-		int ptrToIndividual = (int)NULL;
-		if (!firstIndividual) {
-			message += ",";
-		} else {
-			firstIndividual = false;
-		}
-		message += "{ptr:";
-		message += boost::lexical_cast<std::string>(ptrToIndividual);
-		message += ", packet : [";
-		bool firstByte = true;
-		std::vector<unsigned char> content {'\0'};
-		for (size_t k = 0 ; k < content.size(); ++k) {
-			if (!firstByte) {
-				message += ",";
-			} else {
-				firstByte = false;
-			}
-			message += boost::lexical_cast<std::string>((int) content[k]);
-		}
-		message += "]}";
-	}*/
 	message += "]";
 	if(amount) sendJSEvent("needsEvaluation", message);
 	std::cout << sent << " individual sent to the javascript scheduler" << std::endl;
