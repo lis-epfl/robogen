@@ -28,6 +28,7 @@
  */
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "brain/NeuralNetwork.h"
 
@@ -53,9 +54,10 @@ void initNetwork(NeuralNetwork* network, unsigned int nInputs,
 
 	network->nNonInputs = nOutputs + nHidden;
 
-	/* Initialize states */
+	/* Initialize states and data */
 	for (i = 0; i < network->nNonInputs; ++i) {
 		network->state[i] = 0.0;
+        network->nData[i] = 0.0;
 	}
 
 	/* Initialize inputs */
@@ -128,18 +130,32 @@ void step(NeuralNetwork* network, float time) {
 			/* TODO should this consider inputs too?? */
 			/* params are period, phase offset, gain (amplitude) */
 
-
 			float period = network->params[MAX_PARAMS*i];
 			float phaseOffset = network->params[MAX_PARAMS*i + 1];
 			float gain = network->params[MAX_PARAMS*i + 2];
 			network->state[i] = ((sin( (2.0*PI/period) *
 				 (time - period * phaseOffset))) + 1.0) / 2.0;
-
+            
+            printf("%f", network->activations[i]);
+                 
 			/* set output to be in [0.5 - gain/2, 0.5 + gain/2] */
 			network->state[i] = (0.5 - (gain/2.0) +
 					network->state[i] * gain);
 
-		}
+            
+            
+		} else if (network->types[i] == CPG) {
+            /* TODO add equation phi_d[i] = omega + sigma * input[i] * cos(phi[i])*/
+
+            float d_phi = network->params[MAX_PARAMS*i];;
+            float phi = network->state[i];
+            float prev_time = network->nData[i];
+            float dt = time - prev_time;
+            
+            network->state[i] = phi + d_phi*dt;
+            
+            network->nData[i] = time;
+        }
 	}
 
 }

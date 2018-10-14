@@ -58,7 +58,8 @@ enum neuronType{
 		SIGMOID,
 		CTRNN_SIGMOID,
 		OSCILLATOR,
-		SUPG
+		SUPG,
+		CPG
 };
 
 
@@ -101,7 +102,8 @@ typedef struct {
 	 */
 	float state[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 	float activations[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
-
+    float nData[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
+    
 	/**
 	 * One input state for each input neuron
 	 */
@@ -133,6 +135,8 @@ typedef struct {
 	 * The number of non-inputs (i.e. nOutputs + nHidden)
 	 */
 	unsigned int nNonInputs;
+    
+    
 
 } NeuralNetwork;
 
