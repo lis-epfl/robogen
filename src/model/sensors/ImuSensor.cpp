@@ -53,84 +53,90 @@ ImuSensor::~ImuSensor() {
 void ImuSensor::update(const osg::Vec3& position, const osg::Quat& attitude,
 		float timeElapsed, const osg::Vec3& gravity) {
 
-	if (!initialized_) {
-		position_ = position;
-		attitude_ = attitude;
-		velocity_ = osg::Vec3(0, 0, 0);
-		acceleration_ = osg::Vec3(0, 0, 0);
-		rotVelocity_ = osg::Vec3(0, 0, 0);
-		initialized_ = true;
-	}
+        if (!initialized_) {
+            position_ = position;
+            attitude_ = attitude;
+            velocity_ = osg::Vec3(0, 0, 0);
+            acceleration_ = osg::Vec3(0, 0, 0);
+            rotVelocity_ = osg::Vec3(0, 0, 0);
+            initialized_ = true;
+        }
 
-	// =======================
-	// 1. get attitude-agnostic IMU values (gyro knows attitude!)
-	// =======================
-	// position
-	osg::Vec3 dPos = position - position_;
-	position_ = position;
-	// velocity & acceleration
-	osg::Vec3 velocity = dPos / timeElapsed;
-	acceleration_ = (velocity - velocity_) / timeElapsed;
-	// subtract gravity from acceleration
-	// in standard case this means subtracting -9.81 (i.e. adding 9.81) to z
-	// (Positive, same effect as if accelerating up)
-	acceleration_ -= gravity;
-	velocity_ = velocity;
-	// rotation
-	double angle;
-	osg::Vec3 rotaxis;
-	osg::Quat dAttitude = attitude / attitude_; // this is attitude_.inverse() * attitude
-	// in particular, no need to project!
-	attitude_ = attitude;
-	dAttitude.getRotate(angle, rotaxis);
-	rotaxis.normalize(); // should be the case, but let's be safe
-
-
-	/*
-	 * We were having problems with sign switches in the quaternions
-	 * leading to thinking that we had huge changes of orientations
-	 * So we just assume that we never are rotating more than PI radians
-	 * in one time step, and adjust the angle accordingly
-	 */
-
-	while (angle > M_PI) {
-		angle -= (2*M_PI);
-	}
-
-	while (angle < (-M_PI)) {
-		angle += (2*M_PI);
-	}
-
-	rotVelocity_ = rotaxis * angle / timeElapsed;
+        // =======================
+        // 1. get attitude-agnostic IMU values (gyro knows attitude!)
+        // =======================
+        // position
+        osg::Vec3 dPos = position - position_;
+        position_ = position;
+        // velocity & acceleration
+        osg::Vec3 velocity = dPos / timeElapsed;
+        acceleration_ = (velocity - velocity_) / timeElapsed;
+        // subtract gravity from acceleration
+        // in standard case this means subtracting -9.81 (i.e. adding 9.81) to z
+        // (Positive, same effect as if accelerating up)
+        acceleration_ -= gravity;
+        velocity_ = velocity;
+        // rotation
+        double angle;
+        osg::Vec3 rotaxis;
+        osg::Quat dAttitude = attitude / attitude_; // this is attitude_.inverse() * attitude
+        // in particular, no need to project!
+        attitude_ = attitude;
+        dAttitude.getRotate(angle, rotaxis);
+        rotaxis.normalize(); // should be the case, but let's be safe
 
 
-	// =======================
-	// 2. create unit vectors for IMU reference system
-	// =======================
-	osg::Vec3 imuRef[3];
-	for (int i = 0; i < 3; i++) {
-		imuRef[i] = osg::Vec3((i == 0) ? 1 : 0, (i == 1) ? 1 : 0,
-				(i == 2) ? 1 : 0);
-		imuRef[i] = attitude * imuRef[i];
-	}
+        /*
+        * We were having problems with sign switches in the quaternions
+        * leading to thinking that we had huge changes of orientations
+        * So we just assume that we never are rotating more than PI radians
+        * in one time step, and adjust the angle accordingly
+        */
 
-	// =======================
-	// 3. project accelerations onto IMU reference system
-	// =======================
-	osg::Vec3 accVal;
-	for (int ref = 0; ref < 3; ref++) {
-		// imuRef is unit, so simply scalar product
-		accVal[ref] = acceleration_ * imuRef[ref];
-	}
+        while (angle > M_PI) {
+            angle -= (2*M_PI);
+        }
 
-	sensors_[0]->updateValue(accVal.x());
-	sensors_[1]->updateValue(accVal.y());
-	sensors_[2]->updateValue(accVal.z());
-	sensors_[3]->updateValue(rotVelocity_.x());
-	sensors_[4]->updateValue(rotVelocity_.y());
-	sensors_[5]->updateValue(rotVelocity_.z());
+        while (angle < (-M_PI)) {
+            angle += (2*M_PI);
+        }
 
-}
+        rotVelocity_ = rotaxis * angle / timeElapsed;
+
+
+        // =======================
+        // 2. create unit vectors for IMU reference system
+        // =======================
+        osg::Vec3 imuRef[3];
+        for (int i = 0; i < 3; i++) {
+            imuRef[i] = osg::Vec3((i == 0) ? 1 : 0, (i == 1) ? 1 : 0,
+                    (i == 2) ? 1 : 0);
+            imuRef[i] = attitude * imuRef[i];
+        }
+
+        // =======================
+        // 3. project accelerations onto IMU reference system
+        // =======================
+        osg::Vec3 accVal;
+        for (int ref = 0; ref < 3; ref++) {
+            // imuRef is unit, so simply scalar product
+            accVal[ref] = acceleration_ * imuRef[ref];
+        }
+
+        sensors_[0]->updateValue(accVal.x());
+        sensors_[1]->updateValue(accVal.y());
+        sensors_[2]->updateValue(accVal.z());
+        sensors_[3]->updateValue(rotVelocity_.x());
+        sensors_[4]->updateValue(rotVelocity_.y());
+        sensors_[5]->updateValue(rotVelocity_.z());
+        
+        /*std::cout << "Acc x value: " << sensors_[0]->read() << std::endl;
+        std::cout << "Acc y value: " << sensors_[1]->read() << std::endl;
+        std::cout << "Acc z value: " << sensors_[2]->read() << std::endl;
+        std::cout << "Rot x value: " << sensors_[3]->read() << std::endl;
+        std::cout << "Rot y value: " << sensors_[4]->read() << std::endl;
+        std::cout << "Rot z value: " << sensors_[5]->read() << std::endl;*/
+    }
 
 
 }

@@ -46,6 +46,7 @@ void NeuronRepresentation::init(ioPair identification, unsigned int layer,
 	period_ = 0;
 	tau_ = 0;
 	gain_ = 1.;
+	omega_ = 0.;
 
 }
 
@@ -101,6 +102,10 @@ void NeuronRepresentation::setParams(unsigned int type,
 		period_ = params[0];
 		phaseOffset_ = params[1];
 		gain_ = params[2]; // gain is amplitude for oscillators
+	} else if (type == CPG) {
+		omega_ = params[0];
+		//phaseOffset_ = params[1];
+		//gain_ = params[2]; // gain is amplitude for oscillators
 	} else {
 		std::cout<<"ALERT: ****\n Invalid type " << type <<"\n****\n";
 	}
@@ -118,6 +123,10 @@ void NeuronRepresentation::getParamsPointers(std::vector<double*> &params){
 		params.push_back(&period_);
 		params.push_back(&phaseOffset_);
 		params.push_back(&gain_);
+	} else if (type_ == CPG) {
+		params.push_back(&omega_);
+		//params.push_back(&phaseOffset_);
+		//params.push_back(&gain_);
 	}
 }
 
@@ -151,6 +160,10 @@ robogenMessage::Neuron NeuronRepresentation::serialize(){
 		serialization.set_type("oscillator");
 		serialization.set_period(period_);
 		serialization.set_phaseoffset(phaseOffset_);
+	} else if (type_ == CPG) {
+		serialization.set_type("cpg");
+		serialization.set_period(omega_);
+		//serialization.set_phaseoffset(phaseOffset_);
 	}
 	serialization.set_gain(gain_);
 	return serialization;

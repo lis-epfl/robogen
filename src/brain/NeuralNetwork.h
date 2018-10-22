@@ -42,6 +42,11 @@
  */
 #define MAX_PARAMS 3
 
+/* 
+ * max data parameters used for the CPG model (phi, prev_time)
+ */
+#define MAX_DATA 3
+
 
 /* HEADER_FOOTER_BREAK */
 
@@ -102,7 +107,11 @@ typedef struct {
 	 */
 	float state[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
 	float activations[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
-    float nData[(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
+    
+    /*
+     * nData is used to hold parameters for the CPG model
+     */
+    float nData[MAX_DATA*(MAX_OUTPUT_NEURONS + MAX_HIDDEN_NEURONS)];
     
 	/**
 	 * One input state for each input neuron

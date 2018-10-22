@@ -33,6 +33,7 @@
 #include "brain/NeuralNetwork.h"
 
 #define PI 3.14159265358979323846
+#define MAX_POS_SERVO 45*PI/180
 
 void initNetwork(NeuralNetwork* network, unsigned int nInputs,
 		unsigned int nOutputs, unsigned int nHidden,
@@ -136,7 +137,7 @@ void step(NeuralNetwork* network, float time) {
 			network->state[i] = ((sin( (2.0*PI/period) *
 				 (time - period * phaseOffset))) + 1.0) / 2.0;
             
-            printf("%f", network->activations[i]);
+            //printf("%f", network->activations[i]);
                  
 			/* set output to be in [0.5 - gain/2, 0.5 + gain/2] */
 			network->state[i] = (0.5 - (gain/2.0) +
@@ -146,15 +147,30 @@ void step(NeuralNetwork* network, float time) {
             
 		} else if (network->types[i] == CPG) {
             /* TODO add equation phi_d[i] = omega + sigma * input[i] * cos(phi[i])*/
-
-            float d_phi = network->params[MAX_PARAMS*i];;
-            float phi = network->state[i];
-            float prev_time = network->nData[i];
+			
+			float d_phi = 0.;
+            float omega = network->params[MAX_PARAMS*i];
+            float phi = network->nData[MAX_DATA*i + 1];
+            float prev_time = network->nData[MAX_DATA*i + 2];
             float dt = time - prev_time;
             
-            network->state[i] = phi + d_phi*dt;
+			
+			d_phi = omega + network->activations[i];
+			
+            printf("d_phi = %f \n", d_phi);
+            printf("phi = %f \n", phi);
+            printf("time = %f \n", time);
             
-            network->nData[i] = time;
+            
+            phi = phi + (d_phi)*dt;
+            
+            network->state[i] = 0.5*(sin(2*PI*phi)+1);
+            
+            printf("state = %f \n", network->state[i]);
+            
+            //phi = network->state[i];
+            network->nData[MAX_DATA*i + 1] = phi;
+            network->nData[MAX_DATA*i + 2] = time;
         }
 	}
 

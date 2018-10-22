@@ -95,7 +95,7 @@ dReal Motor::getTorque() {
 
 	double torque =  ftorque1 * axis;
 
-	//printf ("torque: % 1.10f\n", torque);
+	printf ("torque: % 1.10f\n", torque);
 	return torque;
 }
 

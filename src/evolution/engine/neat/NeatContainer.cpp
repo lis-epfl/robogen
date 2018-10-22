@@ -389,6 +389,18 @@ bool NeatContainer::fillBrain(NEAT::Genome *genome,
 					params.push_back( outputs[4] * (evoConf_->maxBrainAmplitude -
 							evoConf_->minBrainAmplitude) +
 							evoConf_->minBrainAmplitude);
+				} else if(neuronI->getType() == NeuronRepresentation::CPG) {
+					// period
+					params.push_back( outputs[2] * (evoConf_->maxBrainPeriod -
+							evoConf_->minBrainPeriod) + evoConf_->minBrainPeriod);
+					// phase offset
+					params.push_back( outputs[3] * (evoConf_->maxBrainPhaseOffset -
+							evoConf_->minBrainPhaseOffset) +
+							evoConf_->minBrainPhaseOffset);
+					// amplitude
+					params.push_back( outputs[4] * (evoConf_->maxBrainAmplitude -
+							evoConf_->minBrainAmplitude) +
+							evoConf_->minBrainAmplitude);
 				} else {
 					std::cout << "INVALID TYPE ENCOUNTERED " << neuronI->getType()
 							<< std::endl;

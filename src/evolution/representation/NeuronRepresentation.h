@@ -56,7 +56,8 @@ public:
 		SIGMOID,
 		CTRNN_SIGMOID,
 		OSCILLATOR,
-		SUPG
+		SUPG,
+        CPG
 	};
 
 	/**
@@ -159,6 +160,8 @@ private:
 	double period_;
 
 	double gain_;
+	
+	double omega_;
 };
 
 } /* namespace robogen */

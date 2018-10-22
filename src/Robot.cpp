@@ -446,7 +446,13 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				params[nOutputs * MAX_PARAMS + 1] = neuron.phaseoffset();
 				params[nOutputs * MAX_PARAMS + 2] = neuron.gain();
 				types[nOutputs] = OSCILLATOR;
-			} else {
+			} else if (neuron.type().compare("cpg") == 0){
+                params[nOutputs * MAX_PARAMS] = neuron.period();
+                
+                std::cout << "CPG found! :)" << neuron.period() << std::endl;
+                types[nOutputs] = CPG;
+                
+            } else{
 				//TODO add in this stuff for other neurons
 				if (printInitErrors_) {
 					std::cerr << "only sigmoid and oscillator neurons supported "

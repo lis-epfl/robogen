@@ -186,7 +186,19 @@ bool NeuralNetworkRepresentation::setParams(std::string bodyPart, int ioId,
 				std::endl;
 		removeIncomingConnections(it->second);
 
-	} else {
+	} else if(type == NeuronRepresentation::CPG) {
+		if (params.size() != 1) {
+			std::cout << "Invalid number of params for cpg neuron type.";
+			std::cout << " Received "<< params.size() << ", but expected 1.";
+			std::cout << std::endl;
+			return false;
+		}
+		std::cout << "neuron " << bodyPart << " " << ioId <<
+				" set to be cpg.  Will remove incoming connections" <<
+				std::endl;
+		removeIncomingConnections(it->second);
+
+	}else {
 		std::cout << "Invalid neuron type "	<< type << std::endl;
 		return false;
 	}

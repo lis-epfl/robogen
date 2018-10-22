@@ -179,6 +179,14 @@ void Mutator::randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 			*params[paramCounter + 2] = distrib(rng_) * (conf_->maxBrainAmplitude -
 					conf_->minBrainAmplitude) + conf_->minBrainAmplitude;
 			paramCounter += 3;
+		} else if(types[i] == NeuronRepresentation::CPG) {
+			*params[paramCounter] = distrib(rng_) * (conf_->maxBrainPeriod -
+					conf_->minBrainPeriod) + conf_->minBrainPeriod;
+			*params[paramCounter + 1] = distrib(rng_) * (conf_->maxBrainPhaseOffset -
+					conf_->minBrainPhaseOffset) + conf_->minBrainPhaseOffset;
+			*params[paramCounter + 2] = distrib(rng_) * (conf_->maxBrainAmplitude -
+					conf_->minBrainAmplitude) + conf_->minBrainAmplitude;
+			paramCounter += 3;
 		} else {
 			std::cout << "INVALID TYPE ENCOUNTERED " << types[i] << std::endl;
 		}
@@ -282,6 +290,29 @@ bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 			}
 			paramCounter += 2;
 		} else if(types[i] == NeuronRepresentation::OSCILLATOR) {
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter] += (normalDistribution_(rng_) *
+						conf_->brainPeriodSigma);
+				*params[paramCounter] = clip(*params[paramCounter],
+						conf_->minBrainPeriod, conf_->maxBrainPeriod);
+			}
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter+1] += (normalDistribution_(rng_) *
+						conf_->brainPhaseOffsetSigma);
+				*params[paramCounter+1] = clip(*params[paramCounter+1],
+						conf_->minBrainPhaseOffset, conf_->maxBrainPhaseOffset);
+			}
+			if (brainMutate_(rng_)) {
+				mutated = true;
+				*params[paramCounter+2] += (normalDistribution_(rng_) *
+						conf_->brainAmplitudeSigma);
+				*params[paramCounter+2] = clip(*params[paramCounter+2],
+						conf_->minBrainAmplitude, conf_->maxBrainAmplitude);
+			}
+			paramCounter += 3;
+		} else if(types[i] == NeuronRepresentation::CPG) {
 			if (brainMutate_(rng_)) {
 				mutated = true;
 				*params[paramCounter] += (normalDistribution_(rng_) *

@@ -240,7 +240,9 @@ void parseTypeString(std::string typeString, unsigned int &type) {
 		type = NeuronRepresentation::CTRNN_SIGMOID;
 	else if(typeString == "oscillator")
 		type = NeuronRepresentation::OSCILLATOR;
-	else {
+    else if(typeString == "cpg")
+		type = NeuronRepresentation::CPG;
+    else {
 		std::cerr << "Invalid neuron type: " << typeString << std::endl;
 		exitRobogen(EXIT_FAILURE);
 	}

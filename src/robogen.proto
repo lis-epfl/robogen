@@ -40,7 +40,8 @@ message Neuron {
   optional float tau = 7;
   optional float phaseOffset = 8;
   optional float period = 9;  
-  optional float gain = 10; 
+  optional float gain = 10;
+  optional float omega = 11;
 }
 
 message Brain {
