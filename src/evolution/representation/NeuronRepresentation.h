@@ -160,8 +160,6 @@ private:
 	double period_;
 
 	double gain_;
-	
-	double omega_;
 };
 
 } /* namespace robogen */
