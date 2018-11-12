@@ -254,11 +254,12 @@ void parseTypeString(std::string typeString, unsigned int &type) {
  */
 bool robotTextFileReadAddNeuronLine(std::ifstream &file, std::string &partId,
 		unsigned int &type) {
-
+	
 	static const boost::regex rx("^([^\\s]+) ([^\\s]+)\\s*$");
 	boost::cmatch match;
 	std::string line;
 	RobogenUtils::safeGetline(file, line);
+	
 	if (boost::regex_match(line.c_str(), match, rx)) {
 		// match[0]:whole string, match[1]:partId match[2]:type string
 		partId.assign(match[1]);
@@ -291,7 +292,9 @@ bool robotTextFileReadParamsLine(std::ifstream &file, std::string &node,
 	static const boost::regex biasRx("^([^\\s]+) (\\d+) (-?\\d*\\.?\\d*)\\s*$");
 	boost::cmatch match;
 	std::string line;
+	
 	RobogenUtils::safeGetline(file, line);
+		
 	if (boost::regex_match(line.c_str(), match, generalRx)) {
 		node.assign(match[1]);
 		ioId = std::atoi(match[2].first);
