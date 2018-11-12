@@ -146,7 +146,6 @@ void step(NeuralNetwork* network, float time) {
             
             
 		} else if (network->types[i] == CPG) {
-            /* TODO add equation phi_d[i] = omega + sigma * input[i] * cos(phi[i])*/
 			
 			float d_phi = 0.;
             float omega = network->params[MAX_PARAMS*i];
@@ -157,16 +156,16 @@ void step(NeuralNetwork* network, float time) {
 			
 			d_phi = omega + network->activations[i];
 			
-            printf("d_phi = %f \n", d_phi);
-            printf("phi = %f \n", phi);
-            printf("time = %f \n", time);
+            //printf("d_phi = %f \n", d_phi);
+            //printf("phi = %f \n", phi);
+            //printf("time = %f \n", time);
             
             
             phi = phi + (d_phi)*dt;
             
             network->state[i] = 0.5*(sin(2*PI*phi)+1);
             
-            printf("state = %f \n", network->state[i]);
+            //printf("state = %f \n", network->state[i]);
             
             //phi = network->state[i];
             network->nData[MAX_DATA*i + 1] = phi;
