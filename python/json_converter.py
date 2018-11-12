@@ -101,7 +101,7 @@ def write_brain(output, brain):
 if __name__ == "__main__":
 
     if len(sys.argv) < 3 :
-        print "Usage: python json_converter.py input.json output.txt"
+        print("Usage: python json_converter.py input.json output.txt")
         exit()
     
     robot = json.load(open(sys.argv[1],"r"))

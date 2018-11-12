@@ -1,10 +1,10 @@
-import pylab
+import pylab as pylab
 import numpy as np
 import sys
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 :
-        print "Usage: python plot_results.py BestAvgStd.txt"
+        print("Usage: python plot_results.py BestAvgStd.txt")
         exit()
 
     results_file = sys.argv[1]
