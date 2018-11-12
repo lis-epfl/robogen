@@ -135,6 +135,7 @@ bool NeuralNetworkRepresentation::setWeight(ioPair fromPair, ioPair toPair,
 
 bool NeuralNetworkRepresentation::setParams(std::string bodyPart, int ioId,
 		unsigned int type, std::vector<double> params) {
+	
 	NeuronMap::iterator it = neurons_.find(ioPair(bodyPart, ioId));
 	if (it == neurons_.end()) {
 		std::cout << "Specified weight output io id pair " << bodyPart << " "
@@ -194,9 +195,9 @@ bool NeuralNetworkRepresentation::setParams(std::string bodyPart, int ioId,
 			return false;
 		}
 		std::cout << "neuron " << bodyPart << " " << ioId <<
-				" set to be cpg.  Will remove incoming connections" <<
+				" set to be cpg." <<
 				std::endl;
-		removeIncomingConnections(it->second);
+		//removeIncomingConnections(it->second);
 
 	}else {
 		std::cout << "Invalid neuron type "	<< type << std::endl;
