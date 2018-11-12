@@ -448,9 +448,7 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 				types[nOutputs] = OSCILLATOR;
 			} else if (neuron.type().compare("cpg") == 0){
                 params[nOutputs * MAX_PARAMS] = neuron.period();
-                
-                std::cout << "CPG found! :)" << neuron.period() << std::endl;
-                types[nOutputs] = CPG;
+				types[nOutputs] = CPG;
                 
             } else{
 				//TODO add in this stuff for other neurons
