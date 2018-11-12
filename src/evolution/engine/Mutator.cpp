@@ -48,8 +48,6 @@ Mutator::Mutator(boost::shared_ptr<EvolverConfiguration> conf,
 		conf_(conf), rng_(rng), brainMutate_(conf->pBrainMutate),
 		weightCrossover_(conf->pBrainCrossover) {
 
-
-
 	addHiddenNeuronDist_ = boost::random::bernoulli_distribution<double>(
 			conf->pAddHiddenNeuron);
 
@@ -157,7 +155,12 @@ void Mutator::randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 	for (unsigned int i = 0; i < weights.size(); ++i) {
 		*weights[i] = distrib(rng_) * (conf_->maxBrainWeight -
 				conf_->minBrainWeight) + conf_->minBrainWeight;
+		
+		//std::cout << "Weight" <<i <<": " << weights[i] << std::endl;
 	}
+	
+	
+	
 	// set params (biases, etc)
 	unsigned int paramCounter = 0;
 	for (unsigned int i = 0; i < types.size(); ++i) {
@@ -182,11 +185,11 @@ void Mutator::randomizeBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 		} else if(types[i] == NeuronRepresentation::CPG) {
 			*params[paramCounter] = distrib(rng_) * (conf_->maxBrainPeriod -
 					conf_->minBrainPeriod) + conf_->minBrainPeriod;
-			*params[paramCounter + 1] = distrib(rng_) * (conf_->maxBrainPhaseOffset -
-					conf_->minBrainPhaseOffset) + conf_->minBrainPhaseOffset;
-			*params[paramCounter + 2] = distrib(rng_) * (conf_->maxBrainAmplitude -
-					conf_->minBrainAmplitude) + conf_->minBrainAmplitude;
-			paramCounter += 3;
+// 			*params[paramCounter + 1] = distrib(rng_) * (conf_->maxBrainPhaseOffset -
+// 					conf_->minBrainPhaseOffset) + conf_->minBrainPhaseOffset;
+// 			*params[paramCounter + 2] = distrib(rng_) * (conf_->maxBrainAmplitude -
+// 					conf_->minBrainAmplitude) + conf_->minBrainAmplitude;
+			paramCounter += 1;
 		} else {
 			std::cout << "INVALID TYPE ENCOUNTERED " << types[i] << std::endl;
 		}
@@ -320,21 +323,23 @@ bool Mutator::mutateBrain(boost::shared_ptr<RobotRepresentation>& robot) {
 				*params[paramCounter] = clip(*params[paramCounter],
 						conf_->minBrainPeriod, conf_->maxBrainPeriod);
 			}
-			if (brainMutate_(rng_)) {
-				mutated = true;
-				*params[paramCounter+1] += (normalDistribution_(rng_) *
-						conf_->brainPhaseOffsetSigma);
-				*params[paramCounter+1] = clip(*params[paramCounter+1],
-						conf_->minBrainPhaseOffset, conf_->maxBrainPhaseOffset);
-			}
-			if (brainMutate_(rng_)) {
-				mutated = true;
-				*params[paramCounter+2] += (normalDistribution_(rng_) *
-						conf_->brainAmplitudeSigma);
-				*params[paramCounter+2] = clip(*params[paramCounter+2],
-						conf_->minBrainAmplitude, conf_->maxBrainAmplitude);
-			}
-			paramCounter += 3;
+// 			if (brainMutate_(rng_)) {
+// 				mutated = true;
+// 				*params[paramCounter+1] += (normalDistribution_(rng_) *
+// 						conf_->brainPhaseOffsetSigma);
+// 				*params[paramCounter+1] = clip(*params[paramCounter+1],
+// 						conf_->minBrainPhaseOffset, conf_->maxBrainPhaseOffset);
+// 			}
+// 			if (brainMutate_(rng_)) {
+// 				mutated = true;
+// 				std::cout << "params size: " << params.size() << std::endl;
+// 				
+// 				*params[paramCounter+2] += (normalDistribution_(rng_) *
+// 						conf_->brainAmplitudeSigma);
+// 				*params[paramCounter+2] = clip(*params[paramCounter+2],
+// 						conf_->minBrainAmplitude, conf_->maxBrainAmplitude);
+// 			}
+// 			paramCounter += 3;
 		} else {
 			std::cout << "INVALID TYPE ENCOUNTERED " << types[i] << std::endl;
 		}
