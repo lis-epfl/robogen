@@ -58,15 +58,18 @@ Contributions
 Here, we keep track of those who have contributed to the project.
 
 Current LIS members :
+* **anandbaskaran** Anand Bhaskaran, anand.bhaskaran@epfl.ch
+* **davide** Davide Zappetti, davide.zappetti@epfl.ch
 * **jauerb** Joshua Auerbach, joshua.auerbach@epfl.ch
-* **aliceconcordel** Alice Concordel, alice.concordel@epfl.ch
-* **GregoireH** Grégoire Heitz, gregoire.heitz@gmail.com
 * Przemyslaw Kornatowski, przemyslaw.kornatowski@epfl.ch
 
 Semester Project Students :
 * **GuillaumeLeclerc** Guillaume Leclerc, guillaume.leclerc@epfl.ch
 
 Former LIS members :
+* **jauerb** Joshua Auerbach, joshua.auerbach@epfl.ch
+* **aliceconcordel** Alice Concordel, alice.concordel@epfl.ch
+* **GregoireH** Grégoire Heitz, gregoire.heitz@gmail.com
 * **amaesani** Andrea Maesani, andrea.maesani@epfl.ch
 * **loshchil** Ilya Loshchilov, ilya.loshchilov@gmail.com
 * **daydin** Deniz Aydin, deniz.aydin@epfl.ch
