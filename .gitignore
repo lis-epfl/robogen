@@ -10,6 +10,11 @@ NeuralNetwork.template
 # Ignore eclipse project files
 .cproject
 .project
+.directory
+.kdev4
+*.sh.kate-swp
+
+/python/
 
 # Don't ignore this file
 !.gitignore

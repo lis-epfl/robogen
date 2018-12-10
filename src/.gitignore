@@ -1,0 +1,7 @@
+.directory
+
+# Ignore kdev4 files
+*.kdev4
+
+# Except this file
+
