@@ -81,6 +81,26 @@ void feed(NeuralNetwork* network, const float *input) {
 	for (i = 0; i < network->nInputs; ++i) {
 		network->input[i] = input[i];
 	}
+	
+	// Check if normalized
+	int count = 0;
+	
+	if(fabs(network->input[i]) > 1){
+		printf("Input %d = %f\n", i, network->input[i]);
+		
+		if(network->input[i] > 1.)
+			network->input[i] = 1.;
+		else if(network->input[i] < -1.)
+			network->input[i] = -1;
+		
+		printf("Input %d = %f\n", i, network->input[i]);
+		
+		count += 1;
+	}
+	
+	if(count > 0)
+		printf("Count of non normalized inputs : %d\n", count);
+	
 
 }
 
