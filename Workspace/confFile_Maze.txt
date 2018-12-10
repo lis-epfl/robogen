@@ -1,0 +1,13 @@
+scenario=fitness_racing_maze.js
+timeStep=0.005
+actuationFrequency=25
+obstaclesConfigFile=world_simpleMaze.txt
+simulationTime=10	
+terrainType=flat
+terrainLength=0.0
+terrainWidth=0.0
+terrainFriction=1.0
+sensorNoiseLevel=0.0
+motorNoiseLevel=0.0
+capAcceleration=false
+maxDirectionShiftsPerSecond=26

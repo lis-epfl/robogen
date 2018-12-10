@@ -1,0 +1,43 @@
+0 CoreComponent Core 0
+	0 FixedBrick Neck1 0 
+		0 FixedBrick Neck2 0
+			0 FixedBrick Neck3 0
+				0 FixedBrick Chest 0
+					0 FixedBrick Waist1 0
+						0 FixedBrick Waist2 0
+							0 FixedBrick Waist3 0
+								0 FixedBrick Hip 0
+									0 FixedBrick Tail1 0
+										0 FixedBrick Tail2 0
+									1 ActiveHinge Knee1 2
+										0 FixedBrick Foreleg1 0
+											0 ActiveHinge Ankle1 0
+												0 FixedBrick Paw3 0
+									2 ActiveHinge Knee2 2
+										0 FixedBrick Foreleg2 0
+											0 ActiveHinge Ankle2 0
+												0 FixedBrick Paw4 0
+					1 ActiveHinge Shoulder1 2
+						0 FixedBrick Forearm1 0
+							0 ActiveHinge Wrist1 0
+								0 FixedBrick Paw1 0
+					2 ActiveHinge Shoulder2 2
+						0 FixedBrick Forearm2 0
+							0 ActiveHinge Wrist2 0
+								0 FixedBrick Paw2 0
+	1 IrSensor Eye1 0 
+	2 IrSensor Eye2 0 
+	3 IrSensor Eye3 0 
+
+
+
+Shoulder1 0 CPG 1
+Shoulder2 0 CPG -1
+Knee1 0 CPG -1
+Knee2 0 CPG 1
+Wrist1 0 CPG 0
+Wrist2 0 CPG 0
+Ankle1 0 CPG 0
+Ankle2 0 CPG 0
+
+
