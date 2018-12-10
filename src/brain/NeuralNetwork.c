@@ -110,7 +110,8 @@ void step(NeuralNetwork* network, float time) {
 	unsigned int j = 0;
 	unsigned int baseIndexOutputWeigths =
 			network->nNonInputs * network->nInputs;
-
+	float phi = network->nData[MAX_DATA*i + 1];	
+			
 	if (network->nOutputs == 0) {
 		return;
 	}
@@ -120,16 +121,42 @@ void step(NeuralNetwork* network, float time) {
 	for (i = 0; i < network->nNonInputs; ++i) { 
 
 		network->activations[i] = 0;
+		network->input_act[i] = 0;
+		network->coupling[i] = 0;
 
 		for (j = 0; j < network->nInputs; ++j) {
 			network->activations[i] += network->weight[network->nNonInputs * j + i]
 					* network->input[j];
+					
+			//printf("Weight In:%f\n",network->weight[network->nNonInputs * j + i]);
 		}
 
 		for (j = 0; j < network->nNonInputs; ++j) {
 			network->activations[i] += network->weight[baseIndexOutputWeigths
 					+ network->nNonInputs * j + i]
 					* network->state[j];
+// 			printf("Weight NonIn:%f\n",network->weight[baseIndexOutputWeigths
+// 					+ network->nNonInputs * j + i]);
+
+		}
+		
+		//New activation that takes only inputs informations
+		for (j = 0; j < network->nInputs; ++j) {
+			network->input_act[i] += network->weight[network->nNonInputs * j + i]
+					* network->input[j];
+					
+			//printf("Input %d: %f\n",j, network->input[j]);
+		}
+	}
+	
+	/*For each CPG, sum the coupling term with all other CPGs*/
+	for(i = 0; i < network->nOutputs; ++i){
+		for (j = 0; j < network->nOutputs; ++j) {
+			
+			//No self connection term
+			if(j != i)
+				network->coupling[i] += network->weight[baseIndexOutputWeigths
+					+ network->nNonInputs * j + i]*sin(phi - network->nData[MAX_DATA*j+2]); //- bias;
 		}
 	}
 
