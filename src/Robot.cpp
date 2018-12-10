@@ -691,7 +691,22 @@ bool Robot::decodeBrain(const robogenMessage::Brain& robotBrain) {
 	}
 	::initNetwork(neuralNetwork_.get(), nInputs, nOutputs, nHidden,
 			&weight[0], &params[0], &types[0]);
-
+	
+	
+	std::cout << "Robot weights" << std::endl;
+	for (unsigned int i = 0; i < (nInputs + nOutputs + nHidden)*(nOutputs + nHidden); ++i)
+	{	
+		std::cout << weight[i] << " ";
+	}
+	std::cout << std::endl;
+	
+	std::cout << "Robot parameters" << std::endl;
+	for (unsigned int i = 0; i < (nOutputs + nHidden)*MAX_PARAMS; ++i)
+	{	
+		std::cout << params[i] << " ";
+	}
+	std::cout << std::endl;
+	
 	return true;
 
 }
