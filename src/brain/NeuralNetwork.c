@@ -58,7 +58,10 @@ void initNetwork(NeuralNetwork* network, unsigned int nInputs,
 	/* Initialize states and data */
 	for (i = 0; i < network->nNonInputs; ++i) {
 		network->state[i] = 0.0;
-        network->nData[i] = 0.0;
+	}
+	
+	for (i = 0; i < 3*network->nNonInputs; ++i){
+		network->nData[i] = 0.0;
 	}
 
 	/* Initialize inputs */
