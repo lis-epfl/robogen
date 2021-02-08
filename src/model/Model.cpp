@@ -68,8 +68,10 @@ osg::Quat Model::getRootAttitude() {
 std::set<boost::shared_ptr<AbstractBody> > Model::bodiesToMove() {
 	std::set<boost::shared_ptr<AbstractBody> > rootBodies;
 
-	for(size_t i=0; i<bodies_.size(); ++i) {
-		boost::shared_ptr<AbstractBody> bodyRoot = bodies_[i]->getRoot();
+	// iterate over bodies_
+	std::map<int, boost::shared_ptr<SimpleBody> >::iterator it;
+	for(it = bodies_.begin(); it != bodies_.end(); it++){
+		boost::shared_ptr<AbstractBody> bodyRoot = it->second->getRoot();
 		boost::shared_ptr<CompositeBody> composite =
 						boost::dynamic_pointer_cast<CompositeBody>(bodyRoot);
 		if( !(composite && composite->isMultiModel()) ) {
